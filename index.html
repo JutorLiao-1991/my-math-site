@@ -26,7 +26,7 @@
 
         /* --- 頂部導航與 Logo --- */
         header {
-            padding: 2rem 5%;
+            padding: 1.5rem 5%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -40,23 +40,27 @@
 
         .logo-area {
             display: flex;
-            align-items: center;
+            align-items: center; /* 讓圖片跟文字垂直置中 */
+            justify-content: center;
             gap: 15px;
             margin-bottom: 1.5rem;
         }
 
-        .logo-img {
-            width: 50px; /* Logo 大小 */
-            height: 50px;
-            background-color: var(--accent); /* 預設佔位色，放圖片後可移除 */
-            border-radius: 50%;
-            object-fit: cover;
+        /* 修正後的 Logo 樣式 */
+        .logo {
+            height: 45px;          /* 設定高度跟文字差不多 */
+            width: auto;           /* 寬度自動 */
+            background-color: #fff; /* 因為您的 Logo 是黑線，加個白底才看得到 */
+            border-radius: 50%;    /* 變成圓形 */
+            padding: 2px;          /* 留一點邊距 */
+            object-fit: contain;
         }
 
         h1 {
             font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: 1px;
+            margin: 0;
             background: linear-gradient(90deg, #fff, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -94,6 +98,7 @@
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 5%;
+            min-height: 60vh; /* 確保內容少時頁尾不會跑上來 */
         }
 
         .grid {
@@ -128,6 +133,9 @@
 
         .card-body {
             padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
 
         .tags {
@@ -159,6 +167,7 @@
             color: var(--text-sub);
             font-size: 0.9rem;
             margin-bottom: 1.5rem;
+            flex-grow: 1; /* 讓敘述佔據剩餘空間 */
         }
 
         .card-footer {
@@ -181,6 +190,7 @@
             font-size: 0.8rem;
             border-top: 1px solid #334155;
             margin-top: 3rem;
+            background: #0f172a;
         }
     </style>
 </head>
@@ -188,7 +198,7 @@
 
     <header>
         <div class="logo-area">
-            <img src="images\logo.jpg" alt="鳩特老師 Logo" class="logo">
+            <img src="logo.jpg" alt="鳩特老師 Logo" class="logo">
             <h1>鳩特老師的互動教學網站</h1>
         </div>
         
@@ -197,7 +207,6 @@
             <button class="filter-btn" onclick="filterSelection('junior')">國中區</button>
             <button class="filter-btn" onclick="filterSelection('senior')">高中區</button>
             <button class="filter-btn" onclick="filterSelection('language')">語言學習</button>
-            
         </div>
     </header>
 
@@ -271,7 +280,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2024 Math & Science Interactive Lab. All rights reserved.</p>
+        <p>&copy; 2024 鳩特老師的互動教學網站. All rights reserved.</p>
     </footer>
 
     <script>
@@ -280,17 +289,17 @@
             var cards = document.getElementsByClassName("card");
             var buttons = document.getElementsByClassName("filter-btn");
 
-// 1. 處理按鈕樣式 (Active State)
-for (var i = 0; i < buttons.length; i++) {
-    buttons[i].classList.remove("active");
-    var text = buttons[i].textContent;
-    
-    // 判斷哪個按鈕該亮燈
-    if (category === 'all' && text.includes('全部')) buttons[i].classList.add("active");
-    else if (category === 'junior' && text.includes('國中')) buttons[i].classList.add("active");
-    else if (category === 'senior' && text.includes('高中')) buttons[i].classList.add("active");
-    else if (category === 'language' && text.includes('語言')) buttons[i].classList.add("active"); // 新增這行
-}
+            // 1. 處理按鈕樣式 (Active State)
+            for (var i = 0; i < buttons.length; i++) {
+                buttons[i].classList.remove("active");
+                var text = buttons[i].textContent;
+                
+                // 判斷哪個按鈕該亮燈
+                if (category === 'all' && text.includes('全部')) buttons[i].classList.add("active");
+                else if (category === 'junior' && text.includes('國中')) buttons[i].classList.add("active");
+                else if (category === 'senior' && text.includes('高中')) buttons[i].classList.add("active");
+                else if (category === 'language' && text.includes('語言')) buttons[i].classList.add("active");
+            }
             
             // 2. 顯示/隱藏卡片
             for (var i = 0; i < cards.length; i++) {
@@ -307,8 +316,4 @@ for (var i = 0; i < buttons.length; i++) {
         }
     </script>
 </body>
-
 </html>
-
-
-
