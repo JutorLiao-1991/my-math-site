@@ -147,6 +147,7 @@
         .tag.math { background: rgba(56, 189, 248, 0.15); color: #38bdf8; } /* 數學藍 */
         .tag.phys { background: rgba(168, 85, 247, 0.15); color: #a855f7; } /* 物理紫 */
         .tag.chem { background: rgba(34, 197, 94, 0.15);  color: #22c55e; } /* 化學綠 */
+        .tag.lang { background: rgba(251, 146, 60, 0.15); color: #fb923c; } /* 語言橘 */
 
         .card-title {
             color: var(--text-main);
@@ -195,6 +196,8 @@
             <button class="filter-btn active" onclick="filterSelection('all')">全部顯示</button>
             <button class="filter-btn" onclick="filterSelection('junior')">國中區</button>
             <button class="filter-btn" onclick="filterSelection('senior')">高中區</button>
+            <button class="filter-btn" onclick="filterSelection('language')">語言學習</button>
+            
         </div>
     </header>
 
@@ -266,17 +269,17 @@
             var cards = document.getElementsByClassName("card");
             var buttons = document.getElementsByClassName("filter-btn");
 
-            // 1. 處理按鈕樣式 (Active State)
-            // 找出被點擊的按鈕並加上 active class，移除其他的
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove("active");
-                if (buttons[i].textContent.includes(
-                    category === 'all' ? '全部' : 
-                    category === 'junior' ? '國中' : '高中'
-                )) {
-                    buttons[i].classList.add("active");
-                }
-            }
+// 1. 處理按鈕樣式 (Active State)
+for (var i = 0; i < buttons.length; i++) {
+    buttons[i].classList.remove("active");
+    var text = buttons[i].textContent;
+    
+    // 判斷哪個按鈕該亮燈
+    if (category === 'all' && text.includes('全部')) buttons[i].classList.add("active");
+    else if (category === 'junior' && text.includes('國中')) buttons[i].classList.add("active");
+    else if (category === 'senior' && text.includes('高中')) buttons[i].classList.add("active");
+    else if (category === 'language' && text.includes('語言')) buttons[i].classList.add("active"); // 新增這行
+}
             
             // 2. 顯示/隱藏卡片
             for (var i = 0; i < cards.length; i++) {
@@ -293,4 +296,5 @@
         }
     </script>
 </body>
+
 </html>
