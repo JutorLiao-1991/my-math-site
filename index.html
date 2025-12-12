@@ -50,7 +50,7 @@
         .logo {
             height: 45px;          /* 設定高度跟文字差不多 */
             width: auto;           /* 寬度自動 */
-            background-color: #fff; /* 因為您的 Logo 是黑線，加個白底才看得到 */
+            background-color: #fff; /* 防止 PNG 透明導致黑線看不到，保留白底 */
             border-radius: 50%;    /* 變成圓形 */
             padding: 2px;          /* 留一點邊距 */
             object-fit: contain;
@@ -198,7 +198,7 @@
 
     <header>
         <div class="logo-area">
-            <img src="logo.jpg" alt="鳩特老師 Logo" class="logo">
+            <img src="logo.png" alt="鳩特老師 Logo" class="logo">
             <h1>鳩特老師的互動教學網站</h1>
         </div>
         
