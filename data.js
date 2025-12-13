@@ -41,5 +41,13 @@ const lessonData = [
         tagClass: "lang",
         tagName: "語言學習",
         desc: "點擊單字播放發音，並進行即時聽寫練習。"
+    },
+    {
+        title: "日文假名特訓",
+        category: "language",
+        url: "language/japanese/jp_menu.html",
+        tagClass: "lang",
+        tagName: "日文學習",
+        desc: "包含平假名、片假名以及濁音的完整練習，適合初學者入門。"
     }
 ];
