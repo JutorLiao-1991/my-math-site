@@ -89,11 +89,11 @@
                     <input type="checkbox" id="check-pos" checked>
                 </label>
                 <label>
-                    <span>速度 (<span style="color:#22c55e">●</span> $\vec{v}$)</span>
+                    <span>速度 (<span style="color:#22c55e">●</span> $\vec{v}, \theta$)</span>
                     <input type="checkbox" id="check-vel">
                 </label>
                 <label>
-                    <span>加速度 (<span style="color:#ef4444">●</span> $\vec{a}$)</span>
+                    <span>加速度 (<span style="color:#ef4444">●</span> $\vec{a}, \theta$)</span>
                     <input type="checkbox" id="check-acc">
                 </label>
             </div>
@@ -124,7 +124,7 @@
             shm: "#f472b6",  
             guide: "rgba(255, 255, 255, 0.2)",
             text: "#e2e8f0",
-            angle: "#facc15" // 黃色角度
+            angle: "#facc15" 
         };
 
         const ui = {
@@ -185,12 +185,11 @@
         function loop() {
             requestAnimationFrame(loop);
             if (!isPaused) time += 0.02 * params.omega;
-
             if (!width || !height) resize();
 
             ctx.clearRect(0, 0, width, height);
 
-            const theta = time; 
+            const theta = time % (2 * Math.PI); // 正規化角度 0-2PI
             const physX = params.R * Math.cos(theta);
             const physY = params.R * Math.sin(theta);
             const canvasX = physX;
@@ -202,7 +201,7 @@
             drawSystemGrid(params.cx, params.cy);
             drawCircle(params.cx, params.cy, params.R);
             drawWaveSystem(canvasX, canvasY);
-            drawSHMSystem(canvasX, canvasY, theta); // 傳入 theta 用於顯示公式
+            drawSHMSystem(canvasX, canvasY, theta);
             drawParticle(px, py, "#fff", 6);
             drawVectors(canvasX, canvasY, theta, px, py);
         }
@@ -256,6 +255,29 @@
                 }
                 ctx.shadowBlur = 0; 
             }
+        }
+
+        // 輔助函式：畫角度弧線
+        function drawAngle(cx, cy, startAngle, endAngle, r = 25, label = "θ") {
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, r, startAngle, endAngle, false); // 預設順時針 false? Canvas y向下，角度逆時針增長
+            // Canvas 角度: 0(右), -PI/2(上), PI(左), PI/2(下)
+            ctx.closePath();
+            ctx.fillStyle = "rgba(250, 204, 21, 0.2)"; 
+            ctx.fill();
+            ctx.strokeStyle = colors.angle;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 標示文字
+            const midAngle = (startAngle + endAngle) / 2;
+            const textR = r + 12;
+            ctx.fillStyle = colors.angle;
+            ctx.font = "bold 16px serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label, cx + textR * Math.cos(midAngle), cy + textR * Math.sin(midAngle));
         }
 
         function drawSystemGrid(cx, cy) {
@@ -353,20 +375,35 @@
                 
                 drawParticle(params.cx + canvasX, shmY, colors.shm, 8);
                 
-                // 數學公式顯示 (若開啟位置)
+                // 動態公式顯示
+                let formulaText = "";
+                let formulaVal = "";
+                
                 if (ui.showPos.checked) {
+                    const val = Math.cos(theta).toFixed(2);
+                    formulaText = "x = R cos(θ)";
+                    formulaVal = `= ${params.R} × ${val}`;
+                } else if (ui.showVel.checked) {
+                    const val = -Math.sin(theta).toFixed(2);
+                    formulaText = "v_x = -v sin(θ)";
+                    formulaVal = `∝ ${val}`;
+                } else if (ui.showAcc.checked) {
+                    const val = -Math.cos(theta).toFixed(2);
+                    formulaText = "a_x = -a_c cos(θ)";
+                    formulaVal = `∝ ${val}`;
+                } else {
+                    formulaText = "SHM";
+                }
+
+                if(formulaText) {
                     ctx.fillStyle = colors.shm;
                     ctx.font = "bold 16px serif";
-                    // x = R cos(θ)
-                    const cosVal = Math.cos(theta).toFixed(2);
-                    ctx.fillText(`x = R cos(θ)`, params.cx + params.R + (isMobile?10:30), shmY);
-                    ctx.font = "12px monospace";
-                    ctx.fillStyle = "#cbd5e1";
-                    ctx.fillText(`  = ${params.R} × ${cosVal}`, params.cx + params.R + (isMobile?10:30), shmY + 18);
-                } else {
-                    ctx.fillStyle = colors.shm;
-                    ctx.font = "bold 14px sans-serif";
-                    ctx.fillText("SHM", params.cx + params.R + (isMobile ? 10 : 30), shmY + 5);
+                    ctx.fillText(formulaText, params.cx + params.R + (isMobile?10:30), shmY);
+                    if(formulaVal) {
+                        ctx.font = "12px monospace";
+                        ctx.fillStyle = "#cbd5e1";
+                        ctx.fillText(formulaVal, params.cx + params.R + (isMobile?10:30), shmY + 18);
+                    }
                 }
             }
         }
@@ -377,60 +414,28 @@
             const shmY = params.cy + params.R + shmGap;
             const shmX = params.cx + canvasX;
 
-            // 位置 (r, x) 與 角度 theta
+            // 1. 位置/位移
             if (ui.showPos.checked) {
-                // 1. 位置向量 r
+                // 輔助矩形 (淡色)
+                ctx.beginPath();
+                ctx.moveTo(params.cx, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); 
+                ctx.strokeStyle = "rgba(74, 222, 128, 0.2)";
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                
                 drawArrow(params.cx, params.cy, canvasX, canvasY, colors.pos, "r");
-                
-                // 2. 投影三角形 (輔助理解投影)
-                ctx.beginPath();
-                ctx.moveTo(params.cx, params.cy); // 圓心
-                ctx.lineTo(params.cx + canvasX, params.cy); // x軸投影點
-                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); // 質點
-                ctx.strokeStyle = "rgba(74, 222, 128, 0.3)"; // 淡綠色
-                ctx.lineWidth = 1;
-                ctx.setLineDash([2,2]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                
-                // 3. 畫出 x 分量 (在x軸上)
                 drawArrow(params.cx, params.cy, canvasX, 0, colors.pos, "x", 1, true);
-
-                // 4. 下方 SHM 向量
-                if (shmY < height - 10) {
-                    drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
-                }
+                if (shmY < height - 10) drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
                 
-                // 5. 角度 theta (黃色)
-                const arcR = isMobile ? 25 : 40;
-                // 正規化角度到 0 ~ 2PI，避免轉多圈後變成實心圓
-                const normalizedTheta = theta % (2 * Math.PI);
-                
-                ctx.beginPath();
-                ctx.moveTo(params.cx, params.cy);
-                // Canvas 角度是逆時針為負，所以用 -normalizedTheta
-                ctx.arc(params.cx, params.cy, arcR, 0, -normalizedTheta, true); 
-                ctx.closePath();
-                ctx.fillStyle = "rgba(250, 204, 21, 0.2)"; // 黃色半透明填滿
-                ctx.fill();
-                ctx.strokeStyle = colors.angle;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                // 標示 θ 文字
-                // 計算文字位置：角度的一半處
-                const labelAngle = -normalizedTheta / 2;
-                const labelR = arcR + 15;
-                ctx.fillStyle = colors.angle;
-                ctx.font = "bold 16px serif";
-                ctx.textBaseline = "middle";
-                ctx.textAlign = "center";
-                ctx.fillText("θ", params.cx + labelR * Math.cos(labelAngle), params.cy + labelR * Math.sin(labelAngle));
+                // θ 角: 圓心處，從 +x 軸逆時針轉到 r
+                drawAngle(params.cx, params.cy, 0, -theta);
             }
 
             const vScale = 0.7;
             const aScale = 0.7;
 
+            // 2. 速度 (θ 角顯示：v 與 鉛垂線 夾角)
             if (ui.showVel.checked) {
                 const vMag = params.R * params.omega;
                 const physVx = -vMag * Math.sin(theta);
@@ -438,15 +443,43 @@
                 const vecVx = physVx * vScale;
                 const vecVy = -physVy * vScale;
 
+                // 輔助矩形
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px + vecVx, py);
+                ctx.lineTo(px + vecVx, py + vecVy); // 到達 v 的尾端
+                ctx.lineTo(px, py + vecVy);
+                ctx.closePath();
+                ctx.strokeStyle = "rgba(34, 197, 94, 0.2)";
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
                 drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true); 
                 drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true); 
                 drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); 
 
-                if (shmY < height - 10) {
-                    drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
-                }
+                // 畫 θ 角: 在質點處。
+                // 鉛垂線 (向上，Canvas是負y) 角度是 -PI/2
+                // 速度向量角度是 -theta - PI/2 (因為是切線，比半徑多轉90度)
+                // 兩者夾角剛好是 theta
+                // 我們畫一個小弧，從 鉛垂線 轉到 速度向量
+                // Canvas 坐標系: 0(右), -PI/2(上), -PI(左)
+                // 速度角度: (-theta + PI/2) ... 不對，物理是 theta+90, Canvas y翻轉
+                // 簡單幾何：做一條鉛垂線(往上)，速度向量和它的夾角就是 theta
+                
+                // 畫鉛垂參考線 (虛線)
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px, py - 40);
+                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                
+                // 畫角度: 從 -PI/2 (上) 開始，逆時針轉 theta (或是順時針，看theta正負)
+                // 因為 theta 隨時間增加 (正值)，我們畫 -PI/2 到 -PI/2 - theta
+                // Canvas 角度: 向上是 -PI/2.  速度向量角度是 -PI/2 - theta.
+                drawAngle(px, py, -Math.PI/2, -Math.PI/2 - theta);
+
+                if (shmY < height - 10) drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
             }
 
+            // 3. 加速度 (θ 角顯示：a 與 水平線 夾角)
             if (ui.showAcc.checked) {
                 const aMag = params.R * params.omega * params.omega;
                 const physAx = -aMag * Math.cos(theta);
@@ -454,18 +487,40 @@
                 const vecAx = physAx * aScale;
                 const vecAy = -physAy * aScale;
 
+                // 輔助矩形
+                ctx.beginPath();
+                ctx.moveTo(px, py);
+                ctx.lineTo(px + vecAx, py);
+                ctx.lineTo(px + vecAx, py + vecAy);
+                ctx.lineTo(px, py + vecAy);
+                ctx.closePath();
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.2)";
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
                 drawArrow(px, py, vecAx, 0, colors.acc.comp, "a_x", 1, true);
                 drawArrow(px + vecAx, py, 0, vecAy, colors.acc.comp, null, 1, true);
                 drawArrow(px, py, vecAx, vecAy, colors.acc.main, "a", 1);
 
-                if (shmY < height - 10) {
-                    drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
-                }
+                // 畫 θ 角: 在質點處。
+                // 加速度是指向圓心 (內錯角原理，這角度等於 theta)
+                // 水平線 (向左，Canvas是 PI)
+                // 加速度角度: PI - theta (Canvas中逆時針為負? theta是正值，所以是 PI + theta? 不，指向圓心是 PI + theta_phys ... Canvas翻轉有點亂)
+                // 簡單幾何：加速度指向圓心。畫一條水平線(向左)。夾角就是 theta。
+                
+                // 畫水平參考線 (向左，因為加速度大都向左/下)
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px - 40, py);
+                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
+                // Canvas 角度: 向左是 PI. 加速度指向圓心，角度是 PI - theta (如果theta在第一象限)
+                // 我們畫 PI 到 PI - theta (也就是逆時針轉回去)
+                // 不對，theta 增加時，點逆時針轉，指向圓心的向量角度是 PI - theta (Canvas坐標系)
+                // 所以從 PI (水平左) 開始，畫到 PI - theta
+                drawAngle(px, py, Math.PI, Math.PI - theta);
+
+                if (shmY < height - 10) drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
             }
         }
-
-        window.onload = init;
-
     </script>
 </body>
 </html>
