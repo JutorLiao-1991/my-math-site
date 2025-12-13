@@ -8,18 +8,14 @@
         :root { --bg: #0f172a; --text: #f1f5f9; --accent: #38bdf8; --panel: #1e293b; }
         body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         
-        /* 導覽列 */
         .nav-bar { padding: 10px 20px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; z-index: 20; flex-shrink: 0; }
         .back-btn { text-decoration: none; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; }
         .back-btn:hover { background: var(--accent); color: #0f172a; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: #fff; }
 
-        /* 主畫面佈局 */
         .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
         
-        /* 左側控制面板 */
         .controls { width: 300px; background: var(--panel); padding: 20px; border-right: 1px solid #334155; display: flex; flex-direction: column; gap: 20px; z-index: 10; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.2); flex-shrink: 0; }
-        
         .control-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
         .control-group h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--accent); border-bottom: 1px solid #475569; padding-bottom: 8px; display: flex; align-items: center; gap: 8px;}
         
@@ -31,31 +27,32 @@
         .btn-pause { width:100%; margin-top:10px; padding:10px; background:var(--accent); color: #0f172a; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 1rem; transition: 0.2s; }
         .btn-pause:hover { background: #0ea5e9; }
 
-        /* 右側畫布 */
         #canvas-container { flex: 1; position: relative; background: radial-gradient(circle at 30% 40%, #1e293b 0%, #0f172a 80%); overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; }
 
         .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.5); font-size: 1.1rem; pointer-events: none; z-index: 5; }
 
-        /* 手機適配 - 修正高度與佈局 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            /* 控制面板改為底部，固定高度，讓上方畫布有空間 */
             .controls { width: 100%; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 2px solid #334155; order: 2; padding: 10px; gap: 10px; }
             .control-group { flex: 1 1 45%; min-width: 150px; padding: 8px; font-size: 0.9rem; }
-            .control-group h3 { margin-bottom: 8px; font-size: 0.95rem; }
-            input[type="range"] { margin-top: 5px; }
-            
-            /* 畫布佔據剩餘空間，至少 50% */
             #canvas-container { order: 1; flex: 1; min-height: 50vh; }
-            
             .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
             .page-title { font-size: 1rem; }
-            .back-btn span { display: none; } /* 手機隱藏箭頭符號省空間 */
+            .back-btn span { display: none; }
         }
     </style>
 </head>
 <body>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            var div = document.createElement("div");
+            div.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(200,0,0,0.9); color:white; padding:20px; border-radius:10px; z-index:9999; max-width:80%; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:monospace;";
+            div.innerHTML = "<h3>⚠️ 發生錯誤 (Error)</h3><p>" + msg + "</p><p>Line: " + line + "</p>";
+            document.body.appendChild(div);
+            return false;
+        };
+    </script>
 
     <div class="nav-bar">
         <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
@@ -117,11 +114,7 @@
         let isPaused = false;
         let waveHistory = [];
 
-        const params = {
-            R: 120,
-            omega: 1.0,
-            cx: 0, cy: 0
-        };
+        const params = { R: 120, omega: 1.0, cx: 0, cy: 0 };
 
         const colors = {
             pos: "#4ade80", 
@@ -147,37 +140,37 @@
 
         function init() {
             window.addEventListener('resize', resize);
-            resize(); 
-            
             ui.R.addEventListener('input', updateParams);
             ui.W.addEventListener('input', updateParams);
             ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
             
-            updateParams();
-            loop();
+            // 延遲執行 resize 以確保版面已就緒
+            setTimeout(() => {
+                resize();
+                updateParams();
+                loop();
+            }, 100);
         }
 
         function resize() {
             const container = document.getElementById('canvas-container');
-            width = canvas.width = container.clientWidth;
-            height = canvas.height = container.clientHeight;
-            
-            const isMobile = width < 800; 
-            
-            if (isMobile) {
-                // 手機版：圓心左移、上移
-                params.cx = width * 0.25; 
-                params.cy = height * 0.35; 
+            if (container) {
+                width = canvas.width = container.clientWidth;
+                height = canvas.height = container.clientHeight;
                 
-                const maxSafeR = Math.min(width, height) * 0.2;
-                if (parseInt(ui.R.value) > maxSafeR) {
-                    ui.R.value = Math.floor(maxSafeR);
-                    updateParams();
+                const isMobile = width < 800;
+                
+                if (isMobile) {
+                    params.cx = width * 0.25; 
+                    params.cy = height * 0.35; 
+                    const maxSafeR = Math.min(width, height) * 0.2;
+                    if (parseInt(ui.R.value) > maxSafeR) {
+                        ui.R.value = Math.floor(maxSafeR);
+                    }
+                } else {
+                    params.cx = width * 0.3;
+                    params.cy = height * 0.45;
                 }
-            } else {
-                // 電腦版：圓心稍微往上提 (0.45 -> 0.4)，確保下方空間足夠
-                params.cx = width * 0.3;
-                params.cy = height * 0.4;
             }
         }
 
@@ -193,6 +186,9 @@
             requestAnimationFrame(loop);
             if (!isPaused) time += 0.02 * params.omega;
 
+            // 確保畫布尺寸正確，防止 width=0 的情況
+            if (!width || !height) resize();
+
             ctx.clearRect(0, 0, width, height);
 
             const theta = time; 
@@ -206,16 +202,11 @@
 
             drawSystemGrid(params.cx, params.cy);
             drawCircle(params.cx, params.cy, params.R);
-            
             drawWaveSystem(canvasX, canvasY);
             drawSHMSystem(canvasX, canvasY);
-            
             drawParticle(px, py, "#fff", 6);
-
             drawVectors(canvasX, canvasY, theta, px, py);
         }
-
-        // --- 繪圖邏輯 ---
 
         function drawArrow(fromX, fromY, vecX, vecY, color, label, scale = 1, isComponent = false) {
             const toX = fromX + vecX * scale;
@@ -249,7 +240,7 @@
                 
                 let mainText = label;
                 let subText = "";
-                if(label.includes('_')){
+                if(label && label.includes('_')){
                     const parts = label.split('_');
                     mainText = parts[0];
                     subText = parts[1];
@@ -290,13 +281,13 @@
             ctx.setLineDash([]);
         }
 
-        // 修正點：加上引號的顏色字串
         function drawParticle(x, y, color, size) {
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
-            ctx.strokeStyle = "rgba(0,0,0,0.5)"; // <-- 兇手就是這裡，加上引號了！
+            // 這裡使用了安全的字串
+            ctx.strokeStyle = "rgba(0,0,0,0.5)"; 
             ctx.lineWidth = 2;
             ctx.stroke();
         }
@@ -340,7 +331,6 @@
             const shmGap = isMobile ? 50 : 100;
             const shmY = params.cy + params.R + shmGap;
             
-            // 修正：只要 shmY 在可視範圍內就畫出來 (height - 10 保留一點底邊)
             if (shmY < height - 10) {
                 ctx.beginPath();
                 ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
@@ -425,6 +415,10 @@
                 }
             }
         }
+
+        // 啟動程式 (等待 DOM 載入)
+        window.onload = init;
+
     </script>
 </body>
 </html>
