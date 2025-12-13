@@ -7,7 +7,6 @@
     <script src="/data.js"></script> 
     
     <style>
-        /* --- 全域設定 --- */
         :root {
             --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9;
             --text-sub: #94a3b8; --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.3);
@@ -16,22 +15,22 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         
-        /* --- Header --- */
         header {
             padding: 1.5rem 5%; display: flex; flex-direction: column; align-items: center;
             border-bottom: 1px solid #334155; background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
         }
-        .logo-area { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 1.5rem; }
+        .logo-area { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 0.5rem; }
         .logo { height: 45px; width: auto; background-color: #fff; border-radius: 50%; padding: 2px; object-fit: contain; }
         h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* --- Filter Buttons --- */
+        /* 新增：更新時間的樣式 */
+        .update-time { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 1.5rem; font-style: italic; opacity: 0.8; }
+
         .filter-nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
         .filter-btn { background: transparent; border: 1px solid #334155; color: var(--text-sub); padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: var(--transition); font-size: 0.95rem; }
         .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); font-weight: bold; }
         
-        /* --- Grid & Cards --- */
         .container { max-width: 1200px; margin: 2rem auto; padding: 0 5%; min-height: 60vh; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
         
@@ -62,6 +61,8 @@
             <img src="/logo.jpg" alt="鳩特老師 Logo" class="logo">
             <h1>鳩特老師的互動教學網站</h1>
         </div>
+
+        <p id="last-updated" class="update-time">Loading...</p>
         
         <div class="filter-nav">
             <button class="filter-btn active" onclick="filterSelection('all')">全部顯示</button>
@@ -80,16 +81,19 @@
     </footer>
 
     <script>
-        // 自動生成卡片
+        // 1. 顯示更新時間
+        if (typeof siteConfig !== 'undefined' && siteConfig.lastUpdated) {
+            document.getElementById('last-updated').innerText = '最近更新：' + siteConfig.lastUpdated;
+        } else {
+            document.getElementById('last-updated').innerText = ''; // 沒資料就不顯示
+        }
+
+        // 2. 生成卡片
         function renderCards() {
             const container = document.getElementById('card-container');
             let htmlContent = '';
             
-            // 檢查是否有讀取到 data.js
-            if (typeof lessonData === 'undefined') {
-                container.innerHTML = '<p style="color:white;">讀取資料失敗，請確認 data.js 是否存在。</p>';
-                return;
-            }
+            if (typeof lessonData === 'undefined') return;
 
             lessonData.forEach(lesson => {
                 htmlContent += `
@@ -112,7 +116,7 @@
 
         renderCards();
 
-        // 篩選功能
+        // 3. 篩選功能
         function filterSelection(category) {
             var cards = document.getElementsByClassName("card");
             var buttons = document.getElementsByClassName("filter-btn");
@@ -137,4 +141,3 @@
     </script>
 </body>
 </html>
-
