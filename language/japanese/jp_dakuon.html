@@ -7,9 +7,23 @@
     <style>
         :root { --primary: #673AB7; --secondary: #FF9800; --bg: #ede7f6; --card-bg: #fff; }
         body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); padding: 20px; color: #333; }
-        .home-btn { position: absolute; top: 20px; left: 20px; text-decoration: none; background: white; padding: 8px 15px; border-radius: 20px; color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
-        .home-btn:hover { transform: scale(1.05); background: #f3e5f5; }
         
+        /* --- 新增：導覽按鈕樣式 --- */
+        .nav-buttons { position: absolute; top: 20px; left: 20px; display: flex; gap: 10px; z-index: 100; }
+        .nav-btn { 
+            text-decoration: none; background: white; padding: 8px 15px; 
+            border-radius: 20px; color: var(--primary); font-weight: bold; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; font-size: 0.9em;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .nav-btn:hover { transform: scale(1.05); background: #f3e5f5; }
+        
+        /* 手機版適配 */
+        @media (max-width: 600px) {
+            .nav-buttons { position: static; margin-bottom: 20px; flex-wrap: wrap; }
+            header { margin-top: 10px; }
+        }
+
         header { text-align: center; background: linear-gradient(135deg, #7e57c2, #512da8); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; margin-top: 40px; box-shadow: 0 4px 10px rgba(103,58,183,0.3); }
         h2.section-title { text-align: center; color: var(--primary); margin: 30px 0 15px; background: white; display: inline-block; padding: 5px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
@@ -37,7 +51,12 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="home-btn">🏠 回首頁</a>
+    
+    <div class="nav-buttons">
+        <a href="jp_menu.html" class="nav-btn">⬅ 回選單</a>
+        <a href="/index.html" class="nav-btn">🏠 回首頁</a>
+    </div>
+
     <header>
         <h1>🔊 鳩特日語 - 濁音與半濁音篇</h1>
         <p>點點與圈圈，發音要更用力喔！</p>
