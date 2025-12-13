@@ -48,7 +48,7 @@
         window.onerror = function(msg, url, line, col, error) {
             var div = document.createElement("div");
             div.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(200,0,0,0.9); color:white; padding:20px; border-radius:10px; z-index:9999; max-width:80%; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:monospace;";
-            div.innerHTML = "<h3>⚠️ 發生錯誤 (Error)</h3><p>" + msg + "</p><p>Line: " + line + "</p>";
+            div.innerHTML = "<h3>⚠️ 發生錯誤</h3><p>" + msg + "</p><p>Line: " + line + "</p>";
             document.body.appendChild(div);
             return false;
         };
@@ -85,7 +85,7 @@
             <div class="control-group">
                 <h3>📐 物理量顯示 (Vectors)</h3>
                 <label>
-                    <span>位置/位移 (<span style="color:#4ade80">●</span> $\vec{r}, \vec{x}$)</span>
+                    <span>位置/位移 (<span style="color:#4ade80">●</span> $\vec{r}, \theta$)</span>
                     <input type="checkbox" id="check-pos" checked>
                 </label>
                 <label>
@@ -123,7 +123,8 @@
             wave: "#38bdf8", 
             shm: "#f472b6",  
             guide: "rgba(255, 255, 255, 0.2)",
-            text: "#e2e8f0"
+            text: "#e2e8f0",
+            angle: "#facc15" // 黃色角度
         };
 
         const ui = {
@@ -144,7 +145,6 @@
             ui.W.addEventListener('input', updateParams);
             ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
             
-            // 延遲執行 resize 以確保版面已就緒
             setTimeout(() => {
                 resize();
                 updateParams();
@@ -186,7 +186,6 @@
             requestAnimationFrame(loop);
             if (!isPaused) time += 0.02 * params.omega;
 
-            // 確保畫布尺寸正確，防止 width=0 的情況
             if (!width || !height) resize();
 
             ctx.clearRect(0, 0, width, height);
@@ -203,7 +202,7 @@
             drawSystemGrid(params.cx, params.cy);
             drawCircle(params.cx, params.cy, params.R);
             drawWaveSystem(canvasX, canvasY);
-            drawSHMSystem(canvasX, canvasY);
+            drawSHMSystem(canvasX, canvasY, theta); // 傳入 theta 用於顯示公式
             drawParticle(px, py, "#fff", 6);
             drawVectors(canvasX, canvasY, theta, px, py);
         }
@@ -286,7 +285,6 @@
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
-            // 這裡使用了安全的字串
             ctx.strokeStyle = "rgba(0,0,0,0.5)"; 
             ctx.lineWidth = 2;
             ctx.stroke();
@@ -326,7 +324,7 @@
             if (waveHistory.length > 0) drawParticle(waveStartX, params.cy + waveHistory[0], colors.wave, 5);
         }
 
-        function drawSHMSystem(canvasX, canvasY) {
+        function drawSHMSystem(canvasX, canvasY, theta) {
             const isMobile = width < 800;
             const shmGap = isMobile ? 50 : 100;
             const shmY = params.cy + params.R + shmGap;
@@ -355,9 +353,21 @@
                 
                 drawParticle(params.cx + canvasX, shmY, colors.shm, 8);
                 
-                ctx.fillStyle = colors.shm;
-                ctx.font = "bold 14px sans-serif";
-                ctx.fillText("SHM", params.cx + params.R + (isMobile ? 10 : 30), shmY + 5);
+                // 數學公式顯示 (若開啟位置)
+                if (ui.showPos.checked) {
+                    ctx.fillStyle = colors.shm;
+                    ctx.font = "bold 16px serif";
+                    // x = R cos(θ)
+                    const cosVal = Math.cos(theta).toFixed(2);
+                    ctx.fillText(`x = R cos(θ)`, params.cx + params.R + (isMobile?10:30), shmY);
+                    ctx.font = "12px monospace";
+                    ctx.fillStyle = "#cbd5e1";
+                    ctx.fillText(`  = ${params.R} × ${cosVal}`, params.cx + params.R + (isMobile?10:30), shmY + 18);
+                } else {
+                    ctx.fillStyle = colors.shm;
+                    ctx.font = "bold 14px sans-serif";
+                    ctx.fillText("SHM", params.cx + params.R + (isMobile ? 10 : 30), shmY + 5);
+                }
             }
         }
 
@@ -367,17 +377,55 @@
             const shmY = params.cy + params.R + shmGap;
             const shmX = params.cx + canvasX;
 
+            // 位置 (r, x) 與 角度 theta
             if (ui.showPos.checked) {
+                // 1. 位置向量 r
                 drawArrow(params.cx, params.cy, canvasX, canvasY, colors.pos, "r");
+                
+                // 2. 投影三角形 (輔助理解投影)
+                ctx.beginPath();
+                ctx.moveTo(params.cx, params.cy); // 圓心
+                ctx.lineTo(params.cx + canvasX, params.cy); // x軸投影點
+                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); // 質點
+                ctx.strokeStyle = "rgba(74, 222, 128, 0.3)"; // 淡綠色
+                ctx.lineWidth = 1;
+                ctx.setLineDash([2,2]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 3. 畫出 x 分量 (在x軸上)
+                drawArrow(params.cx, params.cy, canvasX, 0, colors.pos, "x", 1, true);
+
+                // 4. 下方 SHM 向量
                 if (shmY < height - 10) {
                     drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
                 }
                 
+                // 5. 角度 theta (黃色)
+                const arcR = isMobile ? 25 : 40;
+                // 正規化角度到 0 ~ 2PI，避免轉多圈後變成實心圓
+                const normalizedTheta = theta % (2 * Math.PI);
+                
                 ctx.beginPath();
-                const arcR = isMobile ? 20 : 30;
-                ctx.arc(params.cx, params.cy, arcR, 0, -theta, true);
-                ctx.strokeStyle = colors.pos;
+                ctx.moveTo(params.cx, params.cy);
+                // Canvas 角度是逆時針為負，所以用 -normalizedTheta
+                ctx.arc(params.cx, params.cy, arcR, 0, -normalizedTheta, true); 
+                ctx.closePath();
+                ctx.fillStyle = "rgba(250, 204, 21, 0.2)"; // 黃色半透明填滿
+                ctx.fill();
+                ctx.strokeStyle = colors.angle;
+                ctx.lineWidth = 2;
                 ctx.stroke();
+
+                // 標示 θ 文字
+                // 計算文字位置：角度的一半處
+                const labelAngle = -normalizedTheta / 2;
+                const labelR = arcR + 15;
+                ctx.fillStyle = colors.angle;
+                ctx.font = "bold 16px serif";
+                ctx.textBaseline = "middle";
+                ctx.textAlign = "center";
+                ctx.fillText("θ", params.cx + labelR * Math.cos(labelAngle), params.cy + labelR * Math.sin(labelAngle));
             }
 
             const vScale = 0.7;
@@ -416,7 +464,6 @@
             }
         }
 
-        // 啟動程式 (等待 DOM 載入)
         window.onload = init;
 
     </script>
