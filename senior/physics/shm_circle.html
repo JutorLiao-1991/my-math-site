@@ -2,23 +2,23 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特物理：圓周運動與簡諧投影</title>
     <style>
         :root { --bg: #0f172a; --text: #f1f5f9; --accent: #38bdf8; --panel: #1e293b; }
         body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
         
         /* 導覽列 */
-        .nav-bar { padding: 10px 20px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; z-index: 20; }
+        .nav-bar { padding: 10px 20px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; z-index: 20; flex-shrink: 0; }
         .back-btn { text-decoration: none; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; }
         .back-btn:hover { background: var(--accent); color: #0f172a; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: #fff; }
 
         /* 主畫面佈局 */
-        .main-container { flex: 1; display: flex; position: relative; }
+        .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
         
         /* 左側控制面板 */
-        .controls { width: 300px; background: var(--panel); padding: 20px; border-right: 1px solid #334155; display: flex; flex-direction: column; gap: 20px; z-index: 10; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+        .controls { width: 300px; background: var(--panel); padding: 20px; border-right: 1px solid #334155; display: flex; flex-direction: column; gap: 20px; z-index: 10; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.2); flex-shrink: 0; }
         
         .control-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
         .control-group h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--accent); border-bottom: 1px solid #475569; padding-bottom: 8px; display: flex; align-items: center; gap: 8px;}
@@ -35,17 +35,23 @@
         #canvas-container { flex: 1; position: relative; background: radial-gradient(circle at 30% 40%, #1e293b 0%, #0f172a 80%); overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; }
 
-        /* 浮水印 */
         .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.5); font-size: 1.1rem; pointer-events: none; z-index: 5; }
 
-        /* 手機適配 */
+        /* 手機適配 - 修正高度與佈局 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            .controls { width: 100%; height: auto; max-height: 250px; flex-direction: row; flex-wrap: wrap; border-right: none; border-bottom: 2px solid #334155; order: 1; padding: 10px; gap: 10px; }
-            .control-group { flex: 1 1 45%; min-width: 200px; padding: 10px; }
-            #canvas-container { order: 2; }
-            .watermark { font-size: 0.9rem; bottom: 10px; left: 10px; }
+            /* 控制面板改為底部，固定高度，讓上方畫布有空間 */
+            .controls { width: 100%; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 2px solid #334155; order: 2; padding: 10px; gap: 10px; }
+            .control-group { flex: 1 1 45%; min-width: 150px; padding: 8px; font-size: 0.9rem; }
+            .control-group h3 { margin-bottom: 8px; font-size: 0.95rem; }
+            input[type="range"] { margin-top: 5px; }
+            
+            /* 畫布佔據剩餘空間，至少 50% */
+            #canvas-container { order: 1; flex: 1; min-height: 50vh; }
+            
+            .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
             .page-title { font-size: 1rem; }
+            .back-btn span { display: none; } /* 手機隱藏箭頭符號省空間 */
         }
     </style>
 </head>
@@ -57,18 +63,23 @@
     </div>
 
     <div class="main-container">
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
         <div class="controls">
             <div class="control-group">
                 <h3>🔄 運動參數設定</h3>
                 <label>
                     半徑 (R) <span id="val-R" class="value-display">120</span>
-                    <input type="range" id="input-R" min="80" max="180" value="120">
+                    <input type="range" id="input-R" min="50" max="180" value="120">
                 </label>
                 <label>
                     角速率 (&omega;) <span id="val-W" class="value-display">1.0</span>
                     <input type="range" id="input-W" min="0.5" max="2.5" step="0.1" value="1.0">
                 </label>
-                <div style="font-size:0.9rem; color:#94a3b8; margin-top:10px; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 5px;">
+                <div style="font-size:0.9rem; color:#94a3b8; margin-top:5px; background: rgba(0,0,0,0.2); padding: 5px 8px; border-radius: 5px;">
                     速率 v = R&omega; = <span id="val-V" style="color:#fbbf24; font-weight:bold;">120</span>
                 </div>
                 <button id="btn-pause" class="btn-pause">⏯ 暫停 / 開始</button>
@@ -82,18 +93,13 @@
                 </label>
                 <label>
                     <span>速度 (<span style="color:#22c55e">●</span> $\vec{v}$)</span>
-                    <input type="checkbox" id="check-vel">
+                    <input type="checkbox" id="check-vel" checked>
                 </label>
                 <label>
                     <span>加速度 (<span style="color:#ef4444">●</span> $\vec{a}$)</span>
-                    <input type="checkbox" id="check-acc">
+                    <input type="checkbox" id="check-acc" checked>
                 </label>
             </div>
-        </div>
-
-        <div id="canvas-container">
-            <canvas id="simCanvas"></canvas>
-            <div class="watermark">Presented by Jutor</div>
         </div>
     </div>
 
@@ -117,14 +123,13 @@
             cx: 0, cy: 0
         };
 
-        // 配色方案 (參考 Geogebra 截圖)
         const colors = {
-            pos: "#4ade80", // 淺綠
-            vel: { main: "#22c55e", comp: "#16a34a" }, // 鮮綠 / 深綠
-            acc: { main: "#ef4444", comp: "#3b82f6" }, // 紅 / 藍
-            wave: "#38bdf8", // 天藍
-            shm: "#f472b6",  // 粉紅
-            guide: "rgba(255, 255, 255, 0.15)",
+            pos: "#4ade80", 
+            vel: { main: "#22c55e", comp: "#15803d" }, 
+            acc: { main: "#ef4444", comp: "#b91c1c" }, 
+            wave: "#38bdf8", 
+            shm: "#f472b6",  
+            guide: "rgba(255, 255, 255, 0.2)",
             text: "#e2e8f0"
         };
 
@@ -142,19 +147,44 @@
 
         function init() {
             window.addEventListener('resize', resize);
-            resize();
+            // 初始呼叫 resize
+            resize(); 
+            
             ui.R.addEventListener('input', updateParams);
             ui.W.addEventListener('input', updateParams);
             ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
+            
+            // 初始化參數顯示
             updateParams();
             loop();
         }
 
+        // 關鍵修正：響應式圓心與半徑調整
         function resize() {
-            width = canvas.width = document.getElementById('canvas-container').clientWidth;
-            height = canvas.height = document.getElementById('canvas-container').clientHeight;
-            params.cx = width * 0.3;
-            params.cy = height * 0.45;
+            const container = document.getElementById('canvas-container');
+            width = canvas.width = container.clientWidth;
+            height = canvas.height = container.clientHeight;
+            
+            const isMobile = width < 800; // 簡單判斷手機
+            
+            if (isMobile) {
+                // 手機版：圓心左移、上移，留空間給波和SHM
+                params.cx = width * 0.25; 
+                params.cy = height * 0.35; 
+                
+                // 自動縮小半徑，避免爆框
+                // 如果目前的 R 太大，強制縮小顯示 (但不改變數值，僅視覺縮放)
+                // 這裡我們直接改變 UI 預設值比較直觀
+                const maxSafeR = Math.min(width, height) * 0.2;
+                if (parseInt(ui.R.value) > maxSafeR) {
+                    ui.R.value = Math.floor(maxSafeR);
+                    updateParams();
+                }
+            } else {
+                // 電腦版
+                params.cx = width * 0.3;
+                params.cy = height * 0.45;
+            }
         }
 
         function updateParams() {
@@ -172,33 +202,36 @@
             ctx.clearRect(0, 0, width, height);
 
             const theta = time; 
-            // 物理坐標 (y向上為正)
             const physX = params.R * Math.cos(theta);
             const physY = params.R * Math.sin(theta);
-            // Canvas 坐標 (y向下為正，需反向)
             const canvasX = physX;
-            const canvasY = -physY;
+            const canvasY = -physY; // Canvas y向下為正
 
             const px = params.cx + canvasX;
             const py = params.cy + canvasY;
 
             drawSystemGrid(params.cx, params.cy);
             drawCircle(params.cx, params.cy, params.R);
+            
+            // 繪製系統
             drawWaveSystem(canvasX, canvasY);
             drawSHMSystem(canvasX, canvasY);
-            drawVectors(canvasX, canvasY, theta, px, py);
+            
+            // 繪製質點 (後畫以覆蓋線條)
             drawParticle(px, py, "#fff", 6);
+
+            // 繪製向量 (最上層)
+            drawVectors(canvasX, canvasY, theta, px, py);
         }
 
-        // --- 繪圖輔助函式 ---
+        // --- 繪圖邏輯 ---
 
-        // 修改點 3 & 2: 支援下標的箭頭繪製與向量分解顯示
         function drawArrow(fromX, fromY, vecX, vecY, color, label, scale = 1, isComponent = false) {
             const toX = fromX + vecX * scale;
             const toY = fromY + vecY * scale;
-            const headlen = isComponent ? 8 : 12; // 分量箭頭稍小
+            const headlen = isComponent ? 8 : 12; 
             const angle = Math.atan2(toY - fromY, toX - fromX);
-            const lineWidth = isComponent ? 2 : 3; // 分量線條稍細
+            const lineWidth = isComponent ? 2 : 4; // 向量加粗！
 
             ctx.beginPath();
             ctx.moveTo(fromX, fromY);
@@ -216,10 +249,11 @@
             ctx.fillStyle = color;
             ctx.fill();
 
-            // 繪製標籤 (支援簡單下標，例如 "a_x")
             if (label) {
-                ctx.fillStyle = colors.text;
-                ctx.font = isComponent ? "bold 14px serif" : "bold 16px serif";
+                ctx.fillStyle = "#fff"; // 文字改亮白色，比較清楚
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; // 加陰影
+                ctx.shadowBlur = 4;
+                ctx.font = isComponent ? "bold 14px serif" : "bold 18px serif";
                 ctx.textBaseline = "middle";
                 
                 let mainText = label;
@@ -230,8 +264,9 @@
                     subText = parts[1];
                 }
 
-                const textX = toX + (vecX > 0 ? 10 : -25);
-                const textY = toY + (vecY > 0 ? 15 : -15);
+                // 智慧避讓標籤位置
+                const textX = toX + (vecX >= 0 ? 12 : -20);
+                const textY = toY + (vecY >= 0 ? 15 : -15);
                 
                 ctx.fillText(mainText, textX, textY);
                 if(subText){
@@ -239,6 +274,7 @@
                     const mainWidth = ctx.measureText(mainText).width;
                     ctx.fillText(subText, textX + mainWidth + 1, textY + 6);
                 }
+                ctx.shadowBlur = 0; // 重置陰影
             }
         }
 
@@ -246,11 +282,9 @@
             ctx.beginPath();
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 1;
-            // 圓心十字
-            ctx.moveTo(cx - params.R * 1.5, cy); ctx.lineTo(cx + width, cy);
-            ctx.moveTo(cx, cy - params.R * 1.5); ctx.lineTo(cx, cy + params.R * 1.5);
+            ctx.moveTo(0, cy); ctx.lineTo(width, cy); // 貫穿全螢幕
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, height);
             ctx.stroke();
-            // 標記 O 和 角度
             ctx.fillStyle = "#64748b";
             ctx.font = "14px sans-serif";
             ctx.fillText("O", cx + 5, cy + 15);
@@ -271,15 +305,17 @@
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
-            ctx.strokeStyle = rgba(0,0,0,0.5);
+            ctx.strokeStyle = "rgba(0,0,0,0.5)";
             ctx.lineWidth = 2;
             ctx.stroke();
         }
 
-        // --- 物理系統繪製 ---
-
         function drawWaveSystem(canvasX, canvasY) {
-            const waveStartX = params.cx + params.R + 60;
+            // 在手機上，讓波靠近圓一點，避免跑出去
+            const isMobile = width < 800;
+            const waveGap = isMobile ? 30 : 60; 
+            const waveStartX = params.cx + params.R + waveGap;
+            
             // 投影引導線
             ctx.beginPath();
             ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
@@ -299,113 +335,123 @@
             ctx.lineWidth = 3;
             ctx.lineJoin = 'round';
             for (let i = 0; i < waveHistory.length; i++) {
-                const wx = waveStartX + i * 3;
+                const wx = waveStartX + i * (isMobile ? 2 : 3); // 手機波速稍微慢一點，顯示多一點波形
                 const wy = params.cy + waveHistory[i];
                 if (wx > width) break;
                 if (i === 0) ctx.moveTo(wx, wy);
                 else ctx.lineTo(wx, wy);
             }
             ctx.stroke();
-
-            if (waveHistory.length > 0) {
-                drawParticle(waveStartX, params.cy + waveHistory[0], colors.wave, 5);
-            }
+            
+            // 波源點
+            if (waveHistory.length > 0) drawParticle(waveStartX, params.cy + waveHistory[0], colors.wave, 5);
         }
 
         function drawSHMSystem(canvasX, canvasY) {
-            const shmY = params.cy + params.R + 100;
+            // 在手機上，縮短 SHM 與圓的距離
+            const isMobile = width < 800;
+            const shmGap = isMobile ? 50 : 100;
+            const shmY = params.cy + params.R + shmGap;
             
-            ctx.beginPath();
-            ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
-            ctx.lineTo(params.cx + canvasX, shmY);
-            ctx.strokeStyle = colors.guide;
-            ctx.setLineDash([4, 4]);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // 防止 SHM 跑出畫面下緣
+            if (shmY < height - 20) {
+                ctx.beginPath();
+                ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
+                ctx.lineTo(params.cx + canvasX, shmY);
+                ctx.strokeStyle = colors.guide;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
 
-            // 軌道與平衡點
-            ctx.beginPath();
-            ctx.moveTo(params.cx - params.R - 40, shmY); ctx.lineTo(params.cx + params.R + 40, shmY);
-            ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(params.cx, shmY - 8); ctx.lineTo(params.cx, shmY + 8); ctx.stroke();
-            ctx.fillText("-R", params.cx - params.R - 30, shmY + 25);
-            ctx.fillText("+R", params.cx + params.R + 10, shmY + 25);
-            ctx.fillText("O", params.cx - 5, shmY + 25);
-
-            drawParticle(params.cx + canvasX, shmY, colors.shm, 8);
-            ctx.fillStyle = colors.shm;
-            ctx.font = "bold 14px sans-serif";
-            ctx.fillText("SHM (x投影)", params.cx + params.R + 50, shmY + 5);
+                // 軌道
+                ctx.beginPath();
+                ctx.moveTo(params.cx - params.R - 20, shmY); ctx.lineTo(params.cx + params.R + 20, shmY);
+                ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
+                
+                // 平衡點
+                ctx.beginPath(); ctx.moveTo(params.cx, shmY - 8); ctx.lineTo(params.cx, shmY + 8); ctx.stroke();
+                
+                // 標記
+                ctx.fillStyle = "#94a3b8";
+                ctx.font = "12px sans-serif";
+                // 只有空間夠才畫文字
+                if (!isMobile) {
+                    ctx.fillText("-R", params.cx - params.R - 30, shmY + 25);
+                    ctx.fillText("+R", params.cx + params.R + 10, shmY + 25);
+                }
+                
+                drawParticle(params.cx + canvasX, shmY, colors.shm, 8);
+                
+                ctx.fillStyle = colors.shm;
+                ctx.font = "bold 14px sans-serif";
+                ctx.fillText("SHM", params.cx + params.R + (isMobile ? 10 : 30), shmY + 5);
+            }
         }
 
         function drawVectors(canvasX, canvasY, theta, px, py) {
-            const shmY = params.cy + params.R + 100;
+            // 計算 SHM 的 Y 座標 (需與 drawSHMSystem 一致)
+            const isMobile = width < 800;
+            const shmGap = isMobile ? 50 : 100;
+            const shmY = params.cy + params.R + shmGap;
             const shmX = params.cx + canvasX;
 
             // 位置 (r, x)
             if (ui.showPos.checked) {
                 drawArrow(params.cx, params.cy, canvasX, canvasY, colors.pos, "r");
-                drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
+                // 只有 SHM 在畫面內才畫 x 向量
+                if (shmY < height - 20) {
+                    drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
+                }
                 
-                // 角度標示
+                // 角度
                 ctx.beginPath();
-                ctx.arc(params.cx, params.cy, 30, 0, -theta, true);
+                const arcR = isMobile ? 20 : 30;
+                ctx.arc(params.cx, params.cy, arcR, 0, -theta, true);
                 ctx.strokeStyle = colors.pos;
                 ctx.stroke();
-                ctx.fillStyle = colors.pos;
-                ctx.fillText("θ", params.cx + 35 * Math.cos(-theta/2), params.cy + 35 * Math.sin(-theta/2));
             }
 
-            // 速度 (v) - 修改為顯示分解三角形 (參考 Geogebra)
+            const vScale = 0.7;
+            const aScale = 0.7;
+
+            // 速度 (v)
             if (ui.showVel.checked) {
-                const vScale = 0.7;
-                // 物理速度分量: vx = -R w sin(q), vy = R w cos(q)
                 const vMag = params.R * params.omega;
                 const physVx = -vMag * Math.sin(theta);
                 const physVy = vMag * Math.cos(theta);
-                // Canvas 向量 (y反向)
                 const vecVx = physVx * vScale;
                 const vecVy = -physVy * vScale;
 
-                // 1. 主向量 v (綠色)
-                drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1);
-                
-                // 2. 水平分量 v_x (從質點出發)
-                drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true);
-                
-                // 3. 鉛直分量 v_y (連接 v_x 尾端到 v 尾端)
-                drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true);
+                // 圓上: 分解三角形
+                drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true); // 水平分量
+                drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true); // 鉛直分量
+                drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); // 主向量 (最後畫最上層)
 
-                // SHM 速度
-                drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
+                // SHM
+                if (shmY < height - 20) {
+                    drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
+                }
             }
 
-            // 加速度 (a) - 修改為顯示分解三角形 (參考 Geogebra)
+            // 加速度 (a)
             if (ui.showAcc.checked) {
-                const aScale = 0.7;
-                // 物理加速度分量: ax = -R w^2 cos(q), ay = -R w^2 sin(q)
                 const aMag = params.R * params.omega * params.omega;
                 const physAx = -aMag * Math.cos(theta);
                 const physAy = -aMag * Math.sin(theta);
-                // Canvas 向量
                 const vecAx = physAx * aScale;
                 const vecAy = -physAy * aScale;
 
-                // 1. 主向量 a (向心, 紅色)
+                // 圓上: 分解三角形
+                drawArrow(px, py, vecAx, 0, colors.acc.comp, "a_x", 1, true);
+                drawArrow(px + vecAx, py, 0, vecAy, colors.acc.comp, null, 1, true);
                 drawArrow(px, py, vecAx, vecAy, colors.acc.main, "a", 1);
 
-                // 2. 水平分量 a_x (從質點出發, 藍色)
-                drawArrow(px, py, vecAx, 0, colors.acc.comp, "a_x", 1, true);
-
-                // 3. 鉛直分量 a_y (連接 a_x 尾端到 a 尾端, 藍色)
-                drawArrow(px + vecAx, py, 0, vecAy, colors.acc.comp, null, 1, true);
-
-                // SHM 加速度
-                drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
+                // SHM
+                if (shmY < height - 20) {
+                    drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
+                }
             }
         }
-
-        init();
     </script>
 </body>
 </html>
