@@ -21,6 +21,40 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
+            position: relative; /* 讓絕對定位的按鈕參考這裡 */
+        }
+
+        /* --- 新增：回到主站首頁按鈕樣式 --- */
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #666;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 100; /* 確保按鈕在最上層 */
+        }
+        .back-home:hover {
+            background: #333;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* 手機版調整：讓按鈕自然排列，不要擋住標題 */
+        @media (max-width: 600px) {
+            .back-home {
+                position: static;
+                align-self: flex-start; /* 靠左對齊 */
+                margin-bottom: 20px;
+            }
         }
 
         header {
@@ -112,6 +146,10 @@
     </style>
 </head>
 <body>
+
+    <a href="/index.html" class="back-home">
+        <span>⬅</span> 回到鳩特教學網
+    </a>
 
     <header>
         <h1>🇯🇵 鳩特日語</h1>
