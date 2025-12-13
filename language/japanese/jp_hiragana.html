@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特日語：平假名篇</title>
+    <style>
+        :root { --primary: #E91E63; --bg: #fce4ec; --card-bg: #fff; }
+        body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        
+        /* 回首頁按鈕 */
+        .home-btn { position: absolute; top: 20px; left: 20px; text-decoration: none; background: white; padding: 8px 15px; border-radius: 20px; color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .home-btn:hover { transform: scale(1.05); background: #fff0f5; }
+
+        header { text-align: center; background: linear-gradient(135deg, #f06292, #c2185b); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; margin-top: 40px; box-shadow: 0 4px 10px rgba(233,30,99,0.3); }
+        .row-container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+        @media (max-width: 600px) { .row { gap: 8px; } }
+
+        .card { background: var(--card-bg); border-radius: 15px; padding: 15px 5px; text-align: center; border-bottom: 4px solid #f8bbd0; position: relative; transition: 0.2s; }
+        .card:hover { transform: translateY(-2px); border-bottom-color: var(--primary); }
+        
+        /* 假名主區域 (點擊發音) */
+        .kana-main { cursor: pointer; }
+        .kana-main:active { transform: scale(0.95); }
+        .kana { font-size: 2.5em; color: var(--primary); font-weight: bold; line-height: 1.2; }
+        .romaji { font-size: 0.9em; color: #888; font-weight: bold; }
+
+        /* 下拉單字區 */
+        .word-toggle { 
+            margin-top: 10px; font-size: 0.8em; color: #888; cursor: pointer; 
+            background: #f8f8f8; padding: 5px; border-radius: 10px; border: 1px solid #eee;
+        }
+        .word-toggle:hover { background: #eee; color: var(--primary); }
+        
+        .word-list { 
+            display: none; /* 預設隱藏 */
+            margin-top: 10px; text-align: left; padding: 0 5px;
+        }
+        .word-list.show { display: block; animation: slideDown 0.3s ease-out; }
+        
+        .word-item { 
+            font-size: 0.85em; padding: 6px; border-bottom: 1px dashed #eee; 
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center;
+        }
+        .word-item:hover { background: #fff0f5; color: var(--primary); border-radius: 5px;}
+        .word-kana { font-weight: bold; font-size: 1.1em;}
+        .word-mean { font-size: 0.8em; color: #666; }
+
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .empty { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">🏠 回首頁</a>
+    <header>
+        <h1>🌸 鳩特日語 - 平假名篇</h1>
+        <p>假名慢速讀，單字自然讀</p>
+    </header>
+
+    <div class="row-container" id="app"></div>
+
+    <script>
+        // 資料結構：每個假名包含 3 個單字
+        const rows = [
+            { name: "A", chars: [
+                {k:"あ", r:"a", ws:[{j:"あり",m:"螞蟻"}, {j:"あめ",m:"糖果/雨"}, {j:"あか",m:"紅色"}]},
+                {k:"い", r:"i", ws:[{j:"いぬ",m:"狗"}, {j:"いちご",m:"草莓"}, {j:"いえ",m:"家"}]},
+                {k:"う", r:"u", ws:[{j:"うし",m:"牛"}, {j:"うみ",m:"海"}, {j:"うさぎ",m:"兔子"}]},
+                {k:"え", r:"e", ws:[{j:"えんぴつ",m:"鉛筆"}, {j:"えき",m:"車站"}, {j:"えび",m:"蝦子"}]},
+                {k:"お", r:"o", ws:[{j:"おにぎり",m:"飯糰"}, {j:"おかあさん",m:"媽媽"}, {j:"おと",m:"聲音"}]}
+            ]},
+            { name: "Ka", chars: [
+                {k:"か", r:"ka", ws:[{j:"かめ",m:"烏龜"}, {j:"かさ",m:"傘"}, {j:"かばん",m:"包包"}]},
+                {k:"き", r:"ki", ws:[{j:"き",m:"樹"}, {j:"きりん",m:"長頸鹿"}, {j:"きのう",m:"昨天"}]},
+                {k:"く", r:"ku", ws:[{j:"くつ",m:"鞋子"}, {j:"くま",m:"熊"}, {j:"くるま",m:"車子"}]},
+                {k:"け", r:"ke", ws:[{j:"けしごむ",m:"橡皮擦"}, {j:"けいたい",m:"手機"}, {j:"けが",m:"受傷"}]},
+                {k:"こ", r:"ko", ws:[{j:"こども",m:"小孩"}, {j:"こねこ",m:"小貓"}, {j:"こえ",m:"聲音"}]}
+            ]},
+            { name: "Sa", chars: [
+                {k:"さ", r:"sa", ws:[{j:"さかな",m:"魚"}, {j:"さる",m:"猴子"}, {j:"さくら",m:"櫻花"}]},
+                {k:"し", r:"shi", ws:[{j:"しか",m:"鹿"}, {j:"しんぶん",m:"報紙"}, {j:"しお",m:"鹽"}]},
+                {k:"す", r:"su", ws:[{j:"すいか",m:"西瓜"}, {j:"すし",m:"壽司"}, {j:"すずめ",m:"麻雀"}]},
+                {k:"せ", r:"se", ws:[{j:"せんせい",m:"老師"}, {j:"せなか",m:"背"}, {j:"せかい",m:"世界"}]},
+                {k:"そ", r:"so", ws:[{j:"そら",m:"天空"}, {j:"そうじ",m:"打掃"}, {j:"そば",m:"蕎麥麵"}]}
+            ]},
+            { name: "Ta", chars: [
+                {k:"た", r:"ta", ws:[{j:"たまご",m:"蛋"}, {j:"たこ",m:"章魚"}, {j:"たいよう",m:"太陽"}]},
+                {k:"ち", r:"chi", ws:[{j:"ちず",m:"地圖"}, {j:"ちかてつ",m:"地鐵"}, {j:"ちち",m:"爸爸"}]},
+                {k:"つ", r:"tsu", ws:[{j:"つくえ",m:"桌子"}, {j:"つき",m:"月亮"}, {j:"つみき",m:"積木"}]},
+                {k:"て", r:"te", ws:[{j:"て",m:"手"}, {j:"てがみ",m:"信"}, {j:"てんき",m:"天氣"}]},
+                {k:"と", r:"to", ws:[{j:"とり",m:"鳥"}, {j:"とけい",m:"時鐘"}, {j:"とまと",m:"番茄"}]}
+            ]},
+            { name: "Na", chars: [
+                {k:"な", r:"na", ws:[{j:"なす",m:"茄子"}, {j:"なつ",m:"夏天"}, {j:"なまえ",m:"名字"}]},
+                {k:"に", r:"ni", ws:[{j:"にく",m:"肉"}, {j:"にじ",m:"彩虹"}, {j:"にわ",m:"庭院"}]},
+                {k:"ぬ", r:"nu", ws:[{j:"ぬの",m:"布"}, {j:"ぬいるぐみ",m:"布偶"}, {j:"ぬま",m:"沼澤"}]},
+                {k:"ね", r:"ne", ws:[{j:"ねこ",m:"貓"}, {j:"ねずみ",m:"老鼠"}, {j:"ねつ",m:"發燒"}]},
+                {k:"の", r:"no", ws:[{j:"のみもの",m:"飲料"}, {j:"のり",m:"海苔/膠水"}, {j:"のど",m:"喉嚨"}]}
+            ]},
+            { name: "Ha", chars: [
+                {k:"は", r:"ha", ws:[{j:"はな",m:"花/鼻子"}, {j:"はし",m:"筷子/橋"}, {j:"はこ",m:"箱子"}]},
+                {k:"ひ", r:"hi", ws:[{j:"ひこうき",m:"飛機"}, {j:"ひと",m:"人"}, {j:"ひつじ",m:"羊"}]},
+                {k:"ふ", r:"fu", ws:[{j:"ふね",m:"船"}, {j:"ふく",m:"衣服"}, {j:"ふゆ",m:"冬天"}]},
+                {k:"へ", r:"he", ws:[{j:"へび",m:"蛇"}, {j:"へや",m:"房間"}, {j:"へそ",m:"肚臍"}]},
+                {k:"ほ", r:"ho", ws:[{j:"ほし",m:"星星"}, {j:"ほん",m:"書"}, {j:"ほね",m:"骨頭"}]}
+            ]},
+            { name: "Ma", chars: [
+                {k:"ま", r:"ma", ws:[{j:"まど",m:"窗戶"}, {j:"まんが",m:"漫畫"}, {j:"まくら",m:"枕頭"}]},
+                {k:"み", r:"mi", ws:[{j:"みかん",m:"橘子"}, {j:"みみ",m:"耳朵"}, {j:"みず",m:"水"}]},
+                {k:"む", r:"mu", ws:[{j:"むし",m:"蟲"}, {j:"むかし",m:"從前"}, {j:"むら",m:"村子"}]},
+                {k:"め", r:"me", ws:[{j:"め",m:"眼睛"}, {j:"めがね",m:"眼鏡"}, {j:"めいろ",m:"迷宮"}]},
+                {k:"も", r:"mo", ws:[{j:"もも",m:"桃子"}, {j:"もり",m:"森林"}, {j:"もん",m:"門"}]}
+            ]},
+            { name: "Ya", chars: [
+                {k:"や", r:"ya", ws:[{j:"やま",m:"山"}, {j:"やさい",m:"蔬菜"}, {j:"やきゅう",m:"棒球"}]},
+                {k:"", r:"", ws:[]},
+                {k:"ゆ", r:"yu", ws:[{j:"ゆき",m:"雪"}, {j:"ゆめ",m:"夢"}, {j:"ゆび",m:"手指"}]},
+                {k:"", r:"", ws:[]},
+                {k:"よ", r:"yo", ws:[{j:"よる",m:"晚上"}, {j:"ようふく",m:"洋裝"}, {j:"よむ",m:"閱讀"}]}
+            ]},
+            { name: "Ra", chars: [
+                {k:"ら", r:"ra", ws:[{j:"らいおん",m:"獅子"}, {j:"らくだ",m:"駱駝"}, {j:"らっぱ",m:"喇叭"}]},
+                {k:"り", r:"ri", ws:[{j:"りんご",m:"蘋果"}, {j:"りす",m:"松鼠"}, {j:"りぼん",m:"緞帶"}]},
+                {k:"る", r:"ru", ws:[{j:"るすばん",m:"看家"}, {j:"るびー",m:"紅寶石"}, {j:"るーる",m:"規則"}]},
+                {k:"れ", r:"re", ws:[{j:"れもん",m:"檸檬"}, {j:"れいぞうこ",m:"冰箱"}, {j:"れんしゅう",m:"練習"}]},
+                {k:"ろ", r:"ro", ws:[{j:"ろうそく",m:"蠟燭"}, {j:"ろば",m:"驢子"}, {j:"ろけっと",m:"火箭"}]}
+            ]},
+            { name: "Wa", chars: [
+                {k:"わ", r:"wa", ws:[{j:"わに",m:"鱷魚"}, {j:"わたし",m:"我"}, {j:"わらう",m:"笑"}]},
+                {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]},
+                {k:"を", r:"wo", ws:[{j:"(助詞)",m:"無單字"}, {j:"",m:""}, {j:"",m:""}]}
+            ]},
+            { name: "N", chars: [
+                {k:"ん", r:"n", ws:[{j:"ほん",m:"書"}, {j:"きりん",m:"長頸鹿"}, {j:"みかん",m:"橘子"}]},
+                {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}
+            ]}
+        ];
+
+        const app = document.getElementById('app');
+        const synth = window.speechSynthesis;
+
+        function speak(text, rate = 1) {
+            // 每次發音前先取消當前的發音，避免連點卡住
+            synth.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ja-JP';
+            u.rate = rate; 
+            synth.speak(u);
+        }
+
+        function toggleWords(id) {
+            const list = document.getElementById(id);
+            if(list.style.display === "block") {
+                list.style.display = "none";
+            } else {
+                // 關閉其他已打開的選單 (可選)
+                document.querySelectorAll('.word-list').forEach(el => el.style.display = 'none');
+                list.style.display = "block";
+            }
+        }
+
+        rows.forEach((row, rIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+            row.chars.forEach((char, cIndex) => {
+                const card = document.createElement('div');
+                if(char.k === "") {
+                    card.className = 'card empty';
+                } else {
+                    card.className = 'card';
+                    const listId = `list-${rIndex}-${cIndex}`;
+                    
+                    // 生成單字列表 HTML
+                    let wordsHtml = '';
+                    char.ws.forEach(w => {
+                        if(w.j) {
+                            wordsHtml += `<div class="word-item" onclick="event.stopPropagation(); speak('${w.j}', 0.8)">
+                                <span class="word-kana">${w.j}</span><span class="word-mean">${w.m}</span>
+                            </div>`;
+                        }
+                    });
+
+                    card.innerHTML = `
+                        <div class="kana-main" onclick="speak('${char.k}', 0.4)">
+                            <div class="romaji">${char.r}</div>
+                            <div class="kana">${char.k}</div>
+                        </div>
+                        <div class="word-toggle" onclick="toggleWords('${listId}')">🔽 學習單字</div>
+                        <div class="word-list" id="${listId}">${wordsHtml}</div>
+                    `;
+                }
+                rowDiv.appendChild(card);
+            });
+            app.appendChild(rowDiv);
+        });
+    </script>
+</body>
+</html>

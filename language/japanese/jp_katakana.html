@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特日語：片假名篇</title>
+    <style>
+        :root { --primary: #2196F3; --bg: #e3f2fd; --card-bg: #fff; }
+        body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .home-btn { position: absolute; top: 20px; left: 20px; text-decoration: none; background: white; padding: 8px 15px; border-radius: 20px; color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .home-btn:hover { transform: scale(1.05); background: #f0f8ff; }
+        header { text-align: center; background: linear-gradient(135deg, #64b5f6, #1976d2); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; margin-top: 40px; box-shadow: 0 4px 10px rgba(33,150,243,0.3); }
+        .row-container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+        @media (max-width: 600px) { .row { gap: 8px; } }
+        .card { background: var(--card-bg); border-radius: 15px; padding: 15px 5px; text-align: center; border-bottom: 4px solid #bbdefb; position: relative; transition: 0.2s; }
+        .card:hover { transform: translateY(-2px); border-bottom-color: var(--primary); }
+        .kana-main { cursor: pointer; }
+        .kana-main:active { transform: scale(0.95); }
+        .kana { font-size: 2.5em; color: var(--primary); font-weight: bold; line-height: 1.2; }
+        .romaji { font-size: 0.9em; color: #888; font-weight: bold; }
+        .word-toggle { margin-top: 10px; font-size: 0.8em; color: #888; cursor: pointer; background: #f8f8f8; padding: 5px; border-radius: 10px; border: 1px solid #eee; }
+        .word-toggle:hover { background: #eee; color: var(--primary); }
+        .word-list { display: none; margin-top: 10px; text-align: left; padding: 0 5px; }
+        .word-item { font-size: 0.75em; padding: 6px; border-bottom: 1px dashed #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .word-item:hover { background: #e3f2fd; color: var(--primary); border-radius: 5px;}
+        .word-kana { font-weight: bold; font-size: 1.2em;}
+        .word-mean { font-size: 0.9em; color: #666; }
+        .empty { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">🏠 回首頁</a>
+    <header>
+        <h1>🔷 鳩特日語 - 片假名篇</h1>
+        <p>外來語專用，發音慢且清楚</p>
+    </header>
+
+    <div class="row-container" id="app"></div>
+
+    <script>
+        const rows = [
+            { name: "A", chars: [
+                {k:"ア", r:"a", ws:[{j:"アイス",m:"冰淇淋"}, {j:"アニメ",m:"動畫"}, {j:"アメリカ",m:"美國"}]},
+                {k:"イ", r:"i", ws:[{j:"インク",m:"墨水"}, {j:"イベント",m:"活動"}, {j:"イメージ",m:"印象"}]},
+                {k:"ウ", r:"u", ws:[{j:"ウイスキー",m:"威士忌"}, {j:"ウイルス",m:"病毒"}, {j:"ウール",m:"羊毛"}]},
+                {k:"エ", r:"e", ws:[{j:"エレベーター",m:"電梯"}, {j:"エアコン",m:"冷氣"}, {j:"エンジン",m:"引擎"}]},
+                {k:"オ", r:"o", ws:[{j:"オレンジ",m:"柳橙"}, {j:"オートバイ",m:"機車"}, {j:"オイル",m:"油"}]}
+            ]},
+            { name: "Ka", chars: [
+                {k:"カ", r:"ka", ws:[{j:"カメラ",m:"相機"}, {j:"カレー",m:"咖哩"}, {j:"カード",m:"卡片"}]},
+                {k:"キ", r:"ki", ws:[{j:"キウイ",m:"奇異果"}, {j:"キー",m:"鑰匙"}, {j:"キャンプ",m:"露營"}]},
+                {k:"ク", r:"ku", ws:[{j:"クッキー",m:"餅乾"}, {j:"クラス",m:"班級"}, {j:"クラブ",m:"社團"}]},
+                {k:"ケ", r:"ke", ws:[{j:"ケーキ",m:"蛋糕"}, {j:"ケース",m:"盒子"}, {j:"ケチャップ",m:"番茄醬"}]},
+                {k:"コ", r:"ko", ws:[{j:"コーヒー",m:"咖啡"}, {j:"コート",m:"外套"}, {j:"コイン",m:"硬幣"}]}
+            ]},
+            { name: "Sa", chars: [
+                {k:"サ", r:"sa", ws:[{j:"サッカー",m:"足球"}, {j:"サラダ",m:"沙拉"}, {j:"サイズ",m:"尺寸"}]},
+                {k:"シ", r:"shi", ws:[{j:"シャワー",m:"淋浴"}, {j:"シャツ",m:"襯衫"}, {j:"シート",m:"座位"}]},
+                {k:"ス", r:"su", ws:[{j:"スキー",m:"滑雪"}, {j:"スーパー",m:"超市"}, {j:"スープ",m:"湯"}]},
+                {k:"セ", r:"se", ws:[{j:"セーター",m:"毛衣"}, {j:"セット",m:"套餐"}, {j:"セール",m:"特賣"}]},
+                {k:"ソ", r:"so", ws:[{j:"ソファ",m:"沙發"}, {j:"ソース",m:"醬汁"}, {j:"ソックス",m:"襪子"}]}
+            ]},
+            { name: "Ta", chars: [
+                {k:"タ", r:"ta", ws:[{j:"タクシー",m:"計程車"}, {j:"タオル",m:"毛巾"}, {j:"タイヤ",m:"輪胎"}]},
+                {k:"チ", r:"chi", ws:[{j:"チーズ",m:"起司"}, {j:"チーム",m:"隊伍"}, {j:"チケット",m:"票"}]},
+                {k:"ツ", r:"tsu", ws:[{j:"ツナ",m:"鮪魚"}, {j:"ツアー",m:"旅遊"}, {j:"ツリー",m:"樹"}]},
+                {k:"テ", r:"te", ws:[{j:"テニス",m:"網球"}, {j:"テレビ",m:"電視"}, {j:"テーブル",m:"桌子"}]},
+                {k:"ト", r:"to", ws:[{j:"トイレ",m:"廁所"}, {j:"トマト",m:"番茄"}, {j:"トラック",m:"卡車"}]}
+            ]},
+            { name: "Na", chars: [
+                {k:"ナ", r:"na", ws:[{j:"ナイフ",m:"刀子"}, {j:"ナンバー",m:"號碼"}, {j:"ナイト",m:"夜晚"}]},
+                {k:"ニ", r:"ni", ws:[{j:"ニュース",m:"新聞"}, {j:"ニット",m:"針織"}, {j:"ニュー",m:"新"}]},
+                {k:"ヌ", r:"nu", ws:[{j:"ヌードル",m:"麵條"}, {j:"ヌー",m:"牛羚"}, {j:"(罕用)",m:""}]},
+                {k:"ネ", r:"ne", ws:[{j:"ネクタイ",m:"領帶"}, {j:"ネット",m:"網路"}, {j:"ネックレス",m:"項鍊"}]},
+                {k:"ノ", r:"no", ws:[{j:"ノート",m:"筆記本"}, {j:"ノック",m:"敲門"}, {j:"ノー",m:"不"}]}
+            ]},
+            { name: "Ha", chars: [
+                {k:"ハ", r:"ha", ws:[{j:"バス",m:"公車"}, {j:"ハンバーガー",m:"漢堡"}, {j:"ハート",m:"愛心"}]},
+                {k:"ヒ", r:"hi", ws:[{j:"ヒーロー",m:"英雄"}, {j:"ヒント",m:"提示"}, {j:"ヒーター",m:"暖氣"}]},
+                {k:"フ", r:"fu", ws:[{j:"フライ",m:"炸物"}, {j:"フォーク",m:"叉子"}, {j:"ファン",m:"粉絲"}]},
+                {k:"ヘ", r:"he", ws:[{j:"ヘリコプター",m:"直升機"}, {j:"ヘルメット",m:"安全帽"}, {j:"ヘア",m:"頭髮"}]},
+                {k:"ホ", r:"ho", ws:[{j:"ホテル",m:"飯店"}, {j:"ホーム",m:"月台/家"}, {j:"ホット",m:"熱"}]}
+            ]},
+            { name: "Ma", chars: [
+                {k:"マ", r:"ma", ws:[{j:"マイク",m:"麥克風"}, {j:"マスク",m:"口罩"}, {j:"マップ",m:"地圖"}]},
+                {k:"ミ", r:"mi", ws:[{j:"ミルク",m:"牛奶"}, {j:"ミス",m:"失誤"}, {j:"ミント",m:"薄荷"}]},
+                {k:"ム", r:"mu", ws:[{j:"ムーン",m:"月亮"}, {j:"ムード",m:"氣氛"}, {j:"ムービー",m:"電影"}]},
+                {k:"メ", r:"me", ws:[{j:"メロン",m:"哈密瓜"}, {j:"メニュー",m:"菜單"}, {j:"メモ",m:"便條"}]},
+                {k:"モ", r:"mo", ws:[{j:"モニター",m:"螢幕"}, {j:"モデル",m:"模特兒"}, {j:"モード",m:"模式"}]}
+            ]},
+            { name: "Ya", chars: [
+                {k:"ヤ", r:"ya", ws:[{j:"ヤシ",m:"椰子"}, {j:"ヤング",m:"年輕"}, {j:"(罕用)",m:""}]},
+                {k:"", r:"", ws:[]},
+                {k:"ユ", r:"yu", ws:[{j:"ユーザー",m:"使用者"}, {j:"ユニフォーム",m:"制服"}, {j:"ユーモア",m:"幽默"}]},
+                {k:"", r:"", ws:[]},
+                {k:"ヨ", r:"yo", ws:[{j:"ヨガ",m:"瑜珈"}, {j:"ヨット",m:"遊艇"}, {j:"ヨーグルト",m:"優格"}]}
+            ]},
+            { name: "Ra", chars: [
+                {k:"ラ", r:"ra", ws:[{j:"ラジオ",m:"收音機"}, {j:"ラーメン",m:"拉麵"}, {j:"ライオン",m:"獅子"}]},
+                {k:"リ", r:"ri", ws:[{j:"リボン",m:"緞帶"}, {j:"リズム",m:"節奏"}, {j:"リスト",m:"清單"}]},
+                {k:"ル", r:"ru", ws:[{j:"ルージュ",m:"口紅"}, {j:"ルール",m:"規則"}, {j:"ルーム",m:"房間"}]},
+                {k:"レ", r:"re", ws:[{j:"レモン",m:"檸檬"}, {j:"レストラン",m:"餐廳"}, {j:"レベル",m:"等級"}]},
+                {k:"ロ", r:"ro", ws:[{j:"ロボット",m:"機器人"}, {j:"ロケット",m:"火箭"}, {j:"ロッカー",m:"置物櫃"}]}
+            ]},
+            { name: "Wa", chars: [
+                {k:"ワ", r:"wa", ws:[{j:"ワイン",m:"紅酒"}, {j:"ワシントン",m:"華盛頓"}, {j:"ワイド",m:"寬"}]},
+                {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]},
+                {k:"ヲ", r:"wo", ws:[{j:"(助詞)",m:""}, {j:"",m:""}, {j:"",m:""}]}
+            ]},
+            { name: "N", chars: [
+                {k:"ン", r:"n", ws:[{j:"ペン",m:"筆"}, {j:"パン",m:"麵包"}, {j:"マン",m:"人/男"}]},
+                {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}, {k:"", r:"", ws:[]}
+            ]}
+        ];
+
+        const app = document.getElementById('app');
+        const synth = window.speechSynthesis;
+
+        function speak(text, rate) {
+            synth.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ja-JP';
+            u.rate = rate; 
+            synth.speak(u);
+        }
+
+        function toggleWords(id) {
+            const list = document.getElementById(id);
+            if(list.style.display === "block") {
+                list.style.display = "none";
+            } else {
+                document.querySelectorAll('.word-list').forEach(el => el.style.display = 'none');
+                list.style.display = "block";
+            }
+        }
+
+        rows.forEach((row, rIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'row';
+            row.chars.forEach((char, cIndex) => {
+                const card = document.createElement('div');
+                if(char.k === "") {
+                    card.className = 'card empty';
+                } else {
+                    card.className = 'card';
+                    const listId = `list-${rIndex}-${cIndex}`;
+                    let wordsHtml = '';
+                    char.ws.forEach(w => {
+                        if(w.j) {
+                            wordsHtml += `<div class="word-item" onclick="event.stopPropagation(); speak('${w.j}', 0.8)">
+                                <span class="word-kana">${w.j}</span><span class="word-mean">${w.m}</span>
+                            </div>`;
+                        }
+                    });
+                    card.innerHTML = `
+                        <div class="kana-main" onclick="speak('${char.k}', 0.4)">
+                            <div class="romaji">${char.r}</div>
+                            <div class="kana">${char.k}</div>
+                        </div>
+                        <div class="word-toggle" onclick="toggleWords('${listId}')">🔽 學習單字</div>
+                        <div class="word-list" id="${listId}">${wordsHtml}</div>
+                    `;
+                }
+                rowDiv.appendChild(card);
+            });
+            app.appendChild(rowDiv);
+        });
+    </script>
+</body>
+</html>

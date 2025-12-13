@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特日語：濁音與半濁音篇</title>
+    <style>
+        :root { --primary: #673AB7; --secondary: #FF9800; --bg: #ede7f6; --card-bg: #fff; }
+        body { font-family: 'Noto Sans JP', sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        .home-btn { position: absolute; top: 20px; left: 20px; text-decoration: none; background: white; padding: 8px 15px; border-radius: 20px; color: var(--primary); font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s; }
+        .home-btn:hover { transform: scale(1.05); background: #f3e5f5; }
+        
+        header { text-align: center; background: linear-gradient(135deg, #7e57c2, #512da8); color: white; padding: 20px; border-radius: 15px; margin-bottom: 30px; margin-top: 40px; box-shadow: 0 4px 10px rgba(103,58,183,0.3); }
+        h2.section-title { text-align: center; color: var(--primary); margin: 30px 0 15px; background: white; display: inline-block; padding: 5px 20px; border-radius: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        
+        .row-container { display: flex; flex-direction: column; gap: 20px; max-width: 1000px; margin: 0 auto; }
+        .row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; }
+        @media (max-width: 600px) { .row { gap: 8px; } }
+        
+        .card { background: var(--card-bg); border-radius: 15px; padding: 15px 5px; text-align: center; border-bottom: 4px solid #d1c4e9; position: relative; transition: 0.2s; }
+        .card:hover { transform: translateY(-2px); border-bottom-color: var(--primary); }
+        .card.handakuon .kana { color: var(--secondary); }
+        .card.handakuon:hover { border-bottom-color: var(--secondary); background: #fff3e0; }
+        
+        .kana-main { cursor: pointer; }
+        .kana-main:active { transform: scale(0.95); }
+        .kana { font-size: 2.5em; color: var(--primary); font-weight: bold; line-height: 1.2; }
+        .romaji { font-size: 0.9em; color: #888; font-weight: bold; }
+        
+        .word-toggle { margin-top: 10px; font-size: 0.8em; color: #888; cursor: pointer; background: #f8f8f8; padding: 5px; border-radius: 10px; border: 1px solid #eee; }
+        .word-toggle:hover { background: #eee; color: var(--primary); }
+        .word-list { display: none; margin-top: 10px; text-align: left; padding: 0 5px; }
+        .word-item { font-size: 0.75em; padding: 6px; border-bottom: 1px dashed #eee; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .word-item:hover { background: #ede7f6; color: var(--primary); border-radius: 5px;}
+        .word-kana { font-weight: bold; font-size: 1.1em;}
+        .word-mean { font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="home-btn">🏠 回首頁</a>
+    <header>
+        <h1>🔊 鳩特日語 - 濁音與半濁音篇</h1>
+        <p>點點與圈圈，發音要更用力喔！</p>
+    </header>
+
+    <div style="text-align: center;"><h2 class="section-title">☁️ 濁音 (Dakuon) - 點點 ゛</h2></div>
+    <div class="row-container" id="dakuon-area"></div>
+
+    <div style="text-align: center;"><h2 class="section-title" style="color: #FF9800;">🎈 半濁音 (Handakuon) - 圈圈 ゜</h2></div>
+    <div class="row-container" id="handakuon-area"></div>
+
+    <script>
+        const dakuonData = [
+            { name: "Ga", chars: [
+                {k:"が", r:"ga", ws:[{j:"がっこう",m:"學校"}, {j:"がいこく",m:"外國"}, {j:"がくせい",m:"學生"}]},
+                {k:"ぎ", r:"gi", ws:[{j:"ぎんこう",m:"銀行"}, {j:"ギター",m:"吉他"}, {j:"ぎゅうにゅう",m:"牛奶"}]},
+                {k:"ぐ", r:"gu", ws:[{j:"ぐんて",m:"工作手套"}, {j:"グレープ",m:"葡萄"}, {j:"ぐあ",m:"番石榴"}]},
+                {k:"げ", r:"ge", ws:[{j:"げんき",m:"元氣"}, {j:"ゲーム",m:"遊戲"}, {j:"げた",m:"木屐"}]},
+                {k:"ご", r:"go", ws:[{j:"ごはん",m:"飯"}, {j:"ごみ",m:"垃圾"}, {j:"ゴリラ",m:"大猩猩"}]}
+            ]},
+            { name: "Za", chars: [
+                {k:"ざ", r:"za", ws:[{j:"ざっし",m:"雜誌"}, {j:"ざいりょう",m:"材料"}, {j:"ざぶとん",m:"坐墊"}]},
+                {k:"じ", r:"ji", ws:[{j:"じしょ",m:"字典"}, {j:"じてんしゃ",m:"腳踏車"}, {j:"じかん",m:"時間"}]},
+                {k:"ず", r:"zu", ws:[{j:"ずぼん",m:"褲子"}, {j:"ずこう",m:"美勞"}, {j:"ずっと",m:"一直"}]},
+                {k:"ぜ", r:"ze", ws:[{j:"ゼロ",m:"零"}, {j:"ぜんぶ",m:"全部"}, {j:"ぜんぜん",m:"完全不"}]},
+                {k:"ぞ", r:"zo", ws:[{j:"ぞう",m:"大象"}, {j:"ぞうきん",m:"抹布"}, {j:"ぞんび",m:"殭屍"}]}
+            ]},
+            { name: "Da", chars: [
+                {k:"だ", r:"da", ws:[{j:"だいがく",m:"大學"}, {j:"だいどころ",m:"廚房"}, {j:"だんご",m:"糰子"}]},
+                {k:"ぢ", r:"ji", ws:[{j:"はなぢ",m:"鼻血"}, {j:"ちぢむ",m:"縮小"}, {j:"(罕用)",m:""}]},
+                {k:"づ", r:"zu", ws:[{j:"つづく",m:"繼續"}, {j:"みかづき",m:"新月"}, {j:"(罕用)",m:""}]},
+                {k:"で", r:"de", ws:[{j:"でんわ",m:"電話"}, {j:"でんき",m:"電燈"}, {j:"でんしゃ",m:"電車"}]},
+                {k:"ど", r:"do", ws:[{j:"ドア",m:"門"}, {j:"どうぶつ",m:"動物"}, {j:"どようび",m:"星期六"}]}
+            ]},
+            { name: "Ba", chars: [
+                {k:"ば", r:"ba", ws:[{j:"ばす",m:"公車"}, {j:"ばなな",m:"香蕉"}, {j:"ばら",m:"玫瑰"}]},
+                {k:"び", r:"bi", ws:[{j:"びょういん",m:"醫院"}, {j:"ビール",m:"啤酒"}, {j:"ビル",m:"大樓"}]},
+                {k:"ぶ", r:"bu", ws:[{j:"ぶた",m:"豬"}, {j:"ぶどう",m:"葡萄"}, {j:"ぶんか",m:"文化"}]},
+                {k:"べ", r:"be", ws:[{j:"べんきょう",m:"讀書"}, {j:"べんとう",m:"便當"}, {j:"ベッド",m:"床"}]},
+                {k:"ぼ", r:"bo", ws:[{j:"ぼうし",m:"帽子"}, {j:"ボール",m:"球"}, {j:"ぼく",m:"我(男生)"}]}
+            ]}
+        ];
+
+        const handakuonData = [
+            { name: "Pa", chars: [
+                {k:"ぱ", r:"pa", ws:[{j:"パン",m:"麵包"}, {j:"パンダ",m:"熊貓"}, {j:"パソコン",m:"電腦"}]},
+                {k:"ぴ", r:"pi", ws:[{j:"ピアノ",m:"鋼琴"}, {j:"ピンク",m:"粉紅色"}, {j:"ピーマン",m:"青椒"}]},
+                {k:"ぷ", r:"pu", ws:[{j:"プール",m:"泳池"}, {j:"プリン",m:"布丁"}, {j:"プレゼント",m:"禮物"}]},
+                {k:"ぺ", r:"pe", ws:[{j:"ペン",m:"筆"}, {j:"ペンギン",m:"企鵝"}, {j:"ページ",m:"頁"}]},
+                {k:"ぽ", r:"po", ws:[{j:"ポスト",m:"郵筒"}, {j:"ポケット",m:"口袋"}, {j:"ポテト",m:"薯條"}]}
+            ]}
+        ];
+
+        const synth = window.speechSynthesis;
+
+        function speak(text, rate) {
+            synth.cancel();
+            const u = new SpeechSynthesisUtterance(text);
+            u.lang = 'ja-JP';
+            u.rate = rate; 
+            synth.speak(u);
+        }
+
+        function toggleWords(id) {
+            const list = document.getElementById(id);
+            if(list.style.display === "block") {
+                list.style.display = "none";
+            } else {
+                document.querySelectorAll('.word-list').forEach(el => el.style.display = 'none');
+                list.style.display = "block";
+            }
+        }
+
+        function createRows(data, containerId, isHandakuon = false) {
+            const container = document.getElementById(containerId);
+            data.forEach((row, rIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'row';
+                row.chars.forEach((char, cIndex) => {
+                    const card = document.createElement('div');
+                    card.className = isHandakuon ? 'card handakuon' : 'card';
+                    const listId = `list-${containerId}-${rIndex}-${cIndex}`;
+                    
+                    let wordsHtml = '';
+                    char.ws.forEach(w => {
+                        if(w.j) {
+                            wordsHtml += `<div class="word-item" onclick="event.stopPropagation(); speak('${w.j}', 0.8)">
+                                <span class="word-kana">${w.j}</span><span class="word-mean">${w.m}</span>
+                            </div>`;
+                        }
+                    });
+
+                    card.innerHTML = `
+                        <div class="kana-main" onclick="speak('${char.k}', 0.4)">
+                            <div class="romaji">${char.r}</div>
+                            <div class="kana">${char.k}</div>
+                        </div>
+                        <div class="word-toggle" onclick="toggleWords('${listId}')">🔽 學習單字</div>
+                        <div class="word-list" id="${listId}">${wordsHtml}</div>
+                    `;
+                    rowDiv.appendChild(card);
+                });
+                container.appendChild(rowDiv);
+            });
+        }
+
+        createRows(dakuonData, 'dakuon-area');
+        createRows(handakuonData, 'handakuon-area', true);
+    </script>
+</body>
+</html>
