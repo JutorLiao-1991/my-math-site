@@ -93,11 +93,11 @@
                 </label>
                 <label>
                     <span>速度 (<span style="color:#22c55e">●</span> $\vec{v}$)</span>
-                    <input type="checkbox" id="check-vel" checked>
+                    <input type="checkbox" id="check-vel">
                 </label>
                 <label>
                     <span>加速度 (<span style="color:#ef4444">●</span> $\vec{a}$)</span>
-                    <input type="checkbox" id="check-acc" checked>
+                    <input type="checkbox" id="check-acc">
                 </label>
             </div>
         </div>
@@ -147,43 +147,37 @@
 
         function init() {
             window.addEventListener('resize', resize);
-            // 初始呼叫 resize
             resize(); 
             
             ui.R.addEventListener('input', updateParams);
             ui.W.addEventListener('input', updateParams);
             ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
             
-            // 初始化參數顯示
             updateParams();
             loop();
         }
 
-        // 關鍵修正：響應式圓心與半徑調整
         function resize() {
             const container = document.getElementById('canvas-container');
             width = canvas.width = container.clientWidth;
             height = canvas.height = container.clientHeight;
             
-            const isMobile = width < 800; // 簡單判斷手機
+            const isMobile = width < 800; 
             
             if (isMobile) {
-                // 手機版：圓心左移、上移，留空間給波和SHM
+                // 手機版：圓心左移、上移
                 params.cx = width * 0.25; 
                 params.cy = height * 0.35; 
                 
-                // 自動縮小半徑，避免爆框
-                // 如果目前的 R 太大，強制縮小顯示 (但不改變數值，僅視覺縮放)
-                // 這裡我們直接改變 UI 預設值比較直觀
                 const maxSafeR = Math.min(width, height) * 0.2;
                 if (parseInt(ui.R.value) > maxSafeR) {
                     ui.R.value = Math.floor(maxSafeR);
                     updateParams();
                 }
             } else {
-                // 電腦版
+                // 電腦版：圓心稍微往上提 (0.45 -> 0.4)，確保下方空間足夠
                 params.cx = width * 0.3;
-                params.cy = height * 0.45;
+                params.cy = height * 0.4;
             }
         }
 
@@ -205,7 +199,7 @@
             const physX = params.R * Math.cos(theta);
             const physY = params.R * Math.sin(theta);
             const canvasX = physX;
-            const canvasY = -physY; // Canvas y向下為正
+            const canvasY = -physY; 
 
             const px = params.cx + canvasX;
             const py = params.cy + canvasY;
@@ -213,14 +207,11 @@
             drawSystemGrid(params.cx, params.cy);
             drawCircle(params.cx, params.cy, params.R);
             
-            // 繪製系統
             drawWaveSystem(canvasX, canvasY);
             drawSHMSystem(canvasX, canvasY);
             
-            // 繪製質點 (後畫以覆蓋線條)
             drawParticle(px, py, "#fff", 6);
 
-            // 繪製向量 (最上層)
             drawVectors(canvasX, canvasY, theta, px, py);
         }
 
@@ -231,7 +222,7 @@
             const toY = fromY + vecY * scale;
             const headlen = isComponent ? 8 : 12; 
             const angle = Math.atan2(toY - fromY, toX - fromX);
-            const lineWidth = isComponent ? 2 : 4; // 向量加粗！
+            const lineWidth = isComponent ? 2 : 4; 
 
             ctx.beginPath();
             ctx.moveTo(fromX, fromY);
@@ -250,8 +241,8 @@
             ctx.fill();
 
             if (label) {
-                ctx.fillStyle = "#fff"; // 文字改亮白色，比較清楚
-                ctx.shadowColor = "rgba(0,0,0,0.8)"; // 加陰影
+                ctx.fillStyle = "#fff"; 
+                ctx.shadowColor = "rgba(0,0,0,0.8)"; 
                 ctx.shadowBlur = 4;
                 ctx.font = isComponent ? "bold 14px serif" : "bold 18px serif";
                 ctx.textBaseline = "middle";
@@ -264,7 +255,6 @@
                     subText = parts[1];
                 }
 
-                // 智慧避讓標籤位置
                 const textX = toX + (vecX >= 0 ? 12 : -20);
                 const textY = toY + (vecY >= 0 ? 15 : -15);
                 
@@ -274,7 +264,7 @@
                     const mainWidth = ctx.measureText(mainText).width;
                     ctx.fillText(subText, textX + mainWidth + 1, textY + 6);
                 }
-                ctx.shadowBlur = 0; // 重置陰影
+                ctx.shadowBlur = 0; 
             }
         }
 
@@ -282,7 +272,7 @@
             ctx.beginPath();
             ctx.strokeStyle = "#334155";
             ctx.lineWidth = 1;
-            ctx.moveTo(0, cy); ctx.lineTo(width, cy); // 貫穿全螢幕
+            ctx.moveTo(0, cy); ctx.lineTo(width, cy); 
             ctx.moveTo(cx, 0); ctx.lineTo(cx, height);
             ctx.stroke();
             ctx.fillStyle = "#64748b";
@@ -300,23 +290,22 @@
             ctx.setLineDash([]);
         }
 
+        // 修正點：加上引號的顏色字串
         function drawParticle(x, y, color, size) {
             ctx.beginPath();
             ctx.arc(x, y, size, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
-            ctx.strokeStyle = "rgba(0,0,0,0.5)";
+            ctx.strokeStyle = "rgba(0,0,0,0.5)"; // <-- 兇手就是這裡，加上引號了！
             ctx.lineWidth = 2;
             ctx.stroke();
         }
 
         function drawWaveSystem(canvasX, canvasY) {
-            // 在手機上，讓波靠近圓一點，避免跑出去
             const isMobile = width < 800;
             const waveGap = isMobile ? 30 : 60; 
             const waveStartX = params.cx + params.R + waveGap;
             
-            // 投影引導線
             ctx.beginPath();
             ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
             ctx.lineTo(waveStartX, params.cy + canvasY);
@@ -335,7 +324,7 @@
             ctx.lineWidth = 3;
             ctx.lineJoin = 'round';
             for (let i = 0; i < waveHistory.length; i++) {
-                const wx = waveStartX + i * (isMobile ? 2 : 3); // 手機波速稍微慢一點，顯示多一點波形
+                const wx = waveStartX + i * (isMobile ? 2 : 3); 
                 const wy = params.cy + waveHistory[i];
                 if (wx > width) break;
                 if (i === 0) ctx.moveTo(wx, wy);
@@ -343,18 +332,16 @@
             }
             ctx.stroke();
             
-            // 波源點
             if (waveHistory.length > 0) drawParticle(waveStartX, params.cy + waveHistory[0], colors.wave, 5);
         }
 
         function drawSHMSystem(canvasX, canvasY) {
-            // 在手機上，縮短 SHM 與圓的距離
             const isMobile = width < 800;
             const shmGap = isMobile ? 50 : 100;
             const shmY = params.cy + params.R + shmGap;
             
-            // 防止 SHM 跑出畫面下緣
-            if (shmY < height - 20) {
+            // 修正：只要 shmY 在可視範圍內就畫出來 (height - 10 保留一點底邊)
+            if (shmY < height - 10) {
                 ctx.beginPath();
                 ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
                 ctx.lineTo(params.cx + canvasX, shmY);
@@ -363,18 +350,14 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // 軌道
                 ctx.beginPath();
                 ctx.moveTo(params.cx - params.R - 20, shmY); ctx.lineTo(params.cx + params.R + 20, shmY);
                 ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
                 
-                // 平衡點
                 ctx.beginPath(); ctx.moveTo(params.cx, shmY - 8); ctx.lineTo(params.cx, shmY + 8); ctx.stroke();
                 
-                // 標記
                 ctx.fillStyle = "#94a3b8";
                 ctx.font = "12px sans-serif";
-                // 只有空間夠才畫文字
                 if (!isMobile) {
                     ctx.fillText("-R", params.cx - params.R - 30, shmY + 25);
                     ctx.fillText("+R", params.cx + params.R + 10, shmY + 25);
@@ -389,21 +372,17 @@
         }
 
         function drawVectors(canvasX, canvasY, theta, px, py) {
-            // 計算 SHM 的 Y 座標 (需與 drawSHMSystem 一致)
             const isMobile = width < 800;
             const shmGap = isMobile ? 50 : 100;
             const shmY = params.cy + params.R + shmGap;
             const shmX = params.cx + canvasX;
 
-            // 位置 (r, x)
             if (ui.showPos.checked) {
                 drawArrow(params.cx, params.cy, canvasX, canvasY, colors.pos, "r");
-                // 只有 SHM 在畫面內才畫 x 向量
-                if (shmY < height - 20) {
+                if (shmY < height - 10) {
                     drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
                 }
                 
-                // 角度
                 ctx.beginPath();
                 const arcR = isMobile ? 20 : 30;
                 ctx.arc(params.cx, params.cy, arcR, 0, -theta, true);
@@ -414,7 +393,6 @@
             const vScale = 0.7;
             const aScale = 0.7;
 
-            // 速度 (v)
             if (ui.showVel.checked) {
                 const vMag = params.R * params.omega;
                 const physVx = -vMag * Math.sin(theta);
@@ -422,18 +400,15 @@
                 const vecVx = physVx * vScale;
                 const vecVy = -physVy * vScale;
 
-                // 圓上: 分解三角形
-                drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true); // 水平分量
-                drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true); // 鉛直分量
-                drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); // 主向量 (最後畫最上層)
+                drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true); 
+                drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true); 
+                drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); 
 
-                // SHM
-                if (shmY < height - 20) {
+                if (shmY < height - 10) {
                     drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
                 }
             }
 
-            // 加速度 (a)
             if (ui.showAcc.checked) {
                 const aMag = params.R * params.omega * params.omega;
                 const physAx = -aMag * Math.cos(theta);
@@ -441,13 +416,11 @@
                 const vecAx = physAx * aScale;
                 const vecAy = -physAy * aScale;
 
-                // 圓上: 分解三角形
                 drawArrow(px, py, vecAx, 0, colors.acc.comp, "a_x", 1, true);
                 drawArrow(px + vecAx, py, 0, vecAy, colors.acc.comp, null, 1, true);
                 drawArrow(px, py, vecAx, vecAy, colors.acc.main, "a", 1);
 
-                // SHM
-                if (shmY < height - 20) {
+                if (shmY < height - 10) {
                     drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
                 }
             }
