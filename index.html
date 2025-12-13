@@ -4,194 +4,53 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鳩特老師的互動教學網站</title>
+    <script src="data.js"></script> 
+    
     <style>
-        /* --- 全域設定：科技感配色 --- */
+        /* --- CSS 樣式保持不變 --- */
         :root {
-            --bg-color: #0f172a;       /* 深藍黑背景 */
-            --card-bg: #1e293b;        /* 卡片背景 */
-            --text-main: #f1f5f9;      /* 主要文字 */
-            --text-sub: #94a3b8;       /* 次要文字 */
-            --accent: #38bdf8;         /* 科技藍亮點 */
-            --accent-glow: rgba(56, 189, 248, 0.3);
+            --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9;
+            --text-sub: #94a3b8; --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.3);
             --transition: all 0.3s ease;
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-
-        /* --- 頂部導航與 Logo --- */
+        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
         header {
-            padding: 1.5rem 5%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border-bottom: 1px solid #334155;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            padding: 1.5rem 5%; display: flex; flex-direction: column; align-items: center;
+            border-bottom: 1px solid #334155; background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
         }
-
-        .logo-area {
-            display: flex;
-            align-items: center; /* 讓圖片跟文字垂直置中 */
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 1.5rem;
-        }
-
-        /* 修正後的 Logo 樣式 */
-        .logo {
-            height: 45px;          /* 設定高度跟文字差不多 */
-            width: auto;           /* 寬度自動 */
-            background-color: #fff; /* 防止 PNG 透明導致黑線看不到，保留白底 */
-            border-radius: 50%;    /* 變成圓形 */
-            padding: 2px;          /* 留一點邊距 */
-            object-fit: contain;
-        }
-
-        h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: 1px;
-            margin: 0;
-            background: linear-gradient(90deg, #fff, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* --- 分類切換按鈕 --- */
-        .filter-nav {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        .filter-btn {
-            background: transparent;
-            border: 1px solid #334155;
-            color: var(--text-sub);
-            padding: 8px 20px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: var(--transition);
-            font-size: 0.95rem;
-        }
-
-        .filter-btn:hover, .filter-btn.active {
-            background: var(--accent);
-            color: #0f172a;
-            border-color: var(--accent);
-            box-shadow: 0 0 15px var(--accent-glow);
-            font-weight: bold;
-        }
-
-        /* --- 內容網格區 --- */
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 5%;
-            min-height: 60vh; /* 確保內容少時頁尾不會跑上來 */
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        /* --- 卡片設計 --- */
-        .card {
-            background: var(--card-bg);
-            border: 1px solid #334155;
-            border-radius: 12px;
-            overflow: hidden;
-            transition: var(--transition);
-            position: relative;
-            text-decoration: none; /* 去除連結底線 */
-            display: flex; /* 預設顯示 */
-            flex-direction: column;
-        }
-
-        /* 隱藏被過濾掉的卡片 */
-        .card.hidden {
-            display: none;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5);
-        }
-
-        .card-body {
-            padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .tags {
-            margin-bottom: 10px;
-        }
-
-        .tag {
-            font-size: 0.75rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            margin-right: 5px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        /* 標籤顏色定義 */
-        .tag.math { background: rgba(56, 189, 248, 0.15); color: #38bdf8; } /* 數學藍 */
-        .tag.phys { background: rgba(168, 85, 247, 0.15); color: #a855f7; } /* 物理紫 */
-        .tag.chem { background: rgba(34, 197, 94, 0.15);  color: #22c55e; } /* 化學綠 */
-        .tag.lang { background: rgba(251, 146, 60, 0.15); color: #fb923c; } /* 語言橘 */
-
-        .card-title {
-            color: var(--text-main);
-            font-size: 1.25rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card-desc {
-            color: var(--text-sub);
-            font-size: 0.9rem;
-            margin-bottom: 1.5rem;
-            flex-grow: 1; /* 讓敘述佔據剩餘空間 */
-        }
-
-        .card-footer {
-            margin-top: auto; /* 推到底部 */
-            display: flex;
-            align-items: center;
-            color: var(--accent);
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
+        .logo-area { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 1.5rem; }
+        .logo { height: 45px; width: auto; background-color: #fff; border-radius: 50%; padding: 2px; object-fit: contain; }
+        h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .filter-nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .filter-btn { background: transparent; border: 1px solid #334155; color: var(--text-sub); padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: var(--transition); font-size: 0.95rem; }
+        .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); font-weight: bold; }
+        .container { max-width: 1200px; margin: 2rem auto; padding: 0 5%; min-height: 60vh; }
+        
+        /* 網格設定 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        
+        /* 卡片設定 */
+        .card { background: var(--card-bg); border: 1px solid #334155; border-radius: 12px; overflow: hidden; transition: var(--transition); position: relative; text-decoration: none; display: flex; flex-direction: column; }
+        .card.hidden { display: none; }
+        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5); }
+        .card-body { padding: 1.5rem; display: flex; flex-direction: column; height: 100%; }
+        .tags { margin-bottom: 10px; }
+        .tag { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; margin-right: 5px; font-weight: bold; text-transform: uppercase; }
+        
+        /* 標籤顏色 */
+        .tag.math { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+        .tag.phys { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
+        .tag.chem { background: rgba(34, 197, 94, 0.15);  color: #22c55e; }
+        .tag.lang { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+        
+        .card-title { color: var(--text-main); font-size: 1.25rem; margin-bottom: 0.5rem; }
+        .card-desc { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1; }
+        .card-footer { margin-top: auto; display: flex; align-items: center; color: var(--accent); font-size: 0.9rem; font-weight: 600; }
         .arrow { margin-left: 5px; transition: transform 0.2s; }
         .card:hover .arrow { transform: translateX(5px); }
-
-        /* --- 頁尾 --- */
-        footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-sub);
-            font-size: 0.8rem;
-            border-top: 1px solid #334155;
-            margin-top: 3rem;
-            background: #0f172a;
-        }
+        footer { text-align: center; padding: 2rem; color: var(--text-sub); font-size: 0.8rem; border-top: 1px solid #334155; margin-top: 3rem; background: #0f172a; }
     </style>
 </head>
 <body>
@@ -211,72 +70,7 @@
     </header>
 
     <div class="container">
-        <div class="grid">
-            
-            <a href="senior/math/calculus-01.html" class="card" data-category="senior">
-                <div class="card-body">
-                    <div class="tags">
-                        <span class="tag math">高中數學</span>
-                    </div>
-                    <h3 class="card-title">微積分：極限的概念</h3>
-                    <p class="card-desc">透過動態圖形理解 $\lim_{x \to \infty}$ 的收斂過程。</p>
-                    <div class="card-footer">
-                        開始互動 <span class="arrow">→</span>
-                    </div>
-                </div>
-            </a>
-
-            <a href="junior/math/geometry.html" class="card" data-category="junior">
-                <div class="card-body">
-                    <div class="tags">
-                        <span class="tag math">國中數學</span>
-                    </div>
-                    <h3 class="card-title">三角形的全等性質</h3>
-                    <p class="card-desc">拖曳頂點，觀察 SAS 與 SSS 的變化關係。</p>
-                    <div class="card-footer">
-                        開始互動 <span class="arrow">→</span>
-                    </div>
-                </div>
-            </a>
-
-            <a href="senior/physics/projectile.html" class="card" data-category="senior">
-                <div class="card-body">
-                    <div class="tags">
-                        <span class="tag phys">高中物理</span>
-                    </div>
-                    <h3 class="card-title">斜拋運動模擬</h3>
-                    <p class="card-desc">調整初速與角度，預測落地點與最大高度。</p>
-                    <div class="card-footer">
-                        開始互動 <span class="arrow">→</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="#" class="card" data-category="junior">
-                <div class="card-body">
-                    <div class="tags">
-                        <span class="tag chem">國中理化</span>
-                    </div>
-                    <h3 class="card-title">原子結構視覺化</h3>
-                    <p class="card-desc">電子軌域與質子中子的 3D 模型展示。</p>
-                    <div class="card-footer">
-                        開始互動 <span class="arrow">→</span>
-                    </div>
-                </div>
-            </a>
-            <a href="language/english/vocab-01.html" class="card" data-category="language">
-                <div class="card-body">
-                    <div class="tags">
-                        <span class="tag lang">語言學習</span>
-                    </div>
-                    <h3 class="card-title">多益單字聽力測驗</h3>
-                    <p class="card-desc">點擊單字播放發音，並進行即時聽寫練習。</p>
-                    <div class="card-footer">
-                        Start Learning <span class="arrow">→</span>
-                    </div>
-                </div>
-            </a>
-            </div>
+        <div class="grid" id="card-container"></div>
     </div>
 
     <footer>
@@ -284,24 +78,50 @@
     </footer>
 
     <script>
-        // 簡單的篩選腳本
+        // 3. 自動生成卡片的程式碼
+        function renderCards() {
+            const container = document.getElementById('card-container');
+            let htmlContent = '';
+
+            // 讀取 data.js 裡的 lessonData
+            lessonData.forEach(lesson => {
+                htmlContent += `
+                <a href="${lesson.url}" class="card" data-category="${lesson.category}">
+                    <div class="card-body">
+                        <div class="tags">
+                            <span class="tag ${lesson.tagClass}">${lesson.tagName}</span>
+                        </div>
+                        <h3 class="card-title">${lesson.title}</h3>
+                        <p class="card-desc">${lesson.desc}</p>
+                        <div class="card-footer">
+                            開始互動 <span class="arrow">→</span>
+                        </div>
+                    </div>
+                </a>
+                `;
+            });
+
+            // 把組合好的 HTML 放進網頁
+            container.innerHTML = htmlContent;
+        }
+
+        // 頁面載入時，先執行一次生成卡片
+        renderCards();
+
+        // 4. 篩選功能的程式碼 (不用改)
         function filterSelection(category) {
             var cards = document.getElementsByClassName("card");
             var buttons = document.getElementsByClassName("filter-btn");
 
-            // 1. 處理按鈕樣式 (Active State)
+            // 處理按鈕亮燈
             for (var i = 0; i < buttons.length; i++) {
                 buttons[i].classList.remove("active");
-                var text = buttons[i].textContent;
-                
-                // 判斷哪個按鈕該亮燈
-                if (category === 'all' && text.includes('全部')) buttons[i].classList.add("active");
-                else if (category === 'junior' && text.includes('國中')) buttons[i].classList.add("active");
-                else if (category === 'senior' && text.includes('高中')) buttons[i].classList.add("active");
-                else if (category === 'language' && text.includes('語言')) buttons[i].classList.add("active");
+                if (buttons[i].onclick.toString().includes(category)) {
+                    buttons[i].classList.add("active");
+                }
             }
             
-            // 2. 顯示/隱藏卡片
+            // 處理顯示隱藏
             for (var i = 0; i < cards.length; i++) {
                 if (category == "all") {
                     cards[i].classList.remove("hidden");
@@ -317,4 +137,3 @@
     </script>
 </body>
 </html>
-
