@@ -3,137 +3,184 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特老師的互動教學網站</title>
-    <script src="data.js"></script> 
-    
+    <title>鳩特日語：五十音練習首頁</title>
     <style>
-        /* --- CSS 樣式保持不變 --- */
         :root {
-            --bg-color: #0f172a; --card-bg: #1e293b; --text-main: #f1f5f9;
-            --text-sub: #94a3b8; --accent: #38bdf8; --accent-glow: rgba(56, 189, 248, 0.3);
-            --transition: all 0.3s ease;
+            --bg-color: #f5f5f5;
+            --hira-color: #E91E63;
+            --kata-color: #2196F3;
+            --daku-color: #673AB7;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; }
+
+        body {
+            font-family: 'Noto Sans JP', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative; /* 為了讓回首頁按鈕可以定位 */
+        }
+
+        /* --- 新增：回到主站首頁按鈕樣式 --- */
+        .back-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #666;
+            background: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 0.9em;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            z-index: 100; /* 確保在最上層 */
+        }
+        .back-home:hover {
+            background: #333;
+            color: white;
+            transform: translateY(-2px);
+        }
+
         header {
-            padding: 1.5rem 5%; display: flex; flex-direction: column; align-items: center;
-            border-bottom: 1px solid #334155; background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100;
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 20px;
         }
-        .logo-area { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 1.5rem; }
-        .logo { height: 45px; width: auto; background-color: #fff; border-radius: 50%; padding: 2px; object-fit: contain; }
-        h1 { font-size: 1.8rem; font-weight: 700; letter-spacing: 1px; margin: 0; background: linear-gradient(90deg, #fff, var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .filter-nav { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
-        .filter-btn { background: transparent; border: 1px solid #334155; color: var(--text-sub); padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: var(--transition); font-size: 0.95rem; }
-        .filter-btn:hover, .filter-btn.active { background: var(--accent); color: #0f172a; border-color: var(--accent); box-shadow: 0 0 15px var(--accent-glow); font-weight: bold; }
-        .container { max-width: 1200px; margin: 2rem auto; padding: 0 5%; min-height: 60vh; }
+
+        h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin: 0;
+            letter-spacing: 2px;
+        }
+
+        p.subtitle {
+            color: #666;
+            margin-top: 10px;
+            font-size: 1.1em;
+        }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            width: 100%;
+            max-width: 1000px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            text-decoration: none; /* 去除超連結底線 */
+            color: #333;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        /* 針對不同卡片的專屬配色 */
+        .card-hira:hover { border-color: var(--hira-color); }
+        .card-hira .icon-bg { background: #fce4ec; color: var(--hira-color); }
         
-        /* 網格設定 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem; }
+        .card-kata:hover { border-color: var(--kata-color); }
+        .card-kata .icon-bg { background: #e3f2fd; color: var(--kata-color); }
+
+        .card-daku:hover { border-color: var(--daku-color); }
+        .card-daku .icon-bg { background: #ede7f6; color: var(--daku-color); }
+
+        .icon-bg {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+        .card-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .card-desc {
+            font-size: 0.9em;
+            color: #888;
+        }
+
+        footer {
+            margin-top: 50px;
+            color: #aaa;
+            font-size: 0.8em;
+        }
         
-        /* 卡片設定 */
-        .card { background: var(--card-bg); border: 1px solid #334155; border-radius: 12px; overflow: hidden; transition: var(--transition); position: relative; text-decoration: none; display: flex; flex-direction: column; }
-        .card.hidden { display: none; }
-        .card:hover { transform: translateY(-5px); border-color: var(--accent); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5); }
-        .card-body { padding: 1.5rem; display: flex; flex-direction: column; height: 100%; }
-        .tags { margin-bottom: 10px; }
-        .tag { font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; margin-right: 5px; font-weight: bold; text-transform: uppercase; }
-        
-        /* 標籤顏色 */
-        .tag.math { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
-        .tag.phys { background: rgba(168, 85, 247, 0.15); color: #a855f7; }
-        .tag.chem { background: rgba(34, 197, 94, 0.15);  color: #22c55e; }
-        .tag.lang { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
-        
-        .card-title { color: var(--text-main); font-size: 1.25rem; margin-bottom: 0.5rem; }
-        .card-desc { color: var(--text-sub); font-size: 0.9rem; margin-bottom: 1.5rem; flex-grow: 1; }
-        .card-footer { margin-top: auto; display: flex; align-items: center; color: var(--accent); font-size: 0.9rem; font-weight: 600; }
-        .arrow { margin-left: 5px; transition: transform 0.2s; }
-        .card:hover .arrow { transform: translateX(5px); }
-        footer { text-align: center; padding: 2rem; color: var(--text-sub); font-size: 0.8rem; border-top: 1px solid #334155; margin-top: 3rem; background: #0f172a; }
+        /* 手機版適配：讓按鈕不要擋到標題 */
+        @media (max-width: 600px) {
+            .back-home {
+                position: static; /* 手機版不漂浮，改回正常排列 */
+                margin-bottom: 10px;
+                align-self: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
 
+    <a href="../../index.html" class="back-home">
+        <span>⬅</span> 回到鳩特教學網
+    </a>
+
     <header>
-        <div class="logo-area">
-            <img src="logo.jpg" alt="鳩特老師 Logo" class="logo">
-            <h1>鳩特老師的互動教學網站</h1>
-        </div>
-        
-        <div class="filter-nav">
-            <button class="filter-btn active" onclick="filterSelection('all')">全部顯示</button>
-            <button class="filter-btn" onclick="filterSelection('junior')">國中區</button>
-            <button class="filter-btn" onclick="filterSelection('senior')">高中區</button>
-            <button class="filter-btn" onclick="filterSelection('language')">語言學習</button>
-        </div>
+        <h1>🇯🇵 鳩特日語</h1>
+        <p class="subtitle">請選擇您想練習的單元</p>
     </header>
 
-    <div class="container">
-        <div class="grid" id="card-container"></div>
+    <div class="menu-container">
+        
+        <a href="jp_hiragana.html" class="menu-card card-hira">
+            <div class="icon-bg">🌸</div>
+            <div class="card-title">平假名</div>
+            <div class="card-desc">Hiragana<br>基礎入門 A-I-U-E-O</div>
+        </a>
+
+        <a href="jp_katakana.html" class="menu-card card-kata">
+            <div class="icon-bg">🔷</div>
+            <div class="card-title">片假名</div>
+            <div class="card-desc">Katakana<br>外來語專用</div>
+        </a>
+
+        <a href="jp_dakuon.html" class="menu-card card-daku">
+            <div class="icon-bg">🔊</div>
+            <div class="card-title">濁音/半濁音</div>
+            <div class="card-desc">Dakuon<br>加上點點與圈圈</div>
+        </a>
+
     </div>
 
     <footer>
-        <p>&copy; 2024 鳩特老師的互動教學網站. All rights reserved.</p>
+        &copy; 鳩特日語互動學習網
     </footer>
 
-    <script>
-        // 3. 自動生成卡片的程式碼
-        function renderCards() {
-            const container = document.getElementById('card-container');
-            let htmlContent = '';
-
-            // 讀取 data.js 裡的 lessonData
-            lessonData.forEach(lesson => {
-                htmlContent += `
-                <a href="${lesson.url}" class="card" data-category="${lesson.category}">
-                    <div class="card-body">
-                        <div class="tags">
-                            <span class="tag ${lesson.tagClass}">${lesson.tagName}</span>
-                        </div>
-                        <h3 class="card-title">${lesson.title}</h3>
-                        <p class="card-desc">${lesson.desc}</p>
-                        <div class="card-footer">
-                            開始互動 <span class="arrow">→</span>
-                        </div>
-                    </div>
-                </a>
-                `;
-            });
-
-            // 把組合好的 HTML 放進網頁
-            container.innerHTML = htmlContent;
-        }
-
-        // 頁面載入時，先執行一次生成卡片
-        renderCards();
-
-        // 4. 篩選功能的程式碼 (不用改)
-        function filterSelection(category) {
-            var cards = document.getElementsByClassName("card");
-            var buttons = document.getElementsByClassName("filter-btn");
-
-            // 處理按鈕亮燈
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove("active");
-                if (buttons[i].onclick.toString().includes(category)) {
-                    buttons[i].classList.add("active");
-                }
-            }
-            
-            // 處理顯示隱藏
-            for (var i = 0; i < cards.length; i++) {
-                if (category == "all") {
-                    cards[i].classList.remove("hidden");
-                } else {
-                    if (cards[i].getAttribute("data-category").includes(category)) {
-                        cards[i].classList.remove("hidden");
-                    } else {
-                        cards[i].classList.add("hidden");
-                    }
-                }
-            }
-        }
-    </script>
 </body>
 </html>
