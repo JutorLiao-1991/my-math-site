@@ -20,5 +20,14 @@ const lessonData = [
         tagClass: "phys",      // 紫色標籤
         tagName: "高中物理",
         desc: "透過動態投影，理解等速圓周運動、正弦波與簡諧運動(SHM)的數學關聯。"
+    },
+    {
+        title: "物質加熱曲線與三態變化",
+        category: "junior", // 國中區
+        url: "junior/science/heating_curve.html", // 新檔案的路徑
+        tagClass: "phys", // 使用物理（紫色）標籤
+        tagName: "國中理化",
+        desc: "透過加熱曲線與巨觀、微觀畫面熟悉曲線意義。"
     }
+    // ↑↑↑ 請確保這裡有逗號，除非它是陣列中最後一個物件 ↑↑↑
 ];
