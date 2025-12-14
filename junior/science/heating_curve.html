@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：物質加熱曲線與三態變化</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --panel-bg: #ffffff;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* 導航列 */
+        .nav-bar {
+            padding: 10px 20px;
+            background: var(--nav-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #334155;
+            color: white;
+            flex-shrink: 0;
+        }
+        .back-btn {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: bold;
+            border: 1px solid var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; }
+
+
+        .main-wrapper {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            gap: 15px;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            flex: 1;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 左側圖表區 */
+        #graph-container { flex: 1.3; }
+
+        canvas {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            width: 100%;
+            height: auto;
+            max-height: 400px;
+            object-fit: contain;
+        }
+        
+        #graphCanvas { cursor: crosshair; }
+
+        /* 浮水印樣式 */
+        .graph-watermark {
+            position: absolute;
+            bottom: 65px;
+            right: 50px;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            color: rgba(0,0,0,0.25);
+            font-size: 1.1rem;
+            pointer-events: none;
+            z-index: 10;
+            user-select: none;
+        }
+
+        /* 右側動畫區 */
+        #animation-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .view-switch-btn {
+            margin-bottom: 10px;
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .view-switch-btn:hover { background-color: #357abd; }
+
+        /* 控制區 */
+        .controls-container {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 120px;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 5px 0;
+            font-size: 1rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            display: inline-block;
+        }
+
+        label {
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* 修正：下標字體大小 */
+        label sub {
+            font-size: 0.7rem;
+            vertical-align: sub;
+        }
+
+        input[type="number"] {
+            width: 60px;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            text-align: right;
+        }
+
+        .main-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            width: 100%;
+            justify-content: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        #playPauseBtn { background-color: var(--secondary-color); color: white; min-width: 100px; }
+        #resetBtn { background-color: #e74c3c; color: white; }
+        .preset-btn { background-color: #6c757d; color: white; font-size: 0.85rem;}
+        #waterPresetBtn { background-color: var(--primary-color); }
+        #alcoholPresetBtn { background-color: #8e44ad; }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f1f1;
+            padding: 5px 10px;
+            border-radius: 6px;
+        }
+        select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;}
+
+        #status-display {
+            position: absolute;
+            top: 20px;
+            left: 25px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .stage-indicator {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+        }
+
+        @media (max-width: 768px) {
+            .nav-bar { padding: 10px; }
+            .page-title { font-size: 1rem; }
+            .back-btn span { display: none; }
+            .main-container { flex-direction: column; }
+            canvas { max-height: 300px; }
+            .controls-container { flex-direction: column; }
+            .control-group { width: 100%; }
+            .preset-btn { width: 100%; margin-top: 5px;}
+            .graph-watermark { font-size: 0.9rem; right: 20px; bottom: 50px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
+        <h2 class="page-title">鳩特數理：物質加熱曲線與三態變化</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="main-container">
+            <div class="panel" id="graph-container">
+                <canvas id="graphCanvas" width="600" height="400"></canvas>
+                <div id="status-display">
+                    <div class="stage-indicator" id="stageText">準備開始</div>
+                    <div>時間 (t): <span id="timeText">0</span> s</div>
+                    <div>溫度 (T): <span id="tempText">-20</span> °C</div>
+                </div>
+                <div class="graph-watermark">Presented by Jutor</div>
+            </div>
+
+            <div class="panel" id="animation-container">
+                <button class="view-switch-btn" id="viewSwitchBtn">切換視角：巨觀 (Macro)</button>
+                <canvas id="animCanvas" width="400" height="400"></canvas>
+            </div>
+        </div>
+
+        <div class="controls-container">
+            <div class="main-controls">
+                <button id="playPauseBtn" class="btn">開始加熱</button>
+                <button id="resetBtn" class="btn">重置</button>
+                
+                <div class="speed-control">
+                    <span>速度:</span>
+                    <select id="speedSelect">
+                        <option value="1">1x</option>
+                        <option value="2">2x</option>
+                        <option value="5" selected>5x</option>
+                        <option value="10">10x</option>
+                    </select>
+                </div>
+
+                <div style="flex-grow: 1;"></div>
+                
+                <button id="waterPresetBtn" class="btn preset-btn">載入：水 (H₂O)</button>
+                <button id="alcoholPresetBtn" class="btn preset-btn">載入：酒精 (乙醇)</button>
+            </div>
+
+            <div class="control-group">
+                <h3>固態階段</h3>
+                <label>比熱 (S<sub>固</sub>): <input type="number" id="s_solid" value="0.5" step="0.1" min="0.1"> cal/g°C</label>
+            </div>
+            <div class="control-group">
+                <h3>熔化階段</h3>
+                <label>熔化熱 (L<sub>熔</sub>): <input type="number" id="l_fusion" value="80" step="10" min="10"> cal/g</label>
+                <small style="color:#666;">*吸熱但溫度不變</small>
+            </div>
+            <div class="control-group">
+                <h3>液態階段</h3>
+                <label>比熱 (S<sub>液</sub>): <input type="number" id="s_liquid" value="1.0" step="0.1" min="0.1"> cal/g°C</label>
+            </div>
+            <div class="control-group">
+                <h3>汽化階段</h3>
+                <label>汽化熱 (L<sub>汽</sub>): <input type="number" id="l_vapor" value="540" step="50" min="10"> cal/g</label>
+                <small style="color:#666;">*吸熱但溫度不變</small>
+            </div>
+            <div class="control-group">
+                 <h3>氣態階段</h3>
+                <label>比熱 (S<sub>氣</sub>): <input type="number" id="s_gas" value="0.4" step="0.1" min="0.1"> cal/g°C</label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let params = {
+            s_solid: 0.5, l_fusion: 80,
+            s_liquid: 1.0, l_vapor: 540,
+            s_gas: 0.4,
+            mass: 100, 
+            heatRate: 200, 
+            initialTemp: -20, meltingPoint: 0, boilingPoint: 100, finalTempTarget: 120
+        };
+
+        let state = {
+            isPlaying: false,
+            currentTime: 0,
+            currentTemp: params.initialTemp,
+            currentStage: 0, 
+            viewMode: 'macro',
+            animationId: null,
+            particles: [],
+            speedMultiplier: 5
+        };
+
+        const STAGES = ["固態升溫", "固液共存 (熔化中...)", "液態升溫", "液氣共存 (汽化中...)", "氣態升溫", "加熱結束"];
+        const STAGE_COLORS = ["#3498db", "#9b59b6", "#2ecc71", "#e67e22", "#e74c3c"];
+
+        const graphCanvas = document.getElementById('graphCanvas');
+        const ctxGraph = graphCanvas.getContext('2d');
+        const animCanvas = document.getElementById('animCanvas');
+        const ctxAnim = animCanvas.getContext('2d');
+        const stageText = document.getElementById('stageText');
+        const timeText = document.getElementById('timeText');
+        const tempText = document.getElementById('tempText');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const viewSwitchBtn = document.getElementById('viewSwitchBtn');
+
+        let timePoints = [];
+
+        function calculateTimePoints() {
+            const H = params.heatRate;
+            const M = params.mass;
+            let t = 0;
+            timePoints = [t];
+            t += M * params.s_solid * (params.meltingPoint - params.initialTemp) / H; timePoints.push(t);
+            t += M * params.l_fusion / H; timePoints.push(t);
+            t += M * params.s_liquid * (params.boilingPoint - params.meltingPoint) / H; timePoints.push(t);
+            t += M * params.l_vapor / H; timePoints.push(t);
+            t += M * params.s_gas * (params.finalTempTarget - params.boilingPoint) / H; timePoints.push(t);
+        }
+
+        function updateSimulation(dt) {
+            if (!state.isPlaying) return;
+            const effectiveDt = dt * state.speedMultiplier;
+            state.currentTime += effectiveDt;
+
+            let t = state.currentTime;
+            let T, stage;
+
+            if (t <= timePoints[1]) {
+                stage = 0;
+                let progress = t / timePoints[1];
+                T = params.initialTemp + progress * (params.meltingPoint - params.initialTemp);
+            } else if (t <= timePoints[2]) {
+                stage = 1;
+                T = params.meltingPoint;
+            } else if (t <= timePoints[3]) {
+                stage = 2;
+                let progress = (t - timePoints[2]) / (timePoints[3] - timePoints[2]);
+                T = params.meltingPoint + progress * (params.boilingPoint - params.meltingPoint);
+            } else if (t <= timePoints[4]) {
+                stage = 3;
+                T = params.boilingPoint;
+            } else if (t <= timePoints[5]) {
+                stage = 4;
+                let progress = (t - timePoints[4]) / (timePoints[5] - timePoints[4]);
+                T = params.boilingPoint + progress * (params.finalTempTarget - params.boilingPoint);
+            } else {
+                stage = 5;
+                T = params.finalTempTarget;
+                state.isPlaying = false;
+                playPauseBtn.textContent = "重新開始";
+            }
+
+            state.currentTemp = T;
+            state.currentStage = stage;
+            updateStatusDisplay();
+        }
+
+        function updateStatusDisplay() {
+            stageText.textContent = STAGES[state.currentStage];
+            if(state.currentStage === 1 || state.currentStage === 3) {
+                 stageText.innerHTML += "<br><small>(吸熱，溫度不變，位能增加)</small>";
+            }
+            timeText.textContent = state.currentTime.toFixed(1);
+            tempText.textContent = state.currentTemp.toFixed(1);
+            stageText.style.color = STAGE_COLORS[state.currentStage] || "#333";
+        }
+
+        function drawGraph() {
+            const width = graphCanvas.width;
+            const height = graphCanvas.height;
+            ctxGraph.clearRect(0, 0, width, height);
+
+            const padding = { top: 30, right: 30, bottom: 50, left: 60 };
+            const plotWidth = width - padding.left - padding.right;
+            const plotHeight = height - padding.top - padding.bottom;
+            const maxTime = timePoints[5] * 1.05; 
+            const minTemp = params.initialTemp - 20;
+            const maxTemp = params.finalTempTarget + 20;
+            const mapX = (t) => padding.left + (t / maxTime) * plotWidth;
+            const mapY = (T) => padding.top + plotHeight - ((T - minTemp) / (maxTemp - minTemp)) * plotHeight;
+
+            ctxGraph.beginPath(); ctxGraph.strokeStyle = "#ddd";
+            [params.initialTemp, params.meltingPoint, params.boilingPoint].forEach(T => {
+                 let y = mapY(T); ctxGraph.moveTo(padding.left, y); ctxGraph.lineTo(width - padding.right, y);
+            });
+            ctxGraph.stroke();
+
+            ctxGraph.beginPath(); ctxGraph.strokeStyle = "#666"; ctxGraph.lineWidth = 2;
+            ctxGraph.moveTo(padding.left, padding.top); ctxGraph.lineTo(padding.left, height - padding.bottom);
+            ctxGraph.lineTo(width - padding.right, height - padding.bottom); ctxGraph.stroke();
+
+            ctxGraph.fillStyle = "#333"; ctxGraph.font = "14px Arial"; ctxGraph.textAlign = "center";
+            ctxGraph.fillText("加熱時間 t (s)", padding.left + plotWidth / 2, height - 10);
+            ctxGraph.save(); ctxGraph.translate(20, padding.top + plotHeight / 2); ctxGraph.rotate(-Math.PI / 2);
+            ctxGraph.fillText("溫度 T (°C)", 0, 0); ctxGraph.restore();
+
+            ctxGraph.textAlign = "right";
+            ctxGraph.fillText(params.initialTemp.toFixed(0), padding.left - 10, mapY(params.initialTemp) + 5);
+            ctxGraph.fillText(params.meltingPoint.toFixed(0), padding.left - 10, mapY(params.meltingPoint) + 5);
+            ctxGraph.fillText(params.boilingPoint.toFixed(0), padding.left - 10, mapY(params.boilingPoint) + 5);
+
+            ctxGraph.lineWidth = 4;
+            const tempPoints = [params.initialTemp, params.meltingPoint, params.meltingPoint, params.boilingPoint, params.boilingPoint, params.finalTempTarget];
+            for (let i = 0; i < 5; i++) {
+                ctxGraph.beginPath(); ctxGraph.strokeStyle = STAGE_COLORS[i];
+                ctxGraph.moveTo(mapX(timePoints[i]), mapY(tempPoints[i]));
+                ctxGraph.lineTo(mapX(timePoints[i+1]), mapY(tempPoints[i+1]));
+                ctxGraph.stroke();
+            }
+
+            if (state.currentTime <= maxTime) {
+                const curX = mapX(state.currentTime); const curY = mapY(state.currentTemp);
+                ctxGraph.beginPath(); ctxGraph.fillStyle = "red"; ctxGraph.arc(curX, curY, 6, 0, Math.PI * 2); ctxGraph.fill();
+                ctxGraph.strokeStyle = "white"; ctxGraph.stroke();
+            }
+        }
+
+        function initParticles() {
+            state.particles = [];
+            const rows = 10, cols = 10;
+            const spacing = 20;
+            const offsetX = 100, offsetY = 120;
+            for(let i=0; i<rows; i++){
+                for(let j=0; j<cols; j++){
+                    state.particles.push({
+                        x: offsetX + j*spacing, y: offsetY + i*spacing,
+                        originX: offsetX + j*spacing, originY: offsetY + i*spacing,
+                        vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2, r: 6, state: 'solid'
+                    });
+                }
+            }
+        }
+
+        function drawFlame(ctx, x, y, width, height) {
+            ctx.save(); ctx.translate(x, y); const time = Date.now() / 150;
+            for (let i = 0; i < 3; i++) {
+                ctx.beginPath(); const flameScale = 1 - i * 0.2; ctx.scale(flameScale, flameScale);
+                ctx.moveTo(-width/2, 0);
+                ctx.quadraticCurveTo(-width/2 - Math.sin(time + i) * 5, -height/2, 0 + Math.sin(time * 1.5 + i) * 10, -height - Math.abs(Math.sin(time + i)) * 10);
+                ctx.quadraticCurveTo(width/2 + Math.cos(time + i) * 5, -height/2, width/2, 0);
+                ctx.closePath();
+                if (i === 0) ctx.fillStyle = "rgba(255, 69, 0, 0.7)";
+                else if (i === 1) ctx.fillStyle = "rgba(255, 140, 0, 0.8)";
+                else ctx.fillStyle = "rgba(255, 255, 0, 0.9)";
+                ctx.fill(); ctx.setTransform(1, 0, 0, 1, x, y);
+            }
+            ctx.restore();
+        }
+
+        function drawAnimation() {
+            const width = animCanvas.width; const height = animCanvas.height;
+            ctxAnim.clearRect(0, 0, width, height);
+            const burnerY = height - 60;
+            ctxAnim.fillStyle = "#8e44ad"; ctxAnim.fillRect(width/2 - 40, burnerY, 80, 40); 
+            if(state.isPlaying && state.currentStage <= 4) drawFlame(ctxAnim, width/2, burnerY, 30, 60);
+            
+            if (state.viewMode === 'macro') drawMacroView(width, burnerY);
+            else drawMicroView(width, burnerY - 50);
+        }
+
+        function drawMacroView(w, baseH) {
+            const beakerBottom = baseH - 50;
+            const beakerX = w/2 - 70;
+            const beakerW = 140;
+            const beakerH = 180;
+            const wallThickness = 4;
+
+            ctxAnim.strokeStyle = "#aaa"; ctxAnim.lineWidth = wallThickness;
+            ctxAnim.beginPath(); ctxAnim.moveTo(beakerX, beakerBottom - beakerH);
+            ctxAnim.lineTo(beakerX, beakerBottom); ctxAnim.lineTo(beakerX + beakerW, beakerBottom);
+            ctxAnim.lineTo(beakerX + beakerW, beakerBottom - beakerH); ctxAnim.stroke();
+
+            drawThermometer(beakerX + 30, beakerBottom - 20);
+
+            const maxWaterLevel = beakerBottom - 120;
+            const initialIceSize = 80;
+            let iceColor = "rgba(173, 216, 230, 0.8)";
+            let liquidColor = "rgba(52, 152, 219, 0.6)";
+            
+            const iceCenterX = beakerX + 90; 
+            const innerBottomY = beakerBottom - wallThickness/2;
+
+            if (state.currentStage === 0) { // 固
+                ctxAnim.fillStyle = iceColor;
+                let iceX = iceCenterX - initialIceSize/2;
+                let iceY = innerBottomY - initialIceSize;
+                ctxAnim.fillRect(iceX, iceY, initialIceSize, initialIceSize);
+                ctxAnim.strokeStyle = "#fff"; ctxAnim.lineWidth = 1;
+                ctxAnim.strokeRect(iceX, iceY, initialIceSize, initialIceSize);
+            } else if (state.currentStage === 1) { // 熔
+                let meltProgress = (state.currentTime - timePoints[1]) / (timePoints[2] - timePoints[1]);
+                let currentWaterHeight = (beakerBottom - maxWaterLevel) * meltProgress;
+                let waterLevelY = beakerBottom - currentWaterHeight;
+                
+                ctxAnim.fillStyle = liquidColor;
+                ctxAnim.fillRect(beakerX + wallThickness/2, waterLevelY, beakerW - wallThickness, currentWaterHeight);
+                
+                let currentIceSize = initialIceSize * (1 - meltProgress);
+                if(currentIceSize > 0.5) {
+                    ctxAnim.fillStyle = iceColor;
+                    let iceX = iceCenterX - currentIceSize/2;
+                    let floatTopY = waterLevelY - currentIceSize * 0.1;
+                    let iceY = floatTopY;
+                    if (iceY + currentIceSize > innerBottomY) {
+                        iceY = innerBottomY - currentIceSize; 
+                    }
+                    ctxAnim.fillRect(iceX, iceY, currentIceSize, currentIceSize);
+                }
+
+            } else if (state.currentStage === 2 || state.currentStage === 3) { // 液 & 沸
+                ctxAnim.fillStyle = liquidColor; 
+                let currentLevel = maxWaterLevel;
+                if(state.currentStage === 3) {
+                     let boilProgress = (state.currentTime - timePoints[3]) / (timePoints[4] - timePoints[3]);
+                     currentLevel = maxWaterLevel + boilProgress * (beakerBottom - maxWaterLevel - 20);
+                }
+                ctxAnim.fillRect(beakerX + wallThickness/2, currentLevel, beakerW - wallThickness, beakerBottom - currentLevel);
+
+                if(state.currentStage === 3 && state.isPlaying) {
+                    for(let i=0; i<6; i++){
+                        ctxAnim.beginPath(); ctxAnim.fillStyle = "rgba(255,255,255,0.8)";
+                        ctxAnim.arc(beakerX + 20 + Math.random()*(beakerW-40), beakerBottom - Math.random()*(beakerBottom-currentLevel), 4 + Math.random()*4, 0, Math.PI*2); ctxAnim.fill();
+                    }
+                }
+            } else { // 氣
+                 if(state.isPlaying) {
+                    ctxAnim.fillStyle = "rgba(200,200,200,0.3)";
+                    for(let i=0; i<15; i++){
+                         ctxAnim.beginPath(); ctxAnim.arc(beakerX + Math.random()*beakerW, beakerBottom - beakerH + Math.random()*80, 8+Math.random()*10, 0, Math.PI*2); ctxAnim.fill();
+                    }
+                 }
+            }
+        }
+
+        function drawThermometer(x, yBottom) {
+            ctxAnim.fillStyle = "#eee"; ctxAnim.strokeStyle = "#999"; ctxAnim.lineWidth = 2;
+            ctxAnim.fillRect(x-5, yBottom - 150, 10, 150); ctxAnim.strokeRect(x-5, yBottom - 150, 10, 150);
+            ctxAnim.beginPath(); ctxAnim.arc(x, yBottom, 10, 0, Math.PI*2); ctxAnim.fill(); ctxAnim.stroke();
+            const range = params.finalTempTarget - params.initialTemp;
+            const currentVal = state.currentTemp - params.initialTemp;
+            let tempPercent = currentVal / range;
+            if (tempPercent < 0) tempPercent = 0; if (tempPercent > 1) tempPercent = 1;
+            let liquidHeight = 20 + tempPercent * 120;
+            ctxAnim.fillStyle = "#e74c3c"; ctxAnim.beginPath(); ctxAnim.arc(x, yBottom, 8, 0, Math.PI*2); ctxAnim.fill();
+            ctxAnim.fillRect(x-3, yBottom - liquidHeight, 6, liquidHeight);
+        }
+
+        function drawMicroView(w, containerBottom) {
+            const boxX = w/2 - 150, boxY = 50, boxW = 300, boxH = 250;
+            ctxAnim.strokeStyle = "#333"; ctxAnim.lineWidth = 3; ctxAnim.strokeRect(boxX, boxY, boxW, boxH);
+            let vibration = (state.currentTemp - params.initialTemp + 20) / 150 * 2.5; 
+            let speed = (state.currentTemp - params.initialTemp + 20) / 150 * 8; 
+            let meltProgress = 0, boilProgress = 0;
+            if(state.currentStage === 1) meltProgress = (state.currentTime - timePoints[1]) / (timePoints[2] - timePoints[1]);
+            if(state.currentStage === 3) boilProgress = (state.currentTime - timePoints[3]) / (timePoints[4] - timePoints[3]);
+
+            state.particles.forEach((p, index) => {
+                if(state.currentStage === 0) p.state = 'solid';
+                else if (state.currentStage === 1) p.state = (index / state.particles.length < meltProgress) ? 'liquid' : 'solid';
+                else if (state.currentStage === 2) p.state = 'liquid';
+                else if (state.currentStage === 3) p.state = (index / state.particles.length < boilProgress) ? 'gas' : 'liquid';
+                else p.state = 'gas';
+
+                if(p.state === 'solid') {
+                    p.x = p.originX + (Math.random()-0.5)*vibration; p.y = p.originY + (Math.random()-0.5)*vibration;
+                    ctxAnim.fillStyle = STAGE_COLORS[0];
+                } else if (p.state === 'liquid') {
+                    p.x += p.vx * speed * 0.4; p.y += p.vy * speed * 0.4;
+                    let liquidTop = boxY + boxH * 0.4; 
+                    if(p.x < boxX+p.r) { p.x = boxX+p.r; p.vx *= -1; } if(p.x > boxX+boxW-p.r) { p.x = boxX+boxW-p.r; p.vx *= -1; }
+                    if(p.y < liquidTop) { p.y = liquidTop; p.vy *= -1; }  if(p.y > boxY+boxH-p.r) { p.y = boxY+boxH-p.r; p.vy *= -1; }
+                    ctxAnim.fillStyle = STAGE_COLORS[2];
+                } else { 
+                    p.x += p.vx * speed; p.y += p.vy * speed;
+                    if(p.x < boxX+p.r) { p.x = boxX+p.r; p.vx *= -1; } if(p.x > boxX+boxW-p.r) { p.x = boxX+boxW-p.r; p.vx *= -1; }
+                    if(p.y < boxY+p.r) { p.y = boxY+p.r; p.vy *= -1; } if(p.y > boxY+boxH-p.r) { p.y = boxY+boxH-p.r; p.vy *= -1; }
+                    ctxAnim.fillStyle = STAGE_COLORS[4];
+                }
+                ctxAnim.beginPath(); ctxAnim.arc(p.x, p.y, p.r, 0, Math.PI*2); ctxAnim.fill();
+            });
+            ctxAnim.fillStyle = "#333"; ctxAnim.font = "16px Arial"; ctxAnim.textAlign = "center"; ctxAnim.fillText("微觀粒子模型", w/2, 30);
+        }
+
+        let lastTime = 0;
+        function animate(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const dt = (timestamp - lastTime) / 1000; 
+            lastTime = timestamp;
+            updateSimulation(dt); drawGraph(); drawAnimation();
+            state.animationId = requestAnimationFrame(animate);
+        }
+
+        function init() {
+            calculateTimePoints(); updateStatusDisplay(); drawGraph(); initParticles(); drawAnimation();
+        }
+
+        function readParams() {
+            params.s_solid = parseFloat(document.getElementById('s_solid').value) || 0.5;
+            params.l_fusion = parseFloat(document.getElementById('l_fusion').value) || 80;
+            params.s_liquid = parseFloat(document.getElementById('s_liquid').value) || 1.0;
+            params.l_vapor = parseFloat(document.getElementById('l_vapor').value) || 540;
+            params.s_gas = parseFloat(document.getElementById('s_gas').value) || 0.4;
+            calculateTimePoints(); resetSimulation();
+        }
+
+        function resetSimulation() {
+            state.isPlaying = false; state.currentTime = 0; state.currentTemp = params.initialTemp;
+            state.currentStage = 0; playPauseBtn.textContent = "開始加熱";
+            playPauseBtn.style.backgroundColor = "var(--secondary-color)";
+            updateStatusDisplay(); drawGraph(); initParticles(); drawAnimation();
+        }
+
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', readParams);
+        });
+
+        document.getElementById('speedSelect').addEventListener('change', (e) => {
+            state.speedMultiplier = parseFloat(e.target.value);
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if(state.currentStage === 5) resetSimulation();
+            state.isPlaying = !state.isPlaying;
+            playPauseBtn.textContent = state.isPlaying ? "暫停" : "繼續加熱";
+            playPauseBtn.style.backgroundColor = state.isPlaying ? "#7f8c8d" : "var(--secondary-color)";
+            lastTime = 0;
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', readParams);
+
+        viewSwitchBtn.addEventListener('click', () => {
+            state.viewMode = state.viewMode === 'macro' ? 'micro' : 'macro';
+            viewSwitchBtn.textContent = state.viewMode === 'macro' ? "切換視角：巨觀 (Macro)" : "切換視角：微觀 (Micro)";
+            if(!state.isPlaying) drawAnimation();
+        });
+
+        document.getElementById('waterPresetBtn').addEventListener('click', ()=>{
+            document.getElementById('s_solid').value = 0.5; document.getElementById('l_fusion').value = 80;
+            document.getElementById('s_liquid').value = 1.0; document.getElementById('l_vapor').value = 540;
+            document.getElementById('s_gas').value = 0.48;
+            params.initialTemp = -20; params.meltingPoint = 0; params.boilingPoint = 100; params.finalTempTarget = 120;
+            readParams();
+        });
+
+        document.getElementById('alcoholPresetBtn').addEventListener('click', ()=>{
+            document.getElementById('s_solid').value = 0.24; document.getElementById('l_fusion').value = 25; 
+            document.getElementById('s_liquid').value = 0.6; document.getElementById('l_vapor').value = 200; 
+            document.getElementById('s_gas').value = 0.4; 
+            params.initialTemp = -130; params.meltingPoint = -114; params.boilingPoint = 78; params.finalTempTarget = 100;
+            readParams();
+        });
+
+        init();
+        requestAnimationFrame(animate);
+    </script>
+</body>
+</html>
