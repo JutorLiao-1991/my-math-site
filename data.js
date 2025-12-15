@@ -28,6 +28,14 @@ const lessonData = [
         tagClass: "phys", // 使用物理（紫色）標籤
         tagName: "國中理化",
         desc: "透過加熱曲線與巨觀、微觀畫面熟悉曲線意義。"
+    },
+    {
+    title: "多項式函數圖形",
+    category: "senior",
+    url: "senior/math/poly_function_graphing.html",
+    tagClass: "math", // 藍色標籤
+    tagName: "高中數學",
+    desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
     }
     // ↑↑↑ 請確保這裡有逗號，除非它是陣列中最後一個物件 ↑↑↑
 ];
