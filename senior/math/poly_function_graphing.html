@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：多項式函數圖形探究</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                packages: {'[+]': ['color', 'array']}
+            },
+            svg: { fontCache: 'global' },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            /* 介面主色調 */
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --panel-bg: #ffffff;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8;
+            --border-color: #e1e4e8;
+            
+            /* 特殊點顏色定義 (文字用) */
+            --col-vertex: #e74c3c;   /* 紅 */
+            --col-int: #f39c12;      /* 橘 */
+            --col-center: #9b59b6;   /* 紫 */
+            --col-axis: #c0392b;     /* 深紅 */
+            --col-tip: #27ae60;      /* 綠 */
+            --col-blue: #2980b9;     /* 藍 */
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg);
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #334155; color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--accent); font-weight: bold;
+            border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        .main-wrapper {
+            flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative;
+        }
+
+        .panel {
+            background: var(--panel-bg); border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        #graph-panel { flex: 2; position: relative; }
+        #plot-div { width: 100%; height: 100%; }
+
+        #controls-panel {
+            flex: 1; min-width: 380px; max-width: 550px; /* 加寬表格顯示區 */
+            border: 1px solid var(--border-color);
+        }
+        
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; }
+
+        .tab-group { display: flex; gap: 8px; margin-bottom: 20px; justify-content: center; }
+        .tab-btn {
+            flex: 1; padding: 8px 0; background-color: #f1f1f1;
+            border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+            font-weight: bold; color: #666; transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+
+        .equation-box {
+            background: #eef6fc; border-left: 5px solid var(--primary-color);
+            border-radius: 4px; padding: 15px; margin-bottom: 20px; text-align: center;
+        }
+        .math-block { min-height: 1.5em; margin: 5px 0; }
+        .math-display { font-size: 1.2rem; }
+        
+        /* 運算過程表格 (HTML版) */
+        .process-box {
+            margin-top: 15px; padding: 10px;
+            border-top: 1px dashed #ccc;
+            text-align: left; font-size: 0.95rem; color: #555;
+            background: rgba(250,250,250,0.8);
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        /* 台灣版表格樣式 */
+        .sd-table {
+            border-collapse: collapse; margin: 10px auto; 
+            font-family: 'Times New Roman', serif; font-size: 1.1rem; color: #333;
+        }
+        .sd-table td { padding: 4px 12px; text-align: right; position: relative; }
+        
+        /* 階梯線關鍵樣式 */
+        .sd-line-bottom { border-bottom: 2px solid #333; }
+        .sd-line-left { border-left: 2px solid #333; } /* 關鍵：左側豎線 */
+        
+        .sd-result { font-weight: bold; color: #d35400; }
+        .sd-divider { color: #aaa; font-size: 0.9rem; font-style: italic; text-align: left !important; padding-left: 8px !important;}
+
+        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .control-group h3 {
+            margin: 0 0 15px 0; font-size: 1rem; color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color); padding-left: 8px;
+        }
+
+        .slider-wrapper { margin-bottom: 12px; }
+        .slider-row { display: flex; align-items: center; }
+        .slider-label { width: 25px; font-family: serif; font-style: italic; font-weight: bold; font-size: 1.1rem; }
+        input[type="range"] { flex: 1; margin: 0 10px; cursor: pointer; accent-color: var(--primary-color); }
+        .slider-val { width: 55px; text-align: right; font-weight: bold; color: var(--primary-color); }
+        
+        /* 鳩特觀察重點 */
+        .tip-text {
+            font-size: 0.85rem; color: var(--col-tip); margin-left: 35px; margin-top: 2px;
+            display: none; animation: fadeIn 0.5s; font-weight: bold;
+        }
+
+        .toggle-row {
+            display: flex; align-items: center; margin-bottom: 10px; cursor: pointer; user-select: none;
+            flex-wrap: wrap; line-height: 1.5;
+        }
+        .toggle-row input { margin-right: 10px; transform: scale(1.2); accent-color: var(--secondary-color); flex-shrink: 0; }
+        .sub-option { margin-left: 28px; font-size: 0.9rem; color: #666; width: 100%; margin-top: 2px; margin-bottom: 10px;}
+
+        /* 結果文字 - 顏色對應圖表 */
+        .result-text { margin-left: 8px; font-weight: bold; font-family: 'Segoe UI', sans-serif; font-size: 1.05rem; }
+        .res-vertex { color: var(--col-vertex); }
+        .res-int { color: var(--col-int); }
+        .res-center { color: var(--col-center); }
+        .res-axis { color: var(--col-blue); } 
+        .res-normal { color: var(--col-blue); }
+        
+        .watermark {
+            position: absolute; bottom: 20px; right: 25px;
+            font-family: serif; font-style: italic; color: rgba(0,0,0,0.15); font-size: 1.2rem;
+            pointer-events: none; user-select: none; z-index: 50;
+        }
+
+        .ctrl-section { display: none; }
+        .ctrl-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 350px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
+        <h2 class="page-title">鳩特數理：多項式函數圖形探究</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="panel" id="graph-panel">
+            <div id="plot-div"></div>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                <div class="tab-group">
+                    <button class="tab-btn active" onclick="switchTab('linear')">一次函數</button>
+                    <button class="tab-btn" onclick="switchTab('quadratic')">二次函數</button>
+                    <button class="tab-btn" onclick="switchTab('cubic')">三次函數</button>
+                </div>
+
+                <div id="panel-linear" class="ctrl-section active">
+                    <div class="equation-box">
+                        <div id="eq-linear" class="math-block math-display"></div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h3>參數調整</h3>
+                        <label class="toggle-row" style="background:#f9f9f9; padding:5px; border-radius:5px; margin-bottom:15px;">
+                            <input type="checkbox" id="l-tips" onchange="toggleTips('linear')"> 
+                            <span style="color:var(--col-tip); font-weight:bold;">顯示鳩特觀察重點</span>
+                        </label>
+                        
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">a</span><input type="range" id="l-a" min="-5" max="5" step="0.5" value="1" oninput="updateAll()"><span class="slider-val" id="v-l-a"></span></div>
+                            <div class="tip-text" id="tip-l-a">觀察直線的<b>傾斜程度</b> (斜率)</div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">b</span><input type="range" id="l-b" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-l-b"></span></div>
+                            <div class="tip-text" id="tip-l-b">觀察直線與 <b>Y 軸交點</b>的位置</div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>視覺輔助</h3>
+                        <label class="toggle-row"><input type="checkbox" id="l-ref" checked onchange="updateAll()"> 顯示參照圖形 (y = x)</label>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="l-int" onchange="updateAll()"> 
+                            顯示截距 <span id="res-l-int" class="result-text res-int"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="panel-quadratic" class="ctrl-section">
+                    <div class="equation-box">
+                        <div id="eq-quadratic" class="math-block math-display"></div>
+                        <div id="std-quadratic" class="math-block math-display" style="display:none; color:var(--col-blue);"></div>
+                        <div id="proc-quadratic" class="process-box" style="display:none;"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>參數調整</h3>
+                        <label class="toggle-row" style="background:#f9f9f9; padding:5px; border-radius:5px; margin-bottom:15px;">
+                            <input type="checkbox" id="q-tips" onchange="toggleTips('quadratic')"> 
+                            <span style="color:var(--col-tip); font-weight:bold;">顯示鳩特觀察重點</span>
+                        </label>
+
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">a</span><input type="range" id="q-a" min="-5" max="5" step="0.5" value="1" oninput="updateAll()"><span class="slider-val" id="v-q-a"></span></div>
+                            <div class="tip-text" id="tip-q-a">觀察開口<b>大小</b>與<b>方向</b></div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">b</span><input type="range" id="q-b" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-q-b"></span></div>
+                            <div class="tip-text" id="tip-q-b">觀察<b>對稱軸</b>的左右移動</div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">c</span><input type="range" id="q-c" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-q-c"></span></div>
+                            <div class="tip-text" id="tip-q-c">觀察與 <b>Y 軸交點</b>的位置</div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>視覺輔助</h3>
+                        <label class="toggle-row"><input type="checkbox" id="q-ref" checked onchange="updateAll()"> 顯示參照圖形 (y = x²)</label>
+                        
+                        <label class="toggle-row" style="margin-bottom:0;">
+                            <input type="checkbox" id="q-std-show" onchange="toggleSubOption('q-proc-opt'); updateAll()"> 
+                            顯示標準式 (配方)
+                        </label>
+                        <label class="toggle-row sub-option" id="q-proc-opt" style="display:none;">
+                            <input type="checkbox" id="q-proc-show" onchange="updateAll()"> 顯示配方過程
+                        </label>
+                        
+                        <label class="toggle-row">
+                            <input type="checkbox" id="q-vertex" onchange="updateAll()"> 
+                            顯示頂點 <span id="res-q-vertex" class="result-text res-vertex"></span>
+                        </label>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="q-axis" onchange="updateAll()"> 
+                            顯示對稱軸 <span id="res-q-axis" class="result-text res-axis"></span>
+                        </label>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="q-int" onchange="updateAll()"> 
+                            顯示截距 <span id="res-q-int" class="result-text res-int"></span>
+                        </label>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="q-d" onchange="updateAll()"> 
+                            顯示判別式 D <span id="res-q-d" class="result-text res-normal"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <div id="panel-cubic" class="ctrl-section">
+                    <div class="equation-box">
+                        <div id="eq-cubic" class="math-block math-display"></div>
+                        <div id="std-cubic" class="math-block math-display" style="display:none; color:var(--col-blue);"></div>
+                        <div id="proc-cubic" class="process-box" style="display:none;"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>參數調整</h3>
+                        <label class="toggle-row" style="background:#f9f9f9; padding:5px; border-radius:5px; margin-bottom:15px;">
+                            <input type="checkbox" id="c-tips" onchange="toggleTips('cubic')"> 
+                            <span style="color:var(--col-tip); font-weight:bold;">顯示鳩特觀察重點</span>
+                        </label>
+
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">a</span><input type="range" id="c-a" min="-5" max="5" step="0.5" value="1" oninput="updateAll()"><span class="slider-val" id="v-c-a"></span></div>
+                            <div class="tip-text" id="tip-c-a">觀察圖形整體的<b>趨勢</b></div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">b</span><input type="range" id="c-b" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-c-b"></span></div>
+                            <div class="tip-text" id="tip-c-b">觀察<b>對稱中心</b>的左右移動</div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">c</span><input type="range" id="c-c" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-c-c"></span></div>
+                            <div class="tip-text" id="tip-c-c">觀察對稱中心的斜率</div>
+                        </div>
+                        <div class="slider-wrapper">
+                            <div class="slider-row"><span class="slider-label">d</span><input type="range" id="c-d" min="-5" max="5" step="0.5" value="0" oninput="updateAll()"><span class="slider-val" id="v-c-d"></span></div>
+                            <div class="tip-text" id="tip-c-d">觀察與 <b>Y 軸交點</b>的位置</div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h3>視覺輔助</h3>
+                        <label class="toggle-row"><input type="checkbox" id="c-ref" checked onchange="updateAll()"> 顯示參照圖形 (y = x³)</label>
+                        
+                        <label class="toggle-row" style="margin-bottom:0;">
+                            <input type="checkbox" id="c-std-show" onchange="toggleSubOption('c-proc-opt'); updateAll()"> 
+                            顯示標準式 (對稱中心式)
+                        </label>
+                        <label class="toggle-row sub-option" id="c-proc-opt" style="display:none;">
+                            <input type="checkbox" id="c-proc-show" onchange="updateAll()"> 顯示綜合除法過程
+                        </label>
+                        
+                        <label class="toggle-row">
+                            <input type="checkbox" id="c-inf" onchange="updateAll()"> 
+                            顯示對稱中心 <span id="res-c-inf" class="result-text res-center"></span>
+                        </label>
+                        <label class="toggle-row">
+                            <input type="checkbox" id="c-int" onchange="updateAll()"> 
+                            顯示 Y 軸截距 <span id="res-c-int" class="result-text res-int"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 定義 JS 用色碼 (必須與 CSS 對應變數一致，Plotly 不支援 var())
+        const COLORS = {
+            vertex: '#e74c3c',
+            int: '#f39c12',
+            center: '#9b59b6',
+            axis: '#c0392b',
+            tip: '#27ae60',
+            blue: '#2980b9'
+        };
+
+        let currentMode = 'linear';
+        const plotDiv = document.getElementById('plot-div');
+
+        window.onload = function() {
+            updateAll();
+            window.addEventListener('resize', () => Plotly.Plots.resize(plotDiv));
+        };
+
+        function switchTab(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.querySelectorAll('.ctrl-section').forEach(p => p.classList.remove('active'));
+            document.getElementById(`panel-${mode}`).classList.add('active');
+            
+            // 重置提示框
+            document.getElementById(`${mode[0]}-tips`).checked = false;
+            toggleTips(mode);
+            
+            updateAll();
+        }
+
+        function toggleSubOption(id) {
+            let el = document.getElementById(id);
+            el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function toggleTips(mode) {
+            const checkbox = document.getElementById(`${mode[0]}-tips`);
+            const displayVal = checkbox.checked ? 'block' : 'none';
+            
+            if(mode === 'linear') {
+                document.getElementById('tip-l-a').style.display = displayVal;
+                document.getElementById('tip-l-b').style.display = displayVal;
+            } else if(mode === 'quadratic') {
+                document.getElementById('tip-q-a').style.display = displayVal;
+                document.getElementById('tip-q-b').style.display = displayVal;
+                document.getElementById('tip-q-c').style.display = displayVal;
+            } else if(mode === 'cubic') {
+                document.getElementById('tip-c-a').style.display = displayVal;
+                document.getElementById('tip-c-b').style.display = displayVal;
+                document.getElementById('tip-c-c').style.display = displayVal;
+                document.getElementById('tip-c-d').style.display = displayVal;
+            }
+        }
+
+        /* --- 核心工具 --- */
+        async function setMath(id, latex) {
+            let el = document.getElementById(id);
+            if(!el) return;
+            el.innerHTML = latex;
+            if(window.MathJax && window.MathJax.typesetPromise) {
+                try { await window.MathJax.typesetPromise([el]); } catch(e){}
+            }
+        }
+
+        /* --- 數學運算 --- */
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+        function toFracObj(val) {
+            if (Math.abs(val) < 1e-9) return {n: 0, d: 1};
+            let bestNum = 0, bestDen = 1, minError = Infinity;
+            for (let d = 1; d <= 2000; d++) {
+                let n = Math.round(val * d);
+                let error = Math.abs(val - n / d);
+                if (error < minError) { minError = error; bestNum = n; bestDen = d; }
+                if (error < 1e-11) break;
+            }
+            let common = gcd(Math.abs(bestNum), bestDen);
+            return { n: bestNum / common, d: bestDen / common };
+        }
+
+        function toFrac(val, forceSign = false) {
+            let obj = toFracObj(val);
+            if (obj.d === 1) return (forceSign && obj.n >= 0 ? "+" : "") + obj.n.toString();
+            let sign = obj.n < 0 ? "-" : (forceSign ? "+" : "");
+            return `${sign}\\frac{${Math.abs(obj.n)}}{${obj.d}}`;
+        }
+
+        function formatPolyTerm(coef, variable, isFirst) {
+            if (Math.abs(coef) < 1e-9) return "";
+            let obj = toFracObj(coef);
+            let sign = obj.n < 0 ? (isFirst ? "-" : " - ") : (isFirst ? "" : " + ");
+            let absN = Math.abs(obj.n);
+            let valStr = "";
+            if (absN === 1 && obj.d === 1 && variable !== "") valStr = "";
+            else valStr = obj.d === 1 ? absN : `\\frac{${absN}}{${obj.d}}`;
+            return `${sign}${valStr}${variable}`;
+        }
+
+        function formatBracket(h) {
+            let obj = toFracObj(h);
+            if (Math.abs(obj.n) < 1e-9) return "x";
+            let sign = obj.n > 0 ? "-" : "+";
+            let valStr = obj.d === 1 ? Math.abs(obj.n) : `\\frac{${Math.abs(obj.n)}}{${obj.d}}`;
+            return `(x ${sign} ${valStr})`;
+        }
+
+        function formatConstant(k) {
+            if (Math.abs(k) < 1e-9) return "";
+            return (k > 0 ? "+" : "") + toFrac(k);
+        }
+
+        function getVal(id, isA = false) {
+            let el = document.getElementById(id);
+            let val = parseFloat(el.value);
+            if (isA && Math.abs(val) < 1e-9) { val = 0.5; el.value = 0.5; }
+            setMath(id.replace(/([lqc])-/, 'v-$1-'), `\\(${toFrac(val)}\\)`);
+            return val;
+        }
+
+        function updateResult(id, text) {
+            setMath(id, `\\(${text}\\)`);
+        }
+        
+        function clearResult(id) {
+            let el = document.getElementById(id);
+            if(el) el.innerHTML = "";
+        }
+
+        /* --- 運算過程生成 --- */
+        function genQuadProcess(a, b, c) {
+            let ba = b/a;
+            let half_ba = ba / 2;
+            let sq_half = half_ba * half_ba;
+            let h = -half_ba;
+            let k = c - a * sq_half;
+            
+            let step1 = `y = ${toFrac(a)}\\left[x^2 ${formatPolyTerm(ba, 'x', false)}\\right] ${formatConstant(c)}`;
+            let step2 = `y = ${toFrac(a)}\\left[x^2 ${formatPolyTerm(ba, 'x', false)} + \\left(${toFrac(Math.abs(half_ba))}\\right)^2\\right] ${formatConstant(c)} - ${toFrac(a)}\\times\\left(${toFrac(Math.abs(half_ba))}\\right)^2`;
+            let step3 = `y = ${toFrac(a)}${formatBracket(h)}^2 ${formatConstant(k)}`;
+
+            return `
+                <div class="process-step"><strong>Step 1:</strong> 提出領導係數 $a$<br>$$${step1}$$</div>
+                <div class="process-step"><strong>Step 2:</strong> 括號內配成完全平方 (加扣補償)<br>$$${step2}$$</div>
+                <div class="process-step"><strong>Step 3:</strong> 整理得頂點式<br>$$${step3}$$</div>
+            `;
+        }
+
+        function genCubicProcess(a, b, c, d) {
+            let h = -b / (3 * a); 
+            let r1 = b + a * h; let r2 = c + r1 * h; let k = d + r2 * h; // k
+            let s1 = r1 + a * h; let p = r2 + s1 * h; // p
+
+            let val_h = toFrac(h);
+            let fh = `\\(${val_h}\\)`;
+            
+            let fa = `\\(${toFrac(a)}\\)`; let fb = `\\(${toFrac(b)}\\)`; let fc = `\\(${toFrac(c)}\\)`; let fd = `\\(${toFrac(d)}\\)`;
+            let m1 = `\\(${toFrac(a*h)}\\)`; let m2 = `\\(${toFrac(r1*h)}\\)`; let m3 = `\\(${toFrac(r2*h)}\\)`;
+            let res_k = `\\(${toFrac(k)}\\)`;
+            let n1 = `\\(${toFrac(a*h)}\\)`; let n2 = `\\(${toFrac(s1*h)}\\)`;
+            let res_p = `\\(${toFrac(p)}\\)`;
+            
+            let tableHtml = `
+            <table class="sd-table">
+                <tr>
+                    <td>${fa}</td><td>${fb}</td><td>${fc}</td><td>${fd}</td>
+                    <td class="sd-line-left" style="border:none;"></td>
+                </tr>
+                <tr class="sd-line-bottom">
+                    <td></td><td>${m1}</td><td>${m2}</td><td>${m3}</td>
+                    <td class="sd-line-left" style="text-align:left; vertical-align:bottom; padding-left:10px;">$\\times ${val_h}$</td>
+                </tr>
+                <tr>
+                    <td>${fa}</td><td>\\(${toFrac(r1)}\\)</td><td>\\(${toFrac(r2)}\\)</td>
+                    <td class="sd-line-left sd-result">${res_k}</td>
+                    <td class="sd-divider">\\(\\leftarrow k\\)</td>
+                </tr>
+                <tr class="sd-line-bottom">
+                    <td></td><td>${n1}</td><td>${n2}</td>
+                    <td class="sd-line-left" style="border:none;"></td>
+                </tr>
+                <tr>
+                    <td>${fa}</td><td>\\(${toFrac(s1)}\\)</td>
+                    <td class="sd-line-left sd-result">${res_p}</td>
+                    <td style="border:none;"></td>
+                    <td class="sd-divider">\\(\\leftarrow p\\)</td>
+                </tr>
+                <tr class="sd-line-bottom">
+                    <td></td><td>${n1}</td>
+                    <td class="sd-line-left" style="border:none;"></td>
+                </tr>
+                <tr>
+                    <td class="sd-result">${fa}</td>
+                    <td class="sd-line-left sd-result">0</td>
+                    <td style="border:none;"></td><td style="border:none;"></td>
+                    <td class="sd-divider">\\(\\leftarrow a\\)</td>
+                </tr>
+            </table>`;
+
+            return `<div class="process-step">利用連續綜合除法對 $x=${val_h}$ 展開：<br>${tableHtml}</div>`;
+        }
+
+        /* --- 主更新函數 --- */
+        function updateAll() {
+            let xArr = []; for (let i = -11; i <= 11; i += 0.1) xArr.push(i);
+            let traces = [];
+            let layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { t: 20, r: 20, b: 30, l: 40 },
+                xaxis: { range: [-10, 10], showgrid: true, gridcolor: '#e1e4e8', zerolinecolor: '#444', fixedrange: true },
+                yaxis: { range: [-10, 10], showgrid: true, gridcolor: '#e1e4e8', zerolinecolor: '#444', fixedrange: true },
+                showlegend: false,
+                shapes: []
+            };
+            
+            // 使用 Hex Code 確保 Plotly 顏色正確
+            const markerStyle = {size: 14, line: {color: 'white', width: 2}};
+            const mainColor = '#4a90e2'; const refColor = 'rgba(0,0,0,0.2)';
+
+            if (currentMode === 'linear') {
+                let a = getVal('l-a', true); let b = getVal('l-b');
+                setMath('eq-linear', `$$y = ${formatPolyTerm(a, "x", true)}${formatPolyTerm(b, "", a===0)}$$`);
+
+                if(document.getElementById('l-ref').checked) traces.push({x:xArr, y:xArr, mode:'lines', line:{color:refColor, dash:'dash'}});
+                traces.push({x:xArr, y:xArr.map(v=>a*v+b), mode:'lines', line:{color:mainColor, width:3}});
+
+                if(document.getElementById('l-int').checked) {
+                    let root = -b/a;
+                    let xInt = Math.abs(root)<=100 ? `(${toFrac(root)}, 0)` : "超出範圍";
+                    updateResult('res-l-int', `X:${xInt}, Y:(0, ${toFrac(b)})`);
+                    traces.push({x:[0], y:[b], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                    if(Math.abs(root)<=10) traces.push({x:[root], y:[0], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                } else clearResult('res-l-int');
+
+            } else if (currentMode === 'quadratic') {
+                let a = getVal('q-a', true); let b = getVal('q-b'); let c = getVal('q-c');
+                let D = b*b - 4*a*c; let h = -b / (2*a); let k = c - (b*b)/(4*a);
+
+                setMath('eq-quadratic', `$$y = ${formatPolyTerm(a, "x^2", true)}${formatPolyTerm(b, "x", a===0)}${formatPolyTerm(c, "", a===0&&b===0)}$$`);
+                
+                let stdDiv = document.getElementById('std-quadratic');
+                let procDiv = document.getElementById('proc-quadratic');
+                if(document.getElementById('q-std-show').checked) {
+                    stdDiv.style.display = 'block';
+                    setMath('std-quadratic', `$$y = ${toFrac(a)=='1'?'':(toFrac(a)=='-1'?'-':toFrac(a))}${formatBracket(h)}^2 ${formatConstant(k)}$$`);
+                    if(document.getElementById('q-proc-show').checked) {
+                        procDiv.style.display = 'block';
+                        procDiv.innerHTML = genQuadProcess(a, b, c);
+                        if(window.MathJax) window.MathJax.typesetPromise([procDiv]);
+                    } else procDiv.style.display = 'none';
+                } else { stdDiv.style.display = 'none'; procDiv.style.display = 'none'; }
+
+                if(document.getElementById('q-ref').checked) traces.push({x:xArr, y:xArr.map(v=>v*v), mode:'lines', line:{color:refColor, dash:'dash'}});
+                traces.push({x:xArr, y:xArr.map(v=>a*v*v+b*v+c), mode:'lines', line:{color:mainColor, width:3}});
+
+                if(document.getElementById('q-vertex').checked) {
+                    updateResult('res-q-vertex', `(${toFrac(h)}, ${toFrac(k)})`);
+                    traces.push({x:[h], y:[k], mode:'markers', marker:{...markerStyle, color: COLORS.vertex}});
+                } else clearResult('res-q-vertex');
+
+                if(document.getElementById('q-axis').checked) {
+                    updateResult('res-q-axis', `x = ${toFrac(h)}`);
+                    layout.shapes.push({type:'line', x0:h, y0:k-5, x1:h, y1:k+5, line:{color: COLORS.axis, width:2, dash:'dash'}});
+                } else clearResult('res-q-axis');
+
+                if(document.getElementById('q-int').checked) {
+                    let xIntStr = "無實根";
+                    if(D >= 0) {
+                        let x1 = (-b + Math.sqrt(D))/(2*a); let x2 = (-b - Math.sqrt(D))/(2*a);
+                        xIntStr = `(${toFrac(x1)}, 0), (${toFrac(x2)}, 0)`;
+                        if(Math.abs(x1)<=10) traces.push({x:[x1], y:[0], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                        if(D>0 && Math.abs(x2)<=10) traces.push({x:[x2], y:[0], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                    }
+                    updateResult('res-q-int', `X:${xIntStr}, Y:(0, ${toFrac(c)})`);
+                    traces.push({x:[0], y:[c], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                } else clearResult('res-q-int');
+
+                if(document.getElementById('q-d').checked) {
+                    let desc = D>0?'相交':(D==0?'相切':'不相交');
+                    document.getElementById('res-q-d').innerHTML = `\\(${toFrac(D)}\\) <span style="font-weight:normal; color:#555;">(${desc})</span>`;
+                    if(window.MathJax) window.MathJax.typesetPromise([document.getElementById('res-q-d')]);
+                } else clearResult('res-q-d');
+
+            } else if (currentMode === 'cubic') {
+                let a = getVal('c-a', true); let b = getVal('c-b'); let c = getVal('c-c'); let d = getVal('c-d');
+                let h = -b / (3*a); let k = a*Math.pow(h,3) + b*Math.pow(h,2) + c*h + d; let p = c - 3*a*h*h;
+
+                setMath('eq-cubic', `$$y = ${formatPolyTerm(a, "x^3", true)}${formatPolyTerm(b, "x^2", a===0)}${formatPolyTerm(c, "x", a===0&&b===0)}${formatPolyTerm(d, "", a===0&&b===0&&c===0)}$$`);
+
+                let stdDiv = document.getElementById('std-cubic');
+                let procDiv = document.getElementById('proc-cubic');
+                if(document.getElementById('c-std-show').checked) {
+                    stdDiv.style.display = 'block';
+                    let aStr = (Math.abs(a) === 1) ? (a === 1 ? "" : "-") : toFrac(a);
+                    let pTerm = Math.abs(p) > 1e-9 ? `${p > 0 ? "+" : "-"}${Math.abs(p)==1?"":toFrac(Math.abs(p))}${formatBracket(h)}` : "";
+                    setMath('std-cubic', `$$y = ${aStr}${formatBracket(h)}^3 ${pTerm} ${formatConstant(k)}$$`);
+                    if(document.getElementById('c-proc-show').checked) {
+                        procDiv.style.display = 'block';
+                        procDiv.innerHTML = genCubicProcess(a, b, c, d);
+                        if(window.MathJax) window.MathJax.typesetPromise([procDiv]);
+                    } else procDiv.style.display = 'none';
+                } else { stdDiv.style.display = 'none'; procDiv.style.display = 'none'; }
+
+                if(document.getElementById('c-ref').checked) traces.push({x:xArr, y:xArr.map(v=>v*v*v), mode:'lines', line:{color:refColor, dash:'dash'}});
+                traces.push({x:xArr, y:xArr.map(v=>a*Math.pow(v,3)+b*Math.pow(v,2)+c*v+d), mode:'lines', line:{color:mainColor, width:3}});
+
+                if(document.getElementById('c-inf').checked) {
+                    updateResult('res-c-inf', `(${toFrac(h)}, ${toFrac(k)})`);
+                    traces.push({x:[h], y:[k], mode:'markers', marker:{...markerStyle, color: COLORS.center, symbol:'diamond'}});
+                } else clearResult('res-c-inf');
+
+                if(document.getElementById('c-int').checked) {
+                    updateResult('res-c-int', `X:(略), Y:(0, ${toFrac(d)})`);
+                    traces.push({x:[0], y:[d], mode:'markers', marker:{...markerStyle, color: COLORS.int}});
+                } else clearResult('res-c-int');
+            }
+
+            Plotly.react(plotDiv, traces, layout, {displayModeBar: false});
+        }
+    </script>
+</body>
+</html>
