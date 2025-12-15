@@ -52,13 +52,13 @@
         .back-btn:hover { background: var(--accent); color: #0f172a; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; }
 
-
         .main-wrapper {
             padding: 10px;
             display: flex;
             flex-direction: column;
             flex: 1;
             gap: 15px;
+            position: relative; /* For modal positioning */
         }
 
         .main-container {
@@ -81,7 +81,6 @@
             position: relative;
         }
 
-        /* 左側圖表區 */
         #graph-container { flex: 1.3; }
 
         canvas {
@@ -96,7 +95,6 @@
         
         #graphCanvas { cursor: crosshair; }
 
-        /* 浮水印樣式 */
         .graph-watermark {
             position: absolute;
             bottom: 65px;
@@ -110,7 +108,6 @@
             user-select: none;
         }
 
-        /* 右側動畫區 */
         #animation-container {
             flex: 1;
             display: flex;
@@ -130,7 +127,6 @@
         }
         .view-switch-btn:hover { background-color: #357abd; }
 
-        /* 控制區 */
         .controls-container {
             background: var(--panel-bg);
             border-radius: 12px;
@@ -165,40 +161,20 @@
             align-items: center;
         }
 
-        /* 修正：下標字體大小 */
-        label sub {
-            font-size: 0.7rem;
-            vertical-align: sub;
-        }
+        label sub { font-size: 0.7rem; vertical-align: sub; }
 
         input[type="number"] {
-            width: 60px;
-            padding: 4px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            text-align: right;
+            width: 60px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; text-align: right;
         }
 
         .main-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 10px;
-            width: 100%;
-            justify-content: center;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
+            display: flex; gap: 10px; align-items: center; margin-bottom: 10px; width: 100%;
+            justify-content: center; padding-bottom: 10px; border-bottom: 1px solid #eee; flex-wrap: wrap;
         }
 
         .btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s;
-            font-size: 0.95rem;
+            padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer;
+            font-weight: bold; transition: all 0.2s; font-size: 0.95rem;
         }
         
         #playPauseBtn { background-color: var(--secondary-color); color: white; min-width: 100px; }
@@ -208,31 +184,52 @@
         #alcoholPresetBtn { background-color: #8e44ad; }
 
         .speed-control {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #f1f1f1;
-            padding: 5px 10px;
-            border-radius: 6px;
+            display: flex; align-items: center; gap: 5px; background: #f1f1f1; padding: 5px 10px; border-radius: 6px;
         }
         select { padding: 5px; border-radius: 4px; border: 1px solid #ccc; cursor: pointer;}
 
         #status-display {
-            position: absolute;
-            top: 20px;
-            left: 25px;
-            background: rgba(255,255,255,0.9);
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            font-weight: bold;
-            pointer-events: none;
-            z-index: 20;
+            position: absolute; top: 20px; left: 25px;
+            background: rgba(255,255,255,0.9); padding: 10px; border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1); font-weight: bold; pointer-events: none; z-index: 20;
         }
-        .stage-indicator {
-            color: var(--secondary-color);
-            font-size: 1.1rem;
+        .stage-indicator { color: var(--secondary-color); font-size: 1.1rem; }
+
+        /* --- 新增：提示與回放視窗樣式 --- */
+        #modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; /* 預設隱藏 */
+            justify-content: center; align-items: center; z-index: 1000;
         }
+        
+        .modal-content {
+            background: white; padding: 30px; border-radius: 12px;
+            text-align: center; max-width: 500px; width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal-title { font-size: 1.5rem; color: var(--primary-color); margin-bottom: 10px; }
+        .modal-text { font-size: 1.1rem; margin-bottom: 20px; color: #555; }
+        .modal-btn {
+            background: var(--secondary-color); color: white; padding: 10px 25px;
+            border: none; border-radius: 25px; font-size: 1.1rem; cursor: pointer;
+            transition: 0.2s; margin: 5px;
+        }
+        .modal-btn:hover { background: #e67e22; transform: translateY(-2px); }
+        
+        .replay-options { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px;}
+        .replay-btn {
+            background: white; border: 1px solid var(--primary-color); color: var(--primary-color);
+            padding: 5px 15px; border-radius: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .replay-btn:hover { background: var(--primary-color); color: white; }
 
         @media (max-width: 768px) {
             .nav-bar { padding: 10px; }
@@ -248,6 +245,19 @@
     </style>
 </head>
 <body>
+
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modalTitle">階段完成</h2>
+            <p class="modal-text" id="modalText">準備進入下一個階段...</p>
+            <div id="modal-actions">
+                <button class="modal-btn" id="modalContinueBtn">繼續下一步 ➡</button>
+            </div>
+            <div id="replay-menu" class="replay-options" style="display:none;">
+                <p style="width:100%; color:#888; font-size:0.9rem;">或是回顧特定片段：</p>
+                </div>
+        </div>
+    </div>
 
     <div class="nav-bar">
         <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
@@ -336,10 +346,11 @@
             viewMode: 'macro',
             animationId: null,
             particles: [],
-            speedMultiplier: 5
+            speedMultiplier: 5,
+            lastCheckpointStage: -1 // 用於紀錄上一次暫停的階段
         };
 
-        const STAGES = ["固態升溫", "固液共存 (熔化中...)", "液態升溫", "液氣共存 (汽化中...)", "氣態升溫", "加熱結束"];
+        const STAGES = ["固態升溫", "固液共存 (熔化)", "液態升溫", "液氣共存 (汽化)", "氣態升溫", "加熱結束"];
         const STAGE_COLORS = ["#3498db", "#9b59b6", "#2ecc71", "#e67e22", "#e74c3c"];
 
         const graphCanvas = document.getElementById('graphCanvas');
@@ -351,6 +362,13 @@
         const tempText = document.getElementById('tempText');
         const playPauseBtn = document.getElementById('playPauseBtn');
         const viewSwitchBtn = document.getElementById('viewSwitchBtn');
+
+        // Modal Elements
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalText = document.getElementById('modalText');
+        const modalContinueBtn = document.getElementById('modalContinueBtn');
+        const replayMenu = document.getElementById('replay-menu');
 
         let timePoints = [];
 
@@ -369,11 +387,50 @@
         function updateSimulation(dt) {
             if (!state.isPlaying) return;
             const effectiveDt = dt * state.speedMultiplier;
-            state.currentTime += effectiveDt;
+            
+            // 預測下一幀的時間
+            let nextTime = state.currentTime + effectiveDt;
 
-            let t = state.currentTime;
+            // --- 階段性暫停邏輯 ---
+            // 檢查 nextTime 是否會跨越某個階段的結束點
+            for (let i = 1; i <= 5; i++) {
+                // 如果目前時間還沒超過第 i 階段結束點，但下一幀會超過
+                if (state.currentTime < timePoints[i] && nextTime >= timePoints[i]) {
+                    // 並且我們還沒在這個點暫停過
+                    if (state.lastCheckpointStage < i) {
+                        // 強制停在該階段的結束點 (精準對齊)
+                        state.currentTime = timePoints[i];
+                        updateStateFromTime(state.currentTime); // 更新溫度與階段
+                        
+                        state.lastCheckpointStage = i; // 標記已通過此點
+                        state.isPlaying = false; // 暫停
+                        playPauseBtn.textContent = "繼續加熱";
+                        playPauseBtn.style.backgroundColor = "var(--secondary-color)";
+
+                        // 顯示提示視窗
+                        if (i < 5) {
+                            showStageTransitionModal(i);
+                        } else {
+                            showFinishedModal();
+                        }
+                        
+                        // 強制重繪最後一幀以顯示準確位置
+                        drawGraph();
+                        drawAnimation();
+                        updateStatusDisplay();
+                        return; // 這一幀結束，不再推進時間
+                    }
+                }
+            }
+
+            state.currentTime = nextTime;
+            updateStateFromTime(state.currentTime);
+            updateStatusDisplay();
+        }
+
+        // 根據時間反推溫度與階段的純函數
+        function updateStateFromTime(t) {
             let T, stage;
-
             if (t <= timePoints[1]) {
                 stage = 0;
                 let progress = t / timePoints[1];
@@ -397,11 +454,62 @@
                 T = params.finalTempTarget;
                 state.isPlaying = false;
                 playPauseBtn.textContent = "重新開始";
+                if(state.lastCheckpointStage < 5) showFinishedModal(); // 防呆
+                state.lastCheckpointStage = 5;
             }
-
             state.currentTemp = T;
             state.currentStage = stage;
-            updateStatusDisplay();
+        }
+
+        // --- Modal 相關功能 ---
+        function showStageTransitionModal(stageIndex) {
+            modalTitle.textContent = `${STAGES[stageIndex-1]} 完成`;
+            modalText.innerHTML = `實驗步驟已完成，<br>按下按鈕進入 <b>${STAGES[stageIndex]}</b> 階段。`;
+            modalContinueBtn.textContent = "繼續下一步 ➡";
+            modalContinueBtn.style.display = "inline-block";
+            replayMenu.style.display = "none";
+            modalContinueBtn.onclick = () => {
+                modalOverlay.style.display = "none";
+                state.isPlaying = true;
+                playPauseBtn.textContent = "暫停";
+                playPauseBtn.style.backgroundColor = "#7f8c8d";
+                lastTime = 0; // 重置計時器避免跳幀
+            };
+            modalOverlay.style.display = "flex";
+        }
+
+        function showFinishedModal() {
+            modalTitle.textContent = "實驗結束";
+            modalText.textContent = "您可以重置實驗，或是點選下方按鈕回顧特定階段。";
+            modalContinueBtn.style.display = "none"; // 隱藏繼續按鈕
+            
+            // 生成回放按鈕
+            replayMenu.innerHTML = '<p style="width:100%; color:#888; font-size:0.9rem; margin-bottom:10px;">點擊回顧特定片段：</p>';
+            const labels = ["回顧固態升溫", "回顧熔化過程", "回顧液態升溫", "回顧汽化過程", "回顧氣態升溫"];
+            labels.forEach((label, idx) => {
+                let btn = document.createElement('button');
+                btn.className = 'replay-btn';
+                btn.textContent = label;
+                btn.onclick = () => jumpToStage(idx);
+                replayMenu.appendChild(btn);
+            });
+            
+            replayMenu.style.display = "flex";
+            modalOverlay.style.display = "flex";
+        }
+
+        function jumpToStage(stageIndex) {
+            modalOverlay.style.display = "none";
+            // 設定時間為該階段的開始
+            state.currentTime = timePoints[stageIndex];
+            // 重置 checkpoint，這樣跑到該階段結束時會再次暫停，達成「播放該片段」的效果
+            state.lastCheckpointStage = stageIndex; // 設定為當前階段索引，確保不會立即暫停，而是等到下一階段索引時暫停
+            
+            updateStateFromTime(state.currentTime);
+            state.isPlaying = true;
+            playPauseBtn.textContent = "暫停";
+            playPauseBtn.style.backgroundColor = "#7f8c8d";
+            lastTime = 0;
         }
 
         function updateStatusDisplay() {
@@ -428,6 +536,7 @@
             const mapX = (t) => padding.left + (t / maxTime) * plotWidth;
             const mapY = (T) => padding.top + plotHeight - ((T - minTemp) / (maxTemp - minTemp)) * plotHeight;
 
+            // 畫座標軸 (靜態)
             ctxGraph.beginPath(); ctxGraph.strokeStyle = "#ddd";
             [params.initialTemp, params.meltingPoint, params.boilingPoint].forEach(T => {
                  let y = mapY(T); ctxGraph.moveTo(padding.left, y); ctxGraph.lineTo(width - padding.right, y);
@@ -448,15 +557,36 @@
             ctxGraph.fillText(params.meltingPoint.toFixed(0), padding.left - 10, mapY(params.meltingPoint) + 5);
             ctxGraph.fillText(params.boilingPoint.toFixed(0), padding.left - 10, mapY(params.boilingPoint) + 5);
 
+            // --- 動態繪製曲線 (關鍵修改) ---
             ctxGraph.lineWidth = 4;
             const tempPoints = [params.initialTemp, params.meltingPoint, params.meltingPoint, params.boilingPoint, params.boilingPoint, params.finalTempTarget];
+            
+            // 只繪製到當前時間點
             for (let i = 0; i < 5; i++) {
+                // 如果這一段還沒開始，就跳過
+                if (state.currentTime <= timePoints[i]) break;
+
                 ctxGraph.beginPath(); ctxGraph.strokeStyle = STAGE_COLORS[i];
-                ctxGraph.moveTo(mapX(timePoints[i]), mapY(tempPoints[i]));
-                ctxGraph.lineTo(mapX(timePoints[i+1]), mapY(tempPoints[i+1]));
+                
+                // 起點
+                let startX = mapX(timePoints[i]);
+                let startY = mapY(tempPoints[i]);
+                ctxGraph.moveTo(startX, startY);
+
+                // 終點：如果是已經完成的階段，畫到該階段終點；如果是進行中，畫到當前時間
+                let endT = Math.min(state.currentTime, timePoints[i+1]);
+                let endX = mapX(endT);
+                
+                // 計算對應的溫度
+                let progress = (endT - timePoints[i]) / (timePoints[i+1] - timePoints[i]);
+                let endTemp = tempPoints[i] + progress * (tempPoints[i+1] - tempPoints[i]);
+                let endY = mapY(endTemp);
+
+                ctxGraph.lineTo(endX, endY);
                 ctxGraph.stroke();
             }
 
+            // 紅點標示目前進度
             if (state.currentTime <= maxTime) {
                 const curX = mapX(state.currentTime); const curY = mapY(state.currentTemp);
                 ctxGraph.beginPath(); ctxGraph.fillStyle = "red"; ctxGraph.arc(curX, curY, 6, 0, Math.PI * 2); ctxGraph.fill();
@@ -654,8 +784,10 @@
 
         function resetSimulation() {
             state.isPlaying = false; state.currentTime = 0; state.currentTemp = params.initialTemp;
-            state.currentStage = 0; playPauseBtn.textContent = "開始加熱";
+            state.currentStage = 0; state.lastCheckpointStage = -1; // 重置檢查點
+            playPauseBtn.textContent = "開始加熱";
             playPauseBtn.style.backgroundColor = "var(--secondary-color)";
+            modalOverlay.style.display = "none";
             updateStatusDisplay(); drawGraph(); initParticles(); drawAnimation();
         }
 
