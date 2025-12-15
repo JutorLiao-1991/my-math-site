@@ -5,44 +5,145 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特物理：圓周運動與簡諧投影</title>
     <style>
-        :root { --bg: #0f172a; --text: #f1f5f9; --accent: #38bdf8; --panel: #1e293b; }
-        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+        /* 應用「物質加熱曲線」的明亮風格 */
+        :root {
+            --primary-color: #4a90e2; /* 主藍色 (Primary) */
+            --secondary-color: #f5a623; /* 橙色 (Accent) */
+            --bg-color: #f4f7f6; /* 淺灰色背景 */
+            --text-color: #333; /* 深色文字 */
+            --panel-bg: #ffffff; /* 白色面板 */
+            --nav-bg: rgba(30, 41, 59, 0.95); /* 深色導航欄 */
+            --accent: #38bdf8; /* 藍色強調（用於按鈕等） */
+            --control-group-bg: #f7f7ff; /* 淺藍色控制區背景 */
+        }
         
-        .nav-bar { padding: 10px 20px; background: rgba(30, 41, 59, 0.95); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; z-index: 20; flex-shrink: 0; }
-        .back-btn { text-decoration: none; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; }
+        body { 
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            margin: 0; 
+            padding: 0; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+        }
+        
+        /* 導覽列 (保持深色，與您的範本一致) */
+        .nav-bar { 
+            padding: 10px 20px; 
+            background: var(--nav-bg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border-bottom: 1px solid #334155; 
+            z-index: 20; 
+            flex-shrink: 0;
+            color: white; /* 導航欄文字改白色 */
+        }
+        .back-btn { 
+            text-decoration: none; 
+            color: var(--accent); 
+            font-weight: bold; 
+            border: 1px solid var(--accent); 
+            padding: 5px 15px; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: center; 
+        }
         .back-btn:hover { background: var(--accent); color: #0f172a; }
-        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: #fff; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: white; } /* 導航欄標題改白色 */
 
+        /* 主畫面佈局 */
         .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
         
-        .controls { width: 300px; background: var(--panel); padding: 20px; border-right: 1px solid #334155; display: flex; flex-direction: column; gap: 20px; z-index: 10; overflow-y: auto; box-shadow: 5px 0 15px rgba(0,0,0,0.2); flex-shrink: 0; }
-        .control-group { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 12px; border: 1px solid #334155; }
-        .control-group h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--accent); border-bottom: 1px solid #475569; padding-bottom: 8px; display: flex; align-items: center; gap: 8px;}
+        /* 左側控制面板 */
+        .controls { 
+            width: 300px; 
+            background: var(--panel-bg); /* 白色背景 */
+            padding: 20px; 
+            border-right: 1px solid #e2e8f0; /* 淺色分隔線 */
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            z-index: 10; 
+            overflow-y: auto; 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05); /* 淺色陰影 */
+            flex-shrink: 0; 
+        }
+        
+        .control-group { 
+            background: var(--control-group-bg); /* 淺藍色塊 */
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid #cbd5e1; /* 淺色邊框 */
+        }
+        .control-group h3 { 
+            margin: 0 0 15px 0; 
+            font-size: 1rem; 
+            color: var(--primary-color); /* 藍色標題 */
+            border-bottom: 1px solid var(--secondary-color); /* 橙色底線 */
+            padding-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
         
         label { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; margin-bottom: 12px; cursor: pointer; }
-        input[type="range"] { width: 100%; margin-top: 8px; cursor: pointer; accent-color: var(--accent); }
-        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; accent-color: var(--accent); }
+        input[type="range"] { width: 100%; margin-top: 8px; cursor: pointer; accent-color: var(--secondary-color); } /* 橙色滑塊 */
+        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; accent-color: var(--primary-color); } /* 藍色勾選 */
         
-        .value-display { font-family: 'Roboto Mono', monospace; color: #fbbf24; font-weight: bold; }
-        .btn-pause { width:100%; margin-top:10px; padding:10px; background:var(--accent); color: #0f172a; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size: 1rem; transition: 0.2s; }
-        .btn-pause:hover { background: #0ea5e9; }
+        .value-display { font-family: 'Roboto Mono', monospace; color: var(--secondary-color); font-weight: bold; }
+        .btn-pause { 
+            width:100%; 
+            margin-top:10px; 
+            padding:10px; 
+            background:var(--secondary-color); /* 橙色按鈕 */
+            color: white; 
+            border:none; 
+            border-radius:8px; 
+            cursor:pointer; 
+            font-weight:bold; 
+            font-size: 1rem; 
+            transition: 0.2s; 
+        }
+        .btn-pause:hover { background: #e67e22; }
 
-        /* 關鍵修正：畫布強制全屏 */
-        #canvas-container { flex: 1; position: relative; background: radial-gradient(circle at 30% 40%, #1e293b 0%, #0f172a 80%); overflow: hidden; }
+        /* 右側畫布容器 */
+        #canvas-container { 
+            flex: 1; 
+            position: relative; 
+            background: #e2e8f0; /* 淺灰色畫布背景 */
+            overflow: hidden; 
+        }
         canvas { 
             display: block; 
-            position: absolute; /* 強制佔滿，解決 Flexbox 測量問題 */
+            position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
             height: 100%; 
         }
 
-        .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.5); font-size: 1.1rem; pointer-events: none; z-index: 5; }
+        /* 浮水印文字顏色調整為深色背景可見 */
+        .watermark { 
+            position: absolute; 
+            bottom: 15px; 
+            left: 20px; 
+            font-family: 'Georgia', serif; 
+            font-style: italic; 
+            color: rgba(0,0,0,0.3); /* 深色浮水印 */
+            font-size: 1.1rem; 
+            pointer-events: none; 
+            z-index: 5; 
+        }
 
+        /* 手機適配 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            .controls { width: 100%; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 2px solid #334155; order: 2; padding: 10px; gap: 10px; }
+            .controls { width: 100%; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 2px solid #cbd5e1; order: 2; padding: 10px; gap: 10px; }
             .control-group { flex: 1 1 45%; min-width: 150px; padding: 8px; font-size: 0.9rem; }
             #canvas-container { order: 1; flex: 1; min-height: 50vh; }
             .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
@@ -84,8 +185,8 @@
                     角速率 (&omega;) <span id="val-W" class="value-display">1.0</span>
                     <input type="range" id="input-W" min="0.5" max="2.5" step="0.1" value="1.0">
                 </label>
-                <div style="font-size:0.9rem; color:#94a3b8; margin-top:5px; background: rgba(0,0,0,0.2); padding: 5px 8px; border-radius: 5px;">
-                    速率 v = R&omega; = <span id="val-V" style="color:#fbbf24; font-weight:bold;">120</span>
+                <div style="font-size:0.9rem; color:#666; margin-top:5px; background: #eee; padding: 5px 8px; border-radius: 5px;">
+                    速率 v = R&omega; = <span id="val-V" style="color:var(--secondary-color); font-weight:bold;">120</span>
                 </div>
                 <button id="btn-pause" class="btn-pause">⏯ 暫停 / 開始</button>
             </div>
@@ -93,15 +194,15 @@
             <div class="control-group">
                 <h3>📐 物理量顯示 (Vectors)</h3>
                 <label>
-                    <span>位置/位移 (<span style="color:#4ade80">●</span> $\vec{r}, \theta$)</span>
+                    <span>位置/位移 (<span style="color:#2ecc71">●</span> $\vec{r}, \theta$)</span>
                     <input type="checkbox" id="check-pos" checked>
                 </label>
                 <label>
-                    <span>速度 (<span style="color:#22c55e">●</span> $\vec{v}, \theta$)</span>
+                    <span>速度 (<span style="color:#3498db">●</span> $\vec{v}, \theta$)</span>
                     <input type="checkbox" id="check-vel">
                 </label>
                 <label>
-                    <span>加速度 (<span style="color:#ef4444">●</span> $\vec{a}, \theta$)</span>
+                    <span>加速度 (<span style="color:#e74c3c">●</span> $\vec{a}, \theta$)</span>
                     <input type="checkbox" id="check-acc">
                 </label>
             </div>
@@ -124,15 +225,16 @@
 
         const params = { R: 120, omega: 1.0, cx: 0, cy: 0 };
 
+        // 調整顏色以適應白色背景
         const colors = {
-            pos: "#4ade80", 
-            vel: { main: "#22c55e", comp: "#15803d" }, 
-            acc: { main: "#ef4444", comp: "#b91c1c" }, 
-            wave: "#38bdf8", 
-            shm: "#f472b6",  
-            guide: "rgba(255, 255, 255, 0.2)",
-            text: "#e2e8f0",
-            angle: "#facc15" 
+            pos: "#2ecc71",       // 綠色 (位置)
+            vel: { main: "#3498db", comp: "#2980b9" }, // 藍色 (速度)
+            acc: { main: "#e74c3c", comp: "#c0392b" }, // 紅色 (加速度)
+            wave: "#9b59b6",      // 紫色 (波動)
+            shm: "#f39c12",       // 橘色 (SHM點)
+            guide: "rgba(0, 0, 0, 0.2)",
+            text: "#333",
+            angle: "#f5a623"      // 橙色 (角度)
         };
 
         const ui = {
@@ -153,7 +255,6 @@
             ui.W.addEventListener('input', updateParams);
             ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
             
-            // 延遲執行，確保 canvas 尺寸正確
             setTimeout(() => {
                 resize();
                 updateParams();
@@ -164,7 +265,6 @@
         function resize() {
             const container = document.getElementById('canvas-container');
             if (container) {
-                // 修正：從 container 取得 clientWidth/Height 賦值給 canvas.width/height
                 width = canvas.width = container.clientWidth;
                 height = canvas.height = container.clientHeight;
                 
@@ -179,7 +279,7 @@
                     }
                 } else {
                     params.cx = width * 0.3;
-                    params.cy = height * 0.45; // 讓圓心在畫面較高的位置，避免下方SHM被切
+                    params.cy = height * 0.45;
                 }
             }
         }
@@ -198,6 +298,8 @@
             if (!width || !height) resize();
 
             ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#e2e8f0"; // 畫布背景色
+            ctx.fillRect(0, 0, width, height);
 
             const theta = time % (2 * Math.PI); 
             const physX = params.R * Math.cos(theta);
@@ -212,7 +314,7 @@
             drawCircle(params.cx, params.cy, params.R);
             drawWaveSystem(canvasX, canvasY);
             drawSHMSystem(canvasX, canvasY, theta);
-            drawParticle(px, py, "#fff", 6);
+            drawParticle(px, py, "#000", 6); // 質點改黑色
             drawVectors(canvasX, canvasY, theta, px, py);
         }
 
@@ -240,8 +342,8 @@
             ctx.fill();
 
             if (label) {
-                ctx.fillStyle = "#fff"; 
-                ctx.shadowColor = "rgba(0,0,0,0.8)"; 
+                ctx.fillStyle = colors.text; // 文字顏色
+                ctx.shadowColor = "rgba(255,255,255,0.8)"; // 淺色背景加白色陰影
                 ctx.shadowBlur = 4;
                 ctx.font = isComponent ? "bold 14px serif" : "bold 18px serif";
                 ctx.textBaseline = "middle";
@@ -267,10 +369,7 @@
             }
         }
 
-        // 輔助函式：畫角度弧線
         function drawAngle(cx, cy, startAngle, endAngle, r = 40, label = "θ", drawFill = true) {
-            // 角度從 0 (右邊) 開始，Canvas 角度是逆時針增長
-            // Math.atan2(y, x) 得到的是 -PI 到 PI
             const isMobile = width < 800;
             const arcR = isMobile ? r - 15 : r;
 
@@ -280,7 +379,7 @@
             ctx.closePath();
             
             if(drawFill) {
-                ctx.fillStyle = "rgba(250, 204, 21, 0.2)"; 
+                ctx.fillStyle = "rgba(245, 166, 35, 0.2)"; // 橙色透明填滿
                 ctx.fill();
             }
             
@@ -288,7 +387,6 @@
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 標示文字
             const midAngle = (startAngle + endAngle) / 2;
             const textR = arcR + 12;
             ctx.fillStyle = colors.angle;
@@ -300,12 +398,12 @@
 
         function drawSystemGrid(cx, cy) {
             ctx.beginPath();
-            ctx.strokeStyle = "#334155";
+            ctx.strokeStyle = "#999"; // 軸線顏色
             ctx.lineWidth = 1;
             ctx.moveTo(0, cy); ctx.lineTo(width, cy); 
             ctx.moveTo(cx, 0); ctx.lineTo(cx, height);
             ctx.stroke();
-            ctx.fillStyle = "#64748b";
+            ctx.fillStyle = colors.text;
             ctx.font = "14px sans-serif";
             ctx.fillText("O", cx + 5, cy + 15);
         }
@@ -313,7 +411,7 @@
         function drawCircle(x, y, r) {
             ctx.beginPath();
             ctx.arc(x, y, r, 0, Math.PI * 2);
-            ctx.strokeStyle = "#475569";
+            ctx.strokeStyle = "#999"; // 圓周虛線顏色
             ctx.lineWidth = 2;
             ctx.setLineDash([6, 6]);
             ctx.stroke();
@@ -380,11 +478,11 @@
 
                 ctx.beginPath();
                 ctx.moveTo(params.cx - params.R - 20, shmY); ctx.lineTo(params.cx + params.R + 20, shmY);
-                ctx.strokeStyle = "#64748b"; ctx.lineWidth = 2; ctx.stroke();
+                ctx.strokeStyle = "#999"; ctx.lineWidth = 2; ctx.stroke();
                 
                 ctx.beginPath(); ctx.moveTo(params.cx, shmY - 8); ctx.lineTo(params.cx, shmY + 8); ctx.stroke();
                 
-                ctx.fillStyle = "#94a3b8";
+                ctx.fillStyle = "#999";
                 ctx.font = "12px sans-serif";
                 if (!isMobile) {
                     ctx.fillText("-R", params.cx - params.R - 30, shmY + 25);
@@ -419,7 +517,7 @@
                     ctx.fillText(formulaText, params.cx + params.R + (isMobile?10:30), shmY);
                     if(formulaVal) {
                         ctx.font = "12px monospace";
-                        ctx.fillStyle = "#cbd5e1";
+                        ctx.fillStyle = colors.text;
                         ctx.fillText(formulaVal, params.cx + params.R + (isMobile?10:30), shmY + 18);
                     }
                 }
@@ -432,14 +530,17 @@
             const shmY = params.cy + params.R + shmGap;
             const shmX = params.cx + canvasX;
 
-            // 1. 位置/位移
+            const vScale = 0.7;
+            const aScale = 0.7;
+
+            // 1. 位置/位移 (R, x)
             if (ui.showPos.checked) {
-                // 1.1. 投影三角形 (輔助理解投影)
+                // 1.1. 投影三角形
                 ctx.beginPath();
-                ctx.moveTo(params.cx, params.cy); // 圓心
-                ctx.lineTo(params.cx + canvasX, params.cy); // x軸投影點
-                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); // 質點
-                ctx.strokeStyle = "rgba(74, 222, 128, 0.3)"; 
+                ctx.moveTo(params.cx, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); 
+                ctx.strokeStyle = "rgba(46, 204, 113, 0.3)"; 
                 ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
                 
                 // 1.2. 向量
@@ -451,10 +552,7 @@
                 drawAngle(params.cx, params.cy, 0, -theta);
             }
 
-            const vScale = 0.7;
-            const aScale = 0.7;
-
-            // 2. 速度 (θ 角顯示：v 與 鉛垂線 夾角)
+            // 2. 速度 (v)
             if (ui.showVel.checked) {
                 const vMag = params.R * params.omega;
                 const physVx = -vMag * Math.sin(theta);
@@ -466,7 +564,7 @@
                 ctx.beginPath();
                 ctx.moveTo(px, py); ctx.lineTo(px + vecVx, py); ctx.lineTo(px + vecVx, py + vecVy); 
                 ctx.lineTo(px, py + vecVy); ctx.closePath();
-                ctx.strokeStyle = "rgba(34, 197, 94, 0.2)";
+                ctx.strokeStyle = "rgba(52, 152, 219, 0.2)";
                 ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
                 
                 // 2.2. 向量
@@ -475,18 +573,16 @@
                 drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); 
 
                 // 2.3. θ 角: v 與 鉛垂線 夾角
-                // 畫鉛垂參考線 (虛線)
                 ctx.beginPath();
                 ctx.moveTo(px, py); ctx.lineTo(px, py - 40);
-                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.strokeStyle = colors.guide; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
                 
-                // 角度從 -PI/2 (上) 到 -PI/2 - theta
                 drawAngle(px, py, -Math.PI/2, -Math.PI/2 - theta, 25);
 
                 if (shmY < height - 10) drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
             }
 
-            // 3. 加速度 (θ 角顯示：a 與 水平線 夾角)
+            // 3. 加速度 (a)
             if (ui.showAcc.checked) {
                 const aMag = params.R * params.omega * params.omega;
                 const physAx = -aMag * Math.cos(theta);
@@ -498,7 +594,7 @@
                 ctx.beginPath();
                 ctx.moveTo(px, py); ctx.lineTo(px + vecAx, py); ctx.lineTo(px + vecAx, py + vecAy);
                 ctx.lineTo(px, py + vecAy); ctx.closePath();
-                ctx.strokeStyle = "rgba(239, 68, 68, 0.2)";
+                ctx.strokeStyle = "rgba(231, 76, 60, 0.2)";
                 ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
 
                 // 3.2. 向量
@@ -507,12 +603,10 @@
                 drawArrow(px, py, vecAx, vecAy, colors.acc.main, "a", 1);
 
                 // 3.3. θ 角: a 與 水平線 夾角
-                // 畫水平參考線 (向左)
                 ctx.beginPath();
                 ctx.moveTo(px, py); ctx.lineTo(px - 40, py);
-                ctx.strokeStyle = "rgba(255,255,255,0.3)"; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                ctx.strokeStyle = colors.guide; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
 
-                // 角度從 PI (左) 到 PI - theta
                 drawAngle(px, py, Math.PI, Math.PI - theta, 25);
 
                 if (shmY < height - 10) drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
