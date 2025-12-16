@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2025年12月13日 18:00" // 記得更新時間
+    lastUpdated: "2025年12月16日 18:05" // 記得更新時間
 };
 
 // --- 課程資料區 ---
@@ -36,6 +36,14 @@ const lessonData = [
     tagClass: "math", // 藍色標籤
     tagName: "高中數學",
     desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
+    },
+    {
+    title: "光電效應實驗室",
+    category: "senior",
+    url: "senior/physics/photoelectric_effect.html",
+    tagClass: "physics", // 藍色標籤
+    tagName: "高中物理",
+    desc: "經由調整光線的頻率、強度噢金屬靶，觀察發射出來的電子。"
     }
     // ↑↑↑ 請確保這裡有逗號，除非它是陣列中最後一個物件 ↑↑↑
 ];
