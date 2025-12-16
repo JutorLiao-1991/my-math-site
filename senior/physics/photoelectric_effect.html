@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鳩特物理：光電效應實驗室</title>
+    <style>
+        /* 繼承您提供的明亮風格 */
+        :root {
+            --primary-color: #4a90e2; /* 主藍色 */
+            --secondary-color: #f5a623; /* 橙色 */
+            --bg-color: #f4f7f6; /* 淺灰色背景 */
+            --text-color: #333; /* 深色文字 */
+            --panel-bg: #ffffff; /* 白色面板 */
+            --nav-bg: rgba(30, 41, 59, 0.95); /* 深色導航欄 */
+            --accent: #38bdf8; /* 藍色強調 */
+            --control-group-bg: #f7f7ff; /* 淺藍色控制區背景 */
+            --danger: #e74c3c;
+            --success: #2ecc71;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            margin: 0; 
+            padding: 0; 
+            background: var(--bg-color); 
+            color: var(--text-color); 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+        }
+        
+        /* 導覽列 */
+        .nav-bar { 
+            padding: 10px 20px; 
+            background: var(--nav-bg); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            border-bottom: 1px solid #334155; 
+            z-index: 20; 
+            flex-shrink: 0;
+            color: white; 
+        }
+        .back-btn { 
+            text-decoration: none; 
+            color: var(--accent); 
+            font-weight: bold; 
+            border: 1px solid var(--accent); 
+            padding: 5px 15px; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            transition: 0.3s; 
+            display: flex; 
+            align-items: center; 
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: white; }
+
+        /* 主畫面佈局 */
+        .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
+        
+        /* 左側控制面板 */
+        .controls { 
+            width: 320px; 
+            background: var(--panel-bg); 
+            padding: 20px; 
+            border-right: 1px solid #e2e8f0; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            z-index: 10; 
+            overflow-y: auto; 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05); 
+            flex-shrink: 0; 
+        }
+        
+        .control-group { 
+            background: var(--control-group-bg); 
+            padding: 15px; 
+            border-radius: 12px; 
+            border: 1px solid #cbd5e1; 
+        }
+        .control-group h3 { 
+            margin: 0 0 15px 0; 
+            font-size: 1rem; 
+            color: var(--primary-color); 
+            border-bottom: 1px solid var(--secondary-color); 
+            padding-bottom: 8px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        
+        label { display: flex; flex-direction: column; font-size: 0.9rem; margin-bottom: 12px; cursor: pointer; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;}
+        
+        input[type="range"] { width: 100%; margin-top: 5px; cursor: pointer; accent-color: var(--secondary-color); } 
+        select { 
+            width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; 
+            background: white; font-size: 0.95rem; cursor: pointer;
+        }
+
+        .value-display { font-family: 'Roboto Mono', monospace; color: var(--secondary-color); font-weight: bold; }
+        
+        /* 預設情境下拉選單樣式 */
+        .scenario-select {
+            background-color: #e3f2fd;
+            border: 2px solid var(--primary-color);
+            color: #1565c0;
+            font-weight: bold;
+        }
+
+        /* 數據顯示區塊 */
+        .monitor-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .monitor-item {
+            background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 8px;
+            text-align: center;
+        }
+        .monitor-val { font-size: 1.1rem; font-weight: bold; color: var(--text-color); }
+        .monitor-label { font-size: 0.8rem; color: #666; }
+
+        /* 右側畫布容器 - 修改底色 */
+        #canvas-container { 
+            flex: 1; 
+            position: relative; 
+            background: #dbe9f4; /* 改為參考圖的淡藍色 */
+            overflow: hidden; 
+        }
+        canvas { 
+            display: block; 
+            position: absolute; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+        }
+
+        /* 浮水印 */
+        .watermark { 
+            position: absolute; 
+            bottom: 15px; left: 20px; 
+            font-family: 'Georgia', serif; 
+            font-style: italic; 
+            color: rgba(0,0,0,0.3); /* 配合淺色背景改為深色浮水印 */
+            font-size: 1.1rem; 
+            pointer-events: none; 
+            z-index: 5; 
+        }
+
+        /* 手機適配 */
+        @media (max-width: 800px) {
+            .main-container { flex-direction: column; }
+            .controls { 
+                width: 100%; height: auto; max-height: 40vh; 
+                flex-direction: row; flex-wrap: wrap; 
+                border-right: none; border-top: 2px solid #cbd5e1; 
+                order: 2; padding: 10px; gap: 10px; 
+            }
+            .control-group { flex: 1 1 100%; min-width: 300px; padding: 10px; }
+            #canvas-container { order: 1; flex: 1; min-height: 50vh; }
+            .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
+            .page-title { font-size: 1rem; }
+            .back-btn span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
+        <h2 class="page-title">鳩特物理：光電效應實驗室</h2>
+    </div>
+
+    <div class="main-container">
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group" style="border-color: var(--primary-color);">
+                <h3>🎓 鳩特老師的觀察重點</h3>
+                <select id="scenario-select" class="scenario-select">
+                    <option value="custom">--- 自由實驗模式 ---</option>
+                    <option value="1">1. 固定波長(500nm)，調整亮度</option>
+                    <option value="2">2. 固定光強度，掃描波長找門檻</option>
+                    <option value="3">3. 固定紫外光，測試不同金屬</option>
+                </select>
+                <div id="hint-text" style="margin-top:8px; font-size:0.85rem; color:#555; line-height:1.4;">
+                    請選擇一個實驗主題，系統將自動設定參數，您可以試著調整剩下的變因。
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>🎛️ 實驗參數</h3>
+                
+                <label>
+                    <div class="label-row">
+                        <span>金屬靶材 (功函數 Φ)</span>
+                    </div>
+                    <select id="metal-select">
+                        <option value="2.3">鈉 Sodium (Φ=2.3eV)</option>
+                        <option value="2.9">鈣 Calcium (Φ=2.9eV)</option>
+                        <option value="4.3">鋅 Zinc (Φ=4.3eV)</option>
+                        <option value="4.7">銅 Copper (Φ=4.7eV)</option>
+                        <option value="6.3">白金 Platinum (Φ=6.3eV)</option>
+                    </select>
+                </label>
+
+                <label>
+                    <div class="label-row">
+                        <span>光波長 λ (顏色)</span>
+                        <span id="val-lambda" class="value-display">500 nm</span>
+                    </div>
+                    <input type="range" id="input-lambda" min="200" max="800" step="5" value="500">
+                    <div style="background: linear-gradient(to right, #b08, #00f, #0f0, #ff0, #f00, #800); height: 5px; border-radius: 2px; margin-top:2px;"></div>
+                </label>
+
+                <label>
+                    <div class="label-row">
+                        <span>光強度 (亮度)</span>
+                        <span id="val-intensity" class="value-display">50 %</span>
+                    </div>
+                    <input type="range" id="input-intensity" min="0" max="100" step="1" value="50">
+                </label>
+            </div>
+
+            <div class="control-group">
+                <h3>📊 即時數據</h3>
+                <div class="monitor-panel">
+                    <div class="monitor-item">
+                        <div class="monitor-label">光子能量 (E=hf)</div>
+                        <div id="data-energy" class="monitor-val" style="color:var(--primary-color);">2.48 eV</div>
+                    </div>
+                    <div class="monitor-item">
+                        <div class="monitor-label">最大動能 (Kmax)</div>
+                        <div id="data-kmax" class="monitor-val" style="color:var(--danger);">0.18 eV</div>
+                    </div>
+                </div>
+                <div style="margin-top:10px; font-size:0.9rem; text-align:center; color:#666;">
+                    電路狀態: <span id="circuit-status" style="font-weight:bold;">通路</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+
+        // 物理常數與變數
+        const HC = 1240; // eV * nm
+        let lambda = 500; // nm
+        let intensity = 50; // %
+        let workFunction = 2.3; // eV (Sodium default)
+        let photonEnergy = 0;
+        let maxKineticEnergy = 0;
+        let isEmitting = false;
+
+        // 電子陣列
+        let electrons = [];
+        let currentMagnitude = 0; // 用於燈泡亮度
+
+        // UI 參考
+        const ui = {
+            lambda: document.getElementById('input-lambda'),
+            intensity: document.getElementById('input-intensity'),
+            metal: document.getElementById('metal-select'),
+            scenario: document.getElementById('scenario-select'),
+            hint: document.getElementById('hint-text'),
+            
+            valLambda: document.getElementById('val-lambda'),
+            valIntensity: document.getElementById('val-intensity'),
+            dataEnergy: document.getElementById('data-energy'),
+            dataKmax: document.getElementById('data-kmax'),
+            status: document.getElementById('circuit-status')
+        };
+
+        // 事件監聽
+        window.addEventListener('resize', resize);
+        ui.lambda.addEventListener('input', updateParams);
+        ui.intensity.addEventListener('input', updateParams);
+        ui.metal.addEventListener('change', updateParams);
+        ui.scenario.addEventListener('change', loadScenario);
+
+        function resize() {
+            const container = document.getElementById('canvas-container');
+            width = canvas.width = container.clientWidth;
+            height = canvas.height = container.clientHeight;
+        }
+
+        function loadScenario() {
+            const val = ui.scenario.value;
+            if (val === "1") {
+                // 1. 金屬鈉，波長500nm，調整強度
+                ui.metal.value = "2.3";
+                ui.lambda.value = "500";
+                ui.intensity.value = "50"; // 起始值
+                ui.hint.innerHTML = "<b>任務：</b>試著左右拉動「光強度」。<br>觀察：電子飛出的<b>速度</b>有變嗎？還是只有<b>數量</b>改變？";
+            } else if (val === "2") {
+                // 2. 金屬鈉，光強固定50%，調整波長 (修改此處)
+                ui.metal.value = "2.3";
+                ui.lambda.value = "700"; // 從紅光開始
+                ui.intensity.value = "50"; // 強度改為 50%
+                ui.hint.innerHTML = "<b>任務：</b>將波長從 700nm 慢慢往左拉。<br>觀察：何時開始有電子？電子出現後，波長越短，電子飛得越快嗎？";
+            } else if (val === "3") {
+                // 3. 光強10%，波長300nm，切換金屬
+                ui.lambda.value = "300";
+                ui.intensity.value = "10";
+                ui.metal.value = "2.3"; // Reset
+                ui.hint.innerHTML = "<b>任務：</b>現在使用高能量紫外線(300nm)。<br>觀察：依序切換不同金屬，哪些金屬能產生光電效應？";
+            } else {
+                ui.hint.textContent = "請選擇一個實驗主題，系統將自動設定參數，您可以試著調整剩下的變因。";
+            }
+            updateParams();
+        }
+
+        function updateParams() {
+            lambda = parseInt(ui.lambda.value);
+            intensity = parseInt(ui.intensity.value);
+            workFunction = parseFloat(ui.metal.value);
+
+            // 更新顯示數值
+            ui.valLambda.textContent = lambda + " nm";
+            ui.valLambda.style.color = wavelengthToColor(lambda);
+            ui.valIntensity.textContent = intensity + " %";
+
+            // 物理計算
+            photonEnergy = HC / lambda;
+            maxKineticEnergy = photonEnergy - workFunction;
+            
+            if (maxKineticEnergy > 0) {
+                isEmitting = true;
+                ui.dataKmax.textContent = maxKineticEnergy.toFixed(2) + " eV";
+                ui.status.textContent = "有光電流 (通路)";
+                ui.status.style.color = "#2ecc71";
+            } else {
+                isEmitting = false;
+                maxKineticEnergy = 0;
+                ui.dataKmax.textContent = "0.00 eV";
+                ui.status.textContent = "無電流 (斷路)";
+                ui.status.style.color = "#e74c3c";
+            }
+            ui.dataEnergy.textContent = photonEnergy.toFixed(2) + " eV";
+        }
+
+        class Electron {
+            constructor(x, y, kmax) {
+                this.x = x;
+                this.y = y;
+                // 速度與動能平方根成正比，設定一個縮放係數讓視覺效果合理
+                this.vx = Math.sqrt(kmax) * 3 + 1; 
+                this.vy = (Math.random() - 0.5) * 2; // 稍微有些垂直擴散
+                this.life = 100;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+            }
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fillStyle = "#38bdf8"; // 電子藍
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "#38bdf8";
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function spawnElectron(sourceX, sourceY, targetH) {
+            // 在板子上隨機位置生成
+            const startY = sourceY - targetH/2 + Math.random() * targetH;
+            electrons.push(new Electron(sourceX + 5, startY, maxKineticEnergy));
+        }
+
+        function wavelengthToColor(wavelength) {
+            let r, g, b, alpha;
+            if (wavelength >= 380 && wavelength < 440) {
+                r = -1 * (wavelength - 440) / (440 - 380); g = 0; b = 1;
+            } else if (wavelength >= 440 && wavelength < 490) {
+                r = 0; g = (wavelength - 440) / (490 - 440); b = 1;
+            } else if (wavelength >= 490 && wavelength < 510) {
+                r = 0; g = 1; b = -1 * (wavelength - 510) / (510 - 490);
+            } else if (wavelength >= 510 && wavelength < 580) {
+                r = (wavelength - 510) / (580 - 510); g = 1; b = 0;
+            } else if (wavelength >= 580 && wavelength < 645) {
+                r = 1; g = -1 * (wavelength - 645) / (645 - 580); b = 0;
+            } else if (wavelength >= 645 && wavelength <= 780) {
+                r = 1; g = 0; b = 0;
+            } else {
+                // 不可見光區顯示灰色或暗紫
+                return wavelength < 380 ? "#4b0082" : "#330000"; 
+            }
+            // 簡單的 Gamma 校正
+            return `rgb(${Math.floor(r * 255)}, ${Math.floor(g * 255)}, ${Math.floor(b * 255)})`;
+        }
+
+        function loop() {
+            ctx.clearRect(0, 0, width, height);
+
+            // 定義位置
+            const centerX = width / 2;
+            const centerY = height / 2 - 50; // 稍微偏上，留空間給電路
+            const plateGap = Math.min(width * 0.4, 300);
+            const plateHeight = 120;
+            const cathodeX = centerX - plateGap / 2;
+            const anodeX = centerX + plateGap / 2;
+
+            // 1. 繪製電路 (Circuit)
+            ctx.strokeStyle = "#7f8c8d";
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            // 左板往下
+            ctx.moveTo(cathodeX, centerY + plateHeight/2);
+            ctx.lineTo(cathodeX, centerY + plateHeight/2 + 100);
+            // 往右接燈泡
+            ctx.lineTo(centerX - 40, centerY + plateHeight/2 + 100);
+            // 燈泡區 (跳過)
+            ctx.moveTo(centerX + 40, centerY + plateHeight/2 + 100);
+            // 往右接右板
+            ctx.lineTo(anodeX, centerY + plateHeight/2 + 100);
+            ctx.lineTo(anodeX, centerY + plateHeight/2);
+            ctx.stroke();
+
+            // 2. 繪製燈泡 (Bulb)
+            const bulbX = centerX;
+            const bulbY = centerY + plateHeight/2 + 100;
+            
+            // 計算電流強度 (基於到達右板的電子數，這裡用一個平滑變數模擬)
+            // 如果 isEmitting 為真，currentMagnitude 趨向 intensity，否則趨向 0
+            const targetCurrent = isEmitting ? intensity : 0;
+            currentMagnitude += (targetCurrent - currentMagnitude) * 0.1;
+
+            const bulbRadius = 25;
+            ctx.beginPath();
+            ctx.arc(bulbX, bulbY, bulbRadius, 0, Math.PI*2);
+            ctx.fillStyle = "#444"; // 燈泡底色
+            ctx.fill();
+            ctx.strokeStyle = "#999";
+            ctx.stroke();
+
+            // 燈絲
+            ctx.beginPath();
+            ctx.moveTo(bulbX - 10, bulbY + 10);
+            ctx.lineTo(bulbX - 5, bulbY - 5);
+            ctx.lineTo(bulbX + 5, bulbY - 5);
+            ctx.lineTo(bulbX + 10, bulbY + 10);
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 燈泡發光效果
+            if (currentMagnitude > 1) {
+                const glowAlpha = Math.min(currentMagnitude / 100, 1);
+                ctx.beginPath();
+                ctx.arc(bulbX, bulbY, bulbRadius, 0, Math.PI*2);
+                ctx.fillStyle = `rgba(255, 255, 0, ${glowAlpha})`;
+                ctx.fill();
+                
+                // 外發光
+                const gradient = ctx.createRadialGradient(bulbX, bulbY, bulbRadius, bulbX, bulbY, bulbRadius * 3);
+                gradient.addColorStop(0, `rgba(255, 255, 0, ${glowAlpha * 0.5})`);
+                gradient.addColorStop(1, "rgba(255, 255, 0, 0)");
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(bulbX, bulbY, bulbRadius * 3, 0, Math.PI*2);
+                ctx.fill();
+            }
+
+            // 3. 繪製真空管 (簡單示意) - 邊框改為深色以在淺色背景顯示
+            ctx.strokeStyle = "rgba(0,0,0,0.1)"; 
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(centerX, centerY, plateGap/1.5, plateHeight*1.2, 0, 0, Math.PI*2);
+            ctx.stroke();
+
+            // 4. 繪製極板
+            // 陰極 (Cathode - Metal)
+            ctx.fillStyle = "#95a5a6"; // 金屬色
+            ctx.fillRect(cathodeX - 10, centerY - plateHeight/2, 20, plateHeight);
+            
+            // 陽極 (Anode)
+            ctx.fillStyle = "#bdc3c7";
+            ctx.fillRect(anodeX - 10, centerY - plateHeight/2, 20, plateHeight);
+
+            // 5. 繪製光線 (Light Source)
+            const lightColor = wavelengthToColor(lambda);
+            const lightOpacity = intensity / 100;
+            
+            // 光源畫在左上方，照射到陰極
+            const lightSourceX = cathodeX - 100;
+            const lightSourceY = centerY - 100;
+            
+            if (intensity > 0) {
+                const grad = ctx.createLinearGradient(lightSourceX, lightSourceY, cathodeX, centerY);
+                grad.addColorStop(0, lightColor); // 光源中心
+                grad.addColorStop(1, `rgba(255,255,255,0)`); // 尾端透明
+
+                ctx.beginPath();
+                ctx.moveTo(lightSourceX, lightSourceY);
+                // 形成一個錐形光束打在板子上
+                ctx.lineTo(cathodeX, centerY - plateHeight/2 + 10);
+                ctx.lineTo(cathodeX, centerY + plateHeight/2 - 10);
+                ctx.closePath();
+                
+                ctx.fillStyle = lightColor;
+                ctx.globalAlpha = lightOpacity * 0.6; // 光束透明度
+                ctx.fill();
+                ctx.globalAlpha = 1.0;
+            }
+
+            // 6. 生成電子邏輯
+            // 機率生成：強度越強，機率越高。如果不符合能量門檻，則不生成。
+            if (isEmitting && intensity > 0) {
+                // intensity 0-100. 100% 時每幀生成約 1-2 顆
+                const spawnRate = intensity / 50; 
+                if (Math.random() < spawnRate) {
+                    spawnElectron(cathodeX, centerY, plateHeight);
+                }
+            }
+
+            // 7. 更新與繪製電子
+            for (let i = electrons.length - 1; i >= 0; i--) {
+                const e = electrons[i];
+                e.update();
+                e.draw(ctx);
+
+                // 碰撞檢測 (到達陽極)
+                if (e.x >= anodeX - 5) {
+                    electrons.splice(i, 1);
+                } else if (e.x > width || e.y > height || e.y < 0) {
+                    electrons.splice(i, 1);
+                }
+            }
+            
+            requestAnimationFrame(loop);
+        }
+
+        // 初始化
+        resize();
+        updateParams();
+        loop();
+
+    </script>
+</body>
+</html>
