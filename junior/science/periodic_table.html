@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：互動元素週期表</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --panel-bg: #ffffff;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8;
+            
+            /* 元素性質顏色 */
+            --metal-bg: #e3f2fd;
+            --metal-border: #90caf9;
+            --nonmetal-bg: #ffebee;
+            --nonmetal-border: #ef9a9a;
+            --metalloid-bg: #e8f5e9;
+            --metalloid-border: #a5d6a7;
+            --noble-bg: #f3e5f5;
+            --noble-border: #ce93d8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden; /* 防止整個頁面捲動，讓內部捲動 */
+        }
+
+        /* 導航列 */
+        .nav-bar {
+            padding: 10px 20px;
+            background: var(--nav-bg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #334155;
+            color: white;
+            flex-shrink: 0;
+        }
+        .back-btn {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: bold;
+            border: 1px solid var(--accent);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; }
+
+        .main-wrapper {
+            padding: 15px;
+            display: flex;
+            flex: 1;
+            gap: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* 左側週期表區塊 */
+        .table-container {
+            flex: 3;
+            background: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .scroll-wrapper {
+            flex: 1;
+            overflow: auto; /* 允許表格在小螢幕捲動 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+            gap: 4px;
+            width: 100%;
+            min-width: 800px; /* 保持最小寬度以免變形 */
+            max-width: 1200px;
+            aspect-ratio: 18/9;
+        }
+
+        .element {
+            position: relative;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+            font-size: 0.9rem;
+            background-color: #fff;
+        }
+
+        .element:hover {
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .element.active {
+            border: 2px solid var(--secondary-color);
+            transform: scale(1.1);
+            z-index: 5;
+            box-shadow: 0 0 15px rgba(245, 166, 35, 0.5);
+        }
+
+        /* 元素內容樣式 */
+        .at-num { font-size: 0.6rem; position: absolute; top: 2px; left: 4px; color: #666; }
+        .symbol { font-size: 1.2rem; font-weight: bold; color: #333; }
+        .name { font-size: 0.75rem; color: #555; }
+
+        /* 性質分類顏色 */
+        .metal { background: var(--metal-bg); border-color: var(--metal-border); }
+        .nonmetal { background: var(--nonmetal-bg); border-color: var(--nonmetal-border); }
+        .metalloid { background: var(--metalloid-bg); border-color: var(--metalloid-border); }
+        .noble { background: var(--noble-bg); border-color: var(--noble-border); }
+        
+        /* 測驗模式：遮罩 */
+        .quiz-mode .symbol, .quiz-mode .name {
+            color: transparent;
+            text-shadow: 0 0 8px rgba(0,0,0,0.1); /* 模糊提示 */
+        }
+        .quiz-mode .element:hover .symbol,
+        .quiz-mode .element:hover .name,
+        .quiz-mode .element.revealed .symbol,
+        .quiz-mode .element.revealed .name {
+            color: inherit;
+            text-shadow: none;
+        }
+
+        /* 右側資訊與控制區塊 */
+        .sidebar {
+            flex: 1;
+            min-width: 300px;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+
+        /* 資訊卡片 */
+        .info-card {
+            text-align: center;
+            border-top: 4px solid var(--primary-color);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .large-symbol {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin: 10px 0;
+            line-height: 1;
+        }
+        
+        .large-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; }
+        .large-detail { font-size: 0.9rem; color: #666; margin-bottom: 15px; }
+
+        .mnemonic-box {
+            background: #f8fafc;
+            border: 1px dashed #cbd5e1;
+            padding: 10px;
+            border-radius: 8px;
+            width: 90%;
+            margin-top: 10px;
+        }
+        .mnemonic-title { font-size: 0.8rem; color: var(--secondary-color); font-weight: bold; display: block; margin-bottom: 4px; }
+        .mnemonic-text { font-size: 1rem; color: #334155; font-weight: 500; }
+
+        /* 控制面板 */
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
+            display: inline-block;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer;
+            font-weight: bold; transition: all 0.2s; font-size: 0.9rem;
+            background-color: #e2e8f0; color: #475569;
+        }
+        .btn:hover { filter: brightness(0.95); }
+        .btn.active { background-color: var(--primary-color); color: white; }
+        
+        #quizToggleBtn {
+            background-color: var(--secondary-color); color: white;
+            width: 100%; margin-top: 5px; padding: 12px; font-size: 1rem;
+        }
+        #quizToggleBtn.active { background-color: #e67e22; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); }
+
+        .watermark {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            color: rgba(0,0,0,0.15);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        /* 標籤圖例 */
+        .legend {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+        @media (max-width: 900px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            .sidebar { width: 100%; min-width: auto; max-width: none; }
+            .periodic-table { min-width: 600px; aspect-ratio: auto; height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="#" class="back-btn"><span>⬅</span>&nbsp;回課程首頁</a>
+        <h2 class="page-title">鳩特數理：國中必背元素週期表</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="table-container">
+            <div class="legend">
+                <div class="legend-item"><span class="dot" style="background:var(--metal-bg); border:1px solid var(--metal-border)"></span> 金屬</div>
+                <div class="legend-item"><span class="dot" style="background:var(--nonmetal-bg); border:1px solid var(--nonmetal-border)"></span> 非金屬</div>
+                <div class="legend-item"><span class="dot" style="background:var(--noble-bg); border:1px solid var(--noble-border)"></span> 鈍氣</div>
+            </div>
+            
+            <div class="scroll-wrapper">
+                <div class="periodic-table" id="periodicTable">
+                    </div>
+            </div>
+            <div class="watermark">Designed by Jutor</div>
+        </div>
+
+        <div class="sidebar">
+            <div class="panel info-card" id="infoPanel">
+                <div style="color: #999; margin-top: 50px;">請點選左側元素<br>查看詳細資訊</div>
+                </div>
+
+            <div class="panel controls-panel">
+                <button id="quizToggleBtn" class="btn">切換：測驗背誦模式</button>
+                
+                <div class="control-group">
+                    <h3>重點族系篩選</h3>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="highlightGroup('alkali')">鹼金族 (1A)</button>
+                        <button class="btn" onclick="highlightGroup('earth')">鹼土族 (2A)</button>
+                        <button class="btn" onclick="highlightGroup('halogen')">鹵素 (7A)</button>
+                        <button class="btn" onclick="highlightGroup('noble')">鈍氣 (8A)</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>狀態與分類</h3>
+                    <div class="btn-grid">
+                        <button class="btn" onclick="highlightType('metal')">金屬元素</button>
+                        <button class="btn" onclick="highlightType('nonmetal')">非金屬元素</button>
+                        <button class="btn" onclick="resetHighlight()">全部顯示</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 資料庫：針對國中範圍簡化，包含 1-20 號元素與常見金屬
+        // row/col 對應 CSS Grid 的位置
+        const elementsData = [
+            { num: 1, sym: 'H', name: '氫', en: 'Hydrogen', row: 1, col: 1, type: 'nonmetal', family: 'other', mnemonic: '氫 (輕輕的氣體)' },
+            { num: 2, sym: 'He', name: '氦', en: 'Helium', row: 1, col: 18, type: 'noble', family: 'noble', mnemonic: '氦 (害死人，因為不能呼吸)' },
+            
+            { num: 3, sym: 'Li', name: '鋰', en: 'Lithium', row: 2, col: 1, type: 'metal', family: 'alkali', mnemonic: '鋰 (請)' },
+            { num: 4, sym: 'Be', name: '鈹', en: 'Beryllium', row: 2, col: 2, type: 'metal', family: 'earth', mnemonic: '鈹 (皮)' },
+            { num: 5, sym: 'B', name: '硼', en: 'Boron', row: 2, col: 13, type: 'metalloid', family: 'other', mnemonic: '硼 (朋)' },
+            { num: 6, sym: 'C', name: '碳', en: 'Carbon', row: 2, col: 14, type: 'nonmetal', family: 'other', mnemonic: '碳 (炭)' },
+            { num: 7, sym: 'N', name: '氮', en: 'Nitrogen', row: 2, col: 15, type: 'nonmetal', family: 'other', mnemonic: '氮 (蛋)' },
+            { num: 8, sym: 'O', name: '氧', en: 'Oxygen', row: 2, col: 16, type: 'nonmetal', family: 'other', mnemonic: '氧 (養)' },
+            { num: 9, sym: 'F', name: '氟', en: 'Fluorine', row: 2, col: 17, type: 'nonmetal', family: 'halogen', mnemonic: '氟 (福)' },
+            { num: 10,
