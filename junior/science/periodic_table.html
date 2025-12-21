@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：元素週期表</title>
+    <title>鳩特數理：互動元素週期表 (豪華寫真版)</title>
     <style>
         :root {
-            --primary-color: #4a90e2; /* 鳩特藍 */
-            --secondary-color: #f5a623; /* 鳩特橘 */
-            --bg-color: #f1f5f9;
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f8fafc;
             --panel-bg: #ffffff;
             --text-main: #334155;
             --nav-bg: #0f172a;
@@ -16,7 +16,6 @@
             --correct: #2ecc71;
             --wrong: #e74c3c;
             --placeholder-border: #e2e8f0;
-            --placeholder-bg: #f8fafc;
             --cover-bg: #475569;
         }
 
@@ -98,13 +97,13 @@
         .periodic-table {
             display: grid;
             grid-template-columns: repeat(18, 48px);
-            grid-template-rows: repeat(9, 48px); /* 預留空間給 U */
+            grid-template-rows: repeat(9, 48px);
             gap: 4px;
             margin-bottom: 10px;
             padding-bottom: 10px;
         }
 
-        /* --- 元素卡片樣式 --- */
+        /* --- 元素卡片 --- */
         .element {
             position: relative;
             border: 1px solid #cbd5e1;
@@ -123,13 +122,19 @@
             transform: scale(1.15); z-index: 10;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-color: var(--primary-color);
         }
+        /* 選中狀態 */
+        .element.selected {
+            border: 2px solid var(--secondary-color);
+            transform: scale(1.15);
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(245, 166, 35, 0.4);
+        }
 
-        /* 空格佔位符 (維持形狀用) */
         .element-placeholder {
             border: 1px solid var(--placeholder-border);
-            background: var(--placeholder-bg);
+            background: #f8fafc;
             border-radius: 4px;
-            pointer-events: none; /* 不可點擊 */
+            pointer-events: none;
         }
 
         /* 顏色分類 */
@@ -139,37 +144,71 @@
         .g-noble { background: #f3e5f5; border-color: #e1bee7; }
         .g-trans { background: #e3f2fd; border-color: #bbdefb; }
         .g-other { background: #ffffff; }
-        /* 鈾特殊處理 */
         .element-U { grid-row: 9 !important; grid-column: 6 !important; margin-top: 15px; border-color: #fbbf24; background: #fffbeb; }
 
         .at-num { font-size: 0.55rem; position: absolute; top: 2px; left: 3px; color: #64748b; }
         .symbol { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 4px; }
         .name { font-size: 0.65rem; color: #475569; margin-bottom: 2px; }
 
-        /* --- 蓋牌模式樣式 --- */
-        .element.covered {
-            background: var(--cover-bg) !important;
-            border-color: #334155 !important;
+        /* 蓋牌與模糊 */
+        .element.covered { background: var(--cover-bg) !important; border-color: #334155 !important; }
+        .element.covered .symbol, .element.covered .name, .element.covered .at-num { opacity: 0; }
+        .element.covered.revealed { background: #fff !important; }
+        .element.covered.revealed .symbol, .element.covered.revealed .name, .element.covered.revealed .at-num { opacity: 1; }
+        .blur-mode .name, .blur-mode .symbol { color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+
+        /* --- 寫真資訊卡 (Photo Card) --- */
+        .photo-card-container {
+            width: 90%; max-width: 500px;
+            margin: 0 auto 20px auto;
+            display: none; /* 預設隱藏 */
+            animation: fadeIn 0.3s ease-out;
         }
-        .element.covered .symbol, 
-        .element.covered .name, 
-        .element.covered .at-num {
-            opacity: 0; /* 隱藏文字 */
+
+        .photo-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            border: 1px solid #e2e8f0;
         }
-        /* 翻開的卡牌 (在蓋牌模式下被點開) */
-        .element.covered.revealed {
-            background: #fff !important; /* 暫時變回白色或其他底色 */
+
+        .pc-image-box {
+            width: 45%;
+            background: #000;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            position: relative;
         }
-        /* 保持原本的顏色分類會比較好看，所以 revealed 時移除 covered 的樣式覆蓋即可 */
-        .element.covered.revealed .symbol,
-        .element.covered.revealed .name,
-        .element.covered.revealed .at-num {
-            opacity: 1;
+
+        .pc-image-box img {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.5s;
+        }
+        .pc-image-box img:hover { transform: scale(1.1); }
+
+        .pc-content {
+            width: 55%; padding: 20px;
+            display: flex; flex-direction: column; justify-content: center;
+            text-align: left;
+        }
+
+        .pc-title { font-size: 2rem; font-weight: 800; color: var(--primary-color); margin: 0; line-height: 1; }
+        .pc-subtitle { font-size: 1.2rem; color: #334155; margin-bottom: 5px; font-weight: bold; }
+        .pc-desc { font-size: 0.9rem; color: #64748b; line-height: 1.4; margin-top: 10px; }
+        .pc-note { font-size: 0.75rem; color: #94a3b8; margin-top: auto; font-style: italic; }
+
+        @media (max-width: 600px) {
+            .photo-card { flex-direction: column; }
+            .pc-image-box { width: 100%; height: 180px; }
+            .pc-content { width: 100%; padding: 15px; box-sizing: border-box;}
         }
 
         /* --- 控制面板 --- */
         .controls-area {
-            width: 90%; max-width: 800px; margin: 20px auto;
+            width: 90%; max-width: 800px; margin: 0 auto 20px auto;
             display: flex; flex-direction: column; gap: 20px;
         }
 
@@ -197,7 +236,7 @@
             display: flex; align-items: center; gap: 8px;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .btn-cover { background: #34495e; } /* 深色 */
+        .btn-cover { background: #34495e; }
         .btn-cover.active { background: #e67e22; box-shadow: inset 0 3px 5px rgba(0,0,0,0.2); }
         .btn-game-1 { background: var(--primary-color); }
         .btn-game-2 { background: var(--secondary-color); }
@@ -205,9 +244,10 @@
         .display-panel {
             background: white; border-radius: 16px; padding: 25px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: none;
-            animation: slideUp 0.3s ease-out; margin-bottom: 40px;
+            animation: slideUp 0.3s ease-out; margin-bottom: 20px;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         .quiz-box { text-align: center; }
         .quiz-q { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 15px 0; min-height: 60px; }
@@ -225,9 +265,6 @@
             margin-top: auto; padding: 20px; text-align: center;
             font-family: 'Georgia', serif; font-style: italic; color: #cbd5e1; font-size: 0.9rem; width: 100%;
         }
-
-        /* 測驗模式下隱藏週期表資訊 (Blur) */
-        .blur-mode .name, .blur-mode .symbol { color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.2); }
 
         @media (max-width: 600px) {
             .quiz-options { grid-template-columns: 1fr; }
@@ -253,6 +290,20 @@
                 </div>
         </div>
         <div class="scroll-hint">左右滑動查看完整表格 ↔</div>
+    </div>
+
+    <div id="photoCardContainer" class="photo-card-container">
+        <div class="photo-card">
+            <div class="pc-image-box">
+                <img id="pcImg" src="" alt="Element Photo" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+            </div>
+            <div class="pc-content">
+                <h2 class="pc-title" id="pcSymbol">H</h2>
+                <div class="pc-subtitle" id="pcName">氫 (Hydrogen)</div>
+                <div class="pc-desc" id="pcDesc">宇宙中最豐富的元素。圖片顯示為氫氣放電管，發出特徵性的紫紅色光芒。</div>
+                <div class="pc-note">Photo Source: Wikimedia Commons</div>
+            </div>
+        </div>
     </div>
 
     <div class="controls-area">
@@ -285,7 +336,40 @@
     <div class="footer-watermark">Presented by Jutor</div>
 
     <script>
-        // --- 資料庫 ---
+        // --- 圖片資料庫 (使用 Wikimedia Commons 穩定連結) ---
+        // 說明：氣體多為放電管照片，金屬為實體照片
+        const elementImages = {
+            'H': { url: 'https://upload.wikimedia.org/wikipedia/commons/d/d3/Hydrogen_discharge_tube.jpg', desc: '氫氣放電管：通電後發出淡紫紅色光芒。' },
+            'He': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Helium_discharge_tube.jpg', desc: '氦氣放電管：通電後發出柔和的蜜桃色/白光。' },
+            'Li': { url: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Lithium_paraffin.jpg', desc: '鋰金屬：銀白色，通常保存在油中以防氧化。' },
+            'Be': { url: 'https://upload.wikimedia.org/wikipedia/commons/e/e2/Beryllium_%28Be%29.jpg', desc: '鈹：鋼灰色、質地堅硬的鹼土金屬。' },
+            'B': { url: 'https://upload.wikimedia.org/wikipedia/commons/a/a2/Boron.jpg', desc: '硼：黑褐色的類金屬，硬度極高。' },
+            'C': { url: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Graphite-and-diamond-with-scale.jpg', desc: '碳：同素異形體包含黑色的石墨與透明的鑽石。' },
+            'N': { url: 'https://upload.wikimedia.org/wikipedia/commons/5/53/Nitrogen_Spectra.jpg', desc: '氮氣放電管：通電後發出紫紅色光。' },
+            'O': { url: 'https://upload.wikimedia.org/wikipedia/commons/0/05/Oxygen_discharge_tube.jpg', desc: '氧氣放電管：通電後發出藍白色光。' },
+            'F': { url: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Liquid_fluorine_tighter_crop.jpg', desc: '氟：極危險的淡黃色氣體 (圖為液態氟)。' },
+            'Ne': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/9e/Neon_discharge_tube.jpg', desc: '氖氣放電管：經典的鮮豔橘紅色光，用於霓虹燈。' },
+            'Na': { url: 'https://upload.wikimedia.org/wikipedia/commons/2/27/Na_%28Sodium%29.jpg', desc: '鈉：質軟可用刀切開，切面為銀白色，極易氧化。' },
+            'Mg': { url: 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Magnesium_crystals.jpg', desc: '鎂：銀白色金屬，燃燒時會發出耀眼強光。' },
+            'Al': { url: 'https://upload.wikimedia.org/wikipedia/commons/5/5d/Aluminium-4.jpg', desc: '鋁：銀白色輕金屬，地殼中含量豐富。' },
+            'Si': { url: 'https://upload.wikimedia.org/wikipedia/commons/2/2c/Silicon.jpg', desc: '矽：帶有藍灰色金屬光澤的晶體，半導體原料。' },
+            'P': { url: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Phosphorus-red-violet-black.jpg', desc: '磷：有紅磷(火柴)與白磷(劇毒)等同素異形體。' },
+            'S': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/85/Sulfur-sample.jpg', desc: '硫：黃色固體，存在於溫泉與火山地帶。' },
+            'Cl': { url: 'https://upload.wikimedia.org/wikipedia/commons/9/9a/Chlorine-ampoule.jpg', desc: '氯：黃綠色氣體，有強烈刺鼻味，具毒性。' },
+            'Ar': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/80/Argon_discharge_tube.jpg', desc: '氬氣放電管：通電後發出美麗的藍紫色光。' },
+            'K': { url: 'https://upload.wikimedia.org/wikipedia/commons/b/b3/Potassium.JPG', desc: '鉀：軟金屬，與水反應極劇烈，產生紫色火焰。' },
+            'Ca': { url: 'https://upload.wikimedia.org/wikipedia/commons/7/72/Calcium.jpg', desc: '鈣：銀灰色金屬，比鈉硬，但仍可用刀切。' },
+            'Fe': { url: 'https://upload.wikimedia.org/wikipedia/commons/a/ad/Iron_electrolytic_and_1cm3_cube.jpg', desc: '鐵：工業之母，銀白色，易生鏽。' },
+            'Cu': { url: 'https://upload.wikimedia.org/wikipedia/commons/f/f0/NatCopper.jpg', desc: '銅：紫紅色金屬，導電性佳，延展性好。' },
+            'Zn': { url: 'https://upload.wikimedia.org/wikipedia/commons/b/ba/Zinc_%28founding%29.jpg', desc: '鋅：青白色金屬，常用於電池外殼與防鏽鍍層。' },
+            'Ag': { url: 'https://upload.wikimedia.org/wikipedia/commons/5/55/Silver_crystal.jpg', desc: '銀：導電與導熱性最好的金屬，具光澤。' },
+            'Au': { url: 'https://upload.wikimedia.org/wikipedia/commons/d/d7/Gold-crystals.jpg', desc: '金：黃色貴重金屬，延展性為金屬之冠。' },
+            'Hg': { url: 'https://upload.wikimedia.org/wikipedia/commons/0/0b/Pouring_liquid_mercury_bionerd.jpg', desc: '汞：常溫常壓下唯一的液態金屬 (水銀)，有毒。' },
+            'Br': { url: 'https://upload.wikimedia.org/wikipedia/commons/8/87/Bromine_vial_in_acrylic_cube.jpg', desc: '溴：暗紅色液體，極易揮發成紅棕色氣體。' },
+            'I': { url: 'https://upload.wikimedia.org/wikipedia/commons/c/c2/Iodine_sample.jpg', desc: '碘：紫黑色固體，加熱昇華為紫色氣體。' },
+            'U': { url: 'https://upload.wikimedia.org/wikipedia/commons/d/d8/HEUraniumC.jpg', desc: '鈾：銀白色重金屬，具放射性。' }
+        };
+
         const allElements = [
             { n: 1, s: 'H', z: '氫', r: 1, c: 1, g: 'g-alkali', isBasic: true },
             { n: 2, s: 'He', z: '氦', r: 1, c: 18, g: 'g-noble', isBasic: true },
@@ -308,7 +392,6 @@
             { n: 19, s: 'K', z: '鉀', r: 4, c: 1, g: 'g-alkali', isBasic: true },
             { n: 20, s: 'Ca', z: '鈣', r: 4, c: 2, g: 'g-earth', isBasic: true },
             
-            // 過渡金屬與其他
             { n: 22, s: 'Ti', z: '鈦', r: 4, c: 4, g: 'g-trans', isBasic: false },
             { n: 24, s: 'Cr', z: '鉻', r: 4, c: 6, g: 'g-trans', isBasic: false },
             { n: 25, s: 'Mn', z: '錳', r: 4, c: 7, g: 'g-trans', isBasic: false },
@@ -337,15 +420,12 @@
             { n: 82, s: 'Pb', z: '鉛', r: 6, c: 14, g: 'g-other', isBasic: false },
             { n: 85, s: 'At', z: '砈', r: 6, c: 17, g: 'g-halogen', isBasic: false },
             { n: 86, s: 'Rn', z: '氡', r: 6, c: 18, g: 'g-noble', isBasic: false },
-
+            
             { n: 87, s: 'Fr', z: '鍅', r: 7, c: 1, g: 'g-alkali', isBasic: false },
             { n: 88, s: 'Ra', z: '鐳', r: 7, c: 2, g: 'g-earth', isBasic: false },
-            
-            // 鈾 (特殊位置)
             { n: 92, s: 'U', z: '鈾', r: 9, c: 3, g: 'element-U', isBasic: false },
         ];
 
-        // 狀態變數
         let isScholarMode = false;
         let isCoverMode = false;
         let currentMode = '';
@@ -358,22 +438,18 @@
         const labelScholar = document.getElementById('labelScholar');
         const tableWrapper = document.getElementById('tableWrapper');
         const coverModeBtn = document.getElementById('coverModeBtn');
+        const photoCardContainer = document.getElementById('photoCardContainer');
 
-        // 定義有效週期表格子 (用於繪製空白框)
-        // 回傳是否為週期表應該有的位置
         function isValidGrid(r, c) {
-            if (r === 9) return false; // U 是獨立的，不在此限
+            if (r === 9) return false;
             if (r === 1) return c === 1 || c === 18;
             if (r === 2 || r === 3) return c <= 2 || c >= 13;
             if (r >= 4 && r <= 7) return true;
             return false;
         }
 
-        // --- 核心渲染 ---
         function renderTable() {
             tableDiv.innerHTML = '';
-            
-            // 遍歷 1-7 週期，1-18 族
             for (let r = 1; r <= 7; r++) {
                 for (let c = 1; c <= 18; c++) {
                     if (isValidGrid(r, c)) {
@@ -381,7 +457,6 @@
                     }
                 }
             }
-            // 額外處理 U (因為在第9行)
             const elU = allElements.find(e => e.s === 'U');
             if (elU && (isScholarMode || elU.isBasic)) {
                 createActiveCard(elU);
@@ -389,15 +464,10 @@
         }
 
         function createGridCell(r, c) {
-            // 尋找此位置是否有元素數據
             const el = allElements.find(e => e.r === r && e.c === c);
-            
-            // 判斷顯示邏輯：
-            // 1. 有元素數據 且 (是學霸模式 或 該元素是基礎元素) -> 顯示卡牌
             if (el && (isScholarMode || el.isBasic)) {
                 createActiveCard(el);
             } else {
-                // 2. 否則 -> 顯示空框 placeholder
                 const div = document.createElement('div');
                 div.className = 'element-placeholder';
                 div.style.gridRow = r;
@@ -408,7 +478,6 @@
 
         function createActiveCard(el) {
             const div = document.createElement('div');
-            // 處理 U 的特殊 class
             const extraClass = (el.s === 'U') ? 'element-U' : '';
             div.className = `element ${el.g} ${extraClass} ${isCoverMode ? 'covered' : ''}`;
             div.style.gridRow = el.r;
@@ -419,48 +488,76 @@
                 <span class="name">${el.z}</span>
             `;
             
-            // 點擊事件：如果是蓋牌模式，點擊切換顯示/隱藏
             div.addEventListener('click', () => {
                 if (isCoverMode) {
+                    // 蓋牌模式：翻開看答案 (不顯示圖片卡)
                     div.classList.toggle('revealed');
-                    // 如果點開了，就移除 covered 樣式 (雖然 CSS 有處理，但切換 class 較保險)
                     if (div.classList.contains('revealed')) {
                         div.classList.remove('covered');
                     } else {
                         div.classList.add('covered');
                     }
+                } else if (!displayPanel.style.display || displayPanel.style.display === 'none') {
+                    // 一般模式：顯示圖片卡 (如果不在玩遊戲)
+                    showPhotoCard(el, div);
                 }
             });
 
             tableDiv.appendChild(div);
         }
 
-        // --- 蓋牌模式邏輯 ---
+        // --- 顯示圖片卡 ---
+        function showPhotoCard(el, domElement) {
+            // 清除之前的選中狀態
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
+            // 增加當前選中狀態
+            domElement.classList.add('selected');
+
+            // 取得圖片資料
+            const imgData = elementImages[el.s] || { url: 'https://placehold.co/400x300?text=No+Photo', desc: '目前尚無照片' };
+            
+            document.getElementById('pcImg').src = imgData.url;
+            document.getElementById('pcSymbol').textContent = el.s;
+            document.getElementById('pcName').textContent = `${el.z} (${el.n})`;
+            document.getElementById('pcDesc').textContent = imgData.desc;
+
+            // 顯示卡片
+            photoCardContainer.style.display = 'block';
+            
+            // 手機上可能需要捲動讓學生看到卡片
+            if(window.innerWidth < 600) {
+                 photoCardContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
         function toggleCoverMode() {
             isCoverMode = !isCoverMode;
             
+            // 隱藏圖片卡
+            photoCardContainer.style.display = 'none';
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
+
             if (isCoverMode) {
                 coverModeBtn.classList.add('active');
                 coverModeBtn.innerHTML = "🎴 關閉蓋牌 (顯示全部)";
-                // 關閉下方的遊戲區，讓焦點回到表格
                 displayPanel.style.display = 'none';
                 tableWrapper.classList.remove('blur-mode');
             } else {
                 coverModeBtn.classList.remove('active');
                 coverModeBtn.innerHTML = "🎴 蓋牌模式 (自我檢測)";
             }
-            
             renderTable();
         }
 
-        // --- 遊戲邏輯 ---
         function startGame(mode) {
-            // 如果蓋牌模式開著，先關掉，避免衝突
             if(isCoverMode) toggleCoverMode();
+            
+            // 隱藏圖片卡，以免干擾作答
+            photoCardContainer.style.display = 'none';
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
 
             currentMode = mode;
-            tableWrapper.classList.add('blur-mode'); // 模糊化防偷看
-            
+            tableWrapper.classList.add('blur-mode');
             nextQuestion();
             displayPanel.style.display = 'block';
             displayPanel.scrollIntoView({ behavior: 'smooth' });
@@ -508,7 +605,6 @@
         function checkAnswer(btn, isCorrect) {
             const feedback = document.getElementById('feedbackMsg');
             const allBtns = document.querySelectorAll('.opt-btn');
-
             allBtns.forEach(b => b.disabled = true);
 
             if (isCorrect) {
@@ -521,7 +617,6 @@
                 feedback.style.color = 'var(--wrong)';
                 const ansText = currentMode === 'symbolToName' ? currentQuestion.z : currentQuestion.s;
                 feedback.textContent = `❌ 答案是 ${ansText}`;
-                
                 allBtns.forEach(b => {
                     if ((currentMode === 'symbolToName' && b.innerText === currentQuestion.z) ||
                         (currentMode === 'nameToSymbol' && b.innerText === currentQuestion.s)) {
@@ -532,7 +627,6 @@
             }
         }
 
-        // 監聽開關
         toggleSwitch.addEventListener('change', (e) => {
             isScholarMode = e.target.checked;
             if (isScholarMode) {
@@ -546,9 +640,7 @@
             if (displayPanel.style.display === 'block') startGame(currentMode); 
         });
 
-        // 初始化
         renderTable();
-
     </script>
 </body>
 </html>
