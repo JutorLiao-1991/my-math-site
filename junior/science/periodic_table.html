@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：元素週期表 (學霸版)</title>
+    <title>鳩特數理：元素週期表</title>
     <style>
         :root {
             --primary-color: #4a90e2; /* 鳩特藍 */
@@ -15,6 +15,9 @@
             --accent: #38bdf8;
             --correct: #2ecc71;
             --wrong: #e74c3c;
+            --placeholder-border: #e2e8f0;
+            --placeholder-bg: #f8fafc;
+            --cover-bg: #475569;
         }
 
         body {
@@ -64,15 +67,9 @@
         .back-btn:hover { background: var(--accent); color: var(--nav-bg); }
 
         .page-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; margin: 0; }
+        .brand-tag { font-family: 'Georgia', serif; font-style: italic; color: #94a3b8; font-size: 0.9rem; }
 
-        .brand-tag {
-            font-family: 'Georgia', serif;
-            font-style: italic;
-            color: #94a3b8;
-            font-size: 0.9rem;
-        }
-
-        /* --- 週期表容器 (可滑動) --- */
+        /* --- 週期表容器 --- */
         .table-container-wrapper {
             width: 100%;
             background: var(--panel-bg);
@@ -84,36 +81,30 @@
             position: relative;
         }
 
-        .scroll-hint {
-            color: #94a3b8; font-size: 0.8rem; margin-top: 5px; display: none;
-        }
+        .scroll-hint { color: #94a3b8; font-size: 0.8rem; margin-top: 5px; display: none; }
         @media (max-width: 900px) { .scroll-hint { display: block; } }
 
         .periodic-table-scroll {
             width: 100%;
             overflow-x: auto;
             display: flex;
-            justify-content: center; /* 在大螢幕置中 */
+            justify-content: center;
             padding: 0 20px;
             box-sizing: border-box;
-            /* 隱藏預設捲軸 */
             scrollbar-width: thin; 
         }
-        
-        /* 若螢幕小於表格寬度，靠左對齊以便滑動 */
-        @media (max-width: 950px) {
-            .periodic-table-scroll { justify-content: flex-start; }
-        }
+        @media (max-width: 950px) { .periodic-table-scroll { justify-content: flex-start; } }
 
         .periodic-table {
             display: grid;
-            grid-template-columns: repeat(18, 48px); /* 18族固定寬度 */
-            grid-template-rows: repeat(10, 48px); /* 預留空間給額外元素 */
+            grid-template-columns: repeat(18, 48px);
+            grid-template-rows: repeat(9, 48px); /* 預留空間給 U */
             gap: 4px;
             margin-bottom: 10px;
+            padding-bottom: 10px;
         }
 
-        /* 元素卡片樣式 */
+        /* --- 元素卡片樣式 --- */
         .element {
             position: relative;
             border: 1px solid #cbd5e1;
@@ -124,47 +115,64 @@
             align-items: center;
             background: #fff;
             user-select: none;
-            transition: transform 0.2s, box-shadow 0.2s, opacity 0.3s;
+            transition: all 0.2s;
             cursor: pointer;
-            opacity: 0;
-            animation: fadeIn 0.5s forwards;
+        }
+        
+        .element:hover {
+            transform: scale(1.15); z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-color: var(--primary-color);
         }
 
-        @keyframes fadeIn { to { opacity: 1; } }
-
-        .element:hover {
-            transform: scale(1.15);
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            border-color: var(--primary-color);
+        /* 空格佔位符 (維持形狀用) */
+        .element-placeholder {
+            border: 1px solid var(--placeholder-border);
+            background: var(--placeholder-bg);
+            border-radius: 4px;
+            pointer-events: none; /* 不可點擊 */
         }
 
         /* 顏色分類 */
-        .g-alkali { background: #ffebee; border-color: #ffcdd2; } /* 1A */
-        .g-earth { background: #fff3e0; border-color: #ffe0b2; } /* 2A */
-        .g-halogen { background: #e0f2f1; border-color: #b2dfdb; } /* 7A */
-        .g-noble { background: #f3e5f5; border-color: #e1bee7; } /* 8A */
-        .g-trans { background: #e3f2fd; border-color: #bbdefb; } /* 過渡 */
+        .g-alkali { background: #ffebee; border-color: #ffcdd2; }
+        .g-earth { background: #fff3e0; border-color: #ffe0b2; }
+        .g-halogen { background: #e0f2f1; border-color: #b2dfdb; }
+        .g-noble { background: #f3e5f5; border-color: #e1bee7; }
+        .g-trans { background: #e3f2fd; border-color: #bbdefb; }
         .g-other { background: #ffffff; }
+        /* 鈾特殊處理 */
+        .element-U { grid-row: 9 !important; grid-column: 6 !important; margin-top: 15px; border-color: #fbbf24; background: #fffbeb; }
 
         .at-num { font-size: 0.55rem; position: absolute; top: 2px; left: 3px; color: #64748b; }
         .symbol { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 4px; }
         .name { font-size: 0.65rem; color: #475569; margin-bottom: 2px; }
 
-        /* 測驗時模糊 */
-        .blur-mode .name, .blur-mode .symbol {
-            color: transparent;
-            text-shadow: 0 0 4px rgba(0,0,0,0.25);
+        /* --- 蓋牌模式樣式 --- */
+        .element.covered {
+            background: var(--cover-bg) !important;
+            border-color: #334155 !important;
+        }
+        .element.covered .symbol, 
+        .element.covered .name, 
+        .element.covered .at-num {
+            opacity: 0; /* 隱藏文字 */
+        }
+        /* 翻開的卡牌 (在蓋牌模式下被點開) */
+        .element.covered.revealed {
+            background: #fff !important; /* 暫時變回白色或其他底色 */
+        }
+        /* 保持原本的顏色分類會比較好看，所以 revealed 時移除 covered 的樣式覆蓋即可 */
+        .element.covered.revealed .symbol,
+        .element.covered.revealed .name,
+        .element.covered.revealed .at-num {
+            opacity: 1;
         }
 
         /* --- 控制面板 --- */
         .controls-area {
-            width: 90%; max-width: 800px;
-            margin: 20px auto;
+            width: 90%; max-width: 800px; margin: 20px auto;
             display: flex; flex-direction: column; gap: 20px;
         }
 
-        /* 版本切換開關 */
         .mode-switch-container {
             display: flex; justify-content: center; align-items: center; gap: 10px;
             background: white; padding: 10px 20px; border-radius: 50px;
@@ -173,7 +181,6 @@
         .switch-label { font-weight: bold; color: #64748b; font-size: 0.9rem; }
         .switch-label.active { color: var(--primary-color); }
         
-        /* 簡單的 Toggle Switch CSS */
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -181,7 +188,6 @@
         input:checked + .slider { background-color: var(--secondary-color); }
         input:checked + .slider:before { transform: translateX(24px); }
 
-        /* 功能按鈕區 */
         .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
         .btn {
             padding: 12px 24px; border: none; border-radius: 12px;
@@ -191,29 +197,18 @@
             display: flex; align-items: center; gap: 8px;
         }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
-        .btn:active { transform: translateY(0); }
-
-        .btn-info { background: #64748b; }
+        .btn-cover { background: #34495e; } /* 深色 */
+        .btn-cover.active { background: #e67e22; box-shadow: inset 0 3px 5px rgba(0,0,0,0.2); }
         .btn-game-1 { background: var(--primary-color); }
         .btn-game-2 { background: var(--secondary-color); }
 
-        /* --- 顯示區 (口訣/遊戲) --- */
         .display-panel {
             background: white; border-radius: 16px; padding: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-            display: none; animation: slideUp 0.3s ease-out;
-            margin-bottom: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: none;
+            animation: slideUp 0.3s ease-out; margin-bottom: 40px;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* 口訣 */
-        .mnemonic-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; text-align: left; }
-        .mnemonic-card { background: #f8fafc; padding: 12px; border-radius: 8px; border-left: 4px solid var(--primary-color); }
-        .m-title { font-weight: bold; color: var(--primary-color); display: block; margin-bottom: 5px; }
-        .m-content { color: #334155; line-height: 1.5; }
-        .highlight { color: #e11d48; font-weight: bold; }
-
-        /* 遊戲 */
         .quiz-box { text-align: center; }
         .quiz-q { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 15px 0; min-height: 60px; }
         .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
@@ -226,25 +221,18 @@
         .opt-btn.wrong { background: var(--wrong); color: white; border-color: var(--wrong); }
         .feedback { height: 24px; font-weight: bold; margin-bottom: 5px; }
 
-        /* 浮水印 footer */
         .footer-watermark {
-            margin-top: auto;
-            padding: 20px;
-            text-align: center;
-            font-family: 'Georgia', serif;
-            font-style: italic;
-            color: #cbd5e1;
-            font-size: 0.9rem;
-            width: 100%;
+            margin-top: auto; padding: 20px; text-align: center;
+            font-family: 'Georgia', serif; font-style: italic; color: #cbd5e1; font-size: 0.9rem; width: 100%;
         }
 
-        /* 鈾的特殊位置處理 */
-        .element-U { grid-row: 9 !important; grid-column: 6 !important; margin-top: 10px; border-color: #fbbf24; background: #fffbeb; }
+        /* 測驗模式下隱藏週期表資訊 (Blur) */
+        .blur-mode .name, .blur-mode .symbol { color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.2); }
 
         @media (max-width: 600px) {
             .quiz-options { grid-template-columns: 1fr; }
             .nav-bar { padding: 0 10px; }
-            .brand-tag { display: none; } /* 手機版隱藏標語 */
+            .brand-tag { display: none; }
             .btn { width: 100%; justify-content: center; }
         }
     </style>
@@ -279,8 +267,8 @@
         </div>
 
         <div class="btn-group">
-            <button class="btn btn-info" onclick="showMnemonics()">
-                <span>📖</span> 參考口訣
+            <button class="btn btn-cover" id="coverModeBtn" onclick="toggleCoverMode()">
+                <span>🎴</span> 蓋牌模式 (自我檢測)
             </button>
             <button class="btn btn-game-1" onclick="startGame('symbolToName')">
                 <span>🔤</span> 英翻中測驗
@@ -298,13 +286,9 @@
 
     <script>
         // --- 資料庫 ---
-        // isBasic: true (國中必背 1-20 + 常見金屬), false (學霸擴充)
         const allElements = [
-            // 第一週期
             { n: 1, s: 'H', z: '氫', r: 1, c: 1, g: 'g-alkali', isBasic: true },
             { n: 2, s: 'He', z: '氦', r: 1, c: 18, g: 'g-noble', isBasic: true },
-            
-            // 第二週期
             { n: 3, s: 'Li', z: '鋰', r: 2, c: 1, g: 'g-alkali', isBasic: true },
             { n: 4, s: 'Be', z: '鈹', r: 2, c: 2, g: 'g-earth', isBasic: true },
             { n: 5, s: 'B', z: '硼', r: 2, c: 13, g: 'g-other', isBasic: true },
@@ -313,8 +297,6 @@
             { n: 8, s: 'O', z: '氧', r: 2, c: 16, g: 'g-other', isBasic: true },
             { n: 9, s: 'F', z: '氟', r: 2, c: 17, g: 'g-halogen', isBasic: true },
             { n: 10, s: 'Ne', z: '氖', r: 2, c: 18, g: 'g-noble', isBasic: true },
-
-            // 第三週期
             { n: 11, s: 'Na', z: '鈉', r: 3, c: 1, g: 'g-alkali', isBasic: true },
             { n: 12, s: 'Mg', z: '鎂', r: 3, c: 2, g: 'g-earth', isBasic: true },
             { n: 13, s: 'Al', z: '鋁', r: 3, c: 13, g: 'g-other', isBasic: true },
@@ -323,64 +305,49 @@
             { n: 16, s: 'S', z: '硫', r: 3, c: 16, g: 'g-other', isBasic: true },
             { n: 17, s: 'Cl', z: '氯', r: 3, c: 17, g: 'g-halogen', isBasic: true },
             { n: 18, s: 'Ar', z: '氬', r: 3, c: 18, g: 'g-noble', isBasic: true },
-
-            // 第四週期 (包含過渡元素)
             { n: 19, s: 'K', z: '鉀', r: 4, c: 1, g: 'g-alkali', isBasic: true },
             { n: 20, s: 'Ca', z: '鈣', r: 4, c: 2, g: 'g-earth', isBasic: true },
-            { n: 22, s: 'Ti', z: '鈦', r: 4, c: 4, g: 'g-trans', isBasic: false }, // Scholar
-            { n: 24, s: 'Cr', z: '鉻', r: 4, c: 6, g: 'g-trans', isBasic: false }, // Scholar
-            { n: 25, s: 'Mn', z: '錳', r: 4, c: 7, g: 'g-trans', isBasic: false }, // Scholar
+            
+            // 過渡金屬與其他
+            { n: 22, s: 'Ti', z: '鈦', r: 4, c: 4, g: 'g-trans', isBasic: false },
+            { n: 24, s: 'Cr', z: '鉻', r: 4, c: 6, g: 'g-trans', isBasic: false },
+            { n: 25, s: 'Mn', z: '錳', r: 4, c: 7, g: 'g-trans', isBasic: false },
             { n: 26, s: 'Fe', z: '鐵', r: 4, c: 8, g: 'g-trans', isBasic: true },
-            { n: 28, s: 'Ni', z: '鎳', r: 4, c: 10, g: 'g-trans', isBasic: false }, // Scholar
+            { n: 28, s: 'Ni', z: '鎳', r: 4, c: 10, g: 'g-trans', isBasic: false },
             { n: 29, s: 'Cu', z: '銅', r: 4, c: 11, g: 'g-trans', isBasic: true },
             { n: 30, s: 'Zn', z: '鋅', r: 4, c: 12, g: 'g-trans', isBasic: true },
-            { n: 33, s: 'As', z: '砷', r: 4, c: 15, g: 'g-other', isBasic: false }, // Scholar
+            { n: 33, s: 'As', z: '砷', r: 4, c: 15, g: 'g-other', isBasic: false },
             { n: 35, s: 'Br', z: '溴', r: 4, c: 17, g: 'g-halogen', isBasic: true },
-            { n: 36, s: 'Kr', z: '氪', r: 4, c: 18, g: 'g-noble', isBasic: false }, // Scholar
+            { n: 36, s: 'Kr', z: '氪', r: 4, c: 18, g: 'g-noble', isBasic: false },
 
-            // 第五週期
-            { n: 37, s: 'Rb', z: '銣', r: 5, c: 1, g: 'g-alkali', isBasic: false }, // Scholar
-            { n: 38, s: 'Sr', z: '鍶', r: 5, c: 2, g: 'g-earth', isBasic: false }, // Scholar
+            { n: 37, s: 'Rb', z: '銣', r: 5, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 38, s: 'Sr', z: '鍶', r: 5, c: 2, g: 'g-earth', isBasic: false },
             { n: 47, s: 'Ag', z: '銀', r: 5, c: 11, g: 'g-trans', isBasic: true },
-            { n: 48, s: 'Cd', z: '鎘', r: 5, c: 12, g: 'g-trans', isBasic: false }, // Scholar
-            { n: 50, s: 'Sn', z: '錫', r: 5, c: 14, g: 'g-other', isBasic: false }, // Scholar
+            { n: 48, s: 'Cd', z: '鎘', r: 5, c: 12, g: 'g-trans', isBasic: false },
+            { n: 50, s: 'Sn', z: '錫', r: 5, c: 14, g: 'g-other', isBasic: false },
             { n: 53, s: 'I', z: '碘', r: 5, c: 17, g: 'g-halogen', isBasic: true },
-            { n: 54, s: 'Xe', z: '氙', r: 5, c: 18, g: 'g-noble', isBasic: false }, // Scholar
+            { n: 54, s: 'Xe', z: '氙', r: 5, c: 18, g: 'g-noble', isBasic: false },
 
-            // 第六週期
-            { n: 55, s: 'Cs', z: '銫', r: 6, c: 1, g: 'g-alkali', isBasic: false }, // Scholar
-            { n: 56, s: 'Ba', z: '鋇', r: 6, c: 2, g: 'g-earth', isBasic: false }, // Scholar
-            { n: 74, s: 'W', z: '鎢', r: 6, c: 6, g: 'g-trans', isBasic: false }, // Scholar
-            { n: 78, s: 'Pt', z: '鉑', r: 6, c: 10, g: 'g-trans', isBasic: false }, // Scholar
+            { n: 55, s: 'Cs', z: '銫', r: 6, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 56, s: 'Ba', z: '鋇', r: 6, c: 2, g: 'g-earth', isBasic: false },
+            { n: 74, s: 'W', z: '鎢', r: 6, c: 6, g: 'g-trans', isBasic: false },
+            { n: 78, s: 'Pt', z: '鉑', r: 6, c: 10, g: 'g-trans', isBasic: false },
             { n: 79, s: 'Au', z: '金', r: 6, c: 11, g: 'g-trans', isBasic: true },
             { n: 80, s: 'Hg', z: '汞', r: 6, c: 12, g: 'g-trans', isBasic: true },
-            { n: 82, s: 'Pb', z: '鉛', r: 6, c: 14, g: 'g-other', isBasic: false }, // Scholar
-            { n: 85, s: 'At', z: '砈', r: 6, c: 17, g: 'g-halogen', isBasic: false }, // Scholar
-            { n: 86, s: 'Rn', z: '氡', r: 6, c: 18, g: 'g-noble', isBasic: false }, // Scholar
+            { n: 82, s: 'Pb', z: '鉛', r: 6, c: 14, g: 'g-other', isBasic: false },
+            { n: 85, s: 'At', z: '砈', r: 6, c: 17, g: 'g-halogen', isBasic: false },
+            { n: 86, s: 'Rn', z: '氡', r: 6, c: 18, g: 'g-noble', isBasic: false },
 
-            // 第七週期 & 特殊
-            { n: 87, s: 'Fr', z: '鍅', r: 7, c: 1, g: 'g-alkali', isBasic: false }, // Scholar
-            { n: 88, s: 'Ra', z: '鐳', r: 7, c: 2, g: 'g-earth', isBasic: false }, // Scholar
+            { n: 87, s: 'Fr', z: '鍅', r: 7, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 88, s: 'Ra', z: '鐳', r: 7, c: 2, g: 'g-earth', isBasic: false },
             
-            // 鈾 (放在下面以示區別，但為了顯示在18格內，我們將其特殊處理)
-            // 為了不讓畫面太亂，學霸版才顯示。位置排在下方。
-            { n: 92, s: 'U', z: '鈾', r: 9, c: 3, g: 'element-U', isBasic: false }, // Scholar
-        ];
-
-        // 口訣資料
-        const mnemonics = [
-            { t: "鹼金族 (IA)", c: "氫鋰鈉鉀銣銫鍅<br>➡ <span class='highlight'>請李娜加入私法</span>" },
-            { t: "鹼土族 (IIA)", c: "鈹鎂鈣鍶鋇鐳<br>➡ <span class='highlight'>比美蓋斯被雷</span>" },
-            { t: "硼族 (IIIA)", c: "硼鋁鎵銦鉈<br>➡ <span class='highlight'>朋旅家因他</span>" },
-            { t: "碳族 (IVA)", c: "碳矽鍺錫鉛<br>➡ <span class='highlight'>嘆息者西遷</span>" },
-            { t: "氮族 (VA)", c: "氮磷砷銻鉍<br>➡ <span class='highlight'>淡林生帝必</span>" },
-            { t: "氧族 (VIA)", c: "氧硫硒碲釙<br>➡ <span class='highlight'>養牛洗屁股</span>" },
-            { t: "鹵素 (VIIA)", c: "氟氯溴碘砈<br>➡ <span class='highlight'>讓你福祿壽都愛</span>" },
-            { t: "鈍氣 (VIIIA)", c: "氦氖氬氪氙氡<br>➡ <span class='highlight'>害乃亞克山東(工人)</span>" }
+            // 鈾 (特殊位置)
+            { n: 92, s: 'U', z: '鈾', r: 9, c: 3, g: 'element-U', isBasic: false },
         ];
 
         // 狀態變數
         let isScholarMode = false;
+        let isCoverMode = false;
         let currentMode = '';
         let currentQuestion = null;
 
@@ -390,75 +357,107 @@
         const labelBasic = document.getElementById('labelBasic');
         const labelScholar = document.getElementById('labelScholar');
         const tableWrapper = document.getElementById('tableWrapper');
+        const coverModeBtn = document.getElementById('coverModeBtn');
 
-        // --- 初始化 & 切換邏輯 ---
+        // 定義有效週期表格子 (用於繪製空白框)
+        // 回傳是否為週期表應該有的位置
+        function isValidGrid(r, c) {
+            if (r === 9) return false; // U 是獨立的，不在此限
+            if (r === 1) return c === 1 || c === 18;
+            if (r === 2 || r === 3) return c <= 2 || c >= 13;
+            if (r >= 4 && r <= 7) return true;
+            return false;
+        }
+
+        // --- 核心渲染 ---
         function renderTable() {
             tableDiv.innerHTML = '';
             
-            allElements.forEach(el => {
-                // 如果不是學霸模式，且元素標記為非基礎，則不顯示
-                if (!isScholarMode && !el.isBasic) return;
-
-                const div = document.createElement('div');
-                // 處理 U 的特殊 class
-                const extraClass = (el.s === 'U') ? 'element-U' : '';
-                div.className = `element ${el.g} ${extraClass}`;
-                div.style.gridRow = el.r;
-                div.style.gridColumn = el.c;
-                div.innerHTML = `
-                    <span class="at-num">${el.n}</span>
-                    <span class="symbol">${el.s}</span>
-                    <span class="name">${el.z}</span>
-                `;
-                tableDiv.appendChild(div);
-            });
+            // 遍歷 1-7 週期，1-18 族
+            for (let r = 1; r <= 7; r++) {
+                for (let c = 1; c <= 18; c++) {
+                    if (isValidGrid(r, c)) {
+                        createGridCell(r, c);
+                    }
+                }
+            }
+            // 額外處理 U (因為在第9行)
+            const elU = allElements.find(e => e.s === 'U');
+            if (elU && (isScholarMode || elU.isBasic)) {
+                createActiveCard(elU);
+            }
         }
 
-        // 監聽開關
-        toggleSwitch.addEventListener('change', (e) => {
-            isScholarMode = e.target.checked;
+        function createGridCell(r, c) {
+            // 尋找此位置是否有元素數據
+            const el = allElements.find(e => e.r === r && e.c === c);
             
-            // 更新文字顏色
-            if (isScholarMode) {
-                labelBasic.classList.remove('active');
-                labelScholar.classList.add('active');
+            // 判斷顯示邏輯：
+            // 1. 有元素數據 且 (是學霸模式 或 該元素是基礎元素) -> 顯示卡牌
+            if (el && (isScholarMode || el.isBasic)) {
+                createActiveCard(el);
             } else {
-                labelBasic.classList.add('active');
-                labelScholar.classList.remove('active');
+                // 2. 否則 -> 顯示空框 placeholder
+                const div = document.createElement('div');
+                div.className = 'element-placeholder';
+                div.style.gridRow = r;
+                div.style.gridColumn = c;
+                tableDiv.appendChild(div);
             }
-
-            renderTable();
-            // 如果遊戲正在進行，重置遊戲以免題目範圍不符
-            if (displayPanel.style.display === 'block' && currentMode !== 'mnemonic') {
-                startGame(currentMode); 
-            }
-        });
-
-        // --- 功能函數 ---
-
-        function showMnemonics() {
-            currentMode = 'mnemonic';
-            tableWrapper.classList.remove('blur-mode'); // 顯示週期表方便對照
-            
-            let html = `
-                <h3 style="text-align:center; color:#334155; margin-top:0;">💡 鳩特記憶口訣</h3>
-                <div class="mnemonic-grid">
-            `;
-            mnemonics.forEach(m => {
-                html += `
-                    <div class="mnemonic-card">
-                        <span class="m-title">${m.t}</span>
-                        <span class="m-content">${m.c}</span>
-                    </div>`;
-            });
-            html += `</div>`;
-            
-            displayPanel.innerHTML = html;
-            displayPanel.style.display = 'block';
-            displayPanel.scrollIntoView({ behavior: 'smooth' });
         }
 
+        function createActiveCard(el) {
+            const div = document.createElement('div');
+            // 處理 U 的特殊 class
+            const extraClass = (el.s === 'U') ? 'element-U' : '';
+            div.className = `element ${el.g} ${extraClass} ${isCoverMode ? 'covered' : ''}`;
+            div.style.gridRow = el.r;
+            div.style.gridColumn = el.c;
+            div.innerHTML = `
+                <span class="at-num">${el.n}</span>
+                <span class="symbol">${el.s}</span>
+                <span class="name">${el.z}</span>
+            `;
+            
+            // 點擊事件：如果是蓋牌模式，點擊切換顯示/隱藏
+            div.addEventListener('click', () => {
+                if (isCoverMode) {
+                    div.classList.toggle('revealed');
+                    // 如果點開了，就移除 covered 樣式 (雖然 CSS 有處理，但切換 class 較保險)
+                    if (div.classList.contains('revealed')) {
+                        div.classList.remove('covered');
+                    } else {
+                        div.classList.add('covered');
+                    }
+                }
+            });
+
+            tableDiv.appendChild(div);
+        }
+
+        // --- 蓋牌模式邏輯 ---
+        function toggleCoverMode() {
+            isCoverMode = !isCoverMode;
+            
+            if (isCoverMode) {
+                coverModeBtn.classList.add('active');
+                coverModeBtn.innerHTML = "🎴 關閉蓋牌 (顯示全部)";
+                // 關閉下方的遊戲區，讓焦點回到表格
+                displayPanel.style.display = 'none';
+                tableWrapper.classList.remove('blur-mode');
+            } else {
+                coverModeBtn.classList.remove('active');
+                coverModeBtn.innerHTML = "🎴 蓋牌模式 (自我檢測)";
+            }
+            
+            renderTable();
+        }
+
+        // --- 遊戲邏輯 ---
         function startGame(mode) {
+            // 如果蓋牌模式開著，先關掉，避免衝突
+            if(isCoverMode) toggleCoverMode();
+
             currentMode = mode;
             tableWrapper.classList.add('blur-mode'); // 模糊化防偷看
             
@@ -468,13 +467,10 @@
         }
 
         function nextQuestion() {
-            // 根據目前模式篩選題目池
             const pool = allElements.filter(el => isScholarMode ? true : el.isBasic);
-            
             const target = pool[Math.floor(Math.random() * pool.length)];
             currentQuestion = target;
 
-            // 產生選項 (3個錯誤 + 1個正確)
             let options = [target];
             while (options.length < 4) {
                 const randomEl = pool[Math.floor(Math.random() * pool.length)];
@@ -482,9 +478,7 @@
                     options.push(randomEl);
                 }
             }
-            // 洗牌
             options.sort(() => Math.random() - 0.5);
-
             renderQuizUI(target, options);
         }
 
@@ -515,7 +509,7 @@
             const feedback = document.getElementById('feedbackMsg');
             const allBtns = document.querySelectorAll('.opt-btn');
 
-            allBtns.forEach(b => b.disabled = true); // 鎖定
+            allBtns.forEach(b => b.disabled = true);
 
             if (isCorrect) {
                 btn.classList.add('correct');
@@ -528,7 +522,6 @@
                 const ansText = currentMode === 'symbolToName' ? currentQuestion.z : currentQuestion.s;
                 feedback.textContent = `❌ 答案是 ${ansText}`;
                 
-                // 顯示正確答案
                 allBtns.forEach(b => {
                     if ((currentMode === 'symbolToName' && b.innerText === currentQuestion.z) ||
                         (currentMode === 'nameToSymbol' && b.innerText === currentQuestion.s)) {
@@ -538,6 +531,20 @@
                 setTimeout(nextQuestion, 2000);
             }
         }
+
+        // 監聽開關
+        toggleSwitch.addEventListener('change', (e) => {
+            isScholarMode = e.target.checked;
+            if (isScholarMode) {
+                labelBasic.classList.remove('active');
+                labelScholar.classList.add('active');
+            } else {
+                labelBasic.classList.add('active');
+                labelScholar.classList.remove('active');
+            }
+            renderTable();
+            if (displayPanel.style.display === 'block') startGame(currentMode); 
+        });
 
         // 初始化
         renderTable();
