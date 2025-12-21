@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：互動元素週期表 (豪華寫真版)</title>
+    <title>鳩特數理：互動元素週期表</title>
     <style>
         :root {
             --primary-color: #4a90e2;
@@ -101,6 +101,38 @@
             gap: 4px;
             margin-bottom: 10px;
             padding-bottom: 10px;
+            position: relative; /* 讓內部定位更準確 */
+        }
+
+        /* --- 表格標題 (位於凹陷處) --- */
+        .table-title-area {
+            grid-column: 3 / 13; /* 佔據第3到12行 */
+            grid-row: 1 / 4;     /* 佔據第1到3列 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 5;
+            pointer-events: none; /* 讓點擊穿透，雖然這裡通常是空的 */
+            padding-top: 20px;
+        }
+
+        .main-title-text {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+            letter-spacing: 3px;
+            line-height: 1.2;
+        }
+        
+        .sub-title-text {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-top: 5px;
         }
 
         /* --- 元素卡片 --- */
@@ -122,11 +154,9 @@
             transform: scale(1.15); z-index: 10;
             box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-color: var(--primary-color);
         }
-        /* 選中狀態 */
         .element.selected {
             border: 2px solid var(--secondary-color);
-            transform: scale(1.15);
-            z-index: 10;
+            transform: scale(1.15); z-index: 10;
             box-shadow: 0 0 15px rgba(245, 166, 35, 0.4);
         }
 
@@ -157,44 +187,28 @@
         .element.covered.revealed .symbol, .element.covered.revealed .name, .element.covered.revealed .at-num { opacity: 1; }
         .blur-mode .name, .blur-mode .symbol { color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.2); }
 
-        /* --- 寫真資訊卡 (Photo Card) --- */
+        /* --- 寫真資訊卡 --- */
         .photo-card-container {
             width: 90%; max-width: 500px;
             margin: 0 auto 20px auto;
-            display: none; /* 預設隱藏 */
-            animation: fadeIn 0.3s ease-out;
+            display: none; animation: fadeIn 0.3s ease-out;
         }
 
         .photo-card {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            overflow: hidden;
-            display: flex;
-            flex-direction: row;
-            border: 1px solid #e2e8f0;
+            background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden; display: flex; flex-direction: row; border: 1px solid #e2e8f0;
         }
 
         .pc-image-box {
-            width: 45%;
-            background: #000;
-            display: flex; align-items: center; justify-content: center;
-            overflow: hidden;
-            position: relative;
+            width: 45%; background: #000; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
         }
-
-        .pc-image-box img {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.5s;
-        }
+        .pc-image-box img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
         .pc-image-box img:hover { transform: scale(1.1); }
 
         .pc-content {
-            width: 55%; padding: 20px;
-            display: flex; flex-direction: column; justify-content: center;
-            text-align: left;
+            width: 55%; padding: 20px; display: flex; flex-direction: column; justify-content: center; text-align: left;
         }
-
         .pc-title { font-size: 2rem; font-weight: 800; color: var(--primary-color); margin: 0; line-height: 1; }
         .pc-subtitle { font-size: 1.2rem; color: #334155; margin-bottom: 5px; font-weight: bold; }
         .pc-desc { font-size: 0.9rem; color: #64748b; line-height: 1.4; margin-top: 10px; }
@@ -204,13 +218,13 @@
             .photo-card { flex-direction: column; }
             .pc-image-box { width: 100%; height: 180px; }
             .pc-content { width: 100%; padding: 15px; box-sizing: border-box;}
+            /* 手機版標題縮小一點 */
+            .main-title-text { font-size: 1.5rem; }
+            .sub-title-text { font-size: 0.9rem; }
         }
 
         /* --- 控制面板 --- */
-        .controls-area {
-            width: 90%; max-width: 800px; margin: 0 auto 20px auto;
-            display: flex; flex-direction: column; gap: 20px;
-        }
+        .controls-area { width: 90%; max-width: 800px; margin: 0 auto 20px auto; display: flex; flex-direction: column; gap: 20px; }
 
         .mode-switch-container {
             display: flex; justify-content: center; align-items: center; gap: 10px;
@@ -219,7 +233,6 @@
         }
         .switch-label { font-weight: bold; color: #64748b; font-size: 0.9rem; }
         .switch-label.active { color: var(--primary-color); }
-        
         .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
         .switch input { opacity: 0; width: 0; height: 0; }
         .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
@@ -300,7 +313,7 @@
             <div class="pc-content">
                 <h2 class="pc-title" id="pcSymbol">H</h2>
                 <div class="pc-subtitle" id="pcName">氫 (Hydrogen)</div>
-                <div class="pc-desc" id="pcDesc">宇宙中最豐富的元素。圖片顯示為氫氣放電管，發出特徵性的紫紅色光芒。</div>
+                <div class="pc-desc" id="pcDesc">...</div>
                 <div class="pc-note">Photo Source: Wikimedia Commons</div>
             </div>
         </div>
@@ -336,9 +349,7 @@
     <div class="footer-watermark">Presented by Jutor</div>
 
     <script>
-        // --- 圖片資料庫 (使用 Wikimedia Commons 穩定連結) ---
-        // 說明：氣體多為放電管照片，金屬為實體照片
-        // --- 圖片資料庫 (穩定縮圖版) ---
+        // --- 圖片資料庫 (穩定縮圖版 - 已修復連結) ---
         const elementImages = {
             'H': { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Hydrogen_discharge_tube.jpg/640px-Hydrogen_discharge_tube.jpg', desc: '氫氣放電管：通電後發出淡紫紅色光芒。' },
             'He': { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/90/Helium_discharge_tube.jpg/640px-Helium_discharge_tube.jpg', desc: '氦氣放電管：通電後發出柔和的蜜桃色/白光。' },
@@ -371,6 +382,7 @@
             'U': { url: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d8/HEUraniumC.jpg/640px-HEUraniumC.jpg', desc: '鈾：銀白色重金屬，具放射性。' }
         };
 
+        // --- 元素資料 ---
         const allElements = [
             { n: 1, s: 'H', z: '氫', r: 1, c: 1, g: 'g-alkali', isBasic: true },
             { n: 2, s: 'He', z: '氦', r: 1, c: 18, g: 'g-noble', isBasic: true },
@@ -451,6 +463,8 @@
 
         function renderTable() {
             tableDiv.innerHTML = '';
+            
+            // 1. 生成所有格子
             for (let r = 1; r <= 7; r++) {
                 for (let c = 1; c <= 18; c++) {
                     if (isValidGrid(r, c)) {
@@ -458,6 +472,17 @@
                     }
                 }
             }
+
+            // 2. 插入標題 (鳩特的週期表)
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'table-title-area';
+            titleDiv.innerHTML = `
+                <div class="main-title-text">鳩特的週期表</div>
+                <div class="sub-title-text">Jutor's Periodic Table</div>
+            `;
+            tableDiv.appendChild(titleDiv);
+
+            // 3. 處理特殊元素 U
             const elU = allElements.find(e => e.s === 'U');
             if (elU && (isScholarMode || elU.isBasic)) {
                 createActiveCard(elU);
@@ -491,7 +516,6 @@
             
             div.addEventListener('click', () => {
                 if (isCoverMode) {
-                    // 蓋牌模式：翻開看答案 (不顯示圖片卡)
                     div.classList.toggle('revealed');
                     if (div.classList.contains('revealed')) {
                         div.classList.remove('covered');
@@ -499,7 +523,6 @@
                         div.classList.add('covered');
                     }
                 } else if (!displayPanel.style.display || displayPanel.style.display === 'none') {
-                    // 一般模式：顯示圖片卡 (如果不在玩遊戲)
                     showPhotoCard(el, div);
                 }
             });
@@ -507,14 +530,10 @@
             tableDiv.appendChild(div);
         }
 
-        // --- 顯示圖片卡 ---
         function showPhotoCard(el, domElement) {
-            // 清除之前的選中狀態
             document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
-            // 增加當前選中狀態
             domElement.classList.add('selected');
 
-            // 取得圖片資料
             const imgData = elementImages[el.s] || { url: 'https://placehold.co/400x300?text=No+Photo', desc: '目前尚無照片' };
             
             document.getElementById('pcImg').src = imgData.url;
@@ -522,10 +541,7 @@
             document.getElementById('pcName').textContent = `${el.z} (${el.n})`;
             document.getElementById('pcDesc').textContent = imgData.desc;
 
-            // 顯示卡片
             photoCardContainer.style.display = 'block';
-            
-            // 手機上可能需要捲動讓學生看到卡片
             if(window.innerWidth < 600) {
                  photoCardContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
@@ -533,8 +549,6 @@
 
         function toggleCoverMode() {
             isCoverMode = !isCoverMode;
-            
-            // 隱藏圖片卡
             photoCardContainer.style.display = 'none';
             document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
 
@@ -552,8 +566,6 @@
 
         function startGame(mode) {
             if(isCoverMode) toggleCoverMode();
-            
-            // 隱藏圖片卡，以免干擾作答
             photoCardContainer.style.display = 'none';
             document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
 
