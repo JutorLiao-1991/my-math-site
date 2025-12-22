@@ -12,7 +12,9 @@
   }
 
   body, html {
-    margin: 0; padding: 0; width: 100%; height: 100%;
+    margin: 0; padding: 0; width: 100%; 
+    /* 使用 dvh (Dynamic Viewport Height) 解決手機網址列遮擋問題 */
+    height: 100dvh; 
     overflow: hidden;
     font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
     background-color: #333;
@@ -24,8 +26,8 @@
   .home-btn-fixed {
       position: fixed; top: 15px; left: 15px; z-index: 2000;
       text-decoration: none; color: #333; background: rgba(255, 255, 255, 0.9);
-      padding: 10px 15px; border-radius: 30px; font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.2rem; border: 2px solid #fff;
+      padding: 8px 12px; border-radius: 30px; font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1rem; border: 2px solid #fff;
   }
 
   /* === 難度選擇遮罩 === */
@@ -33,11 +35,11 @@
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); z-index: 2000;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
-      color: white; gap: 30px;
+      color: white; gap: 20px;
   }
-  .diff-title { font-size: 2rem; font-weight: bold; margin-bottom: 20px; }
+  .diff-title { font-size: 1.8rem; font-weight: bold; margin-bottom: 20px; text-align: center; }
   .diff-btn {
-      padding: 20px 40px; font-size: 1.5rem; border: none; border-radius: 50px;
+      padding: 15px 30px; font-size: 1.2rem; border: none; border-radius: 50px;
       font-weight: bold; cursor: pointer; transition: transform 0.2s;
       width: 80%; max-width: 300px; color: white;
       box-shadow: 0 0 15px rgba(255,255,255,0.2);
@@ -54,8 +56,8 @@
       flex-direction: column; justify-content: center; align-items: center;
       color: white;
   }
-  .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
-  .countdown-text { font-size: 2.5em; margin-bottom: 20px; font-weight: bold;}
+  .countdown-number { font-size: 8em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+  .countdown-text { font-size: 2em; margin-bottom: 20px; font-weight: bold;}
 
   /* === 全局容器 === */
   #main-wrapper { position: relative; width: 100%; height: 100%; }
@@ -63,96 +65,112 @@
   /* ==================== 1. 角色選擇 ==================== */
   #setup-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #fff; z-index: 999; display: none; /* 初始隱藏，選完難度才顯示 */
+    background: #fff; z-index: 999; display: none;
     flex-direction: column;
   }
   .setup-half {
     flex: 1; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 20px;
+    justify-content: center; align-items: center; padding: 10px;
     background-size: 20px 20px; position: relative;
   }
   .setup-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 4px solid #aaa; }
   .setup-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 4px solid #aaa; }
   
-  .choose-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.8); padding: 5px 20px; border-radius: 20px; }
+  .choose-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 20px; }
   
   /* 2x4 Grid */
-  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .avatar-option {
-    font-size: 3em; width: 70px; height: 70px;
+    font-size: 2.5em; width: 60px; height: 60px;
     display: flex; justify-content: center; align-items: center;
-    background: white; border-radius: 50%; border: 4px solid transparent;
-    transition: transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+    background: white; border-radius: 50%; border: 3px solid transparent;
+    transition: transform 0.1s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   }
   .avatar-option:active { transform: scale(0.9); }
-  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.1); box-shadow: 0 0 15px #FFD700; }
+  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.1); box-shadow: 0 0 10px #FFD700; }
 
   #start-game-btn {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
-    padding: 15px 50px; font-size: 1.8em; font-weight: 900; color: white;
+    padding: 12px 40px; font-size: 1.5em; font-weight: 900; color: white;
     background: linear-gradient(45deg, #2196F3, #21CBF3);
-    border: 5px solid #fff; border-radius: 50px; box-shadow: 0 0 25px rgba(0,0,0,0.3);
-    animation: pulse 1.5s infinite; cursor: pointer;
+    border: 4px solid #fff; border-radius: 50px; box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    animation: pulse 1.5s infinite; cursor: pointer; white-space: nowrap;
   }
   @keyframes pulse { 0% {transform: translate(-50%, -50%) scale(1);} 50% {transform: translate(-50%, -50%) scale(1.05);} }
 
   /* ==================== 2. 遊戲主畫面 ==================== */
   #game-container { display: none; flex-direction: column; height: 100%; width: 100%; }
+  
   .player-area {
     flex: 1; position: relative; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 10px;
+    justify-content: space-between; /* 改為分開對齊，讓中間留給題目 */
+    align-items: center; padding: 10px;
     background-size: 20px 20px; transition: all 0.3s;
+    overflow: hidden; /* 防止溢出 */
   }
 
-  /* 分數板與連對顯示 */
+  /* 分數板 - 手機版縮小 */
   .score-board {
-    position: absolute; top: 20px; left: 20px; font-size: 1.8em; font-weight: 800;
-    background: #fff; padding: 8px 20px; border-radius: 30px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;
+    position: absolute; top: 10px; left: 10px; 
+    font-size: 1.4em; /* 縮小字體 */
+    font-weight: 800;
+    background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 30px;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px;
+    z-index: 10;
   }
   .streak-container {
-    font-size: 0.8em; margin-left: 10px; display: flex; align-items: center; 
+    font-size: 0.7em; margin-left: 5px; display: flex; align-items: center; 
     color: #FF9800; opacity: 0; transition: opacity 0.3s;
   }
   .streak-container.active { opacity: 1; }
-  .streak-icon { margin-right: 5px; animation: burn 0.5s infinite alternate; }
+  .streak-icon { margin-right: 2px; animation: burn 0.5s infinite alternate; }
   @keyframes burn { from {transform: scale(1);} to {transform: scale(1.2);} }
 
-  /* 題目顯示區域 */
+  /* 題目顯示區域 - 彈性字體大小 */
   .status-display-area {
       flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
+      min-height: 0; /* 重要：防止 flex 子元素溢出 */
   }
   .question-text {
-      font-size: 5em; font-weight: 900; color: #333; 
-      text-shadow: 3px 3px 0px rgba(255,255,255,0.5);
+      /* 關鍵修改：使用 clamp 讓字體隨寬度縮放，手機上不會過大 */
+      font-size: clamp(3rem, 12vw, 6rem); 
+      font-weight: 900; color: #333; 
+      text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
       font-family: 'Segoe UI', sans-serif;
       animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      line-height: 1;
+      text-align: center;
   }
   @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
 
-  #player-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 5px solid #555; color: #D84315; }
-  #player-top .score-board { color: #D84315; border: 3px solid #FFAB91; }
+  #player-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 3px solid #777; color: #D84315; }
+  #player-top .score-board { color: #D84315; border: 2px solid #FFAB91; transform: rotate(0deg); /* 確保分數板字是正的 */ } 
+  /* 注意：因為整個 #player-top 轉了 180度，裡面的字也會轉。如果希望字是正的，要對子元素轉回來。但雙人對戰通常希望面對面，所以維持 180 度是對的。 */
 
-  #player-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 5px solid #555; color: #0277BD; }
-  #player-bottom .score-board { color: #0277BD; border: 3px solid #81D4FA; }
+  #player-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 3px solid #777; color: #0277BD; }
+  #player-bottom .score-board { color: #0277BD; border: 2px solid #81D4FA; }
 
-  /* 選項面板 */
+  /* 選項面板 - 手機版優化 */
   .options-panel {
-    display: flex; width: 98%; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px;
+    display: flex; width: 100%; flex-wrap: wrap; justify-content: center; 
+    gap: 8px; padding: 5px; box-sizing: border-box;
+    margin-bottom: 5px;
   }
   
   .opt-btn {
-    background: #fff; border: 4px solid #eee; border-radius: 20px;
-    min-width: 40%; height: 80px; flex: 1;
-    font-size: 2em; font-weight: bold; color: #444;
-    cursor: pointer; box-shadow: 0 6px 0 #ddd;
+    background: #fff; border: 3px solid #eee; border-radius: 15px;
+    width: 48%; /* 一排兩個 */
+    height: 65px; /* 降低高度 */
+    font-size: 1.5em; /* 縮小字體 */
+    font-weight: bold; color: #444;
+    cursor: pointer; box-shadow: 0 4px 0 #ddd;
     transition: all 0.1s; font-family: 'Segoe UI', sans-serif;
     display: flex; justify-content: center; align-items: center;
   }
-  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ddd; }
+  .opt-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #ddd; }
   
-  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 6px 0 #81C784 !important;}
-  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 6px 0 #E57373 !important;}
+  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 4px 0 #81C784 !important;}
+  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 4px 0 #E57373 !important;}
 
   /* 遊戲結束 */
   .game-over-overlay {
@@ -160,24 +178,32 @@
     background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
     justify-content: center; align-items: center; text-align: center; animation: popIn 0.5s ease;
   }
-  .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
-  .end-emoji { font-size: 6em; margin-bottom: 20px; display: block; }
-  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; -webkit-text-stroke: 2px #E65100; }
+  .end-title { font-size: 2.5em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
+  .end-emoji { font-size: 5em; margin-bottom: 10px; display: block; }
+  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; -webkit-text-stroke: 1.5px #E65100; }
   .loser-text { color: #78909C; }
 
   /* 中控台 */
   #control-center {
-    height: 80px; background-color: #444; display: flex;
+    height: 60px; /* 縮小高度 */
+    background-color: #444; display: flex;
     justify-content: center; align-items: center; z-index: 100;
-    color: white; padding: 0 20px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
+    color: white; padding: 0 10px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
   }
-  #status-text { font-size: 1.5em; font-weight: bold; text-align: center; color: #fff; }
+  #status-text { font-size: 1.2em; font-weight: bold; text-align: center; color: #fff; white-space: nowrap; }
   
   /* 重新開始按鈕 */
   #main-game-btn {
-      background: #FFEB3B; color: #333; border: none; padding: 10px 30px;
-      border-radius: 50px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 0 #FBC02D;
-      display: none; 
+      background: #FFEB3B; color: #333; border: none; padding: 8px 20px;
+      border-radius: 50px; font-size: 1em; font-weight: bold; box-shadow: 0 3px 0 #FBC02D;
+      display: none; margin-left: 15px;
+  }
+
+  /* 針對極小螢幕 (iPhone SE 等) 的微調 */
+  @media (max-height: 700px) {
+      .opt-btn { height: 55px; font-size: 1.3em; }
+      .score-board { font-size: 1.2em; top: 5px; left: 5px; }
+      .home-btn-fixed { padding: 5px 10px; font-size: 0.9rem; }
   }
 
 </style>
