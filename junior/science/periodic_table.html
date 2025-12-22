@@ -1,531 +1,671 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>鳩特英文：雙語極速對戰</title>
-<style>
-  :root { 
-    --p1-color: #FF7043; --p1-bg: #FBE9E7;
-    --p2-color: #42A5F5; --p2-bg: #E3F2FD;
-    --bg-pattern: radial-gradient(#ccc 15%, transparent 16%) 0 0;
-  }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：互動元素週期表</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f8fafc;
+            --panel-bg: #ffffff;
+            --text-main: #334155;
+            --nav-bg: #0f172a;
+            --accent: #38bdf8;
+            --correct: #2ecc71;
+            --wrong: #e74c3c;
+            --placeholder-border: #e2e8f0;
+            --cover-bg: #475569;
+        }
 
-  body, html {
-    margin: 0; padding: 0; width: 100%; height: 100%;
-    overflow: hidden;
-    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-    background-color: #333;
-    touch-action: none; /* 禁止手勢縮放 */
-    user-select: none; -webkit-user-select: none;
-  }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-  /* === 懸浮回首頁按鈕 === */
-  .home-btn-fixed {
-      position: fixed; top: 15px; left: 15px; z-index: 2000;
-      text-decoration: none; color: #333; background: rgba(255, 255, 255, 0.9);
-      padding: 10px 15px; border-radius: 30px; font-weight: bold;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.2rem; border: 2px solid #fff;
-  }
+        /* --- 導航列 --- */
+        .nav-bar {
+            width: 100%;
+            background: var(--nav-bg);
+            color: white;
+            padding: 0 20px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-sizing: border-box;
+        }
 
-  /* === 倒數計時遮罩 === */
-  #countdown-overlay {
-      display: none;
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); z-index: 1500;
-      flex-direction: column; justify-content: center; align-items: center;
-      color: white;
-  }
-  .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
-  .countdown-text { font-size: 2.5em; margin-bottom: 20px; font-weight: bold;}
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        
+        .back-btn {
+            text-decoration: none;
+            color: var(--accent);
+            font-weight: bold;
+            border: 1px solid var(--accent);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .back-btn:hover { background: var(--accent); color: var(--nav-bg); }
 
-  /* === 全局容器 === */
-  #main-wrapper { position: relative; width: 100%; height: 100%; }
+        .page-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 1px; margin: 0; }
+        .brand-tag { font-family: 'Georgia', serif; font-style: italic; color: #94a3b8; font-size: 0.9rem; }
 
-  /* ==================== 1. 角色選擇 ==================== */
-  #setup-screen {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #fff; z-index: 999; display: flex; flex-direction: column;
-  }
-  .setup-half {
-    flex: 1; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 20px;
-    background-size: 20px 20px; position: relative;
-  }
-  .setup-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 4px solid #aaa; }
-  .setup-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 4px solid #aaa; }
-  
-  .choose-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.8); padding: 5px 20px; border-radius: 20px; }
-  
-  /* 2x4 Grid */
-  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
-  .avatar-option {
-    font-size: 3em; width: 70px; height: 70px;
-    display: flex; justify-content: center; align-items: center;
-    background: white; border-radius: 50%; border: 4px solid transparent;
-    transition: transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.1);
-  }
-  .avatar-option:active { transform: scale(0.9); }
-  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.1); box-shadow: 0 0 15px #FFD700; }
+        /* --- 週期表容器 --- */
+        .table-container-wrapper {
+            width: 100%;
+            background: var(--panel-bg);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
 
-  #start-game-btn {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
-    padding: 15px 50px; font-size: 1.8em; font-weight: 900; color: white;
-    background: linear-gradient(45deg, #FF5252, #FF1744);
-    border: 5px solid #fff; border-radius: 50px; box-shadow: 0 0 25px rgba(0,0,0,0.3);
-    animation: pulse 1.5s infinite; cursor: pointer;
-  }
-  @keyframes pulse { 0% {transform: translate(-50%, -50%) scale(1);} 50% {transform: translate(-50%, -50%) scale(1.05);} }
+        .scroll-hint { color: #94a3b8; font-size: 0.8rem; margin-top: 5px; display: none; }
+        @media (max-width: 900px) { .scroll-hint { display: block; } }
 
-  /* ==================== 2. 遊戲主畫面 ==================== */
-  #game-container { display: none; flex-direction: column; height: 100%; width: 100%; }
-  .player-area {
-    flex: 1; position: relative; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 10px;
-    background-size: 20px 20px; transition: all 0.3s;
-  }
+        .periodic-table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            display: flex;
+            justify-content: center;
+            padding: 0 20px;
+            box-sizing: border-box;
+            scrollbar-width: thin; 
+        }
+        @media (max-width: 950px) { .periodic-table-scroll { justify-content: flex-start; } }
 
-  /* 分數板與連對顯示 */
-  .score-board {
-    position: absolute; top: 20px; left: 20px; font-size: 1.8em; font-weight: 800;
-    background: #fff; padding: 8px 20px; border-radius: 30px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px;
-  }
-  .streak-container {
-    font-size: 0.8em; margin-left: 10px; display: flex; align-items: center; 
-    color: #FF9800; opacity: 0; transition: opacity 0.3s;
-  }
-  .streak-container.active { opacity: 1; }
-  .streak-icon { margin-right: 5px; animation: burn 0.5s infinite alternate; }
-  @keyframes burn { from {transform: scale(1);} to {transform: scale(1.2);} }
+        .periodic-table {
+            display: grid;
+            grid-template-columns: repeat(18, 48px);
+            grid-template-rows: repeat(9, 48px);
+            gap: 4px;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            position: relative; /* 讓內部定位更準確 */
+        }
 
-  /* 題目顯示區域 */
-  .status-display-area {
-      flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
-  }
-  .question-text {
-      font-size: 3.5em; font-weight: 900; color: #333; 
-      text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
-      animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
-  @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+        /* --- 表格標題 (位於凹陷處) --- */
+        .table-title-area {
+            grid-column: 3 / 13; /* 佔據第3到12行 */
+            grid-row: 1 / 4;     /* 佔據第1到3列 */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 5;
+            pointer-events: none; /* 讓點擊穿透，雖然這裡通常是空的 */
+            padding-top: 20px;
+        }
 
-  #player-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 5px solid #555; color: #D84315; }
-  #player-top .score-board { color: #D84315; border: 3px solid #FFAB91; }
+        .main-title-text {
+            font-size: 2.2rem;
+            font-weight: 900;
+            color: var(--text-main);
+            margin: 0;
+            letter-spacing: 3px;
+            line-height: 1.2;
+        }
+        
+        .sub-title-text {
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-top: 5px;
+        }
 
-  #player-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 5px solid #555; color: #0277BD; }
-  #player-bottom .score-board { color: #0277BD; border: 3px solid #81D4FA; }
+        /* --- 元素卡片 --- */
+        .element {
+            position: relative;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            user-select: none;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        
+        .element:hover {
+            transform: scale(1.15); z-index: 10;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15); border-color: var(--primary-color);
+        }
+        .element.selected {
+            border: 2px solid var(--secondary-color);
+            transform: scale(1.15); z-index: 10;
+            box-shadow: 0 0 15px rgba(245, 166, 35, 0.4);
+        }
 
-  /* 選項面板 */
-  .options-panel {
-    display: flex; width: 98%; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 10px;
-  }
-  
-  .opt-btn {
-    background: #fff; border: 4px solid #eee; border-radius: 20px;
-    min-width: 40%; height: 80px; flex: 1;
-    font-size: 1.8em; font-weight: bold; color: #444;
-    cursor: pointer; box-shadow: 0 6px 0 #ddd;
-    transition: all 0.1s; font-family: 'Arial', sans-serif;
-    display: flex; justify-content: center; align-items: center;
-  }
-  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ddd; }
-  
-  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 6px 0 #81C784 !important;}
-  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 6px 0 #E57373 !important;}
+        .element-placeholder {
+            border: 1px solid var(--placeholder-border);
+            background: #f8fafc;
+            border-radius: 4px;
+            pointer-events: none;
+        }
 
-  /* 遊戲結束 */
-  .game-over-overlay {
-    display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
-    justify-content: center; align-items: center; text-align: center; animation: popIn 0.5s ease;
-  }
-  @keyframes popIn { from {opacity: 0; transform: scale(0.8);} to {opacity: 1; transform: scale(1);} }
-  .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
-  .end-emoji { font-size: 6em; margin-bottom: 20px; display: block; }
-  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; -webkit-text-stroke: 2px #E65100; }
-  .loser-text { color: #78909C; }
+        /* 顏色分類 */
+        .g-alkali { background: #ffebee; border-color: #ffcdd2; }
+        .g-earth { background: #fff3e0; border-color: #ffe0b2; }
+        .g-halogen { background: #e0f2f1; border-color: #b2dfdb; }
+        .g-noble { background: #f3e5f5; border-color: #e1bee7; }
+        .g-trans { background: #e3f2fd; border-color: #bbdefb; }
+        .g-other { background: #ffffff; }
+        .element-U { grid-row: 9 !important; grid-column: 6 !important; margin-top: 15px; border-color: #fbbf24; background: #fffbeb; }
 
-  /* 中控台 */
-  #control-center {
-    height: 80px; background-color: #444; display: flex;
-    justify-content: center; align-items: center; z-index: 100;
-    color: white; padding: 0 20px; box-shadow: 0 0 15px rgba(0,0,0,0.5);
-  }
-  #status-text { font-size: 1.5em; font-weight: bold; text-align: center; color: #fff; }
-  
-  /* 重新開始按鈕 */
-  #main-game-btn {
-      background: #FFEB3B; color: #333; border: none; padding: 10px 30px;
-      border-radius: 50px; font-size: 1.2em; font-weight: bold; box-shadow: 0 4px 0 #FBC02D;
-      display: none; 
-  }
+        .at-num { font-size: 0.55rem; position: absolute; top: 2px; left: 3px; color: #64748b; }
+        .symbol { font-size: 0.95rem; font-weight: 800; color: #0f172a; margin-top: 4px; }
+        .name { font-size: 0.65rem; color: #475569; margin-bottom: 2px; }
 
-</style>
+        /* 蓋牌與模糊 */
+        .element.covered { background: var(--cover-bg) !important; border-color: #334155 !important; }
+        .element.covered .symbol, .element.covered .name, .element.covered .at-num { opacity: 0; }
+        .element.covered.revealed { background: #fff !important; }
+        .element.covered.revealed .symbol, .element.covered.revealed .name, .element.covered.revealed .at-num { opacity: 1; }
+        .blur-mode .name, .blur-mode .symbol { color: transparent; text-shadow: 0 0 5px rgba(0,0,0,0.2); }
+
+        /* --- 寫真資訊卡 --- */
+        .photo-card-container {
+            width: 90%; max-width: 500px;
+            margin: 0 auto 20px auto;
+            display: none; animation: fadeIn 0.3s ease-out;
+        }
+
+        .photo-card {
+            background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden; display: flex; flex-direction: row; border: 1px solid #e2e8f0;
+        }
+
+        .pc-image-box {
+            width: 45%; background: #000; display: flex; align-items: center; justify-content: center;
+            overflow: hidden; position: relative;
+        }
+        .pc-image-box img { width: 100%; height: 100%; object-fit: contain; transition: transform 0.5s; background: #000; }
+        .pc-image-box img:hover { transform: scale(1.1); }
+
+        .pc-content {
+            width: 55%; padding: 20px; display: flex; flex-direction: column; justify-content: center; text-align: left;
+        }
+        .pc-title { font-size: 2rem; font-weight: 800; color: var(--primary-color); margin: 0; line-height: 1; }
+        .pc-subtitle { font-size: 1.2rem; color: #334155; margin-bottom: 5px; font-weight: bold; }
+        .pc-desc { font-size: 0.9rem; color: #64748b; line-height: 1.4; margin-top: 10px; }
+        .pc-note { font-size: 0.75rem; color: #94a3b8; margin-top: auto; font-style: italic; }
+
+        @media (max-width: 600px) {
+            .photo-card { flex-direction: column; }
+            .pc-image-box { width: 100%; height: 180px; }
+            .pc-content { width: 100%; padding: 15px; box-sizing: border-box;}
+            /* 手機版標題縮小一點 */
+            .main-title-text { font-size: 1.5rem; }
+            .sub-title-text { font-size: 0.9rem; }
+        }
+
+        /* --- 控制面板 --- */
+        .controls-area { width: 90%; max-width: 800px; margin: 0 auto 20px auto; display: flex; flex-direction: column; gap: 20px; }
+
+        .mode-switch-container {
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            background: white; padding: 10px 20px; border-radius: 50px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); align-self: center;
+        }
+        .switch-label { font-weight: bold; color: #64748b; font-size: 0.9rem; }
+        .switch-label.active { color: var(--primary-color); }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--secondary-color); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        .btn-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
+        .btn {
+            padding: 12px 24px; border: none; border-radius: 12px;
+            font-size: 1rem; font-weight: bold; cursor: pointer;
+            transition: all 0.2s; color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex; align-items: center; gap: 8px;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 12px rgba(0,0,0,0.15); }
+        .btn-cover { background: #34495e; }
+        .btn-cover.active { background: #e67e22; box-shadow: inset 0 3px 5px rgba(0,0,0,0.2); }
+        .btn-game-1 { background: var(--primary-color); }
+        .btn-game-2 { background: var(--secondary-color); }
+
+        .display-panel {
+            background: white; border-radius: 16px; padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08); display: none;
+            animation: slideUp 0.3s ease-out; margin-bottom: 20px;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .quiz-box { text-align: center; }
+        .quiz-q { font-size: 2.5rem; font-weight: 800; color: #1e293b; margin: 15px 0; min-height: 60px; }
+        .quiz-options { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .opt-btn {
+            background: white; border: 2px solid #e2e8f0; padding: 15px; border-radius: 10px;
+            font-size: 1.1rem; font-weight: bold; color: #475569; cursor: pointer; transition: 0.2s;
+        }
+        .opt-btn:hover { border-color: var(--primary-color); background: #f0f9ff; }
+        .opt-btn.correct { background: var(--correct); color: white; border-color: var(--correct); }
+        .opt-btn.wrong { background: var(--wrong); color: white; border-color: var(--wrong); }
+        .feedback { height: 24px; font-weight: bold; margin-bottom: 5px; }
+
+        .footer-watermark {
+            margin-top: auto; padding: 20px; text-align: center;
+            font-family: 'Georgia', serif; font-style: italic; color: #cbd5e1; font-size: 0.9rem; width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .quiz-options { grid-template-columns: 1fr; }
+            .nav-bar { padding: 0 10px; }
+            .brand-tag { display: none; }
+            .btn { width: 100%; justify-content: center; }
+        }
+    </style>
 </head>
 <body>
 
-  <a href="../../index.html" class="home-btn-fixed">🏠</a>
+    <nav class="nav-bar">
+        <div class="nav-left">
+            <a href="../../index.html" class="back-btn"><span>⬅</span> 回主頁</a>
+            <h1 class="page-title">鳩特數理：元素週期表</h1>
+        </div>
+        <div class="brand-tag">Presented by Jutor</div>
+    </nav>
 
-  <div id="countdown-overlay">
-      <div class="countdown-text" id="cd-text">Ready</div>
-      <div class="countdown-number" id="cd-num">5</div>
-  </div>
-
-  <div id="main-wrapper">
-
-    <div id="setup-screen">
-      <div class="setup-half setup-top">
-        <div class="choose-title">Player 1 請選角色</div>
-        <div class="avatar-grid" id="grid-top"></div>
-      </div>
-      <button id="start-game-btn" onclick="initGameFlow()">開始對戰 ▶</button>
-      <div class="setup-half setup-bottom">
-        <div class="choose-title">Player 2 請選角色</div>
-        <div class="avatar-grid" id="grid-bottom"></div>
-      </div>
+    <div class="table-container-wrapper" id="tableWrapper">
+        <div class="periodic-table-scroll">
+            <div class="periodic-table" id="periodicTable">
+                </div>
+        </div>
+        <div class="scroll-hint">左右滑動查看完整表格 ↔</div>
     </div>
 
-    <div id="game-container">
-      
-      <div id="player-top" class="player-area">
-        <div class="score-board">
-            <span id="p1-avatar-display">🦊</span>&nbsp;<span id="score-top">0</span>
-            <div id="streak-top" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num-top">0</span></div>
+    <div id="photoCardContainer" class="photo-card-container">
+        <div class="photo-card">
+            <div class="pc-image-box">
+                <img id="pcImg" src="" alt="Element Photo" onerror="this.src='https://placehold.co/400x400?text=No+Image'">
+            </div>
+            <div class="pc-content">
+                <h2 class="pc-title" id="pcSymbol">H</h2>
+                <div class="pc-subtitle" id="pcName">氫 (Hydrogen)</div>
+                <div class="pc-desc" id="pcDesc">...</div>
+                <div class="pc-note">Photo Source: periodictable.com</div>
+            </div>
         </div>
-        <div id="end-top" class="game-over-overlay">
-            <div class="end-emoji">🏆</div><div class="end-title">Winner</div>
-        </div>
-        
-        <div id="status-top" class="status-display-area">
-            <div class="question-text" id="q-text-top"></div>
-        </div>
-        <div id="opts-top" class="options-panel"></div>
-      </div>
-
-      <div id="control-center">
-        <div id="status-text">準備開始...</div>
-        <button id="main-game-btn" onclick="restartGame()">重新開始 🔄</button>
-      </div>
-
-      <div id="player-bottom" class="player-area">
-        <div class="score-board">
-            <span id="p2-avatar-display">🐰</span>&nbsp;<span id="score-bottom">0</span>
-            <div id="streak-bottom" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num-bottom">0</span></div>
-        </div>
-        <div id="end-bottom" class="game-over-overlay">
-            <div class="end-emoji">🏆</div><div class="end-title">Winner</div>
-        </div>
-
-        <div id="status-bottom" class="status-display-area">
-            <div class="question-text" id="q-text-bottom"></div>
-        </div>
-        <div id="opts-bottom" class="options-panel"></div>
-      </div>
     </div>
 
-  </div>
-
-  <script>
-    // === 防縮放 ===
-    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-    document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
-
-    // === 變數 ===
-    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
-    let p1Avatar = '🦊'; 
-    let p2Avatar = '🐰'; 
-
-    // === 混合題庫 (中翻英 + 英翻中) ===
-    // type: 1=看英選中, 2=看中選英
-    const translationBank = [
-        // 基礎單字
-        { q: "Apple", a: "蘋果", o: ["蘋果", "香蕉", "橘子", "葡萄"], type: 1 },
-        { q: "Banana", a: "香蕉", o: ["香蕉", "蘋果", "西瓜", "鳳梨"], type: 1 },
-        { q: "Cat", a: "貓", o: ["貓", "狗", "鳥", "老鼠"], type: 1 },
-        { q: "Dog", a: "狗", o: ["狗", "貓", "豬", "羊"], type: 1 },
-        { q: "School", a: "學校", o: ["學校", "公園", "醫院", "家"], type: 1 },
-        { q: "Teacher", a: "老師", o: ["老師", "學生", "醫生", "護士"], type: 1 },
-        { q: "Red", a: "紅色", o: ["紅色", "藍色", "綠色", "黃色"], type: 1 },
-        { q: "Happy", a: "快樂", o: ["快樂", "生氣", "難過", "害怕"], type: 1 },
+    <div class="controls-area">
         
-        // 反向 (看中選英)
-        { q: "大象", a: "Elephant", o: ["Elephant", "Lion", "Tiger", "Monkey"], type: 2 },
-        { q: "電腦", a: "Computer", o: ["Computer", "Phone", "Mouse", "Screen"], type: 2 },
-        { q: "水", a: "Water", o: ["Water", "Juice", "Milk", "Tea"], type: 2 },
-        { q: "書", a: "Book", o: ["Book", "Pen", "Desk", "Bag"], type: 2 },
-        { q: "太陽", a: "Sun", o: ["Sun", "Moon", "Star", "Sky"], type: 2 },
-        { q: "朋友", a: "Friend", o: ["Friend", "Family", "Class", "Baby"], type: 2 },
-        { q: "美味的", a: "Delicious", o: ["Delicious", "Bad", "Hot", "Cold"], type: 2 },
-        { q: "跑步", a: "Run", o: ["Run", "Walk", "Jump", "Sleep"], type: 2 }
-    ];
+        <div class="mode-switch-container">
+            <span class="switch-label active" id="labelBasic">國中基礎版</span>
+            <label class="switch">
+                <input type="checkbox" id="scholarToggle">
+                <span class="slider"></span>
+            </label>
+            <span class="switch-label" id="labelScholar">學霸挑戰版</span>
+        </div>
 
-    let synth = window.speechSynthesis;
-    let currentQ = null;
-    let gameState = 'idle'; 
-    
-    // 分數與連對紀錄
-    let scores = { top: 0, bottom: 0 };
-    let streaks = { top: 0, bottom: 0 }; // 新增：連對計數器
+        <div class="btn-group">
+            <button class="btn btn-cover" id="coverModeBtn" onclick="toggleCoverMode()">
+                <span>🎴</span> 蓋牌模式 (自我檢測)
+            </button>
+            <button class="btn btn-game-1" onclick="startGame('symbolToName')">
+                <span>🔤</span> 英翻中測驗
+            </button>
+            <button class="btn btn-game-2" onclick="startGame('nameToSymbol')">
+                <span>🇹🇼</span> 中翻英測驗
+            </button>
+        </div>
 
-    let isProcessingAnswer = false; 
-    const WIN_SCORE = 200; // 提高總分因為有連對加分
+        <div id="displayPanel" class="display-panel">
+            </div>
+    </div>
 
-    // DOM 元素
-    const optsTop = document.getElementById('opts-top');
-    const optsBottom = document.getElementById('opts-bottom');
-    const qTextTop = document.getElementById('q-text-top');
-    const qTextBottom = document.getElementById('q-text-bottom');
-    const statusText = document.getElementById('status-text');
-    const mainGameBtn = document.getElementById('main-game-btn');
-    
-    // 倒數計時
-    const cdOverlay = document.getElementById('countdown-overlay');
-    const cdText = document.getElementById('cd-text');
-    const cdNum = document.getElementById('cd-num');
+    <div class="footer-watermark">Presented by Jutor</div>
 
-    // === 選角邏輯 ===
-    function initSetup() {
-      renderGrid('grid-top', 'top');
-      renderGrid('grid-bottom', 'bottom');
-    }
+    <script>
+        // --- 元素描述資料庫 (只保留描述，圖片連結由程式自動生成) ---
+        const elementDescriptions = {
+            'H': { desc: '氫：宇宙中最豐富的元素，無色無味。' },
+            'He': { desc: '氦：惰性氣體，通電後發出柔和的蜜桃色光。' },
+            'Li': { desc: '鋰：銀白色，通常保存在油中以防氧化。' },
+            'Be': { desc: '鈹：鋼灰色、質地堅硬的鹼土金屬。' },
+            'B': { desc: '硼：黑褐色的類金屬，硬度極高。' },
+            'C': { desc: '碳：生命之源，有石墨與鑽石等同素異形體。' },
+            'N': { desc: '氮：空氣的主要成分，通電後發出紫紅色光。' },
+            'O': { desc: '氧：生命呼吸所需，通電後發出藍白色光。' },
+            'F': { desc: '氟：極活潑、腐蝕性強的淡黃色氣體。' },
+            'Ne': { desc: '氖：通電後發出經典的鮮豔橘紅色光。' },
+            'Na': { desc: '鈉：質軟可用刀切開，切面為銀白色，極易氧化。' },
+            'Mg': { desc: '鎂：銀白色金屬，燃燒時會發出耀眼強光。' },
+            'Al': { desc: '鋁：銀白色輕金屬，地殼中含量豐富。' },
+            'Si': { desc: '矽：帶有藍灰色金屬光澤的晶體，半導體原料。' },
+            'P': { desc: '磷：有紅磷(火柴)與白磷(劇毒)等同素異形體。' },
+            'S': { desc: '硫：黃色固體，存在於溫泉與火山地帶。' },
+            'Cl': { desc: '氯：黃綠色氣體，有強烈刺鼻味，具毒性。' },
+            'Ar': { desc: '氬：惰性氣體，通電後發出美麗的藍紫色光。' },
+            'K': { desc: '鉀：軟金屬，與水反應極劇烈，產生紫色火焰。' },
+            'Ca': { desc: '鈣：銀灰色金屬，比鈉硬，但仍可用刀切。' },
+            'Fe': { desc: '鐵：工業之母，銀白色，易生鏽。' },
+            'Cu': { desc: '銅：紫紅色金屬，導電性佳，延展性好。' },
+            'Zn': { desc: '鋅：青白色金屬，常用於電池外殼與防鏽鍍層。' },
+            'Ag': { desc: '銀：導電與導熱性最好的金屬，具光澤。' },
+            'Au': { desc: '金：黃色貴重金屬，延展性為金屬之冠。' },
+            'Hg': { desc: '汞：常溫常壓下唯一的液態金屬 (水銀)，有毒。' },
+            'Br': { desc: '溴：暗紅色液體，極易揮發成紅棕色氣體。' },
+            'I': { desc: '碘：紫黑色固體，加熱昇華為紫色氣體。' },
+            'U': { desc: '鈾：銀白色重金屬，具放射性。' }
+        };
 
-    function renderGrid(elementId, player) {
-      const container = document.getElementById(elementId);
-      emojiOptions.forEach(emoji => {
-          const div = document.createElement('div');
-          div.className = 'avatar-option'; div.innerText = emoji;
-          if(player === 'top' && emoji === p1Avatar) div.classList.add('selected');
-          if(player === 'bottom' && emoji === p2Avatar) div.classList.add('selected');
+        // --- 元素資料 ---
+        const allElements = [
+            { n: 1, s: 'H', z: '氫', r: 1, c: 1, g: 'g-alkali', isBasic: true },
+            { n: 2, s: 'He', z: '氦', r: 1, c: 18, g: 'g-noble', isBasic: true },
+            { n: 3, s: 'Li', z: '鋰', r: 2, c: 1, g: 'g-alkali', isBasic: true },
+            { n: 4, s: 'Be', z: '鈹', r: 2, c: 2, g: 'g-earth', isBasic: true },
+            { n: 5, s: 'B', z: '硼', r: 2, c: 13, g: 'g-other', isBasic: true },
+            { n: 6, s: 'C', z: '碳', r: 2, c: 14, g: 'g-other', isBasic: true },
+            { n: 7, s: 'N', z: '氮', r: 2, c: 15, g: 'g-other', isBasic: true },
+            { n: 8, s: 'O', z: '氧', r: 2, c: 16, g: 'g-other', isBasic: true },
+            { n: 9, s: 'F', z: '氟', r: 2, c: 17, g: 'g-halogen', isBasic: true },
+            { n: 10, s: 'Ne', z: '氖', r: 2, c: 18, g: 'g-noble', isBasic: true },
+            { n: 11, s: 'Na', z: '鈉', r: 3, c: 1, g: 'g-alkali', isBasic: true },
+            { n: 12, s: 'Mg', z: '鎂', r: 3, c: 2, g: 'g-earth', isBasic: true },
+            { n: 13, s: 'Al', z: '鋁', r: 3, c: 13, g: 'g-other', isBasic: true },
+            { n: 14, s: 'Si', z: '矽', r: 3, c: 14, g: 'g-other', isBasic: true },
+            { n: 15, s: 'P', z: '磷', r: 3, c: 15, g: 'g-other', isBasic: true },
+            { n: 16, s: 'S', z: '硫', r: 3, c: 16, g: 'g-other', isBasic: true },
+            { n: 17, s: 'Cl', z: '氯', r: 3, c: 17, g: 'g-halogen', isBasic: true },
+            { n: 18, s: 'Ar', z: '氬', r: 3, c: 18, g: 'g-noble', isBasic: true },
+            { n: 19, s: 'K', z: '鉀', r: 4, c: 1, g: 'g-alkali', isBasic: true },
+            { n: 20, s: 'Ca', z: '鈣', r: 4, c: 2, g: 'g-earth', isBasic: true },
+            
+            { n: 22, s: 'Ti', z: '鈦', r: 4, c: 4, g: 'g-trans', isBasic: false },
+            { n: 24, s: 'Cr', z: '鉻', r: 4, c: 6, g: 'g-trans', isBasic: false },
+            { n: 25, s: 'Mn', z: '錳', r: 4, c: 7, g: 'g-trans', isBasic: false },
+            { n: 26, s: 'Fe', z: '鐵', r: 4, c: 8, g: 'g-trans', isBasic: true },
+            { n: 28, s: 'Ni', z: '鎳', r: 4, c: 10, g: 'g-trans', isBasic: false },
+            { n: 29, s: 'Cu', z: '銅', r: 4, c: 11, g: 'g-trans', isBasic: true },
+            { n: 30, s: 'Zn', z: '鋅', r: 4, c: 12, g: 'g-trans', isBasic: true },
+            { n: 33, s: 'As', z: '砷', r: 4, c: 15, g: 'g-other', isBasic: false },
+            { n: 35, s: 'Br', z: '溴', r: 4, c: 17, g: 'g-halogen', isBasic: true },
+            { n: 36, s: 'Kr', z: '氪', r: 4, c: 18, g: 'g-noble', isBasic: false },
 
-          div.onclick = () => {
-              const siblings = container.children;
-              for(let sib of siblings) sib.classList.remove('selected');
-              div.classList.add('selected');
-              if(player === 'top') p1Avatar = emoji; else p2Avatar = emoji;
-          };
-          container.appendChild(div);
-      });
-    }
+            { n: 37, s: 'Rb', z: '銣', r: 5, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 38, s: 'Sr', z: '鍶', r: 5, c: 2, g: 'g-earth', isBasic: false },
+            { n: 47, s: 'Ag', z: '銀', r: 5, c: 11, g: 'g-trans', isBasic: true },
+            { n: 48, s: 'Cd', z: '鎘', r: 5, c: 12, g: 'g-trans', isBasic: false },
+            { n: 50, s: 'Sn', z: '錫', r: 5, c: 14, g: 'g-other', isBasic: false },
+            { n: 53, s: 'I', z: '碘', r: 5, c: 17, g: 'g-halogen', isBasic: true },
+            { n: 54, s: 'Xe', z: '氙', r: 5, c: 18, g: 'g-noble', isBasic: false },
 
-    // === 遊戲流程控制 ===
+            { n: 55, s: 'Cs', z: '銫', r: 6, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 56, s: 'Ba', z: '鋇', r: 6, c: 2, g: 'g-earth', isBasic: false },
+            { n: 74, s: 'W', z: '鎢', r: 6, c: 6, g: 'g-trans', isBasic: false },
+            { n: 78, s: 'Pt', z: '鉑', r: 6, c: 10, g: 'g-trans', isBasic: false },
+            { n: 79, s: 'Au', z: '金', r: 6, c: 11, g: 'g-trans', isBasic: true },
+            { n: 80, s: 'Hg', z: '汞', r: 6, c: 12, g: 'g-trans', isBasic: true },
+            { n: 82, s: 'Pb', z: '鉛', r: 6, c: 14, g: 'g-other', isBasic: false },
+            { n: 85, s: 'At', z: '砈', r: 6, c: 17, g: 'g-halogen', isBasic: false },
+            { n: 86, s: 'Rn', z: '氡', r: 6, c: 18, g: 'g-noble', isBasic: false },
+            
+            { n: 87, s: 'Fr', z: '鍅', r: 7, c: 1, g: 'g-alkali', isBasic: false },
+            { n: 88, s: 'Ra', z: '鐳', r: 7, c: 2, g: 'g-earth', isBasic: false },
+            { n: 92, s: 'U', z: '鈾', r: 9, c: 3, g: 'element-U', isBasic: false },
+        ];
 
-    function initGameFlow() {
-      document.getElementById('setup-screen').style.display = 'none';
-      document.getElementById('game-container').style.display = 'flex';
-      document.getElementById('p1-avatar-display').innerText = p1Avatar;
-      document.getElementById('p2-avatar-display').innerText = p2Avatar;
-      
-      // 喚醒 iOS 音效引擎
-      const wakeUp = new SpeechSynthesisUtterance(" ");
-      wakeUp.volume = 0; 
-      synth.speak(wakeUp);
+        let isScholarMode = false;
+        let isCoverMode = false;
+        let currentMode = '';
+        let currentQuestion = null;
 
-      runCountdown(3, "Ready?", startQuestionLoop);
-    }
+        const tableDiv = document.getElementById('periodicTable');
+        const displayPanel = document.getElementById('displayPanel');
+        const toggleSwitch = document.getElementById('scholarToggle');
+        const labelBasic = document.getElementById('labelBasic');
+        const labelScholar = document.getElementById('labelScholar');
+        const tableWrapper = document.getElementById('tableWrapper');
+        const coverModeBtn = document.getElementById('coverModeBtn');
+        const photoCardContainer = document.getElementById('photoCardContainer');
 
-    function runCountdown(seconds, label, callback) {
-        cdOverlay.style.display = 'flex';
-        cdText.innerText = label;
-        let count = seconds;
-        cdNum.innerText = count;
+        function isValidGrid(r, c) {
+            if (r === 9) return false;
+            if (r === 1) return c === 1 || c === 18;
+            if (r === 2 || r === 3) return c <= 2 || c >= 13;
+            if (r >= 4 && r <= 7) return true;
+            return false;
+        }
 
-        const timer = setInterval(() => {
-            count--;
-            if (count > 0) {
-                cdNum.innerText = count;
-            } else {
-                clearInterval(timer);
-                cdOverlay.style.display = 'none';
-                if(callback) callback();
+        function renderTable() {
+            tableDiv.innerHTML = '';
+            
+            // 1. 生成所有格子
+            for (let r = 1; r <= 7; r++) {
+                for (let c = 1; c <= 18; c++) {
+                    if (isValidGrid(r, c)) {
+                        createGridCell(r, c);
+                    }
+                }
             }
-        }, 1000);
-    }
 
-    // 2. 出題循環
-    function startQuestionLoop() {
-        if(gameState === 'ended') return;
+            // 2. 插入標題 (鳩特的週期表)
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'table-title-area';
+            titleDiv.innerHTML = `
+                <div class="main-title-text">鳩特的週期表</div>
+                <div class="sub-title-text">Jutor's Periodic Table</div>
+            `;
+            tableDiv.appendChild(titleDiv);
 
-        const randIndex = Math.floor(Math.random() * translationBank.length);
-        currentQ = translationBank[randIndex];
-        
-        gameState = 'answering';
-        isProcessingAnswer = false; 
-        
-        statusText.innerText = "請作答！";
+            // 3. 處理特殊元素 U
+            const elU = allElements.find(e => e.s === 'U');
+            if (elU && (isScholarMode || elU.isBasic)) {
+                createActiveCard(elU);
+            }
+        }
 
-        // 顯示題目 (上下都要顯示)
-        qTextTop.innerText = currentQ.q;
-        qTextBottom.innerText = currentQ.q;
-        
-        // 播放聲音 (英文題目唸英文，中文題目唸中文)
-        speakQuestion(currentQ.q, currentQ.type);
+        function createGridCell(r, c) {
+            const el = allElements.find(e => e.r === r && e.c === c);
+            if (el && (isScholarMode || el.isBasic)) {
+                createActiveCard(el);
+            } else {
+                const div = document.createElement('div');
+                div.className = 'element-placeholder';
+                div.style.gridRow = r;
+                div.style.gridColumn = c;
+                tableDiv.appendChild(div);
+            }
+        }
 
-        // 產生選項
-        showOptionsForBoth();
-    }
+        function createActiveCard(el) {
+            const div = document.createElement('div');
+            const extraClass = (el.s === 'U') ? 'element-U' : '';
+            div.className = `element ${el.g} ${extraClass} ${isCoverMode ? 'covered' : ''}`;
+            div.style.gridRow = el.r;
+            div.style.gridColumn = el.c;
+            div.innerHTML = `
+                <span class="at-num">${el.n}</span>
+                <span class="symbol">${el.s}</span>
+                <span class="name">${el.z}</span>
+            `;
+            
+            div.addEventListener('click', () => {
+                if (isCoverMode) {
+                    div.classList.toggle('revealed');
+                    if (div.classList.contains('revealed')) {
+                        div.classList.remove('covered');
+                    } else {
+                        div.classList.add('covered');
+                    }
+                } else if (!displayPanel.style.display || displayPanel.style.display === 'none') {
+                    showPhotoCard(el, div);
+                }
+            });
 
-    function speakQuestion(text, type) {
-        if(synth.speaking) synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        // type 1: En->Zh (唸英文), type 2: Zh->En (唸中文)
-        u.lang = (type === 1) ? 'en-US' : 'zh-TW'; 
-        u.rate = 1.0; 
-        synth.speak(u);
-    }
+            tableDiv.appendChild(div);
+        }
 
-    // 4. 顯示選項 (同時生成給雙方)
-    function showOptionsForBoth() {
-        generateOptions(optsTop, 'top');
-        generateOptions(optsBottom, 'bottom');
-    }
+        // --- 新增功能：生成圖片網址 ---
+        function getImageUrl(atomicNumber) {
+            const paddedNum = String(atomicNumber).padStart(3, '0');
+            return `https://periodictable.com/Samples/${paddedNum}.1/s13.JPG`;
+        }
 
-    function generateOptions(container, player) {
-        container.innerHTML = '';
-        let shuffledOpts = [...currentQ.o].sort(() => Math.random() - 0.5);
+        // --- 修改後的 showPhotoCard ---
+        function showPhotoCard(el, domElement) {
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
+            domElement.classList.add('selected');
 
-        shuffledOpts.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'opt-btn'; btn.innerText = opt;
-            btn.onclick = () => checkAnswer(player, opt, btn);
-            container.appendChild(btn);
+            // 1. 自動生成圖片網址
+            const autoUrl = getImageUrl(el.n);
+            
+            // 2. 獲取文字描述 (若無資料則顯示預設文字)
+            const descData = elementDescriptions[el.s];
+            const description = descData ? descData.desc : `${el.z} (${el.s}) 的樣本圖片。`;
+            
+            document.getElementById('pcImg').src = autoUrl;
+            document.getElementById('pcSymbol').textContent = el.s;
+            document.getElementById('pcName').textContent = `${el.z} (${el.n})`;
+            document.getElementById('pcDesc').textContent = description;
+
+            photoCardContainer.style.display = 'block';
+            if(window.innerWidth < 600) {
+                 photoCardContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function toggleCoverMode() {
+            isCoverMode = !isCoverMode;
+            photoCardContainer.style.display = 'none';
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
+
+            if (isCoverMode) {
+                coverModeBtn.classList.add('active');
+                coverModeBtn.innerHTML = "🎴 關閉蓋牌 (顯示全部)";
+                displayPanel.style.display = 'none';
+                tableWrapper.classList.remove('blur-mode');
+            } else {
+                coverModeBtn.classList.remove('active');
+                coverModeBtn.innerHTML = "🎴 蓋牌模式 (自我檢測)";
+            }
+            renderTable();
+        }
+
+        function startGame(mode) {
+            if(isCoverMode) toggleCoverMode();
+            photoCardContainer.style.display = 'none';
+            document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
+
+            currentMode = mode;
+            tableWrapper.classList.add('blur-mode');
+            nextQuestion();
+            displayPanel.style.display = 'block';
+            displayPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function nextQuestion() {
+            const pool = allElements.filter(el => isScholarMode ? true : el.isBasic);
+            const target = pool[Math.floor(Math.random() * pool.length)];
+            currentQuestion = target;
+
+            let options = [target];
+            while (options.length < 4) {
+                const randomEl = pool[Math.floor(Math.random() * pool.length)];
+                if (!options.includes(randomEl)) {
+                    options.push(randomEl);
+                }
+            }
+            options.sort(() => Math.random() - 0.5);
+            renderQuizUI(target, options);
+        }
+
+        function renderQuizUI(target, options) {
+            const isSymbolToName = (currentMode === 'symbolToName');
+            const qText = isSymbolToName ? target.s : target.z;
+            const prompt = isSymbolToName ? "請問這個符號的中文是？" : "請問這個元素的符號是？";
+
+            let html = `
+                <div class="quiz-box">
+                    <div style="color:#64748b;">${prompt}</div>
+                    <div class="quiz-q">${qText}</div>
+                    <div class="feedback" id="feedbackMsg"></div>
+                    <div class="quiz-options">
+            `;
+
+            options.forEach(opt => {
+                const btnText = isSymbolToName ? opt.z : opt.s;
+                const isCorrect = (opt === target);
+                html += `<button class="opt-btn" onclick="checkAnswer(this, ${isCorrect})">${btnText}</button>`;
+            });
+
+            html += `</div></div>`;
+            displayPanel.innerHTML = html;
+        }
+
+        function checkAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('feedbackMsg');
+            const allBtns = document.querySelectorAll('.opt-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedback.style.color = 'var(--correct)';
+                feedback.textContent = '⭕ 答對了！';
+                setTimeout(nextQuestion, 800);
+            } else {
+                btn.classList.add('wrong');
+                feedback.style.color = 'var(--wrong)';
+                const ansText = currentMode === 'symbolToName' ? currentQuestion.z : currentQuestion.s;
+                feedback.textContent = `❌ 答案是 ${ansText}`;
+                allBtns.forEach(b => {
+                    if ((currentMode === 'symbolToName' && b.innerText === currentQuestion.z) ||
+                        (currentMode === 'nameToSymbol' && b.innerText === currentQuestion.s)) {
+                        b.classList.add('correct');
+                    }
+                });
+                setTimeout(nextQuestion, 2000);
+            }
+        }
+
+        toggleSwitch.addEventListener('change', (e) => {
+            isScholarMode = e.target.checked;
+            if (isScholarMode) {
+                labelBasic.classList.remove('active');
+                labelScholar.classList.add('active');
+            } else {
+                labelBasic.classList.add('active');
+                labelScholar.classList.remove('active');
+            }
+            renderTable();
+            if (displayPanel.style.display === 'block') startGame(currentMode); 
         });
-    }
 
-    // 5. 判定答案 (搶答制)
-    function checkAnswer(player, selected, btnElement) {
-        if (isProcessingAnswer) return; 
-        isProcessingAnswer = true; 
-
-        const isCorrect = (selected === currentQ.a);
-
-        if(isCorrect) {
-            btnElement.classList.add('correct');
-            
-            // === 連對邏輯 ===
-            streaks[player]++;
-            
-            // 基礎分 10 分
-            let points = 10;
-            // 連對 3 次以上，分數加倍
-            if(streaks[player] >= 3) {
-                points = 20;
-                statusText.innerText = `🔥 ${player === 'top' ? p1Avatar : p2Avatar} 連對加分！`;
-            } else {
-                statusText.innerText = `⭕️ 答對了！`;
-            }
-            scores[player] += points;
-
-            speakFeedback(true);
-        } else {
-            btnElement.classList.add('wrong');
-            
-            // === 答錯，連對歸零 ===
-            streaks[player] = 0;
-            // 扣分
-            scores[player] = Math.max(0, scores[player] - 10); 
-            
-            statusText.innerText = `❌ 答錯了...`;
-            speakFeedback(false);
-            
-            // 標示正確答案
-            const siblings = btnElement.parentElement.children;
-            for(let child of siblings) {
-                if(child.innerText === currentQ.a) child.classList.add('correct');
-            }
-        }
-
-        updateUI();
-
-        // 判定勝利或下一題
-        if(scores[player] >= WIN_SCORE) {
-            setTimeout(() => showGameOver(player), 1000);
-        } else {
-            setTimeout(() => {
-                runCountdown(2, "Next", startQuestionLoop);
-            }, 1500);
-        }
-    }
-
-    function updateUI() {
-        // 更新分數
-        document.getElementById('score-top').innerText = scores.top;
-        document.getElementById('score-bottom').innerText = scores.bottom;
-
-        // 更新連對顯示 (Streak)
-        updateStreakDisplay('top');
-        updateStreakDisplay('bottom');
-    }
-
-    function updateStreakDisplay(player) {
-        const streakContainer = document.getElementById(`streak-${player}`);
-        const streakNum = document.getElementById(`streak-num-${player}`);
-        const count = streaks[player];
-
-        streakNum.innerText = count;
-        
-        // 如果連對 >= 2 才顯示火焰
-        if(count >= 2) {
-            streakContainer.classList.add('active');
-        } else {
-            streakContainer.classList.remove('active');
-        }
-    }
-
-    function showGameOver(winner) {
-        gameState = 'ended';
-        const endTop = document.getElementById('end-top');
-        const endBottom = document.getElementById('end-bottom');
-        
-        if(winner === 'top') {
-            setupEndScreen(endTop, true); setupEndScreen(endBottom, false);
-            statusText.innerText = `🏆 ${p1Avatar} 獲勝！`;
-        } else {
-            setupEndScreen(endBottom, true); setupEndScreen(endTop, false);
-            statusText.innerText = `🏆 ${p2Avatar} 獲勝！`;
-        }
-
-        endTop.style.display = 'flex'; endBottom.style.display = 'flex';
-        mainGameBtn.style.display = 'block'; 
-        
-        const u = new SpeechSynthesisUtterance("Congratulations!");
-        synth.speak(u);
-    }
-
-    function setupEndScreen(element, isWinner) {
-        const title = element.querySelector('.end-title');
-        const emoji = element.querySelector('.end-emoji');
-        if(isWinner) {
-            title.innerText = "Winner"; title.className = "end-title winner-text"; emoji.innerText = "🏆"; 
-        } else {
-            title.innerText = "Try Again"; title.className = "end-title loser-text"; emoji.innerText = "💪";
-        }
-    }
-
-    function speakFeedback(isCorrect) {
-        const text = isCorrect ? "Yes!" : "Oh no!";
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; u.rate = 1.3; 
-        synth.speak(u);
-    }
-    
-    function restartGame() {
-        scores = { top: 0, bottom: 0 };
-        streaks = { top: 0, bottom: 0 };
-        updateUI();
-
-        document.getElementById('end-top').style.display = 'none';
-        document.getElementById('end-bottom').style.display = 'none';
-        mainGameBtn.style.display = 'none';
-        
-        const wakeUp = new SpeechSynthesisUtterance(" ");
-        wakeUp.volume = 0; 
-        synth.speak(wakeUp);
-
-        runCountdown(3, "Go!", startQuestionLoop);
-    }
-
-    initSetup();
-  </script>
+        renderTable();
+    </script>
 </body>
 </html>
