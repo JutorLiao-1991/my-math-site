@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>鳩特英文：雙語極速對戰</title>
+<title>鳩特數理：元素大對決</title>
 <style>
   :root { 
     --p1-color: #FF7043; --p1-bg: #FBE9E7;
@@ -16,58 +16,68 @@
     overflow: hidden;
     font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
     background-color: #333;
-    touch-action: none; /* 禁止手勢縮放 */
-    user-select: none; -webkit-user-select: none;
+    touch-action: none; user-select: none; -webkit-user-select: none;
   }
 
   /* === 倒數計時遮罩 === */
   #countdown-overlay {
       display: none;
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8); z-index: 1500;
+      background: rgba(0,0,0,0.9); z-index: 2000;
       flex-direction: column; justify-content: center; align-items: center;
       color: white;
   }
-  .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+  .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; }
   .countdown-text { font-size: 2.5em; margin-bottom: 20px; font-weight: bold;}
 
   /* === 全局容器 === */
   #main-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
 
-  /* ==================== 1. 角色選擇 ==================== */
+  /* ==================== 1. 設定畫面 (選角 + 選難度) ==================== */
   #setup-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #fff; z-index: 999; display: flex; flex-direction: column;
+    background: #fff; z-index: 1000; display: flex; flex-direction: column;
   }
   .setup-half {
     flex: 1; display: flex; flex-direction: column;
-    justify-content: center; align-items: center; padding: 20px;
+    justify-content: center; align-items: center; padding: 10px;
     background-size: 20px 20px; position: relative;
   }
   .setup-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 4px solid #aaa; }
   .setup-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 4px solid #aaa; }
   
-  .choose-title { font-size: 1.5em; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.8); padding: 5px 20px; border-radius: 20px; }
+  .choose-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 20px; }
   
-  /* 2x4 Grid */
-  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+  /* 頭像 Grid */
+  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .avatar-option {
-    font-size: 3em; width: 70px; height: 70px;
+    font-size: 2.5em; width: 60px; height: 60px;
     display: flex; justify-content: center; align-items: center;
-    background: white; border-radius: 50%; border: 4px solid transparent;
+    background: white; border-radius: 50%; border: 3px solid transparent;
     transition: transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.1);
   }
-  .avatar-option:active { transform: scale(0.9); }
   .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.1); box-shadow: 0 0 15px #FFD700; }
 
-  #start-game-btn {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
-    padding: 15px 50px; font-size: 1.8em; font-weight: 900; color: white;
-    background: linear-gradient(45deg, #FF5252, #FF1744);
-    border: 5px solid #fff; border-radius: 50px; box-shadow: 0 0 25px rgba(0,0,0,0.3);
-    animation: pulse 1.5s infinite; cursor: pointer;
+  /* 難度選擇區塊 (覆蓋在中間) */
+  #difficulty-selector {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    background: white; padding: 20px; border-radius: 20px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 1500;
+    text-align: center; width: 80%; max-width: 300px;
+    border: 5px solid #333;
   }
-  @keyframes pulse { 0% {transform: translate(-50%, -50%) scale(1);} 50% {transform: translate(-50%, -50%) scale(1.05);} }
+  #difficulty-selector h2 { margin: 0 0 15px 0; color: #333; }
+  
+  .diff-btn {
+    display: block; width: 100%; padding: 15px; margin-bottom: 10px;
+    border: none; border-radius: 10px; font-size: 1.2em; font-weight: bold;
+    cursor: pointer; transition: 0.2s; color: white;
+  }
+  .diff-basic { background: #4CAF50; box-shadow: 0 4px 0 #2E7D32; }
+  .diff-basic:active { transform: translateY(4px); box-shadow: none; }
+  
+  .diff-scholar { background: #9C27B0; box-shadow: 0 4px 0 #6A1B9A; }
+  .diff-scholar:active { transform: translateY(4px); box-shadow: none; }
 
   /* ==================== 2. 遊戲主畫面 ==================== */
   #game-container { display: none; flex-direction: column; height: 100%; width: 100%; }
@@ -77,30 +87,29 @@
     background-size: 20px 20px; transition: all 0.3s;
   }
 
-  /* 分數板與連對顯示 */
+  /* 分數與連對 */
   .score-board {
-    position: absolute; top: 20px; left: 20px; font-size: 1.8em; font-weight: 800;
-    background: #fff; padding: 8px 20px; border-radius: 30px;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 10px; z-index: 10;
+    position: absolute; top: 15px; left: 15px; font-size: 1.6em; font-weight: 800;
+    background: #fff; padding: 5px 15px; border-radius: 30px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; z-index: 10;
   }
   .streak-container {
-    font-size: 0.8em; margin-left: 10px; display: flex; align-items: center; 
+    font-size: 0.8em; margin-left: 5px; display: flex; align-items: center; 
     color: #FF9800; opacity: 0; transition: opacity 0.3s;
   }
   .streak-container.active { opacity: 1; }
-  .streak-icon { margin-right: 5px; animation: burn 0.5s infinite alternate; }
+  .streak-icon { margin-right: 2px; animation: burn 0.5s infinite alternate; }
   @keyframes burn { from {transform: scale(1);} to {transform: scale(1.2);} }
 
-  /* 題目顯示區域 */
+  /* 題目顯示 (超大字) */
   .status-display-area {
       flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
   }
   .question-text {
-      font-size: 3.5em; font-weight: 900; color: #333; 
-      text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+      font-size: 5em; font-weight: 900; color: #333; 
+      text-shadow: 3px 3px 0px rgba(255,255,255,0.5);
       animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       text-align: center;
-      padding: 0 20px;
   }
   @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
 
@@ -112,21 +121,21 @@
 
   /* 選項面板 */
   .options-panel {
-    display: flex; width: 98%; flex-wrap: wrap; justify-content: center; gap: 10px; padding: 5px;
+    display: flex; width: 98%; flex-wrap: wrap; justify-content: center; gap: 8px; padding: 5px; margin-bottom: 10px;
   }
   
   .opt-btn {
-    background: #fff; border: 4px solid #eee; border-radius: 15px;
-    width: 45%; height: 75px; 
-    font-size: 1.6em; font-weight: bold; color: #444;
-    cursor: pointer; box-shadow: 0 6px 0 #ddd;
+    background: #fff; border: 3px solid #eee; border-radius: 12px;
+    width: 48%; height: 65px; 
+    font-size: 1.8em; font-weight: bold; color: #444;
+    cursor: pointer; box-shadow: 0 5px 0 #ddd;
     transition: all 0.1s; font-family: 'Arial', sans-serif;
     display: flex; justify-content: center; align-items: center;
   }
-  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ddd; }
+  .opt-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #ddd; }
   
-  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 6px 0 #81C784 !important;}
-  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 6px 0 #E57373 !important;}
+  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 5px 0 #81C784 !important;}
+  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 5px 0 #E57373 !important;}
 
   /* 遊戲結束 */
   .game-over-overlay {
@@ -134,44 +143,32 @@
     background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
     justify-content: center; align-items: center; text-align: center; animation: popIn 0.5s ease;
   }
-  @keyframes popIn { from {opacity: 0; transform: scale(0.8);} to {opacity: 1; transform: scale(1);} }
   .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
   .end-emoji { font-size: 6em; margin-bottom: 20px; display: block; }
-  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; -webkit-text-stroke: 2px #E65100; }
+  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; }
   .loser-text { color: #78909C; }
 
-  /* --- 中控台 (修正版：按鈕放在這裡) --- */
+  /* --- 中控台 (Control Center) --- */
   #control-center {
-    height: 60px; /* 高度適中 */
-    background-color: #333; 
-    display: flex;
-    justify-content: space-between; /* 左右分開 */
-    align-items: center; 
-    z-index: 100;
-    color: white; 
-    padding: 0 15px; 
-    box-shadow: 0 0 15px rgba(0,0,0,0.5);
-    flex-shrink: 0;
+    height: 50px; background-color: #333; 
+    display: flex; justify-content: space-between; align-items: center; 
+    z-index: 100; color: white; padding: 0 10px; 
+    box-shadow: 0 0 15px rgba(0,0,0,0.5); flex-shrink: 0;
   }
   
   #status-text { 
-    font-size: 1.2em; font-weight: bold; text-align: center; color: #fff; 
-    flex: 1; /* 佔據中間空間 */
+    font-size: 1.1em; font-weight: bold; text-align: center; color: #fff; flex: 1;
   }
 
-  /* 控制列內的按鈕樣式 */
   .control-btn {
     background: #555; color: white; border: 1px solid #777;
-    padding: 5px 15px; border-radius: 20px; text-decoration: none;
-    font-size: 0.9rem; font-weight: bold; white-space: nowrap;
+    padding: 5px 12px; border-radius: 20px; text-decoration: none;
+    font-size: 0.85rem; font-weight: bold; white-space: nowrap;
     cursor: pointer; display: flex; align-items: center; gap: 5px;
   }
-  .control-btn:hover { background: #666; }
   
   #main-game-btn {
-      background: #FFEB3B; color: #333; border: none; 
-      box-shadow: 0 2px 0 #FBC02D;
-      display: none; 
+      background: #FFEB3B; color: #333; border: none; box-shadow: 0 2px 0 #FBC02D; display: none; 
   }
 
 </style>
@@ -180,19 +177,24 @@
 
   <div id="countdown-overlay">
       <div class="countdown-text" id="cd-text">Ready</div>
-      <div class="countdown-number" id="cd-num">5</div>
+      <div class="countdown-number" id="cd-num">3</div>
   </div>
 
   <div id="main-wrapper">
 
     <div id="setup-screen">
+      <div id="difficulty-selector">
+        <h2>請選擇難度</h2>
+        <button class="diff-btn diff-basic" onclick="startGame(true)">國中基礎版</button>
+        <button class="diff-btn diff-scholar" onclick="startGame(false)">學霸挑戰版</button>
+      </div>
+
       <div class="setup-half setup-top">
-        <div class="choose-title">Player 1 請選角色</div>
+        <div class="choose-title">Player 1 角色</div>
         <div class="avatar-grid" id="grid-top"></div>
       </div>
-      <button id="start-game-btn" onclick="initGameFlow()">開始對戰 ▶</button>
       <div class="setup-half setup-bottom">
-        <div class="choose-title">Player 2 請選角色</div>
+        <div class="choose-title">Player 2 角色</div>
         <div class="avatar-grid" id="grid-bottom"></div>
       </div>
     </div>
@@ -209,15 +211,15 @@
         </div>
         
         <div id="status-top" class="status-display-area">
-            <div class="question-text" id="q-text-top"></div>
+            <div class="question-text" id="q-text-top">H</div>
         </div>
         <div id="opts-top" class="options-panel"></div>
       </div>
 
       <div id="control-center">
-        <a href="../../index.html" class="control-btn">⬅ 列表</a>
-        <div id="status-text">準備開始...</div>
-        <button id="main-game-btn" class="control-btn" onclick="restartGame()">重來 🔄</button>
+        <a href="../../index.html" class="control-btn">⬅ 回首頁</a>
+        <div id="status-text">準備對戰</div>
+        <button id="main-game-btn" class="control-btn" onclick="resetGame()">再來一局 🔄</button>
       </div>
 
       <div id="player-bottom" class="player-area">
@@ -230,7 +232,7 @@
         </div>
 
         <div id="status-bottom" class="status-display-area">
-            <div class="question-text" id="q-text-bottom"></div>
+            <div class="question-text" id="q-text-bottom">H</div>
         </div>
         <div id="opts-bottom" class="options-panel"></div>
       </div>
@@ -239,64 +241,63 @@
   </div>
 
   <script>
-    // === 防縮放 ===
     document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
 
-    // === 變數 ===
-    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
-    let p1Avatar = '🦊'; 
-    let p2Avatar = '🐰'; 
-
-    // === 混合題庫 (中翻英 + 英翻中) ===
-    // type: 1=看英選中, 2=看中選英
-    const translationBank = [
-        // 基礎單字
-        { q: "Apple", a: "蘋果", o: ["蘋果", "香蕉", "橘子", "葡萄"], type: 1 },
-        { q: "Banana", a: "香蕉", o: ["香蕉", "蘋果", "西瓜", "鳳梨"], type: 1 },
-        { q: "Cat", a: "貓", o: ["貓", "狗", "鳥", "老鼠"], type: 1 },
-        { q: "Dog", a: "狗", o: ["狗", "貓", "豬", "羊"], type: 1 },
-        { q: "School", a: "學校", o: ["學校", "公園", "醫院", "家"], type: 1 },
-        { q: "Teacher", a: "老師", o: ["老師", "學生", "醫生", "護士"], type: 1 },
-        { q: "Red", a: "紅色", o: ["紅色", "藍色", "綠色", "黃色"], type: 1 },
-        { q: "Happy", a: "快樂", o: ["快樂", "生氣", "難過", "害怕"], type: 1 },
-        
-        // 反向 (看中選英)
-        { q: "大象", a: "Elephant", o: ["Elephant", "Lion", "Tiger", "Monkey"], type: 2 },
-        { q: "電腦", a: "Computer", o: ["Computer", "Phone", "Mouse", "Screen"], type: 2 },
-        { q: "水", a: "Water", o: ["Water", "Juice", "Milk", "Tea"], type: 2 },
-        { q: "書", a: "Book", o: ["Book", "Pen", "Desk", "Bag"], type: 2 },
-        { q: "太陽", a: "Sun", o: ["Sun", "Moon", "Star", "Sky"], type: 2 },
-        { q: "朋友", a: "Friend", o: ["Friend", "Family", "Class", "Baby"], type: 2 },
-        { q: "美味的", a: "Delicious", o: ["Delicious", "Bad", "Hot", "Cold"], type: 2 },
-        { q: "跑步", a: "Run", o: ["Run", "Walk", "Jump", "Sleep"], type: 2 }
+    // === 資料庫：來自您之前的「元素週期表」 ===
+    // s: 符號, z: 中文, isBasic: 基礎版標記
+    const allElements = [
+        { s: 'H', z: '氫', isBasic: true }, { s: 'He', z: '氦', isBasic: true },
+        { s: 'Li', z: '鋰', isBasic: true }, { s: 'Be', z: '鈹', isBasic: true },
+        { s: 'B', z: '硼', isBasic: true }, { s: 'C', z: '碳', isBasic: true },
+        { s: 'N', z: '氮', isBasic: true }, { s: 'O', z: '氧', isBasic: true },
+        { s: 'F', z: '氟', isBasic: true }, { s: 'Ne', z: '氖', isBasic: true },
+        { s: 'Na', z: '鈉', isBasic: true }, { s: 'Mg', z: '鎂', isBasic: true },
+        { s: 'Al', z: '鋁', isBasic: true }, { s: 'Si', z: '矽', isBasic: true },
+        { s: 'P', z: '磷', isBasic: true }, { s: 'S', z: '硫', isBasic: true },
+        { s: 'Cl', z: '氯', isBasic: true }, { s: 'Ar', z: '氬', isBasic: true },
+        { s: 'K', z: '鉀', isBasic: true }, { s: 'Ca', z: '鈣', isBasic: true },
+        { s: 'Fe', z: '鐵', isBasic: true }, { s: 'Cu', z: '銅', isBasic: true },
+        { s: 'Zn', z: '鋅', isBasic: true }, { s: 'Ag', z: '銀', isBasic: true },
+        { s: 'Au', z: '金', isBasic: true }, { s: 'Hg', z: '汞', isBasic: true },
+        { s: 'Br', z: '溴', isBasic: true }, { s: 'I', z: '碘', isBasic: true },
+        // --- 挑戰版增補 ---
+        { s: 'Ti', z: '鈦', isBasic: false }, { s: 'Cr', z: '鉻', isBasic: false },
+        { s: 'Mn', z: '錳', isBasic: false }, { s: 'Ni', z: '鎳', isBasic: false },
+        { s: 'As', z: '砷', isBasic: false }, { s: 'Kr', z: '氪', isBasic: false },
+        { s: 'Rb', z: '銣', isBasic: false }, { s: 'Sr', z: '鍶', isBasic: false },
+        { s: 'Cd', z: '鎘', isBasic: false }, { s: 'Sn', z: '錫', isBasic: false },
+        { s: 'Xe', z: '氙', isBasic: false }, { s: 'Cs', z: '銫', isBasic: false },
+        { s: 'Ba', z: '鋇', isBasic: false }, { s: 'W', z: '鎢', isBasic: false },
+        { s: 'Pt', z: '鉑', isBasic: false }, { s: 'Pb', z: '鉛', isBasic: false },
+        { s: 'At', z: '砈', isBasic: false }, { s: 'Rn', z: '氡', isBasic: false },
+        { s: 'Fr', z: '鍅', isBasic: false }, { s: 'Ra', z: '鐳', isBasic: false },
+        { s: 'U', z: '鈾', isBasic: false }
     ];
 
-    let synth = window.speechSynthesis;
+    // 變數
+    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
+    let p1Avatar = '🦊'; let p2Avatar = '🐰'; 
+    let activeElements = []; // 根據難度篩選後的題庫
     let currentQ = null;
     let gameState = 'idle'; 
-    
-    // 分數與連對紀錄
     let scores = { top: 0, bottom: 0 };
-    let streaks = { top: 0, bottom: 0 }; 
-
+    let streaks = { top: 0, bottom: 0 };
     let isProcessingAnswer = false; 
-    const WIN_SCORE = 200; 
+    const WIN_SCORE = 300; // 300分獲勝
 
-    // DOM 元素
+    // DOM
     const optsTop = document.getElementById('opts-top');
     const optsBottom = document.getElementById('opts-bottom');
     const qTextTop = document.getElementById('q-text-top');
     const qTextBottom = document.getElementById('q-text-bottom');
     const statusText = document.getElementById('status-text');
     const mainGameBtn = document.getElementById('main-game-btn');
-    
-    // 倒數計時
     const cdOverlay = document.getElementById('countdown-overlay');
     const cdText = document.getElementById('cd-text');
     const cdNum = document.getElementById('cd-num');
 
-    // === 選角邏輯 ===
+    // 初始化選角
     function initSetup() {
       renderGrid('grid-top', 'top');
       renderGrid('grid-bottom', 'bottom');
@@ -320,19 +321,25 @@
       });
     }
 
-    // === 遊戲流程控制 ===
+    // === 開始遊戲 (接收難度參數) ===
+    function startGame(isBasicMode) {
+        // 1. 篩選題庫
+        if (isBasicMode) {
+            activeElements = allElements.filter(el => el.isBasic);
+            statusText.innerText = "難度：國中基礎";
+        } else {
+            activeElements = allElements; // 挑戰版包含所有元素
+            statusText.innerText = "難度：學霸挑戰";
+        }
 
-    function initGameFlow() {
-      document.getElementById('setup-screen').style.display = 'none';
-      document.getElementById('game-container').style.display = 'flex';
-      document.getElementById('p1-avatar-display').innerText = p1Avatar;
-      document.getElementById('p2-avatar-display').innerText = p2Avatar;
-      
-      const wakeUp = new SpeechSynthesisUtterance(" ");
-      wakeUp.volume = 0; 
-      synth.speak(wakeUp);
+        // 2. 切換介面
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'flex';
+        document.getElementById('p1-avatar-display').innerText = p1Avatar;
+        document.getElementById('p2-avatar-display').innerText = p2Avatar;
 
-      runCountdown(3, "Ready?", startQuestionLoop);
+        // 3. 倒數開始
+        runCountdown(3, "準備背誦！", startQuestionLoop);
     }
 
     function runCountdown(seconds, label, callback) {
@@ -353,120 +360,120 @@
         }, 1000);
     }
 
-    // 2. 出題循環
+    // === 出題迴圈 ===
     function startQuestionLoop() {
         if(gameState === 'ended') return;
 
-        const randIndex = Math.floor(Math.random() * translationBank.length);
-        currentQ = translationBank[randIndex];
+        // 1. 隨機抽元素
+        const target = activeElements[Math.floor(Math.random() * activeElements.length)];
         
+        // 2. 隨機決定題型: 0=看符號選中文, 1=看中文選符號
+        const type = Math.random() > 0.5 ? 0 : 1;
+        
+        let questionDisplay = (type === 0) ? target.s : target.z; // 題目
+        let answerText = (type === 0) ? target.z : target.s;      // 正解文字
+        
+        // 3. 產生選項 (1正3誤)
+        let options = [target];
+        while (options.length < 4) {
+            const wrong = activeElements[Math.floor(Math.random() * activeElements.length)];
+            if (!options.includes(wrong)) {
+                options.push(wrong);
+            }
+        }
+        options.sort(() => Math.random() - 0.5); // 打亂
+
+        currentQ = {
+            target: target,
+            type: type,
+            ansText: answerText,
+            options: options
+        };
+
+        // 4. 更新UI
         gameState = 'answering';
-        isProcessingAnswer = false; 
+        isProcessingAnswer = false;
         
-        statusText.innerText = "請作答！";
-
-        // 顯示題目 (上下都要顯示)
-        qTextTop.innerText = currentQ.q;
-        qTextBottom.innerText = currentQ.q;
+        qTextTop.innerText = questionDisplay;
+        qTextBottom.innerText = questionDisplay;
         
-        speakQuestion(currentQ.q, currentQ.type);
-        showOptionsForBoth();
-    }
-
-    function speakQuestion(text, type) {
-        if(synth.speaking) synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = (type === 1) ? 'en-US' : 'zh-TW'; 
-        u.rate = 1.0; 
-        synth.speak(u);
-    }
-
-    // 4. 顯示選項
-    function showOptionsForBoth() {
+        // 產生按鈕
         generateOptions(optsTop, 'top');
         generateOptions(optsBottom, 'bottom');
     }
 
     function generateOptions(container, player) {
         container.innerHTML = '';
-        let shuffledOpts = [...currentQ.o].sort(() => Math.random() - 0.5);
-
-        shuffledOpts.forEach(opt => {
+        currentQ.options.forEach(opt => {
             const btn = document.createElement('button');
-            btn.className = 'opt-btn'; btn.innerText = opt;
+            btn.className = 'opt-btn';
+            
+            // 如果題型是0(看符號)，選項顯示中文(z)
+            // 如果題型是1(看中文)，選項顯示符號(s)
+            btn.innerText = (currentQ.type === 0) ? opt.z : opt.s;
+            
             btn.onclick = () => checkAnswer(player, opt, btn);
             container.appendChild(btn);
         });
     }
 
-    // 5. 判定答案
-    function checkAnswer(player, selected, btnElement) {
-        if (isProcessingAnswer) return; 
-        isProcessingAnswer = true; 
+    // === 判斷答案 ===
+    function checkAnswer(player, selectedOpt, btn) {
+        if (isProcessingAnswer) return;
+        isProcessingAnswer = true;
 
-        const isCorrect = (selected === currentQ.a);
+        const isCorrect = (selectedOpt === currentQ.target);
 
-        if(isCorrect) {
-            btnElement.classList.add('correct');
-            
-            // === 連對邏輯 ===
+        if (isCorrect) {
+            btn.classList.add('correct');
+            // 連對加分邏輯
             streaks[player]++;
-            
-            let points = 10;
-            if(streaks[player] >= 3) {
-                points = 20;
-                statusText.innerText = `🔥 ${player === 'top' ? p1Avatar : p2Avatar} 連對加分！`;
+            let addScore = 10;
+            if (streaks[player] >= 3) {
+                addScore = 20; // 連對獎勵
+                statusText.innerText = `🔥 ${player==='top'?p1Avatar:p2Avatar} 連對爆發！`;
             } else {
-                statusText.innerText = `⭕️ 答對了！`;
+                statusText.innerText = "⭕ 答對了！";
             }
-            scores[player] += points;
-
-            speakFeedback(true);
+            scores[player] += addScore;
         } else {
-            btnElement.classList.add('wrong');
-            streaks[player] = 0;
-            scores[player] = Math.max(0, scores[player] - 10); 
+            btn.classList.add('wrong');
+            streaks[player] = 0; // 斷掉連對
+            scores[player] = Math.max(0, scores[player] - 10); // 倒扣
+            statusText.innerText = "❌ 答錯了...";
             
-            statusText.innerText = `❌ 答錯了...`;
-            speakFeedback(false);
-            
-            const siblings = btnElement.parentElement.children;
+            // 標示正確答案
+            const siblings = btn.parentElement.children;
             for(let child of siblings) {
-                if(child.innerText === currentQ.a) child.classList.add('correct');
+                if(child.innerText === currentQ.ansText) child.classList.add('correct');
             }
         }
 
         updateUI();
 
-        if(scores[player] >= WIN_SCORE) {
+        if (scores[player] >= WIN_SCORE) {
             setTimeout(() => showGameOver(player), 1000);
         } else {
             setTimeout(() => {
-                runCountdown(2, "Next", startQuestionLoop);
-            }, 1500);
+                startQuestionLoop();
+            }, 1000); // 1秒後下一題
         }
     }
 
     function updateUI() {
         document.getElementById('score-top').innerText = scores.top;
         document.getElementById('score-bottom').innerText = scores.bottom;
-
-        updateStreakDisplay('top');
-        updateStreakDisplay('bottom');
+        updateStreak('top');
+        updateStreak('bottom');
     }
 
-    function updateStreakDisplay(player) {
-        const streakContainer = document.getElementById(`streak-${player}`);
-        const streakNum = document.getElementById(`streak-num-${player}`);
+    function updateStreak(player) {
+        const div = document.getElementById(`streak-${player}`);
+        const num = document.getElementById(`streak-num-${player}`);
         const count = streaks[player];
-
-        streakNum.innerText = count;
-        
-        if(count >= 2) {
-            streakContainer.classList.add('active');
-        } else {
-            streakContainer.classList.remove('active');
-        }
+        num.innerText = count;
+        if(count >= 3) div.classList.add('active');
+        else div.classList.remove('active');
     }
 
     function showGameOver(winner) {
@@ -484,9 +491,6 @@
 
         endTop.style.display = 'flex'; endBottom.style.display = 'flex';
         mainGameBtn.style.display = 'block'; 
-        
-        const u = new SpeechSynthesisUtterance("Congratulations!");
-        synth.speak(u);
     }
 
     function setupEndScreen(element, isWinner) {
@@ -499,27 +503,18 @@
         }
     }
 
-    function speakFeedback(isCorrect) {
-        const text = isCorrect ? "Yes!" : "Oh no!";
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; u.rate = 1.3; 
-        synth.speak(u);
-    }
-    
-    function restartGame() {
+    function resetGame() {
         scores = { top: 0, bottom: 0 };
         streaks = { top: 0, bottom: 0 };
         updateUI();
-
         document.getElementById('end-top').style.display = 'none';
         document.getElementById('end-bottom').style.display = 'none';
         mainGameBtn.style.display = 'none';
         
-        const wakeUp = new SpeechSynthesisUtterance(" ");
-        wakeUp.volume = 0; 
-        synth.speak(wakeUp);
-
-        runCountdown(3, "Go!", startQuestionLoop);
+        // 回到設定畫面重新選難度 (如果你想直接重玩同一難度，可以直接 call startGame)
+        // 這裡我們設計成回到選單，讓他們可以換人或換難度
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'flex';
     }
 
     initSetup();
