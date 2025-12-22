@@ -253,6 +253,15 @@
         .btn-cover.active { background: #e67e22; box-shadow: inset 0 3px 5px rgba(0,0,0,0.2); }
         .btn-game-1 { background: var(--primary-color); }
         .btn-game-2 { background: var(--secondary-color); }
+        /* 新增這個 PK 按鈕樣式 */
+        .btn-pk { 
+            background: #e11d48; /* 戰鬥紅色 */
+            box-shadow: 0 4px 6px rgba(225, 29, 72, 0.3);
+        }
+        .btn-pk:hover {
+            background: #be123c;
+            box-shadow: 0 6px 12px rgba(225, 29, 72, 0.4);
+        }
 
         .display-panel {
             background: white; border-radius: 16px; padding: 25px;
@@ -358,6 +367,9 @@
             </button>
             <button class="btn btn-game-2" onclick="startGame('nameToSymbol')">
                 <span>🇹🇼</span> 中翻英測驗
+            </button>
+            <button class="btn btn-pk" onclick="location.href='periodic_table_pk.html'">
+                <span>⚔️</span> 雙人PK對戰
             </button>
         </div>
 
