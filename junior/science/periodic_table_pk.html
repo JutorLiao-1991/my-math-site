@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>鳩特英文：雙語極速對戰</title>
+<title>鳩特數理：元素PK競技場</title>
 <style>
   :root { 
     --p1-color: #FF7043; --p1-bg: #FBE9E7;
@@ -71,7 +71,7 @@
   #start-game-btn {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;
     padding: 15px 50px; font-size: 1.8em; font-weight: 900; color: white;
-    background: linear-gradient(45deg, #FF5252, #FF1744);
+    background: linear-gradient(45deg, #e11d48, #be123c); /* 戰鬥紅 */
     border: 5px solid #fff; border-radius: 50px; box-shadow: 0 0 25px rgba(0,0,0,0.3);
     animation: pulse 1.5s infinite; cursor: pointer;
   }
@@ -104,8 +104,9 @@
       flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
   }
   .question-text {
-      font-size: 3.5em; font-weight: 900; color: #333; 
-      text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+      font-size: 5em; font-weight: 900; color: #333; /* 元素符號放大 */
+      text-shadow: 3px 3px 0px rgba(255,255,255,0.5);
+      font-family: 'Arial', sans-serif;
       animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
   @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
@@ -124,9 +125,9 @@
   .opt-btn {
     background: #fff; border: 4px solid #eee; border-radius: 20px;
     min-width: 40%; height: 80px; flex: 1;
-    font-size: 1.8em; font-weight: bold; color: #444;
+    font-size: 2em; font-weight: bold; color: #444;
     cursor: pointer; box-shadow: 0 6px 0 #ddd;
-    transition: all 0.1s; font-family: 'Arial', sans-serif;
+    transition: all 0.1s; font-family: 'Segoe UI', sans-serif;
     display: flex; justify-content: center; align-items: center;
   }
   .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ddd; }
@@ -140,7 +141,6 @@
     background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
     justify-content: center; align-items: center; text-align: center; animation: popIn 0.5s ease;
   }
-  @keyframes popIn { from {opacity: 0; transform: scale(0.8);} to {opacity: 1; transform: scale(1);} }
   .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
   .end-emoji { font-size: 6em; margin-bottom: 20px; display: block; }
   .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; -webkit-text-stroke: 2px #E65100; }
@@ -165,7 +165,7 @@
 </head>
 <body>
 
-  <a href="../../index.html" class="home-btn-fixed">🏠</a>
+  <a href="javascript:history.back()" class="home-btn-fixed">⬅ 回週期表</a>
 
   <div id="countdown-overlay">
       <div class="countdown-text" id="cd-text">Ready</div>
@@ -176,12 +176,12 @@
 
     <div id="setup-screen">
       <div class="setup-half setup-top">
-        <div class="choose-title">Player 1 請選角色</div>
+        <div class="choose-title">Player 1 (上方) 請選角色</div>
         <div class="avatar-grid" id="grid-top"></div>
       </div>
-      <button id="start-game-btn" onclick="initGameFlow()">開始對戰 ▶</button>
+      <button id="start-game-btn" onclick="initGameFlow()">開始 PK ▶</button>
       <div class="setup-half setup-bottom">
-        <div class="choose-title">Player 2 請選角色</div>
+        <div class="choose-title">Player 2 (下方) 請選角色</div>
         <div class="avatar-grid" id="grid-bottom"></div>
       </div>
     </div>
@@ -232,44 +232,40 @@
     document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
 
     // === 變數 ===
-    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
-    let p1Avatar = '🦊'; 
-    let p2Avatar = '🐰'; 
+    const emojiOptions = ['👨‍🔬', '👩‍🔬', '🧪', '🧬', '⚛️', '🔥', '🔬', '🔭'];
+    let p1Avatar = '👨‍🔬'; 
+    let p2Avatar = '👩‍🔬'; 
 
-    // === 混合題庫 (中翻英 + 英翻中) ===
-    // type: 1=看英選中, 2=看中選英
-    const translationBank = [
-        // 基礎單字
-        { q: "Apple", a: "蘋果", o: ["蘋果", "香蕉", "橘子", "葡萄"], type: 1 },
-        { q: "Banana", a: "香蕉", o: ["香蕉", "蘋果", "西瓜", "鳳梨"], type: 1 },
-        { q: "Cat", a: "貓", o: ["貓", "狗", "鳥", "老鼠"], type: 1 },
-        { q: "Dog", a: "狗", o: ["狗", "貓", "豬", "羊"], type: 1 },
-        { q: "School", a: "學校", o: ["學校", "公園", "醫院", "家"], type: 1 },
-        { q: "Teacher", a: "老師", o: ["老師", "學生", "醫生", "護士"], type: 1 },
-        { q: "Red", a: "紅色", o: ["紅色", "藍色", "綠色", "黃色"], type: 1 },
-        { q: "Happy", a: "快樂", o: ["快樂", "生氣", "難過", "害怕"], type: 1 },
-        
-        // 反向 (看中選英)
-        { q: "大象", a: "Elephant", o: ["Elephant", "Lion", "Tiger", "Monkey"], type: 2 },
-        { q: "電腦", a: "Computer", o: ["Computer", "Phone", "Mouse", "Screen"], type: 2 },
-        { q: "水", a: "Water", o: ["Water", "Juice", "Milk", "Tea"], type: 2 },
-        { q: "書", a: "Book", o: ["Book", "Pen", "Desk", "Bag"], type: 2 },
-        { q: "太陽", a: "Sun", o: ["Sun", "Moon", "Star", "Sky"], type: 2 },
-        { q: "朋友", a: "Friend", o: ["Friend", "Family", "Class", "Baby"], type: 2 },
-        { q: "美味的", a: "Delicious", o: ["Delicious", "Bad", "Hot", "Cold"], type: 2 },
-        { q: "跑步", a: "Run", o: ["Run", "Walk", "Jump", "Sleep"], type: 2 }
+    // === 完整元素資料庫 ===
+    const allElements = [
+        { s: 'H', z: '氫' }, { s: 'He', z: '氦' }, { s: 'Li', z: '鋰' }, { s: 'Be', z: '鈹' }, { s: 'B', z: '硼' },
+        { s: 'C', z: '碳' }, { s: 'N', z: '氮' }, { s: 'O', z: '氧' }, { s: 'F', z: '氟' }, { s: 'Ne', z: '氖' },
+        { s: 'Na', z: '鈉' }, { s: 'Mg', z: '鎂' }, { s: 'Al', z: '鋁' }, { s: 'Si', z: '矽' }, { s: 'P', z: '磷' },
+        { s: 'S', z: '硫' }, { s: 'Cl', z: '氯' }, { s: 'Ar', z: '氬' }, { s: 'K', z: '鉀' }, { s: 'Ca', z: '鈣' },
+        { s: 'Sc', z: '鈧' }, { s: 'Ti', z: '鈦' }, { s: 'V', z: '釩' }, { s: 'Cr', z: '鉻' }, { s: 'Mn', z: '錳' },
+        { s: 'Fe', z: '鐵' }, { s: 'Co', z: '鈷' }, { s: 'Ni', z: '鎳' }, { s: 'Cu', z: '銅' }, { s: 'Zn', z: '鋅' },
+        { s: 'Ga', z: '鎵' }, { s: 'Ge', z: '鍺' }, { s: 'As', z: '砷' }, { s: 'Se', z: '硒' }, { s: 'Br', z: '溴' },
+        { s: 'Kr', z: '氪' }, { s: 'Rb', z: '銣' }, { s: 'Sr', z: '鍶' }, { s: 'Y', z: '釔' }, { s: 'Zr', z: '鋯' },
+        { s: 'Nb', z: '鈮' }, { s: 'Mo', z: '鉬' }, { s: 'Tc', z: '鎝' }, { s: 'Ru', z: '釕' }, { s: 'Rh', z: '銠' },
+        { s: 'Pd', z: '鈀' }, { s: 'Ag', z: '銀' }, { s: 'Cd', z: '鎘' }, { s: 'In', z: '銦' }, { s: 'Sn', z: '錫' },
+        { s: 'Sb', z: '銻' }, { s: 'Te', z: '碲' }, { s: 'I', z: '碘' }, { s: 'Xe', z: '氙' }, { s: 'Cs', z: '銫' },
+        { s: 'Ba', z: '鋇' }, { s: 'La', z: '鑭' }, { s: 'Ce', z: '鈰' }, { s: 'Pr', z: '鐠' }, { s: 'Nd', z: '釹' },
+        { s: 'Pm', z: '鉕' }, { s: 'Sm', z: '釤' }, { s: 'Eu', z: '銪' }, { s: 'Gd', z: '釓' }, { s: 'Tb', z: '鋱' },
+        { s: 'Dy', z: '鏑' }, { s: 'Ho', z: '鈥' }, { s: 'Er', z: '鉺' }, { s: 'Tm', z: '銩' }, { s: 'Yb', z: '鐿' },
+        { s: 'Lu', z: '鎦' }, { s: 'Hf', z: '鉿' }, { s: 'Ta', z: '鉭' }, { s: 'W', z: '鎢' }, { s: 'Re', z: '錸' },
+        { s: 'Os', z: '鋨' }, { s: 'Ir', z: '銥' }, { s: 'Pt', z: '鉑' }, { s: 'Au', z: '金' }, { s: 'Hg', z: '汞' },
+        { s: 'Tl', z: '鉈' }, { s: 'Pb', z: '鉛' }, { s: 'Bi', z: '鉍' }, { s: 'Po', z: '釙' }, { s: 'At', z: '砈' },
+        { s: 'Rn', z: '氡' }, { s: 'Fr', z: '鍅' }, { s: 'Ra', z: '鐳' }, { s: 'Ac', z: '錒' }, { s: 'Th', z: '釷' },
+        { s: 'Pa', z: '鏷' }, { s: 'U', z: '鈾' }
     ];
 
     let synth = window.speechSynthesis;
     let currentQ = null;
     let gameState = 'idle'; 
-    
-    // 分數與連對紀錄
     let scores = { top: 0, bottom: 0 };
-    let streaks = { top: 0, bottom: 0 }; // 新增：連對計數器
-
+    let streaks = { top: 0, bottom: 0 }; 
     let isProcessingAnswer = false; 
-    const WIN_SCORE = 200; // 提高總分因為有連對加分
+    const WIN_SCORE = 200; 
 
     // DOM 元素
     const optsTop = document.getElementById('opts-top');
@@ -278,13 +274,10 @@
     const qTextBottom = document.getElementById('q-text-bottom');
     const statusText = document.getElementById('status-text');
     const mainGameBtn = document.getElementById('main-game-btn');
-    
-    // 倒數計時
     const cdOverlay = document.getElementById('countdown-overlay');
     const cdText = document.getElementById('cd-text');
     const cdNum = document.getElementById('cd-num');
 
-    // === 選角邏輯 ===
     function initSetup() {
       renderGrid('grid-top', 'top');
       renderGrid('grid-bottom', 'bottom');
@@ -297,7 +290,6 @@
           div.className = 'avatar-option'; div.innerText = emoji;
           if(player === 'top' && emoji === p1Avatar) div.classList.add('selected');
           if(player === 'bottom' && emoji === p2Avatar) div.classList.add('selected');
-
           div.onclick = () => {
               const siblings = container.children;
               for(let sib of siblings) sib.classList.remove('selected');
@@ -308,7 +300,7 @@
       });
     }
 
-    // === 遊戲流程控制 ===
+    // === 遊戲核心 ===
 
     function initGameFlow() {
       document.getElementById('setup-screen').style.display = 'none';
@@ -316,7 +308,6 @@
       document.getElementById('p1-avatar-display').innerText = p1Avatar;
       document.getElementById('p2-avatar-display').innerText = p2Avatar;
       
-      // 喚醒 iOS 音效引擎
       const wakeUp = new SpeechSynthesisUtterance(" ");
       wakeUp.volume = 0; 
       synth.speak(wakeUp);
@@ -329,7 +320,6 @@
         cdText.innerText = label;
         let count = seconds;
         cdNum.innerText = count;
-
         const timer = setInterval(() => {
             count--;
             if (count > 0) {
@@ -342,39 +332,76 @@
         }, 1000);
     }
 
-    // 2. 出題循環
     function startQuestionLoop() {
         if(gameState === 'ended') return;
 
-        const randIndex = Math.floor(Math.random() * translationBank.length);
-        currentQ = translationBank[randIndex];
+        // 隨機選一個元素
+        const targetEl = allElements[Math.floor(Math.random() * allElements.length)];
+        
+        // 隨機決定題型：Type 1 (看符號選中文) 或 Type 2 (看中文選符號)
+        // type 1: Q: "H", A: "氫"
+        // type 2: Q: "氫", A: "H"
+        const qType = Math.random() > 0.5 ? 1 : 2;
+
+        // 產生混淆選項 (從題庫隨機抓 3 個不一樣的)
+        let options = [];
+        options.push(qType === 1 ? targetEl.z : targetEl.s); // 正確答案
+
+        while(options.length < 4) {
+            const randomEl = allElements[Math.floor(Math.random() * allElements.length)];
+            const wrongAns = qType === 1 ? randomEl.z : randomEl.s;
+            // 避免重複
+            if(!options.includes(wrongAns) && wrongAns !== (qType === 1 ? targetEl.z : targetEl.s)) {
+                options.push(wrongAns);
+            }
+        }
+
+        currentQ = {
+            q: qType === 1 ? targetEl.s : targetEl.z, // 題目文字
+            a: qType === 1 ? targetEl.z : targetEl.s, // 正確答案
+            o: options, // 選項陣列
+            type: qType,
+            rawSymbol: targetEl.s,
+            rawName: targetEl.z
+        };
         
         gameState = 'answering';
         isProcessingAnswer = false; 
-        
         statusText.innerText = "請作答！";
 
-        // 顯示題目 (上下都要顯示)
+        // 顯示題目
         qTextTop.innerText = currentQ.q;
         qTextBottom.innerText = currentQ.q;
         
-        // 播放聲音 (英文題目唸英文，中文題目唸中文)
-        speakQuestion(currentQ.q, currentQ.type);
-
-        // 產生選項
+        // 播放聲音
+        speakQuestion(currentQ);
         showOptionsForBoth();
     }
 
-    function speakQuestion(text, type) {
+    function speakQuestion(qObj) {
         if(synth.speaking) synth.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        // type 1: En->Zh (唸英文), type 2: Zh->En (唸中文)
-        u.lang = (type === 1) ? 'en-US' : 'zh-TW'; 
+        
+        let textToRead = "";
+        let lang = 'en-US';
+
+        if(qObj.type === 1) {
+            // 題目是符號 (例如 H, He)，要唸出來
+            // 為了避免 "He" 被唸成 "他"，我們把它分開唸，或者加上 "Element"
+            // 簡單處理：將符號拆開唸，例如 H-e
+            textToRead = qObj.q.split('').join(' '); 
+            lang = 'en-US';
+        } else {
+            // 題目是中文 (例如 氫)，唸中文
+            textToRead = qObj.q;
+            lang = 'zh-TW';
+        }
+
+        const u = new SpeechSynthesisUtterance(textToRead);
+        u.lang = lang; 
         u.rate = 1.0; 
         synth.speak(u);
     }
 
-    // 4. 顯示選項 (同時生成給雙方)
     function showOptionsForBoth() {
         generateOptions(optsTop, 'top');
         generateOptions(optsBottom, 'bottom');
@@ -392,7 +419,6 @@
         });
     }
 
-    // 5. 判定答案 (搶答制)
     function checkAnswer(player, selected, btnElement) {
         if (isProcessingAnswer) return; 
         isProcessingAnswer = true; 
@@ -401,13 +427,10 @@
 
         if(isCorrect) {
             btnElement.classList.add('correct');
-            
-            // === 連對邏輯 ===
             streaks[player]++;
             
-            // 基礎分 10 分
+            // 連對加分機制
             let points = 10;
-            // 連對 3 次以上，分數加倍
             if(streaks[player] >= 3) {
                 points = 20;
                 statusText.innerText = `🔥 ${player === 'top' ? p1Avatar : p2Avatar} 連對加分！`;
@@ -416,28 +439,28 @@
             }
             scores[player] += points;
 
-            speakFeedback(true);
+            // 播放答對音效/語音
+            const u = new SpeechSynthesisUtterance("Yes");
+            u.rate = 1.5; synth.speak(u);
+
         } else {
             btnElement.classList.add('wrong');
-            
-            // === 答錯，連對歸零 ===
             streaks[player] = 0;
-            // 扣分
             scores[player] = Math.max(0, scores[player] - 10); 
-            
             statusText.innerText = `❌ 答錯了...`;
-            speakFeedback(false);
             
-            // 標示正確答案
+            // 顯示正確答案
             const siblings = btnElement.parentElement.children;
             for(let child of siblings) {
                 if(child.innerText === currentQ.a) child.classList.add('correct');
             }
+            
+            const u = new SpeechSynthesisUtterance("Oh no");
+            u.rate = 1.3; synth.speak(u);
         }
 
         updateUI();
 
-        // 判定勝利或下一題
         if(scores[player] >= WIN_SCORE) {
             setTimeout(() => showGameOver(player), 1000);
         } else {
@@ -448,11 +471,9 @@
     }
 
     function updateUI() {
-        // 更新分數
         document.getElementById('score-top').innerText = scores.top;
         document.getElementById('score-bottom').innerText = scores.bottom;
 
-        // 更新連對顯示 (Streak)
         updateStreakDisplay('top');
         updateStreakDisplay('bottom');
     }
@@ -461,10 +482,8 @@
         const streakContainer = document.getElementById(`streak-${player}`);
         const streakNum = document.getElementById(`streak-num-${player}`);
         const count = streaks[player];
-
         streakNum.innerText = count;
         
-        // 如果連對 >= 2 才顯示火焰
         if(count >= 2) {
             streakContainer.classList.add('active');
         } else {
@@ -500,13 +519,6 @@
         } else {
             title.innerText = "Try Again"; title.className = "end-title loser-text"; emoji.innerText = "💪";
         }
-    }
-
-    function speakFeedback(isCorrect) {
-        const text = isCorrect ? "Yes!" : "Oh no!";
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = 'en-US'; u.rate = 1.3; 
-        synth.speak(u);
     }
     
     function restartGame() {
