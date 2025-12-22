@@ -274,6 +274,25 @@
         .opt-btn.wrong { background: var(--wrong); color: white; border-color: var(--wrong); }
         .feedback { height: 24px; font-weight: bold; margin-bottom: 5px; }
 
+        /* --- 連續答對樣式 (Streak) --- */
+        .streak-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            background-color: #fff7ed;
+            color: #ea580c;
+            border: 2px solid #fdba74;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(234, 88, 12, 0.1);
+        }
+        .streak-fire { font-size: 1.2rem; animation: pulseFire 1s infinite alternate; }
+        @keyframes pulseFire { from { transform: scale(1); opacity: 0.8; } to { transform: scale(1.2); opacity: 1; } }
+
         .footer-watermark {
             margin-top: auto; padding: 20px; text-align: center;
             font-family: 'Georgia', serif; font-style: italic; color: #cbd5e1; font-size: 0.9rem; width: 100%;
@@ -443,6 +462,7 @@
         let isCoverMode = false;
         let currentMode = '';
         let currentQuestion = null;
+        let currentStreak = 0; // 新增：連對次數
 
         const tableDiv = document.getElementById('periodicTable');
         const displayPanel = document.getElementById('displayPanel');
@@ -582,6 +602,7 @@
             document.querySelectorAll('.element').forEach(e => e.classList.remove('selected'));
 
             currentMode = mode;
+            currentStreak = 0; // 開始新遊戲時歸零
             tableWrapper.classList.add('blur-mode');
             nextQuestion();
             displayPanel.style.display = 'block';
@@ -611,6 +632,9 @@
 
             let html = `
                 <div class="quiz-box">
+                    <div class="streak-badge">
+                        <span class="streak-fire">🔥</span> 連續答對: <span id="streakCount">${currentStreak}</span>
+                    </div>
                     <div style="color:#64748b;">${prompt}</div>
                     <div class="quiz-q">${qText}</div>
                     <div class="feedback" id="feedbackMsg"></div>
@@ -629,15 +653,22 @@
 
         function checkAnswer(btn, isCorrect) {
             const feedback = document.getElementById('feedbackMsg');
+            const streakDisplay = document.getElementById('streakCount');
             const allBtns = document.querySelectorAll('.opt-btn');
             allBtns.forEach(b => b.disabled = true);
 
             if (isCorrect) {
+                currentStreak++; // 答對加一
+                if(streakDisplay) streakDisplay.innerText = currentStreak;
+
                 btn.classList.add('correct');
                 feedback.style.color = 'var(--correct)';
                 feedback.textContent = '⭕ 答對了！';
                 setTimeout(nextQuestion, 800);
             } else {
+                currentStreak = 0; // 答錯歸零
+                if(streakDisplay) streakDisplay.innerText = currentStreak;
+
                 btn.classList.add('wrong');
                 feedback.style.color = 'var(--wrong)';
                 const ansText = currentMode === 'symbolToName' ? currentQuestion.z : currentQuestion.s;
