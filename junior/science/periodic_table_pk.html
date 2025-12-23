@@ -101,9 +101,21 @@
   .streak-icon { margin-right: 2px; animation: burn 0.5s infinite alternate; }
   @keyframes burn { from {transform: scale(1);} to {transform: scale(1.2);} }
 
+  /* --- 新增：逆轉提示訊息樣式 --- */
+  .catchup-msg {
+    display: none; /* 預設隱藏 */
+    background: #FF5252; color: white;
+    padding: 8px 20px; border-radius: 25px;
+    font-weight: 900; font-size: 1.1rem;
+    margin-top: 15px;
+    box-shadow: 0 0 10px rgba(255, 82, 82, 0.6);
+    animation: pulse-msg 0.8s infinite alternate;
+  }
+  @keyframes pulse-msg { from { transform: scale(1); } to { transform: scale(1.05); } }
+
   /* 題目顯示 (超大字) */
   .status-display-area {
-      flex: 1; display: flex; align-items: center; justify-content: center; width: 100%;
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;
   }
   .question-text {
       font-size: 5em; font-weight: 900; color: #333; 
@@ -212,6 +224,7 @@
         
         <div id="status-top" class="status-display-area">
             <div class="question-text" id="q-text-top">H</div>
+            <div class="catchup-msg" id="catchup-top">別放棄！你現在一題40分！</div>
         </div>
         <div id="opts-top" class="options-panel"></div>
       </div>
@@ -233,6 +246,7 @@
 
         <div id="status-bottom" class="status-display-area">
             <div class="question-text" id="q-text-bottom">H</div>
+            <div class="catchup-msg" id="catchup-bottom">別放棄！你現在一題40分！</div>
         </div>
         <div id="opts-bottom" class="options-panel"></div>
       </div>
@@ -244,8 +258,7 @@
     document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
     document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
 
-    // === 資料庫：來自您之前的「元素週期表」 ===
-    // s: 符號, z: 中文, isBasic: 基礎版標記
+    // === 資料庫 ===
     const allElements = [
         { s: 'H', z: '氫', isBasic: true }, { s: 'He', z: '氦', isBasic: true },
         { s: 'Li', z: '鋰', isBasic: true }, { s: 'Be', z: '鈹', isBasic: true },
@@ -261,7 +274,6 @@
         { s: 'Zn', z: '鋅', isBasic: true }, { s: 'Ag', z: '銀', isBasic: true },
         { s: 'Au', z: '金', isBasic: true }, { s: 'Hg', z: '汞', isBasic: true },
         { s: 'Br', z: '溴', isBasic: true }, { s: 'I', z: '碘', isBasic: true },
-        // --- 挑戰版增補 ---
         { s: 'Ti', z: '鈦', isBasic: false }, { s: 'Cr', z: '鉻', isBasic: false },
         { s: 'Mn', z: '錳', isBasic: false }, { s: 'Ni', z: '鎳', isBasic: false },
         { s: 'As', z: '砷', isBasic: false }, { s: 'Kr', z: '氪', isBasic: false },
@@ -278,13 +290,13 @@
     // 變數
     const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
     let p1Avatar = '🦊'; let p2Avatar = '🐰'; 
-    let activeElements = []; // 根據難度篩選後的題庫
+    let activeElements = []; 
     let currentQ = null;
     let gameState = 'idle'; 
     let scores = { top: 0, bottom: 0 };
     let streaks = { top: 0, bottom: 0 };
     let isProcessingAnswer = false; 
-    const WIN_SCORE = 300; // 300分獲勝
+    const WIN_SCORE = 300; 
 
     // DOM
     const optsTop = document.getElementById('opts-top');
@@ -296,6 +308,10 @@
     const cdOverlay = document.getElementById('countdown-overlay');
     const cdText = document.getElementById('cd-text');
     const cdNum = document.getElementById('cd-num');
+    
+    // 逆轉提示
+    const catchupTop = document.getElementById('catchup-top');
+    const catchupBottom = document.getElementById('catchup-bottom');
 
     // 初始化選角
     function initSetup() {
@@ -321,24 +337,21 @@
       });
     }
 
-    // === 開始遊戲 (接收難度參數) ===
+    // === 開始遊戲 ===
     function startGame(isBasicMode) {
-        // 1. 篩選題庫
         if (isBasicMode) {
             activeElements = allElements.filter(el => el.isBasic);
             statusText.innerText = "難度：國中基礎";
         } else {
-            activeElements = allElements; // 挑戰版包含所有元素
+            activeElements = allElements; 
             statusText.innerText = "難度：學霸挑戰";
         }
 
-        // 2. 切換介面
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('game-container').style.display = 'flex';
         document.getElementById('p1-avatar-display').innerText = p1Avatar;
         document.getElementById('p2-avatar-display').innerText = p2Avatar;
 
-        // 3. 倒數開始
         runCountdown(3, "準備背誦！", startQuestionLoop);
     }
 
@@ -360,20 +373,17 @@
         }, 1000);
     }
 
-    // === 出題迴圈 ===
+    // === 出題 ===
     function startQuestionLoop() {
         if(gameState === 'ended') return;
 
-        // 1. 隨機抽元素
         const target = activeElements[Math.floor(Math.random() * activeElements.length)];
-        
-        // 2. 隨機決定題型: 0=看符號選中文, 1=看中文選符號
+        // 0=看符號選中文, 1=看中文選符號
         const type = Math.random() > 0.5 ? 0 : 1;
         
-        let questionDisplay = (type === 0) ? target.s : target.z; // 題目
-        let answerText = (type === 0) ? target.z : target.s;      // 正解文字
+        let questionDisplay = (type === 0) ? target.s : target.z; 
+        let answerText = (type === 0) ? target.z : target.s;      
         
-        // 3. 產生選項 (1正3誤)
         let options = [target];
         while (options.length < 4) {
             const wrong = activeElements[Math.floor(Math.random() * activeElements.length)];
@@ -381,7 +391,7 @@
                 options.push(wrong);
             }
         }
-        options.sort(() => Math.random() - 0.5); // 打亂
+        options.sort(() => Math.random() - 0.5); 
 
         currentQ = {
             target: target,
@@ -390,14 +400,12 @@
             options: options
         };
 
-        // 4. 更新UI
         gameState = 'answering';
         isProcessingAnswer = false;
         
         qTextTop.innerText = questionDisplay;
         qTextBottom.innerText = questionDisplay;
         
-        // 產生按鈕
         generateOptions(optsTop, 'top');
         generateOptions(optsBottom, 'bottom');
     }
@@ -407,42 +415,53 @@
         currentQ.options.forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'opt-btn';
-            
-            // 如果題型是0(看符號)，選項顯示中文(z)
-            // 如果題型是1(看中文)，選項顯示符號(s)
             btn.innerText = (currentQ.type === 0) ? opt.z : opt.s;
-            
             btn.onclick = () => checkAnswer(player, opt, btn);
             container.appendChild(btn);
         });
     }
 
-    // === 判斷答案 ===
+    // === 判斷答案 (包含逆轉邏輯) ===
     function checkAnswer(player, selectedOpt, btn) {
         if (isProcessingAnswer) return;
         isProcessingAnswer = true;
 
         const isCorrect = (selectedOpt === currentQ.target);
+        
+        // 計算分差，判斷是否落後超過 100
+        const opponent = player === 'top' ? 'bottom' : 'top';
+        const gap = scores[opponent] - scores[player];
+        const isCatchingUp = gap > 100;
 
         if (isCorrect) {
             btn.classList.add('correct');
-            // 連對加分邏輯
-            streaks[player]++;
-            let addScore = 10;
-            if (streaks[player] >= 3) {
-                addScore = 20; // 連對獎勵
-                statusText.innerText = `🔥 ${player==='top'?p1Avatar:p2Avatar} 連對爆發！`;
+            
+            // 計分邏輯
+            let addScore = 10; 
+            
+            if (isCatchingUp) {
+                // 落後超過 100 分，強制 40 分
+                addScore = 40;
+                statusText.innerText = "⚡ 逆轉衝刺！ +40";
             } else {
-                statusText.innerText = "⭕ 答對了！";
+                // 正常狀況
+                streaks[player]++;
+                if (streaks[player] >= 3) {
+                    addScore = 20; 
+                    statusText.innerText = `🔥 ${player==='top'?p1Avatar:p2Avatar} 連對加分！`;
+                } else {
+                    statusText.innerText = "⭕ 答對了！";
+                }
             }
+            
             scores[player] += addScore;
+
         } else {
             btn.classList.add('wrong');
-            streaks[player] = 0; // 斷掉連對
-            scores[player] = Math.max(0, scores[player] - 10); // 倒扣
+            streaks[player] = 0; 
+            scores[player] = Math.max(0, scores[player] - 10); 
             statusText.innerText = "❌ 答錯了...";
             
-            // 標示正確答案
             const siblings = btn.parentElement.children;
             for(let child of siblings) {
                 if(child.innerText === currentQ.ansText) child.classList.add('correct');
@@ -456,15 +475,31 @@
         } else {
             setTimeout(() => {
                 startQuestionLoop();
-            }, 1000); // 1秒後下一題
+            }, 1000); 
         }
     }
 
+    // 更新 UI (包含逆轉提示)
     function updateUI() {
         document.getElementById('score-top').innerText = scores.top;
         document.getElementById('score-bottom').innerText = scores.bottom;
         updateStreak('top');
         updateStreak('bottom');
+        
+        // 逆轉提示顯示邏輯
+        // Top 落後 > 100 -> 顯示 top 提示
+        if (scores.bottom - scores.top > 100) {
+            catchupTop.style.display = 'block';
+        } else {
+            catchupTop.style.display = 'none';
+        }
+        
+        // Bottom 落後 > 100 -> 顯示 bottom 提示
+        if (scores.top - scores.bottom > 100) {
+            catchupBottom.style.display = 'block';
+        } else {
+            catchupBottom.style.display = 'none';
+        }
     }
 
     function updateStreak(player) {
@@ -511,8 +546,6 @@
         document.getElementById('end-bottom').style.display = 'none';
         mainGameBtn.style.display = 'none';
         
-        // 回到設定畫面重新選難度 (如果你想直接重玩同一難度，可以直接 call startGame)
-        // 這裡我們設計成回到選單，讓他們可以換人或換難度
         document.getElementById('game-container').style.display = 'none';
         document.getElementById('setup-screen').style.display = 'flex';
     }
