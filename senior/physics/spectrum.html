@@ -68,19 +68,46 @@
             display: flex; flex-direction: column; gap: 20px; align-items: center;
         }
 
-        /* 宏觀場景 */
+        /* 宏觀場景 (修正對齊與亮度) */
         .macro-stage {
             width: 100%; max-width: 800px; height: 180px; position: relative;
             background: #111; border: 1px solid var(--border-color); border-radius: 12px;
-            overflow: hidden; display: flex; align-items: center;
+            overflow: hidden; 
+            /* 移除這裡的 align-items，改用絕對定位控制垂直置中 */
         }
-        .comp { position: absolute; text-align: center; transition: opacity 1s; z-index: 2; }
-        .comp span { font-size: 2rem; display: block; }
-        .comp label { font-size: 0.8rem; color: #888; white-space: nowrap;}
-        #source { left: 5%; } #gas { left: 35%; opacity: 0; transition: opacity 1.5s ease; } #prism { left: 65%; }
-        .cloud { width: 100px; height: 70px; background: radial-gradient(circle, rgba(100,181,246,0.4) 0%, rgba(0,0,0,0) 70%); filter: blur(10px); border-radius: 50%; animation: float 4s infinite ease-in-out; }
+        .comp { 
+            position: absolute; 
+            top: 50%; /* 強制垂直置中 */
+            transform: translateY(-50%); /* 修正偏移 */
+            text-align: center; 
+            transition: opacity 1s; 
+            z-index: 2; 
+        }
+        .comp span { font-size: 2.5rem; display: block; line-height: 1; margin-bottom: 5px; } /* 增大圖示 */
+        .comp label { font-size: 0.85rem; color: #aaa; white-space: nowrap;}
+        
+        #source { left: 5%; } 
+        #gas { left: 35%; opacity: 0; transition: opacity 1.5s ease; } 
+        #prism { left: 65%; }
+        
+        /* 氣體雲 (增強亮度) */
+        .cloud { 
+            width: 120px; height: 80px; 
+            /* 增加不透明度 0.4 -> 0.6，並加亮顏色 */
+            background: radial-gradient(circle, rgba(100, 181, 246, 0.6) 0%, rgba(0,0,0,0) 70%); 
+            filter: blur(8px); 
+            border-radius: 50%; 
+            animation: float 4s infinite ease-in-out; 
+            margin-bottom: 5px;
+        }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .beam { position: absolute; height: 6px; top: 50%; margin-top: -3px; background: #fff; z-index: 1; transition: opacity 1s, background 1s; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+        
+        /* 光束 */
+        .beam { 
+            position: absolute; height: 6px; top: 50%; margin-top: -3px; 
+            background: #fff; z-index: 1; transition: opacity 1s, background 1s; 
+            box-shadow: 0 0 10px rgba(255,255,255,0.7); /* 增強發光感 */
+        }
 
         /* 光譜 */
         .spectrum-wrapper { width: 100%; max-width: 800px; position: relative; }
@@ -139,7 +166,7 @@
         .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
         .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
 
-        /* === 2. 浮水印樣式 (方案C：霓虹發光風) === */
+        /* 浮水印樣式 (方案C：霓虹發光風) */
         .watermark {
             position: absolute;
             bottom: 20px;
@@ -151,15 +178,12 @@
             font-size: 1.2rem;
             pointer-events: none;
             z-index: 100;
-
-            /* 核心：多層次光暈模擬霓虹燈 */
             color: #fff;
             text-shadow: 
-                0 0 5px #fff,               /* 內層白光 */
-                0 0 10px var(--accent),     /* 中層淺藍光 */
-                0 0 20px var(--accent),     /* 外層擴散光 */
-                0 0 40px var(--primary-color); /* 遠處氛圍光 */
-            
+                0 0 5px #fff,
+                0 0 10px var(--accent),
+                0 0 20px var(--accent),
+                0 0 40px var(--primary-color);
             letter-spacing: 1px;
             opacity: 0.9;
         }
@@ -240,11 +264,11 @@
     <script>
         // === 資料庫 ===
         const elementsData = {
-            'H': { name: '氫 (H)', lines: [656.3, 486.1, 434.0, 410.2], color: 'rgba(100,181,246,0.4)' },
-            'He': { name: '氦 (He)', lines: [667.8, 587.6, 501.6, 471.3, 447.1], color: 'rgba(255,200,100,0.4)' },
-            'Na': { name: '鈉 (Na)', lines: [589.0], color: 'rgba(255,215,0,0.6)' },
-            'Hg': { name: '汞 (Hg)', lines: [579.1, 546.1, 435.8, 404.7], color: 'rgba(0,255,255,0.4)' },
-            'Ne': { name: '氖 (Ne)', lines: [640.2, 614.3, 585.2, 540.1], color: 'rgba(255,50,50,0.5)' }
+            'H': { name: '氫 (H)', lines: [656.3, 486.1, 434.0, 410.2], color: 'rgba(100,181,246,0.6)' }, // 加深顏色
+            'He': { name: '氦 (He)', lines: [667.8, 587.6, 501.6, 471.3, 447.1], color: 'rgba(255,200,100,0.6)' },
+            'Na': { name: '鈉 (Na)', lines: [589.0], color: 'rgba(255,215,0,0.7)' },
+            'Hg': { name: '汞 (Hg)', lines: [579.1, 546.1, 435.8, 404.7], color: 'rgba(0,255,255,0.6)' },
+            'Ne': { name: '氖 (Ne)', lines: [640.2, 614.3, 585.2, 540.1], color: 'rgba(255,50,50,0.7)' }
         };
         const baseLevelHeight = 20; // 基態高度 px
         const excitedLevelHeights = [70, 100, 130, 160, 190, 220, 250]; 
@@ -331,7 +355,7 @@
             if (state.mode === 'absorption' && state.targetMode === 'emission') rainbowAlpha = 1 - state.fadeProgress;
             if (state.mode === 'emission' && state.targetMode === 'absorption') rainbowAlpha = state.fadeProgress;
             
-            // 繪製連續光譜 (彩虹)
+            // 確保連續光譜(彩虹)被繪製
             if (rainbowAlpha > 0) {
                 const grad = ctx.createLinearGradient(0, 0, w, 0);
                 for (let i = 0; i <= 20; i++) { let pct = i / 20; let wl = maxW - pct * (maxW - minW); grad.addColorStop(pct, wlToColor(wl)); }
@@ -344,7 +368,6 @@
             else if (state.mode === 'absorption' && state.targetMode === 'emission') { lineType = 'bright'; lineAlpha = state.fadeProgress; }
             else if (state.mode === 'emission') { lineType = 'bright'; lineAlpha = 1; }
 
-            // 繪製譜線
             if (lineType !== 'none') {
                 ctx.globalAlpha = lineAlpha;
                 state.mappedLines.forEach(line => {
@@ -407,12 +430,8 @@
             if (state.mode === 'absorption') {
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
                 const wave = createWave(lineData.color);
-                
-                // 動畫設為 1.0秒
                 wave.style.animation = 'absorb-wave 1.0s linear forwards';
                 photonCont.appendChild(wave);
-
-                // 在 950ms 時 (光波打中電子瞬間) 觸發電子跳躍
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-out'; electron.style.bottom = endH + 'px';
                     microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至較高能階。`;
@@ -426,18 +445,15 @@
                         wave.style.animation = 'emit-wave 1.0s linear forwards';
                         photonCont.appendChild(wave);
                         microText.innerHTML = `躍遷回基態，發射 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子。`;
-                    }, 500); // 電子落地後發射
+                    }, 500); 
                 }, 100);
             }
         }
 
         function createWave(color) {
             const w = document.createElement('div'); w.className = 'photon-wave';
-            w.style.color = color; // 將顏色傳給 CSS currentColor
-            // 修正定位：bottom 設為與基態一致 (20px)，確保與電子在同一水平線
-            w.style.bottom = baseLevelHeight + 'px'; 
-            // 移除 top 屬性，避免它飄在空中
-            w.style.top = 'auto'; 
+            w.style.color = color; 
+            w.style.bottom = baseLevelHeight + 'px'; w.style.top = 'auto'; 
             return w;
         }
 
