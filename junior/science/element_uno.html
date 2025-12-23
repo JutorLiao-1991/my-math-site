@@ -192,7 +192,24 @@
                 alert("房主已離開，房間解散！");
                 location.reload(); // 強制重整頁面回到首頁
                 return;
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+
+         // 1. 先判斷現在是不是在「登入畫面」
+         // (假設你的登入頁面 ID 是 screen-login，如果不確定可以看 HTML)
+            const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
+
+            if (!data) {
+        // 2. 修改判斷：只有在「不在登入畫面」（代表已經在玩或在等候室）時，才算異常
+                if (!isLoginScreen) {
+                    alert("房主已離開，房間解散！");
+                    location.reload(); 
+               }
+        // 如果還在登入畫面，遇到空房間是正常的 (代表你是第一個來的)，直接 return 即可
+                return; 
             }
+
+    // ... (下面原本的 const playersMap = ... 保持不動)
 
             const playersMap = data.players || {};
             // 檢查自己是否還在名單上
