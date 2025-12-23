@@ -191,7 +191,9 @@
         // --- 監聽房間狀態 (防卡死 + 遊戲邏輯) ---
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            
+            // 【加入這行】由這行來當守門員！
+            // 如果我還沒設定名字 (代表我還沒按加入)，就直接無視後面的更新，讓我乖乖待在登入畫面
+            if (myName === "") return;
             // 判斷現在是否在登入畫面
             const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
 
