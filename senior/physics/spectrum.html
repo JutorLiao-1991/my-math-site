@@ -141,26 +141,29 @@
 
         /* 浮水印樣式 (方案B：科技感標籤) 
            位置改為右下角，增加邊框與背景，提升識別度
-        */
-        .watermark { 
-            position: absolute; 
-            bottom: 15px; 
-            right: 20px; 
-            left: auto; /* 取消左對齊 */
-            font-family: 'Segoe UI', sans-serif; /* 改用無襯線體更現代 */
+        /* 浮水印樣式 (方案C：霓虹發光風) */
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            right: 25px;
+            left: auto; /* 確保靠右 */
+            font-family: 'Segoe UI', sans-serif;
             font-weight: bold;
-            color: var(--accent); /* 使用主題藍色 */
-            font-size: 0.9rem; 
-            pointer-events: none; 
+            font-style: italic; /* 加點斜體更像招牌 */
+            font-size: 1.2rem;  /* 字體稍微加大 */
+            pointer-events: none;
             z-index: 100;
+
+            /* 核心：多層次光暈模擬霓虹燈 */
+            color: #fff;
+            text-shadow: 
+                0 0 5px #fff,               /* 內層白光 */
+                0 0 10px var(--accent),     /* 中層淺藍光 */
+                0 0 20px var(--accent),     /* 外層擴散光 */
+                0 0 40px var(--primary-color); /* 遠處氛圍光 */
             
-            /* 增加邊框與背景讓其更像一個 UI 元件 */
-            padding: 5px 12px;
-            border: 1px solid rgba(100, 181, 246, 0.4);
-            border-radius: 20px;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(2px);
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            opacity: 0.9;
         }
 
         @media (max-width: 800px) {
