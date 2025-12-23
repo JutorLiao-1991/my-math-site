@@ -105,7 +105,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
@@ -162,17 +162,37 @@
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
-            const myRef = ref(db, `rooms/${ROOM_ID}/players/${myId}`);
-            update(myRef, { name: myName });
-            onDisconnect(myRef).remove(); // 斷線自動刪除
+            // 先讀取一次資料庫，檢查現在房間裡有沒有人
+            get(ref(db, `rooms/${ROOM_ID}/players`)).then((snapshot) => {
+                const players = snapshot.val() || {};
+                const isFirstPlayer = Object.keys(players).length === 0;
 
-            document.getElementById('my-name-display').innerText = `我: ${myName}`;
-            switchScreen('screen-lobby');
+                const myRef = ref(db, `rooms/${ROOM_ID}/players/${myId}`);
+                
+                if (isFirstPlayer) {
+                    // ★ 關鍵修改：如果是第一個進來的人(房主)，設定「斷線時刪除整個房間」
+                    onDisconnect(roomRef).remove();
+                    console.log("我是房主，設定斷線移除房間");
+                } else {
+                    // 如果不是房主，設定「斷線時只移除我自己」
+                    onDisconnect(myRef).remove();
+                }
+
+                // 接著才執行原本的加入動作
+                update(myRef, { name: myName });
+                
+                document.getElementById('my-name-display').innerText = `我: ${myName}`;
+                switchScreen('screen-lobby');
+            });
         };
 
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            if(!data) return; // 空房間
+            if (!data) {
+                alert("房主已離開，房間解散！");
+                location.reload(); // 強制重整頁面回到首頁
+                return;
+            }
 
             const playersMap = data.players || {};
             // 檢查自己是否還在名單上
