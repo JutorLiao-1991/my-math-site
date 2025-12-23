@@ -122,6 +122,7 @@
         const ROOM_ID = "class_room_101";
         const roomRef = ref(db, 'rooms/' + ROOM_ID);
 
+        // 使用時間戳當 ID 解決排序問題
         let myId = 'user_' + Date.now(); 
         
         let myName = "";
@@ -130,21 +131,69 @@
         let currentTopCard = null;
         let isMyTurn = false;
 
+        // ★★★ V7 全新擴充卡牌庫 ★★★
         const allCards = [
+            // --- Pink (1A族) ---
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
             { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
             { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
+            { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
+            { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
+            { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
+
+            // --- Yellow (2A族) ---
             { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow", group: "2A" },
             { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow", group: "2A" },
-            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow" },
-            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A" },
-            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A" },
-            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A" },
+            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow", group: "2A" },
+            { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
+            { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
+            { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
+
+            // --- Blue (過渡金屬/貧金屬) - 代表金屬工業 ---
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans" },
+            { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
+            { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
+            { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
+            { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
+            { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
+            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
+            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" },
+            { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
+            { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
+
+            // --- Green (非金屬/生命元素) ---
+            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
+            { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
+            { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
+            { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" },
+            { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
+            { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
+            { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
+
+            // --- Action: Draw 2 (+2) - 鹵素 (Green) ---
+            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
+            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
+            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
+            { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+
+            // --- Action: Skip (跳過) - 惰性氣體 (Purple) ---
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
-            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" }
+            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
+            { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
+            { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
+
+            // --- Action: Wild (轉色) - 貴金屬/液態金屬 ---
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "gold", group: "Wild", action: "wild" },
+
+            // --- Action: Wild Draw 4 (+4) - 核能元素 ---
+            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" }
         ];
 
         function switchScreen(screenId) {
@@ -171,16 +220,12 @@
                 
                 if (isFirstPlayer) {
                     onDisconnect(roomRef).remove();
-                    console.log("我是房主，設定斷線移除房間");
-                    // ★★★ 關鍵修正：直接在資料庫裡寫下「我是房主 (hostId)」
-                    // 這樣就不用靠猜測列表順序了
                     update(roomRef, { hostId: myId });
                 } else {
                     onDisconnect(myRef).remove();
                 }
 
                 update(myRef, { name: myName });
-                
                 document.getElementById('my-name-display').innerText = `我: ${myName}`;
                 switchScreen('screen-lobby');
             });
@@ -188,8 +233,6 @@
 
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            
-            // 守門員：沒名字前不准切換畫面
             if (myName === "") return; 
 
             const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
@@ -203,7 +246,6 @@
             }
 
             const playersMap = data.players || {};
-            
             if (!isLoginScreen) {
                  if (!playersMap[myId]) {
                      alert('你已斷線，請重新登入');
@@ -214,17 +256,23 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
             
+            // 處理抽牌懲罰 (Draw 2 / Draw 4)
+            if (data.drawPenalty && data.drawPenalty.targetId === myId && data.status === 'playing') {
+                handleDrawPenalty(data.drawPenalty.count);
+                return;
+            }
+
             if (playerList.length === 1 && data.status !== 'waiting') {
                 update(roomRef, {
                     status: 'waiting',
                     msg: '新局開始，等待加入...',
                     winnerName: null,
-                    topCard: null
+                    topCard: null,
+                    drawPenalty: null
                 });
                 return; 
             }
 
-            // 傳入完整的 data (包含 hostId)
             if (data.status === 'playing') {
                 if(!document.getElementById('screen-game').classList.contains('active')){
                     switchScreen('screen-game');
@@ -236,26 +284,33 @@
                 switchScreen('screen-gameover');
                 myHand = [];
             } else {
-                updateLobbyUI(data, playerList); // 這裡改了，傳入 data
+                updateLobbyUI(data, playerList);
                 if(!document.getElementById('screen-lobby').classList.contains('active')) {
                      switchScreen('screen-lobby');
                 }
             }
         });
 
-        function updateLobbyUI(data, playerList) {
-            // ★★★ 關鍵修正：取出資料庫紀錄的 hostId
-            const realHostId = data.hostId;
+        // 處理被懲罰抽牌的邏輯
+        function handleDrawPenalty(count) {
+             alert(`你被攻擊了！必須抽 ${count} 張牌並暫停一回合。`);
+             for(let i=0; i<count; i++) {
+                 myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+             }
+             renderHand();
+             // 執行完懲罰後，清除懲罰標記 (設為 null)
+             update(roomRef, { drawPenalty: null });
+        }
 
+        function updateLobbyUI(data, playerList) {
+            const realHostId = data.hostId;
             const listDiv = document.getElementById('player-list');
             listDiv.innerHTML = playerList.map(p => 
-                // 這裡不再判斷列表第一個，而是判斷「ID 是否等於 hostId」
                 `<div class="player-row ${p.id === myId ? 'me' : ''}">
                     <span>${p.name}</span> ${p.id === realHostId ? '<span class="host">★房主</span>' : ''}
                 </div>`
             ).join('');
 
-            // 這裡也改成用 ID 判斷
             if (myId === realHostId) {
                 document.getElementById('btn-start').style.display = 'block';
                 document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
@@ -270,6 +325,7 @@
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
                 let startCard;
+                // 確保第一張牌不是功能牌
                 do { startCard = allCards[Math.floor(Math.random() * allCards.length)]; } while (startCard.action);
 
                 update(roomRef, {
@@ -278,7 +334,8 @@
                     currentTurnIndex: 0,
                     topCard: startCard,
                     msg: "遊戲開始！",
-                    winnerName: null
+                    winnerName: null,
+                    drawPenalty: null
                 });
             }, { onlyOnce: true });
         };
@@ -320,7 +377,22 @@
             const cardIndex = myHand.findIndex(c => c.id === cardId);
             const selectedCard = myHand[cardIndex];
 
-            if (selectedCard.c !== currentTopCard.c && selectedCard.p !== currentTopCard.p) {
+            // 萬用牌 (Wild/Wild4) 隨時可以出
+            // 普通牌需對色或對週期
+            let canPlay = false;
+            if (selectedCard.action === 'wild' || selectedCard.action === 'wild4') {
+                canPlay = true;
+            } else if (currentTopCard.action === 'wild' || currentTopCard.action === 'wild4') {
+                // 如果上一張是 Wild，這裡簡化規則：任何牌都能接 (實際上通常要指定顏色，這裡簡化為"自由接")
+                canPlay = true; 
+            } else {
+                // 對顏色 (同族) OR 對週期 (同數字)
+                if (selectedCard.c === currentTopCard.c || selectedCard.p === currentTopCard.p) {
+                    canPlay = true;
+                }
+            }
+
+            if (!canPlay) {
                 alert(`不能出這張！\n需要符合顏色或週期`);
                 return;
             }
@@ -337,19 +409,38 @@
                 return;
             }
 
+            // 計算下家
             onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
                 let currentIndex = snap.val() || 0;
                 let jump = 1;
                 let msgAction = "";
+                let penalty = null;
+                const nextPlayerIndex = (currentIndex + 1) % playerOrder.length;
+                const nextPlayerId = playerOrder[nextPlayerIndex];
+
+                // 處理功能牌邏輯
                 if (selectedCard.action === 'skip') {
-                    jump = 2;
+                    jump = 2; 
                     msgAction = "(下家被跳過!)";
+                } else if (selectedCard.action === 'draw2') {
+                    jump = 2; // 跳過下家，但他要抽牌
+                    msgAction = "(下家抽2張!)";
+                    penalty = { targetId: nextPlayerId, count: 2 };
+                } else if (selectedCard.action === 'wild4') {
+                    jump = 2; // 跳過下家，但他要抽牌
+                    msgAction = "(核能爆炸! 下家抽4張!)";
+                    penalty = { targetId: nextPlayerId, count: 4 };
+                } else if (selectedCard.action === 'wild') {
+                    msgAction = "(轉色!)";
                 }
+
                 let nextIndex = (currentIndex + jump) % playerOrder.length;
+                
                 update(roomRef, {
                     topCard: selectedCard,
                     currentTurnIndex: nextIndex,
-                    msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`
+                    msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
+                    drawPenalty: penalty
                 });
             }, { onlyOnce: true });
         };
@@ -373,12 +464,38 @@
         }
 
         function createCardHTML(card, isClickable = false) {
-             let actionBadge = card.action ? `<span class="action-badge">${card.action.toUpperCase()}</span>` : '';
+             let actionBadge = '';
+             let extraClass = '';
+             
+             if (card.action === 'draw2') {
+                 actionBadge = `<span class="action-badge" style="background:#d35400">+2</span>`;
+             } else if (card.action === 'skip') {
+                 actionBadge = `<span class="action-badge" style="background:#8e44ad">SKIP</span>`;
+             } else if (card.action === 'wild') {
+                 actionBadge = `<span class="action-badge" style="background:linear-gradient(45deg, gold, white);">WILD</span>`;
+                 extraClass = 'card-wild';
+             } else if (card.action === 'wild4') {
+                 actionBadge = `<span class="action-badge" style="background:black; color:yellow;">+4</span>`;
+                 extraClass = 'card-wild4';
+             }
+
+             // 處理卡片背景色
+             let bgStyle = '';
+             if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
+             else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
+             else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
+             
+             // 如果沒有特殊樣式，使用預設 CSS class
+             let classColor = (bgStyle === '') ? card.c : '';
+
+             // U (鈾) 的特殊文字顏色
+             let textColor = card.id === 'U' ? 'color: #f1c40f;' : '';
+
              return `
-            <div class="card ${card.c}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
+            <div class="card ${classColor} ${extraClass}" style="${bgStyle} ${textColor}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
                 <span class="atomic">${card.at}</span>
                 <span class="symbol">${card.s}</span>
-                <span class="name">${card.name || card.n}</span>
+                <span class="name">${card.n}</span>
                 ${actionBadge}
             </div>`;
         }
