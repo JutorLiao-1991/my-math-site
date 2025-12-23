@@ -163,11 +163,11 @@
             if(!myName) return alert("請輸入名字！");
 
             // 先讀取一次資料庫，檢查現在房間裡有沒有人
-            get(ref(db, `rooms/${ROOM_ID}/players`)).then((snapshot) => {
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                 const players = snapshot.val() || {};
                 const isFirstPlayer = Object.keys(players).length === 0;
 
-                const myRef = ref(db, `rooms/${ROOM_ID}/players/${myId}`);
+                const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
                 
                 if (isFirstPlayer) {
                     // ★ 關鍵修改：如果是第一個進來的人(房主)，設定「斷線時刪除整個房間」
