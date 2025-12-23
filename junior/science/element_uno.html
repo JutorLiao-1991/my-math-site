@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v7</title>
+    <title>鳩特元素 UNO v7 - 穩定版</title>
     <style>
         /* --- V5/V6 樣式保留 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
@@ -122,7 +122,6 @@
         const ROOM_ID = "class_room_101";
         const roomRef = ref(db, 'rooms/' + ROOM_ID);
 
-        // ★ 修正 1: 改用「時間」當 ID，確保先來的人排在前面 (解決房主亂跳問題)
         let myId = 'user_' + Date.now(); 
         
         let myName = "";
@@ -173,6 +172,9 @@
                 if (isFirstPlayer) {
                     onDisconnect(roomRef).remove();
                     console.log("我是房主，設定斷線移除房間");
+                    // ★★★ 關鍵修正：直接在資料庫裡寫下「我是房主 (hostId)」
+                    // 這樣就不用靠猜測列表順序了
+                    update(roomRef, { hostId: myId });
                 } else {
                     onDisconnect(myRef).remove();
                 }
@@ -187,7 +189,7 @@
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             
-            // ★ 修正 2: 這裡是最重要的守門員，沒名字前不准切換畫面 (解決手機卡死問題)
+            // 守門員：沒名字前不准切換畫面
             if (myName === "") return; 
 
             const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
@@ -202,7 +204,6 @@
 
             const playersMap = data.players || {};
             
-            // 檢查自己是否還在名單上
             if (!isLoginScreen) {
                  if (!playersMap[myId]) {
                      alert('你已斷線，請重新登入');
@@ -223,6 +224,7 @@
                 return; 
             }
 
+            // 傳入完整的 data (包含 hostId)
             if (data.status === 'playing') {
                 if(!document.getElementById('screen-game').classList.contains('active')){
                     switchScreen('screen-game');
@@ -234,22 +236,27 @@
                 switchScreen('screen-gameover');
                 myHand = [];
             } else {
-                updateLobbyUI(playerList);
+                updateLobbyUI(data, playerList); // 這裡改了，傳入 data
                 if(!document.getElementById('screen-lobby').classList.contains('active')) {
                      switchScreen('screen-lobby');
                 }
             }
         });
 
-        function updateLobbyUI(playerList) {
+        function updateLobbyUI(data, playerList) {
+            // ★★★ 關鍵修正：取出資料庫紀錄的 hostId
+            const realHostId = data.hostId;
+
             const listDiv = document.getElementById('player-list');
             listDiv.innerHTML = playerList.map(p => 
+                // 這裡不再判斷列表第一個，而是判斷「ID 是否等於 hostId」
                 `<div class="player-row ${p.id === myId ? 'me' : ''}">
-                    <span>${p.name}</span> ${p.id === playerList[0].id ? '<span class="host">★房主</span>' : ''}
+                    <span>${p.name}</span> ${p.id === realHostId ? '<span class="host">★房主</span>' : ''}
                 </div>`
             ).join('');
 
-            if (playerList.length > 0 && playerList[0].id === myId) {
+            // 這裡也改成用 ID 判斷
+            if (myId === realHostId) {
                 document.getElementById('btn-start').style.display = 'block';
                 document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
             } else {
