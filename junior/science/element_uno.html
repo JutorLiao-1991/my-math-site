@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鳩特元素 UNO - 連線測試版</title>
+    <style>
+        /* --- 樣式設定 --- */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
+        
+        h2 { margin: 10px; font-size: 1.2rem; color: #ecf0f1; }
+        
+        /* 遊戲區域 */
+        #game-board { 
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            width: 100%; max-width: 600px;
+        }
+
+        /* 牌桌上的牌 */
+        .table-slot {
+            width: 120px; height: 160px;
+            border: 2px dashed rgba(255,255,255,0.3);
+            border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            margin-bottom: 20px;
+        }
+
+        /* 卡牌樣式 */
+        .card {
+            width: 100px; height: 140px;
+            background: white;
+            border-radius: 10px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+            transition: transform 0.2s, top 0.2s;
+            color: #333;
+            user-select: none;
+        }
+        .card:active { transform: scale(0.95); }
+
+        /* 卡牌內部細節 */
+        .atomic { position: absolute; top: 5px; left: 8px; font-size: 12px; font-weight: bold; }
+        .symbol { font-size: 40px; font-weight: 800; }
+        .name { font-size: 16px; margin-top: 5px; font-weight: 600; }
+        
+        /* 顏色/族分類 */
+        .card.pink { background: #ffeef0; border: 3px solid #e91e63; }    /* 1A */
+        .card.yellow { background: #fff8e1; border: 3px solid #ffc107; }  /* 2A */
+        .card.blue { background: #e3f2fd; border: 3px solid #2196f3; }    /* B族 */
+        .card.green { background: #e8f5e9; border: 3px solid #4caf50; }   /* 7A */
+        .card.purple { background: #f3e5f5; border: 3px solid #9c27b0; }  /* 8A */
+
+        /* 手牌區 */
+        #hand-area {
+            background: rgba(0,0,0,0.3);
+            width: 100%;
+            height: 180px;
+            padding: 10px;
+            overflow-x: auto;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        #status-msg { font-size: 1rem; color: #f1c40f; margin-bottom: 10px; min-height: 24px;}
+        
+        /* 連線狀態燈 */
+        .connection-status { position: absolute; top: 10px; right: 10px; font-size: 12px; color: #00e676; }
+    </style>
+</head>
+<body>
+
+    <div class="connection-status">● 連線正常</div>
+    <h2>鳩特元素 UNO</h2>
+    
+    <div id="status-msg">正在同步遊戲資料...</div>
+
+    <div id="game-board">
+        <div style="margin-bottom:5px; font-size:0.9rem; color:#aaa;">檯面上的牌</div>
+        <div id="table-slot" class="table-slot"></div>
+    </div>
+
+    <div id="hand-area">
+        </div>
+
+    <script type="module">
+        // 1. 改用 CDN 引入，這樣不需要打包工具也能跑
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // 2. 你的設定檔 (我已經填好你剛剛給我的)
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
+            authDomain: "element-uno.firebaseapp.com",
+            databaseURL: "https://element-uno-default-rtdb.firebaseio.com",
+            projectId: "element-uno",
+            storageBucket: "element-uno.firebasestorage.app",
+            messagingSenderId: "665324599764",
+            appId: "1:665324599764:web:d151cd9014e600fcd53e41"
+        };
+
+        // 初始化 Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // ---------------- 遊戲資料設定 ----------------
+        
+        // 簡易牌庫 (模擬 UNO 顏色與數字)
+        // Group(顏色): 1A=pink, 2A=yellow, B=blue, 7A=green, 8A=purple
+        // Period(數字): 週期數
+        const allCards = [
+            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink" },
+            { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink" },
+            { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink" },
+            { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink" },
+            
+            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow" },
+            { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow" },
+            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow" },
+
+            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green" },
+            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green" },
+            
+            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple" },
+            { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple" },
+            { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple" }
+        ];
+
+        // 隨機產生 5 張手牌給這個玩家 (僅本地端暫存)
+        let myHand = [];
+        for(let i=0; i<5; i++) {
+            myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+        }
+
+        // 遊戲房間的路徑
+        const roomRef = ref(db, 'rooms/test_room_01');
+        
+        // ---------------- 核心功能 ----------------
+
+        // A. 渲染卡牌 HTML 的小工具
+        function createCardHTML(card, isClickable = false) {
+            return `
+            <div class="card ${card.c}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
+                <span class="atomic">${card.at}</span>
+                <span class="symbol">${card.s}</span>
+                <span class="name">${card.name || card.n}</span>
+            </div>`;
+        }
+
+        // B. 渲染手牌區域
+        function renderHand() {
+            const handDiv = document.getElementById('hand-area');
+            handDiv.innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
+        }
+
+        // C. 監聽 Firebase 資料庫變動 (這裡是連線的魔法)
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            
+            if (!data) {
+                // 如果資料庫是空的，初始化第一張牌
+                set(roomRef, {
+                    topCard: allCards[2], // 預設放一張鈉
+                    msg: "遊戲開始！"
+                });
+                return;
+            }
+
+            // 1. 更新桌上的牌
+            const tableDiv = document.getElementById('table-slot');
+            tableDiv.innerHTML = createCardHTML(data.topCard);
+
+            // 2. 更新狀態文字
+            document.getElementById('status-msg').innerText = data.msg;
+        });
+
+        // D. 玩家出牌邏輯
+        window.tryPlayCard = function(cardId) {
+            // 找出玩家選的那張牌
+            const cardIndex = myHand.findIndex(c => c.id === cardId);
+            if (cardIndex === -1) return;
+            const selectedCard = myHand[cardIndex];
+
+            // 讀取現在桌上的牌 (需要從本地暫存或再次讀取，這裡簡化處理直接讀 DOM 或變數)
+            // 為了確保資料一致，我們用 get 來讀取一次資料庫確認規則 (稍微進階一點，這裡先用簡易版)
+            // 這裡我們先做「無規則強制出牌」來測試連線，成功後再把 UNO 規則加上去
+            
+            // --- 執行出牌 ---
+            // 1. 更新雲端資料庫
+            update(roomRef, {
+                topCard: selectedCard,
+                msg: `有人打出了 ${selectedCard.n} (${selectedCard.s})！`
+            });
+
+            // 2. 移除手牌並重繪
+            myHand.splice(cardIndex, 1);
+            renderHand();
+        };
+
+        // 初始執行
+        renderHand();
+
+    </script>
+</body>
+</html>
