@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特物理：多元光譜實驗室 (探究版)</title>
+    <title>鳩特物理：多元光譜實驗室 (完美版)</title>
     <style>
         /* === 1. 深色主題變數 === */
         :root {
@@ -68,32 +68,63 @@
             display: flex; flex-direction: column; gap: 20px; align-items: center;
         }
 
-        /* 宏觀場景 */
+        /* === 宏觀場景 (修正版) === */
         .macro-stage {
             width: 100%; max-width: 800px; height: 180px; position: relative;
             background: #111; border: 1px solid var(--border-color); border-radius: 12px;
             overflow: hidden; 
         }
+        
+        /* 元件通用樣式：絕對定位，以自身中心點對齊 */
         .comp { 
             position: absolute; 
-            top: 50%; transform: translateY(-50%); 
-            text-align: center; transition: opacity 1s; z-index: 2; 
+            top: 50%; 
+            transform: translate(-50%, -50%); /* 確保圖示正中心對準光束 */
+            text-align: center; 
+            transition: opacity 1s; 
+            z-index: 2; 
+            /* 讓內容決定大小，不要設固定寬高 */
         }
-        .comp span { font-size: 2.5rem; display: block; line-height: 1; margin-bottom: 5px; } 
-        .comp label { font-size: 0.85rem; color: #aaa; white-space: nowrap;}
         
+        /* 圖示 */
+        .comp span { 
+            font-size: 2.5rem; 
+            display: block; 
+            line-height: 1; 
+        } 
+        
+        /* 文字標籤：改為絕對定位，掛在圖示下方，不影響垂直置中計算 */
+        .comp label { 
+            position: absolute;
+            top: 120%; /* 推到圖示下方 */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.85rem; 
+            color: #aaa; 
+            white-space: nowrap;
+            text-shadow: 0 0 3px #000;
+        }
+        
+        /* 位置微調 */
         #source { left: 5%; } 
         #gas { left: 35%; opacity: 0; transition: opacity 1.5s ease; } 
-        #prism { left: 65%; }
+        #prism { left: 66%; } /* 稍微往右一點，避開 Beam 2 */
         
+        /* 氣體雲 */
         .cloud { 
             width: 120px; height: 80px; 
-            background: radial-gradient(circle, rgba(100, 181, 246, 0.6) 0%, rgba(0,0,0,0) 70%); 
+            background: radial-gradient(circle, rgba(100, 200, 255, 0.5) 0%, rgba(0,0,0,0) 70%); 
             filter: blur(8px); border-radius: 50%; 
-            animation: float 4s infinite ease-in-out; margin-bottom: 5px;
+            animation: float 4s infinite ease-in-out; 
+            /* 確保雲本身也是置中的 */
+            display: block;
         }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+        @keyframes float { 
+            0%, 100% { transform: translateY(0); } 
+            50% { transform: translateY(-5px); } 
+        }
         
+        /* 光束 (創造空隙) */
         .beam { 
             position: absolute; height: 6px; top: 50%; margin-top: -3px; 
             background: #fff; z-index: 1; transition: opacity 1s, background 1s; 
@@ -105,7 +136,6 @@
         canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid var(--border-color); border-radius: 8px; background: #000; }
         .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
         .line-control { position: absolute; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity 0.5s; cursor: pointer; }
-        /* 複選方塊樣式 */
         .line-control input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
         .line-control label { display: block; font-size: 0.7rem; color: #aaa; margin-top: 2px; }
 
@@ -148,7 +178,7 @@
         .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
         .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
 
-        /* 霓虹浮水印 */
+        /* 浮水印 (霓虹) */
         .watermark {
             position: absolute; bottom: 20px; right: 25px; left: auto;
             font-family: 'Segoe UI', sans-serif; font-weight: bold; font-style: italic; font-size: 1.2rem;
@@ -202,16 +232,18 @@
 
             <div class="macro-stage">
                 <div id="source" class="comp"><span>💡</span><label>高溫光源</label></div>
-                <div id="beam1" class="beam" style="left: 10%; width: 20%;"></div>
+                <div id="beam1" class="beam" style="left: 10%; width: 18%;"></div>
                 
                 <div id="gas" class="comp">
                     <div class="cloud"></div>
                     <label id="gasLabel">氫氣 (冷)</label>
                 </div>
 
-                <div id="beam2" class="beam" style="left: 40%; width: 20%;"></div>
+                <div id="beam2" class="beam" style="left: 42%; width: 20%;"></div>
+                
                 <div id="prism" class="comp"><span>📐</span><label>分光器</label></div>
-                <div id="beam3" class="beam" style="left: 70%; width: 25%; background: linear-gradient(to right, red, violet);"></div>
+                
+                <div id="beam3" class="beam" style="left: 72%; width: 23%; background: linear-gradient(to right, red, violet);"></div>
             </div>
 
             <div class="spectrum-wrapper">
@@ -253,7 +285,6 @@
         const sourceElem = document.getElementById('source');
         const gasElem = document.getElementById('gas');
         const gasLabel = document.getElementById('gasLabel');
-        const cloud = document.querySelector('.cloud');
         const beam1 = document.getElementById('beam1');
         const beam2 = document.getElementById('beam2');
         const beam3 = document.getElementById('beam3');
@@ -267,14 +298,13 @@
         function init() { updateElementData(); resizeCanvas(); animate(); window.addEventListener('resize', resizeCanvas);}
         function resizeCanvas() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; drawSpectrum(); }
 
-        // === 資料處理 (新增 visible 屬性) ===
+        // === 資料處理 ===
         function updateElementData() {
             const data = elementsData[state.element];
             const lines = [...data.lines];
             lines.sort((a, b) => b - a); 
             state.mappedLines = lines.map((wl, index) => {
                 const heightIndex = Math.min(index, excitedLevelHeights.length - 1);
-                // 預設 visible: false，表示譜線一開始是隱藏的
                 return { 
                     wl: wl, 
                     color: wlToColor(wl), 
@@ -284,7 +314,7 @@
             });
             gasLabel.innerText = data.name + (state.mode === 'absorption' ? " (冷)" : " (熱)");
             elementDisplay.innerText = "目前元素：" + data.name;
-            cloud.style.background = `radial-gradient(circle, ${data.color} 0%, rgba(0,0,0,0) 70%)`;
+            document.querySelector('.cloud').style.background = `radial-gradient(circle, ${data.color} 0%, rgba(0,0,0,0) 70%)`;
             drawLevelBackgrounds();
         }
 
@@ -319,7 +349,7 @@
             if(state.mode === 'emission') gasLabel.innerText = name + " (熱)";
         }
 
-        // === 繪圖 (核心邏輯：根據 visible 屬性決定是否畫線) ===
+        // === 繪圖 ===
         function drawSpectrum() {
             const w = canvas.width; const h = canvas.height;
             const minW = 380; const maxW = 750;
@@ -329,8 +359,10 @@
             if (state.mode === 'emission' && state.targetMode === 'emission') rainbowAlpha = 0;
             if (state.mode === 'absorption' && state.targetMode === 'emission') rainbowAlpha = 1 - state.fadeProgress;
             if (state.mode === 'emission' && state.targetMode === 'absorption') rainbowAlpha = state.fadeProgress;
-            
-            // 1. 繪製背景 (連續彩虹)
+            // 強制連續光譜顯示彩虹
+            if (state.mode === 'continuous') rainbowAlpha = 1;
+
+            // 繪製背景 (連續彩虹)
             if (rainbowAlpha > 0) {
                 const grad = ctx.createLinearGradient(0, 0, w, 0);
                 for (let i = 0; i <= 20; i++) { let pct = i / 20; let wl = maxW - pct * (maxW - minW); grad.addColorStop(pct, wlToColor(wl)); }
@@ -343,13 +375,10 @@
             else if (state.mode === 'absorption' && state.targetMode === 'emission') { lineType = 'bright'; lineAlpha = state.fadeProgress; }
             else if (state.mode === 'emission') { lineType = 'bright'; lineAlpha = 1; }
 
-            // 2. 繪製譜線 (關鍵：檢查 visible)
+            // 繪製譜線
             if (lineType !== 'none') {
                 ctx.globalAlpha = lineAlpha;
                 state.mappedLines.forEach(line => {
-                    // 只有當 line.visible 為 true 時，才繪製線條
-                    // 除非正在轉場(fadeProgress > 0)，為了平滑可能需要特殊處理，這裡簡化為轉場完成後才用 visible 控制
-                    // 但為了效果好，我們讓 visible 直接生效
                     if (line.visible) { 
                         const x = ((maxW - line.wl) / (maxW - minW)) * w;
                         if (lineType === 'dark') { 
@@ -387,8 +416,7 @@
                 microText.innerText = `[${elementsData[state.element].name}] 點擊下方方塊，觀察電子躍遷回基態並產生亮線。`;
             }
             
-            // 切換模式時重置譜線可見性
-            updateElementData(); // 這會將所有 lines 的 visible 重置為 false
+            updateElementData();
             checkContainer.innerHTML = ''; resetMicroView();
         }
 
@@ -399,24 +427,22 @@
                 const x = ((maxW - line.wl) / (maxW - minW)) * w;
                 const wrapper = document.createElement('div'); wrapper.className = 'line-control'; wrapper.style.left = x + 'px'; wrapper.style.opacity = 1; 
                 
-                // 改用 checkbox 允許複選
                 const input = document.createElement('input'); 
                 input.type = 'checkbox'; 
                 input.id = 'line-'+index;
-                input.checked = line.visible; // 同步狀態
+                input.checked = line.visible;
 
                 input.onclick = (e) => {
                     if (e.target.checked) {
                         triggerTransition(line);
                     } else {
-                        // 如果取消勾選，隱藏譜線
                         line.visible = false;
                         drawSpectrum();
                     }
                 };
 
                 const label = document.createElement('label'); label.htmlFor = 'line-'+index; 
-                label.innerText = Math.round(line.wl); // 顯示波長數字比較直觀
+                label.innerText = Math.round(line.wl);
                 wrapper.appendChild(input); wrapper.appendChild(label); checkContainer.appendChild(wrapper);
             });
         }
@@ -426,54 +452,33 @@
 
         function triggerTransition(lineData) {
             photonCont.innerHTML = ''; 
-            
-            // 重置電子位置 (如果它不在基態)
-            // 為了動畫流暢，我們先不強制重置，或者根據模式判斷
-            
             const startH = baseLevelHeight; const endH = lineData.targetHeight;
 
             if (state.mode === 'absorption') {
-                // 1. 電子先回到基態準備
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
-                
-                // 2. 發射光波
                 const wave = createWave(lineData.color);
                 wave.style.animation = 'absorb-wave 1.0s linear forwards';
                 photonCont.appendChild(wave);
 
-                // 3. 在撞擊瞬間 (950ms) 觸發電子跳躍 + 顯示譜線
                 setTimeout(() => {
-                    // 電子跳
                     electron.style.transition = 'bottom 0.5s ease-out'; 
                     electron.style.bottom = endH + 'px';
-                    
-                    // 譜線出現！
                     lineData.visible = true;
-                    // 強制更新 Checkbox 狀態 (如果是由代碼觸發)
                     drawSpectrum();
-                    
                     microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，產生暗線。`;
                 }, 950); 
 
             } else if (state.mode === 'emission') {
-                // 1. 電子先瞬間跳到激發態
                 electron.style.transition = 'none'; electron.style.bottom = endH + 'px';
-                
-                // 2. 等一下後掉下來
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-in'; 
                     electron.style.bottom = startH + 'px';
-                    
-                    // 3. 落地瞬間 (500ms後) 發射光波 + 顯示譜線
                     setTimeout(() => {
                         const wave = createWave(lineData.color);
                         wave.style.animation = 'emit-wave 1.0s linear forwards';
                         photonCont.appendChild(wave);
-                        
-                        // 譜線出現！
                         lineData.visible = true;
                         drawSpectrum();
-
                         microText.innerHTML = `躍遷回基態，發射 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子。`;
                     }, 500); 
                 }, 100);
