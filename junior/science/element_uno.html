@@ -3,31 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v4</title>
+    <title>鳩特元素 UNO v5</title>
     <style>
-        /* --- V4 新增樣式 --- */
-        /* 彈出視窗通用樣式 */
+        /* --- V5 小抄樣式大改版 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
         .modal.show { display: flex; }
-        .modal-content { background: #2c3e50; padding: 20px; border-radius: 15px; text-align: center; position: relative; max-width: 90%; max-height: 90%; overflow: auto; border: 2px solid #fff; }
-        .close-btn { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #fff; }
+        
+        /* 讓小抄寬度適應手機，並支援橫向捲動以免太擠 */
+        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; }
+        
+        .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
 
-        /* 小抄週期表樣式 */
-        .cheat-sheet-grid { display: grid; grid-template-columns: auto repeat(5, 1fr); gap: 4px; margin-top: 10px; }
-        .cs-cell { width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; font-size: 14px; color: #333; background: #eee;}
-        .cs-header { background: transparent; color: #fff; font-size: 12px;}
-        /* 小抄顏色 */
-        .cs-pink { background: #ffeef0; border: 2px solid #e91e63; }
-        .cs-yellow { background: #fff8e1; border: 2px solid #ffc107; }
-        .cs-blue { background: #e3f2fd; border: 2px solid #2196f3; }
-        .cs-green { background: #e8f5e9; border: 2px solid #4caf50; }
-        .cs-purple { background: #f3e5f5; border: 2px solid #9c27b0; }
+        /* CSS Grid: 定義 9 個欄位 (1欄週期標示 + 8欄主族元素) */
+        .periodic-grid { 
+            display: grid; 
+            grid-template-columns: 25px repeat(8, 1fr); /* 第一欄窄一點放數字 */
+            gap: 4px; 
+            margin-top: 20px; 
+            width: 100%;
+            min-width: 320px; /* 確保在極小螢幕有捲軸 */
+        }
 
-        /* 結算畫面樣式 */
-        .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
+        /* 格子通用樣式 */
+        .pg-cell { 
+            aspect-ratio: 1; /* 保持正方形 */
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            border-radius: 4px; font-weight: bold; color: #fff; position: relative;
+            font-size: 0.9rem;
+        }
 
-        /* 輔助按鈕樣式調整 */
-        .helper-btn { padding: 8px 15px; font-size: 0.9rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; }
+        /* 標頭與座標 */
+        .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
+        .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
+        
+        /* 元素顏色 (對應卡牌) */
+        .pg-pink { background: #ffeef0; color: #333; border: 2px solid #e91e63; }
+        .pg-yellow { background: #fff8e1; color: #333; border: 2px solid #ffc107; }
+        .pg-green { background: #e8f5e9; color: #333; border: 2px solid #4caf50; }
+        .pg-purple { background: #f3e5f5; color: #333; border: 2px solid #9c27b0; }
+        .pg-blue { background: #e3f2fd; color: #333; border: 2px solid #2196f3; }
+        
+        /* 空白佔位符 (透明) */
+        .pg-empty { background: transparent; border: none; }
 
 
         /* --- 舊有樣式保留 --- */
@@ -53,15 +70,15 @@
         .card.yellow { background: #fff8e1; border: 3px solid #ffc107; }
         .card.green { background: #e8f5e9; border: 3px solid #4caf50; }
         .card.purple { background: #f3e5f5; border: 3px solid #9c27b0; }
-        #turn-msg { font-size: 1.2rem; font-weight: bold; margin: 10px; color: #ecf0f1; text-align: center; min-height: 1.5em; }
-        .active-turn { color: #2ecc71 !important; text-shadow: 0 0 10px #2ecc71; }
         .action-badge { position: absolute; bottom: 5px; right: 5px; background: #e74c3c; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;}
+        .helper-btn { padding: 8px 15px; font-size: 0.9rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; }
+        .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
     </style>
 </head>
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v4</h1>
+        <h1>元素 UNO v5</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -99,47 +116,72 @@
     </div>
 
     <div id="modal-cheatsheet" class="modal">
-        <div class="modal-content" style="background:#444;">
+        <div class="modal-content">
             <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
-            <h3 style="margin:5px; color:white;">元素小抄 (顏色=族 / 數字=週期)</h3>
-            <div class="cheat-sheet-grid">
-                <div class="cs-cell cs-header">週/族</div>
-                <div class="cs-cell cs-header">1A(粉)</div>
-                <div class="cs-cell cs-header">2A(黃)</div>
-                <div class="cs-cell cs-header">7A(綠)</div>
-                <div class="cs-cell cs-header">8A(紫)</div>
-                
-                <div class="cs-cell cs-header">1</div>
-                <div class="cs-cell cs-pink">H</div>
-                <div class="cs-cell" style="background:transparent"></div>
-                <div class="cs-cell" style="background:transparent"></div>
-                <div class="cs-cell cs-purple">He</div>
-                
-                <div class="cs-cell cs-header">2</div>
-                <div class="cs-cell cs-pink">Li</div>
-                <div class="cs-cell cs-yellow">Be</div>
-                <div class="cs-cell cs-green">F</div>
-                <div class="cs-cell cs-purple">Ne</div>
+            <h3 style="margin:5px 0 15px 0; color:white; font-size:1.1rem;">元素週期表 (顏色=族)</h3>
+            
+            <div class="periodic-grid">
+                <div class="pg-cell pg-header-row">週</div>
+                <div class="pg-cell pg-header-row">1A</div>
+                <div class="pg-cell pg-header-row">2A</div>
+                <div class="pg-cell pg-header-row">3A</div>
+                <div class="pg-cell pg-header-row">4A</div>
+                <div class="pg-cell pg-header-row">5A</div>
+                <div class="pg-cell pg-header-row">6A</div>
+                <div class="pg-cell pg-header-row">7A</div>
+                <div class="pg-cell pg-header-row">8A</div>
 
-                <div class="cs-cell cs-header">3</div>
-                <div class="cs-cell cs-pink">Na</div>
-                <div class="cs-cell cs-yellow">Mg</div>
-                <div class="cs-cell cs-green">Cl</div>
-                <div class="cs-cell cs-purple">Ar</div>
+                <div class="pg-cell pg-period-num">1</div>
+                <div class="pg-cell pg-pink">H</div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-purple">He</div>
 
-                <div class="cs-cell cs-header">4</div>
-                <div class="cs-cell cs-pink">K</div>
-                <div class="cs-cell cs-yellow">Ca</div>
-                <div class="cs-cell cs-green">Br</div>
-                <div class="cs-cell cs-purple">Kr</div>
+                <div class="pg-cell pg-period-num">2</div>
+                <div class="pg-cell pg-pink">Li</div>
+                <div class="pg-cell pg-yellow">Be</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">B</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">C</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">N</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">O</div>
+                <div class="pg-cell pg-green">F</div>
+                <div class="pg-cell pg-purple">Ne</div>
+
+                <div class="pg-cell pg-period-num">3</div>
+                <div class="pg-cell pg-pink">Na</div>
+                <div class="pg-cell pg-yellow">Mg</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Al</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Si</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">P</div>
+                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">S</div>
+                <div class="pg-cell pg-green">Cl</div>
+                <div class="pg-cell pg-purple">Ar</div>
+
+                <div class="pg-cell pg-period-num">4</div>
+                <div class="pg-cell pg-pink">K</div>
+                <div class="pg-cell pg-yellow">Ca</div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-empty"></div>
+                <div class="pg-cell pg-green">Br</div>
+                <div class="pg-cell pg-purple">Kr</div>
             </div>
-            <p style="font-size:0.8rem; color:#aaa; margin-top:10px;">* 提示：紫色牌功能為「Skip(暫停下一家)」</p>
+            <p style="font-size:0.8rem; color:#aaa; margin-top:15px; text-align: left;">
+                * 僅列出遊戲用牌<br>
+                * 紫色(8A)為 Skip 功能牌
+            </p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        // V5: 引入 onDisconnect 用於斷線處理
+        import { getDatabase, ref, set, onValue, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
@@ -157,30 +199,27 @@
         const ROOM_ID = "class_room_101";
         const roomRef = ref(db, `rooms/${ROOM_ID}`);
 
-        let myId = localStorage.getItem('uno_uid') || 'user_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('uno_uid', myId);
+        // V5 重要更新：不再從 localStorage 讀取舊 ID，每次重新整理都視為新玩家
+        // 這樣可以解決「刷新後狀態卡住」的問題
+        let myId = 'user_' + Math.random().toString(36).substr(2, 9);
         let myName = "";
         let myHand = [];
         let playerOrder = [];
         let currentTopCard = null;
         let isMyTurn = false;
 
-        // V4 更新牌庫：加入功能牌標記與更多元素
+        // 卡片資料
         const allCards = [
-            // 1A (粉)
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
             { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
             { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
-            // 2A (黃)
             { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow", group: "2A" },
             { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow", group: "2A" },
             { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow" },
-            // 7A (綠) - 暫無功能
             { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A" },
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A" },
             { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A" },
-            // 8A (紫) - 功能牌 Skip
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
@@ -190,11 +229,9 @@
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
-            // 切換畫面時關閉小抄
             toggleCheatSheet(false);
         }
 
-        // V4 新增：切換小抄顯示
         window.toggleCheatSheet = function(show) {
             const modal = document.getElementById('modal-cheatsheet');
             if(show) modal.classList.add('show');
@@ -204,33 +241,48 @@
         window.joinGame = function() {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
-            update(ref(db, `rooms/${ROOM_ID}/players/${myId}`), { name: myName });
+
+            const myRef = ref(db, `rooms/${ROOM_ID}/players/${myId}`);
+            
+            // 1. 寫入玩家資料
+            update(myRef, { name: myName });
+
+            // V5 重要更新：設定「斷線後自動刪除」
+            // 當這個瀏覽器分頁關閉或刷新時，Firebase 會自動把這個人從資料庫踢掉
+            onDisconnect(myRef).remove();
+
             document.getElementById('my-name-display').innerText = `我: ${myName}`;
             switchScreen('screen-lobby');
         };
 
-        // 監聽房間狀態 (V4 更新：加入 finished 狀態判斷)
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
             if(!data) return;
 
             const playersMap = data.players || {};
+            // 如果我不在名單裡（例如被踢了，或刷新頁面後ID變了），強制回到登入頁
+            // 但如果剛登入還沒寫入完成，則忽略
+            if (document.getElementById('screen-login').classList.contains('active') === false) {
+                 if (!playersMap[myId]) {
+                     alert('你已斷線，請重新登入');
+                     location.reload();
+                     return;
+                 }
+            }
+
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
             
-            // 狀態判斷路由
             if (data.status === 'playing') {
                 if(!document.getElementById('screen-game').classList.contains('active')){
                     switchScreen('screen-game');
-                    if(myHand.length === 0) dealCardsToSelf(7); // UNO 起始 7 張
+                    if(myHand.length === 0) dealCardsToSelf(7);
                 }
                 updateGameUI(data, playerList);
             } else if (data.status === 'finished') {
-                // V4 新增：遊戲結束狀態
                 document.getElementById('winner-name').innerText = data.winnerName || "???";
                 switchScreen('screen-gameover');
-                myHand = []; // 清空手牌
+                myHand = [];
             } else {
-                // 大廳狀態
                 updateLobbyUI(playerList);
                 if(document.getElementById('screen-game').classList.contains('active') || document.getElementById('screen-gameover').classList.contains('active')) {
                      switchScreen('screen-lobby');
@@ -246,6 +298,7 @@
                 </div>`
             ).join('');
 
+            // V5 邏輯：如果你是名單上的第一位，你就是房主
             if (playerList.length > 0 && playerList[0].id === myId) {
                 document.getElementById('btn-start').style.display = 'block';
                 document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
@@ -259,7 +312,6 @@
             onValue(ref(db, `rooms/${ROOM_ID}/players`), (snap) => {
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
-                // 確保第一張不是功能牌 (簡單處理: 隨機抽到不是為止)
                 let startCard;
                 do { startCard = allCards[Math.floor(Math.random() * allCards.length)]; } while (startCard.action);
 
@@ -269,7 +321,7 @@
                     currentTurnIndex: 0,
                     topCard: startCard,
                     msg: "遊戲開始！",
-                    winnerName: null // 重置贏家
+                    winnerName: null
                 });
             }, { onlyOnce: true });
         };
@@ -287,8 +339,15 @@
             playerOrder = data.order || [];
             document.getElementById('table-slot').innerHTML = createCardHTML(currentTopCard);
 
+            // 防呆：如果有人斷線，playerOrder 裡可能有舊 ID，需要過濾
+            const validPlayerOrder = playerOrder.filter(id => playerList.find(p => p.id === id));
+            
+            // 找出現在輪到誰的 ID
+            // 注意：這裡如果有人斷線，Index 可能會錯位，簡易版暫時依賴 Firebase 的 Index
+            // 進階版應該要動態計算 active player
             const currentPlayerId = playerOrder[data.currentTurnIndex];
             const currentPlayer = playerList.find(p => p.id === currentPlayerId);
+            
             const msgDiv = document.getElementById('turn-msg');
             const drawBtn = document.getElementById('btn-draw');
 
@@ -298,50 +357,44 @@
                 msgDiv.innerText = data.msg.includes("跳過") ? data.msg + " -> 輪到你了！" : "👉 輪到你了！請出牌";
                 msgDiv.classList.add('active-turn');
                 drawBtn.style.opacity = "1"; drawBtn.style.pointerEvents = "auto";
-                if(navigator.vibrate) navigator.vibrate(200); // 輪到時震動提示
+                if(navigator.vibrate) navigator.vibrate(200);
             } else {
-                msgDiv.innerText = `⏳ 輪到 ${currentPlayer ? currentPlayer.name : "未知"} (${data.msg})`;
+                msgDiv.innerText = `⏳ 輪到 ${currentPlayer ? currentPlayer.name : "..."} (${data.msg})`;
                 msgDiv.classList.remove('active-turn');
                 drawBtn.style.opacity = "0.5"; drawBtn.style.pointerEvents = "none";
             }
         }
 
-        // V4 更新：出牌核心邏輯 (加入獲勝檢查 與 Skip 功能)
         window.tryPlayCard = function(cardId) {
             if (!isMyTurn) return;
 
             const cardIndex = myHand.findIndex(c => c.id === cardId);
             const selectedCard = myHand[cardIndex];
 
-            // 規則檢查 (同色或同週期)
             if (selectedCard.c !== currentTopCard.c && selectedCard.p !== currentTopCard.p) {
                 alert(`不能出這張！\n需要符合顏色或週期`);
                 return;
             }
 
-            // --- 出牌成功 ---
             myHand.splice(cardIndex, 1);
             renderHand();
 
-            // V4 新增：檢查是否獲勝
             if (myHand.length === 0) {
                 update(roomRef, {
                     status: 'finished',
                     winnerName: myName,
                     msg: `${myName} 贏得了勝利！`
                 });
-                return; // 遊戲結束，不用計算下一家了
+                return;
             }
 
-            // 計算下一家
             onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
                 let currentIndex = snap.val() || 0;
-                let jump = 1; // 預設跳一位
+                let jump = 1;
                 let msgAction = "";
 
-                // V4 新增：功能牌邏輯 (Skip)
                 if (selectedCard.action === 'skip') {
-                    jump = 2; // 跳過下一位，所以加 2
+                    jump = 2;
                     msgAction = "(下家被跳過!)";
                 }
 
@@ -370,9 +423,7 @@
             }, { onlyOnce: true });
         };
 
-        // V4 新增：回到大廳按鈕功能
         window.backToLobby = function() {
-            // 只有房主能重置房間狀態回大廳，其他人只是切換畫面
              onValue(ref(db, `rooms/${ROOM_ID}/players`), (snap) => {
                  const pMap = snap.val();
                  const pIds = Object.keys(pMap);
@@ -385,7 +436,6 @@
         }
 
         function createCardHTML(card, isClickable = false) {
-             // V4 更新：顯示功能牌標記
              let actionBadge = card.action ? `<span class="action-badge">${card.action.toUpperCase()}</span>` : '';
              return `
             <div class="card ${card.c}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
@@ -400,7 +450,6 @@
             document.getElementById('hand-area').innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
         }
 
-        // 隱藏重置功能 (雙擊標題)
         document.querySelector('h1').ondblclick = function() {
             if(confirm('房主專用：重置房間？')) { remove(roomRef); location.reload(); }
         }
