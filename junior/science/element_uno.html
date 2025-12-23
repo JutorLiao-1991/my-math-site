@@ -103,7 +103,7 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -120,7 +120,8 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const ROOM_ID = "class_room_101";
-        const roomRef = ref(db, `rooms/${ROOM_ID}`);
+        // 使用加號拼接，避免反引號錯誤
+        const roomRef = ref(db, 'rooms/' + ROOM_ID);
 
         let myId = 'user_' + Math.random().toString(36).substr(2, 9);
         let myName = "";
@@ -158,11 +159,12 @@
             else modal.classList.remove('show');
         }
 
+        // --- 加入遊戲核心邏輯 ---
         window.joinGame = function() {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
-            // 先讀取一次資料庫，檢查現在房間裡有沒有人
+            // 1. 先讀取資料庫，確認是否為第一人
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                 const players = snapshot.val() || {};
                 const isFirstPlayer = Object.keys(players).length === 0;
@@ -170,15 +172,15 @@
                 const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
                 
                 if (isFirstPlayer) {
-                    // ★ 關鍵修改：如果是第一個進來的人(房主)，設定「斷線時刪除整個房間」
+                    // ★ 房主斷線：刪除整個房間
                     onDisconnect(roomRef).remove();
                     console.log("我是房主，設定斷線移除房間");
                 } else {
-                    // 如果不是房主，設定「斷線時只移除我自己」
+                    // ★ 玩家斷線：只刪除自己
                     onDisconnect(myRef).remove();
                 }
 
-                // 接著才執行原本的加入動作
+                // 2. 寫入資料
                 update(myRef, { name: myName });
                 
                 document.getElementById('my-name-display').innerText = `我: ${myName}`;
@@ -186,34 +188,29 @@
             });
         };
 
+        // --- 監聽房間狀態 (防卡死 + 遊戲邏輯) ---
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            if (!data) {
-                alert("房主已離開，房間解散！");
-                location.reload(); // 強制重整頁面回到首頁
-                return;
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-
-         // 1. 先判斷現在是不是在「登入畫面」
-         // (假設你的登入頁面 ID 是 screen-login，如果不確定可以看 HTML)
+            
+            // 判斷現在是否在登入畫面
             const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
 
+            // ★ 狀況 A：房間不存在 (被刪除或是還沒建立)
             if (!data) {
-        // 2. 修改判斷：只有在「不在登入畫面」（代表已經在玩或在等候室）時，才算異常
+                // 如果我不在登入畫面 (代表我玩到一半或在大廳)，卻發現房間沒了 -> 踢回首頁
                 if (!isLoginScreen) {
                     alert("房主已離開，房間解散！");
                     location.reload(); 
-               }
-        // 如果還在登入畫面，遇到空房間是正常的 (代表你是第一個來的)，直接 return 即可
+                }
+                // 如果我在登入畫面，房間是空的很正常 -> 不做任何事，等待玩家建立
                 return; 
             }
 
-    // ... (下面原本的 const playersMap = ... 保持不動)
-
+            // ★ 狀況 B：房間存在，處理遊戲邏輯
             const playersMap = data.players || {};
-            // 檢查自己是否還在名單上
-            if (document.getElementById('screen-login').classList.contains('active') === false) {
+            
+            // 檢查自己是否還在名單上 (防止資料被意外刪除)
+            if (!isLoginScreen) {
                  if (!playersMap[myId]) {
                      alert('你已斷線，請重新登入');
                      location.reload();
@@ -223,10 +220,7 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
             
-            // --- V6 修正：自動清潔機制 ---
-            // 如果房間裡只有我一個人 (playerList.length === 1)
-            // 且狀態不是 waiting (例如卡在 finished 或 playing)
-            // -> 強制重置房間
+            // 自動重置機制：如果只剩一人且卡在遊戲中 -> 重置回等待
             if (playerList.length === 1 && data.status !== 'waiting') {
                 update(roomRef, {
                     status: 'waiting',
@@ -234,9 +228,8 @@
                     winnerName: null,
                     topCard: null
                 });
-                return; // 暫停後續渲染，等待重置生效
+                return; 
             }
-            // ---------------------------
 
             if (data.status === 'playing') {
                 if(!document.getElementById('screen-game').classList.contains('active')){
@@ -250,7 +243,6 @@
                 myHand = [];
             } else {
                 updateLobbyUI(playerList);
-                // 確保在等待時不會卡在遊戲或結算畫面
                 if(!document.getElementById('screen-lobby').classList.contains('active')) {
                      switchScreen('screen-lobby');
                 }
@@ -275,7 +267,8 @@
         }
 
         window.startGame = function() {
-            onValue(ref(db, `rooms/${ROOM_ID}/players`), (snap) => {
+            // 使用加號拼接
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
                 let startCard;
@@ -346,7 +339,8 @@
                 return;
             }
 
-            onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
+            // 使用加號拼接
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
                 let currentIndex = snap.val() || 0;
                 let jump = 1;
                 let msgAction = "";
@@ -367,7 +361,8 @@
             const newCard = allCards[Math.floor(Math.random() * allCards.length)];
             myHand.push(newCard);
             renderHand();
-            onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
+            // 使用加號拼接
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
                 const currentIndex = snap.val() || 0;
                 const nextIndex = (currentIndex + 1) % playerOrder.length;
                 update(roomRef, {
@@ -377,10 +372,7 @@
             }, { onlyOnce: true });
         };
 
-        // V6 修正：回到大廳按鈕
         window.backToLobby = function() {
-             // 任何人按下此按鈕，都會嘗試把房間重置為 waiting
-             // 這樣即使不是房主，如果大家都卡住，也可以有人按下重置
              update(roomRef, { status: 'waiting', msg: '等待新賽局' });
         }
 
