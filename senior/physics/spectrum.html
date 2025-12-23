@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高中物理：多元素光譜實驗室 (高精度版)</title>
+    <title>高中物理：多元素光譜實驗室 (物理修正版)</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -125,14 +125,15 @@
 
         /* === 微觀能階動畫 === */
         .micro-stage {
-            width: 800px; height: 300px; /* 增加高度以容納更多能階 */
+            width: 800px; height: 320px; /* 加高空間 */
             background: #181818;
             border: 1px dashed #444; border-radius: 12px;
             position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
-        .level-diagram { width: 400px; height: 260px; position: relative; margin-top: 20px; }
+        .level-diagram { width: 400px; height: 280px; position: relative; margin-top: 20px; }
+        
         .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
-        .level-text { position: absolute; right: -80px; top: -8px; font-size: 0.75rem; color: #666; width: 70px; text-align: left;}
+        .level-text { position: absolute; right: -90px; top: -8px; font-size: 0.75rem; color: #666; width: 80px; text-align: left;}
 
         .electron {
             width: 14px; height: 14px; background: var(--electron-color);
@@ -221,45 +222,37 @@
         const elementsData = {
             'H': {
                 name: '氫 (H)',
-                lines: [656.3, 486.1, 434.0, 410.2], // 紅, 青, 藍, 紫
+                lines: [656.3, 486.1, 434.0, 410.2], // 4條線
                 color: 'rgba(100,181,246,0.4)'
             },
             'He': {
                 name: '氦 (He)',
-                lines: [667.8, 587.6, 501.6, 471.3, 447.1], // 紅, 黃, 綠, 藍, 深藍
+                lines: [667.8, 587.6, 501.6, 471.3, 447.1], // 5條線
                 color: 'rgba(255,200,100,0.4)'
             },
             'Na': {
                 name: '鈉 (Na)',
-                lines: [589.0], // 雙黃線
+                lines: [589.0], // 1條線 (簡化)
                 color: 'rgba(255,215,0,0.6)'
             },
             'Hg': {
                 name: '汞 (Hg)',
-                lines: [579.1, 546.1, 435.8, 404.7], // 黃, 綠, 藍, 紫
+                lines: [579.1, 546.1, 435.8, 404.7], // 4條線
                 color: 'rgba(0,255,255,0.4)'
             },
             'Ne': {
                 name: '氖 (Ne)',
-                lines: [640.2, 614.3, 585.2, 540.1], // 紅橘色系
+                lines: [640.2, 614.3, 585.2, 540.1], // 4條線
                 color: 'rgba(255,50,50,0.5)'
             }
         };
 
-        // === 視覺能階設定 (擴充為 8 層) ===
-        // 確保 紫光(高能量) 和 藍光(次高能量) 有不同的落點
-        // Level 0: 基態
-        // Level 1-7: 激發態 (高度 px)
-        const levelHeights = [
-            20,   // Level 0: Ground (Base)
-            70,   // Level 1: Red
-            110,  // Level 2: Orange/Yellow
-            145,  // Level 3: Green
-            175,  // Level 4: Cyan
-            200,  // Level 5: Blue (434nm)
-            220,  // Level 6: Violet (410nm)
-            240   // Level 7: UV/Deep Violet
-        ]; 
+        // === 視覺能階高度設定 ===
+        // 我們定義一些可用的高度 (px)
+        // Level 0 是基態 (Ground State) = 20px
+        // 激發態從 70px 開始往上
+        const baseLevelHeight = 20;
+        const excitedLevelHeights = [70, 100, 130, 160, 190, 220, 250]; 
 
         // === 狀態變數 ===
         const state = {
@@ -291,32 +284,32 @@
         const levelContainer = document.getElementById('levelContainer');
         const elementDisplay = document.getElementById('elementDisplay');
 
-        // === 初始化 ===
         function init() {
             updateElementData();
             animate();
         }
 
-        // === 資料處理：將波長映射到更精細的能階 ===
+        // === 核心修正：排序演算法 ===
         function updateElementData() {
             const data = elementsData[state.element];
-            const lines = data.lines;
+            const lines = [...data.lines]; // 複製陣列以免動到原始資料
             
-            state.mappedLines = lines.map(wl => {
-                // 更精細的映射邏輯
-                let jumpIdx;
-                if (wl >= 620) jumpIdx = 1;      // 紅
-                else if (wl >= 570) jumpIdx = 2; // 黃/橘
-                else if (wl >= 520) jumpIdx = 3; // 綠
-                else if (wl >= 480) jumpIdx = 4; // 青
-                else if (wl >= 440) jumpIdx = 5; // 藍 (修正：434nm 會落在這)
-                else if (wl >= 415) jumpIdx = 6; // 藍紫
-                else jumpIdx = 7;                // 紫/深紫 (修正：410nm 會落在這)
+            // 1. 將波長由大到小排序 (能量由小到大)
+            // Longest wavelength (Low Energy) -> Shortest wavelength (High Energy)
+            // e.g., [667, 587, 501, 471, 447]
+            lines.sort((a, b) => b - a);
 
+            // 2. 分配能階
+            // 波長最大的線 (index 0) -> 跳到最低的激發態 (index 0)
+            // 波長最小的線 (index N) -> 跳到最高的激發態 (index N)
+            state.mappedLines = lines.map((wl, index) => {
+                // 防止譜線數量超過我們預設的層數
+                const heightIndex = Math.min(index, excitedLevelHeights.length - 1);
+                
                 return {
                     wl: wl,
                     color: wlToColor(wl),
-                    targetLevelIdx: jumpIdx
+                    targetHeight: excitedLevelHeights[heightIndex]
                 };
             });
 
@@ -332,28 +325,29 @@
             const oldLevels = document.querySelectorAll('.level');
             oldLevels.forEach(el => el.remove());
 
-            createLevelDiv(0, "基態"); // 畫基態
+            // 1. 畫基態
+            createLevelDiv(baseLevelHeight, "基態", true);
 
-            // 畫激發態背景線
-            for(let i=1; i<levelHeights.length; i++) {
-                // 只畫出有被使用到的能階線會比較乾淨？
-                // 為了視覺一致性，我們畫出所有線，但讓未使用的淡一點
-                createLevelDiv(i, `n ≈ ${i+1}`);
-            }
+            // 2. 畫激發態 (只畫出該元素會用到的層)
+            // 為了視覺參考，我們可以畫出該元素所有對應的目標層
+            state.mappedLines.forEach((line, index) => {
+                // 為了讓文字不重疊，稍微處理一下顯示
+                // 波長越短(能量越高)，層數越高
+                createLevelDiv(line.targetHeight, `E${index+1} (${line.wl.toFixed(1)}nm)`, false);
+            });
         }
 
-        function createLevelDiv(idx, labelText) {
+        function createLevelDiv(bottomPx, labelText, isBase) {
             const div = document.createElement('div');
             div.className = 'level';
-            div.style.bottom = levelHeights[idx] + 'px';
-            if (idx === 0) {
+            div.style.bottom = bottomPx + 'px';
+            
+            if (isBase) {
                 div.style.borderTop = "2px solid white";
-                div.style.height = "0"; 
             } else {
-                div.style.borderTop = "1px solid #444";
+                div.style.borderTop = "1px solid #555";
             }
 
-            // 只有當目前的元素真的有跳到這一層時，才高亮顯示文字(選擇性優化)
             const text = document.createElement('span');
             text.className = 'level-text';
             text.innerText = labelText;
@@ -507,7 +501,7 @@
         // === 微觀動畫 ===
         function resetMicroView() {
             electron.style.transition = 'none';
-            electron.style.bottom = levelHeights[0] + 'px';
+            electron.style.bottom = baseLevelHeight + 'px';
             photonCont.innerHTML = '';
         }
 
@@ -515,8 +509,8 @@
             photonCont.innerHTML = '';
             electron.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
-            const startH = levelHeights[0];
-            const endH = levelHeights[lineData.targetLevelIdx];
+            const startH = baseLevelHeight;
+            const endH = lineData.targetHeight;
 
             if (state.mode === 'absorption') {
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
@@ -527,7 +521,7 @@
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-out';
                     electron.style.bottom = endH + 'px';
-                    microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至較高能階。`;
+                    microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至 E${state.mappedLines.indexOf(lineData)+1}。`;
                 }, 450);
 
             } else if (state.mode === 'emission') {
