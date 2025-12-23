@@ -5,21 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特元素 UNO v7 - 穩定版</title>
     <style>
-        /* --- V5/V6 樣式保留 --- */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
-        .modal.show { display: flex; }
-        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; }
-        .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
-        .periodic-grid { display: grid; grid-template-columns: 25px repeat(8, 1fr); gap: 4px; margin-top: 20px; width: 100%; min-width: 320px; }
-        .pg-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #fff; position: relative; font-size: 0.9rem; }
-        .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
+        /* 請替換或新增以下 .pg- 開頭的樣式 */
         .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
-        .pg-pink { background: #ffeef0; color: #333; border: 2px solid #e91e63; }
-        .pg-yellow { background: #fff8e1; color: #333; border: 2px solid #ffc107; }
-        .pg-green { background: #e8f5e9; color: #333; border: 2px solid #4caf50; }
-        .pg-purple { background: #f3e5f5; color: #333; border: 2px solid #9c27b0; }
-        .pg-blue { background: #e3f2fd; color: #333; border: 2px solid #2196f3; }
+        /* 1A & 2A */
+        .pg-pink { background: #ffeef0; color: #c2185b; border: 2px solid #e91e63; }
+        .pg-yellow { background: #fff8e1; color: #f57f17; border: 2px solid #ffc107; }
+        /* 藍色：過渡元素 (工業金屬) */
+        .pg-blue { background: #e3f2fd; color: #1565c0; border: 2px solid #2196f3; }
+        /* 綠色：非金屬 & 鹵素 (Draw 2) */
+        .pg-green { background: #e8f5e9; color: #2e7d32; border: 2px solid #4caf50; }
+        /* 紫色：惰性氣體 (Skip) */
+        .pg-purple { background: #f3e5f5; color: #7b1fa2; border: 2px solid #9c27b0; }
+        /* 金色：萬用牌 (Wild) */
+        .pg-gold { background: linear-gradient(135deg, #fff9c4, #ffd54f); color: #8d6e63; border: 2px solid #ffca28; box-shadow: 0 0 5px #ffca28; }
+        /* 黑色：鈾 (Wild +4) */
+        .pg-black { background: #2c3e50; color: #f1c40f; border: 2px solid #000; box-shadow: 0 0 5px red; }
         .pg-empty { background: transparent; border: none; }
+        
+        /* 小抄說明區塊的樣式 */
+        .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;}
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
@@ -91,15 +97,64 @@
     <div id="modal-cheatsheet" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
-            <h3 style="margin:5px 0 15px 0; color:white; font-size:1.1rem;">元素週期表 (顏色=族)</h3>
+            <h3 style="margin:5px 0 10px 0; color:white; font-size:1.1rem;">元素功能對照表</h3>
+            
             <div class="periodic-grid">
-                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">3A</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
-                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">B</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">C</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">N</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
-                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Al</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Si</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">P</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
-                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
+                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
+                
+                <div class="pg-cell pg-period-num">1</div> 
+                <div class="pg-cell pg-pink">H</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-purple">He</div>
+                
+                <div class="pg-cell pg-period-num">2</div> 
+                <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> 
+                <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> 
+                <div class="pg-cell pg-purple">Ne</div>
+                
+                <div class="pg-cell pg-period-num">3</div> 
+                <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> 
+                <div class="pg-cell pg-blue">Al</div> 
+                <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> 
+                <div class="pg-cell pg-purple">Ar</div>
+                
+                <div class="pg-cell pg-period-num">4</div> 
+                <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> 
+                <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> 
+                <div class="pg-cell pg-purple">Kr</div>
+
+                <div class="pg-cell pg-period-num">5</div> 
+                <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> 
+                <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> 
+                <div class="pg-cell pg-purple">Xe</div>
+
+                <div class="pg-cell pg-period-num">6</div> 
+                <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> 
+                <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> 
+                <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-purple">Rn</div>
+
+                <div class="pg-cell pg-period-num">7</div> 
+                <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> 
+                <div class="pg-cell pg-black">U</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
             </div>
-            <p style="font-size:0.8rem; color:#aaa; margin-top:15px; text-align: left;">* 僅列出遊戲用牌<br>* 紫色(8A)為 Skip 功能牌</p>
+
+            <div class="legend-row">
+                <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A族 (粉)</div>
+                <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A族 (黃)</div>
+                <div class="legend-item"><span class="dot" style="background:#2196f3"></span> 金屬 (藍)</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 生命 (綠)</div>
+            </div>
+            <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
+                <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫色 = 跳過 (Skip)</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
+                <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
+                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U = 核爆 (+4)</div>
+            </div>
         </div>
     </div>
 
