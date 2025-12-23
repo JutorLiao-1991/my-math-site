@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高中物理：多元素光譜實驗室</title>
+    <title>高中物理：多元素光譜實驗室 (高精度版)</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -30,7 +30,7 @@
         h1 { margin-bottom: 5px; font-weight: 300; }
         .subtitle { color: #888; font-size: 0.9rem; margin-bottom: 20px; }
 
-        /* === 1. 控制區 === */
+        /* === 控制區 === */
         .controls {
             display: flex;
             gap: 15px;
@@ -82,7 +82,7 @@
         .hidden-btn { opacity: 0; pointer-events: none; transform: scale(0.8); }
         .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); }
 
-        /* === 2. 實驗宏觀場景 === */
+        /* === 實驗宏觀場景 === */
         .macro-stage {
             width: 800px; height: 180px; position: relative;
             background: #000; border: 1px solid #333; border-radius: 12px;
@@ -111,7 +111,7 @@
             box-shadow: 0 0 8px rgba(255,255,255,0.6);
         }
 
-        /* === 3. 光譜與勾選區 === */
+        /* === 光譜與勾選區 === */
         .spectrum-wrapper { width: 800px; position: relative; margin-bottom: 20px; }
         canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid #444; border-radius: 8px; background: #000; }
         .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
@@ -123,18 +123,16 @@
         .line-control input { width: 16px; height: 16px; cursor: pointer; }
         .line-control label { display: block; font-size: 0.7rem; color: #888; margin-top: 2px; }
 
-        /* === 4. 微觀能階動畫 === */
+        /* === 微觀能階動畫 === */
         .micro-stage {
-            width: 800px; height: 260px; background: #181818;
+            width: 800px; height: 300px; /* 增加高度以容納更多能階 */
+            background: #181818;
             border: 1px dashed #444; border-radius: 12px;
             position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
-        .level-diagram { width: 400px; height: 220px; position: relative; margin-top: 20px; }
-        .level { position: absolute; width: 100%; height: 2px; background: #555; left: 0; transition: bottom 0.5s; }
-        .level-text { position: absolute; right: -80px; top: -8px; font-size: 0.8rem; color: #666; width: 70px; text-align: left;}
-
-        /* 動態設定的 class */
-        .base-level { border-color: #fff; }
+        .level-diagram { width: 400px; height: 260px; position: relative; margin-top: 20px; }
+        .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
+        .level-text { position: absolute; right: -80px; top: -8px; font-size: 0.75rem; color: #666; width: 70px; text-align: left;}
 
         .electron {
             width: 14px; height: 14px; background: var(--electron-color);
@@ -220,39 +218,48 @@
 
     <script>
         // === 資料庫：元素特徵譜線 (nm) ===
-        // 我們不儲存真實的 n 值(除氫外)，而是動態映射到視覺能階
         const elementsData = {
             'H': {
                 name: '氫 (H)',
-                lines: [656.3, 486.1, 434.0, 410.2],
-                color: 'rgba(100,181,246,0.4)' // 氣體雲顏色
+                lines: [656.3, 486.1, 434.0, 410.2], // 紅, 青, 藍, 紫
+                color: 'rgba(100,181,246,0.4)'
             },
             'He': {
                 name: '氦 (He)',
-                lines: [667.8, 587.6, 501.6, 471.3, 447.1],
+                lines: [667.8, 587.6, 501.6, 471.3, 447.1], // 紅, 黃, 綠, 藍, 深藍
                 color: 'rgba(255,200,100,0.4)'
             },
             'Na': {
                 name: '鈉 (Na)',
-                lines: [589.0], // 著名的雙黃線 (簡化為一條強線)
+                lines: [589.0], // 雙黃線
                 color: 'rgba(255,215,0,0.6)'
             },
             'Hg': {
                 name: '汞 (Hg)',
-                lines: [579.1, 546.1, 435.8, 404.7],
+                lines: [579.1, 546.1, 435.8, 404.7], // 黃, 綠, 藍, 紫
                 color: 'rgba(0,255,255,0.4)'
             },
             'Ne': {
                 name: '氖 (Ne)',
-                lines: [640.2, 614.3, 585.2, 540.1], // 選幾條具代表性的紅橘光
+                lines: [640.2, 614.3, 585.2, 540.1], // 紅橘色系
                 color: 'rgba(255,50,50,0.5)'
             }
         };
 
-        // === 視覺能階設定 ===
-        // 為了讓動畫通用，我們定義 5 個視覺上的能階高度
-        // Level 0 是基態 (Ground State)
-        const levelHeights = [20, 100, 140, 170, 195]; 
+        // === 視覺能階設定 (擴充為 8 層) ===
+        // 確保 紫光(高能量) 和 藍光(次高能量) 有不同的落點
+        // Level 0: 基態
+        // Level 1-7: 激發態 (高度 px)
+        const levelHeights = [
+            20,   // Level 0: Ground (Base)
+            70,   // Level 1: Red
+            110,  // Level 2: Orange/Yellow
+            145,  // Level 3: Green
+            175,  // Level 4: Cyan
+            200,  // Level 5: Blue (434nm)
+            220,  // Level 6: Violet (410nm)
+            240   // Level 7: UV/Deep Violet
+        ]; 
 
         // === 狀態變數 ===
         const state = {
@@ -260,7 +267,7 @@
             targetMode: 'continuous',
             fadeProgress: 0,
             element: 'H',
-            mappedLines: [] // 儲存當前元素計算好的能階跳躍資料
+            mappedLines: []
         };
 
         // === DOM ===
@@ -276,6 +283,7 @@
         const cloud = document.querySelector('.cloud');
         const beam1 = document.getElementById('beam1');
         const beam2 = document.getElementById('beam2');
+        const beam3 = document.getElementById('beam3');
         const checkContainer = document.getElementById('checkboxContainer');
         const electron = document.getElementById('electron');
         const photonCont = document.getElementById('photonContainer');
@@ -285,32 +293,26 @@
 
         // === 初始化 ===
         function init() {
-            // 預先計算氫的能階映射
             updateElementData();
             animate();
         }
 
-        // === 資料處理：將波長映射到視覺能階 ===
+        // === 資料處理：將波長映射到更精細的能階 ===
         function updateElementData() {
             const data = elementsData[state.element];
             const lines = data.lines;
             
-            // 排序波長 (大到小 = 紅到紫 = 能量低到高)
-            // 能量低(紅) -> 跳躍小
-            // 能量高(紫) -> 跳躍大
-            // 我們將波長 mapping 到 levelHeights 的 index (1, 2, 3, 4...)
-            
             state.mappedLines = lines.map(wl => {
-                // 簡單演算法：根據波長決定跳到第幾層
-                // 700nm -> 跳到 Level 1
-                // 400nm -> 跳到 Level 4
+                // 更精細的映射邏輯
                 let jumpIdx;
-                if (wl > 600) jumpIdx = 1;      // 紅/橘
-                else if (wl > 550) jumpIdx = 2; // 黃/綠
-                else if (wl > 480) jumpIdx = 3; // 青
-                else jumpIdx = 4;               // 藍/紫
+                if (wl >= 620) jumpIdx = 1;      // 紅
+                else if (wl >= 570) jumpIdx = 2; // 黃/橘
+                else if (wl >= 520) jumpIdx = 3; // 綠
+                else if (wl >= 480) jumpIdx = 4; // 青
+                else if (wl >= 440) jumpIdx = 5; // 藍 (修正：434nm 會落在這)
+                else if (wl >= 415) jumpIdx = 6; // 藍紫
+                else jumpIdx = 7;                // 紫/深紫 (修正：410nm 會落在這)
 
-                // 如果同一區間有太多線，這裡簡單處理，避免重疊太多(本範例暫不處理複雜碰撞)
                 return {
                     wl: wl,
                     color: wlToColor(wl),
@@ -318,28 +320,25 @@
                 };
             });
 
-            // 更新 UI 文字與氣體顏色
+            // UI 更新
             gasLabel.innerText = data.name + (state.mode === 'absorption' ? " (冷)" : " (熱)");
             elementDisplay.innerText = "目前元素：" + data.name;
             cloud.style.background = `radial-gradient(circle, ${data.color} 0%, rgba(0,0,0,0) 70%)`;
             
-            // 重繪能階背景線
             drawLevelBackgrounds();
         }
 
         function drawLevelBackgrounds() {
-            // 清除舊線 (保留 electron 和 photonContainer)
             const oldLevels = document.querySelectorAll('.level');
             oldLevels.forEach(el => el.remove());
 
-            // 畫基態
-            createLevelDiv(0, "基態 (低能階)");
+            createLevelDiv(0, "基態"); // 畫基態
 
-            // 畫激發態
-            // 為了簡化，我們畫出固定的 4 個激發態軌道給電子跳
-            const labels = ["", "低能量激發", "中能量激發", "高能量激發", "極高激發"];
+            // 畫激發態背景線
             for(let i=1; i<levelHeights.length; i++) {
-                createLevelDiv(i, labels[i] || `激發態 ${i}`);
+                // 只畫出有被使用到的能階線會比較乾淨？
+                // 為了視覺一致性，我們畫出所有線，但讓未使用的淡一點
+                createLevelDiv(i, `n ≈ ${i+1}`);
             }
         }
 
@@ -347,13 +346,18 @@
             const div = document.createElement('div');
             div.className = 'level';
             div.style.bottom = levelHeights[idx] + 'px';
-            if (idx === 0) div.style.borderTop = "2px solid white"; // 基態特別亮
+            if (idx === 0) {
+                div.style.borderTop = "2px solid white";
+                div.style.height = "0"; 
+            } else {
+                div.style.borderTop = "1px solid #444";
+            }
 
+            // 只有當目前的元素真的有跳到這一層時，才高亮顯示文字(選擇性優化)
             const text = document.createElement('span');
             text.className = 'level-text';
             text.innerText = labelText;
             div.appendChild(text);
-
             levelContainer.appendChild(div);
         }
 
@@ -375,7 +379,6 @@
 
         function updateUIForModeComplete() {
             updateCheckboxes(); 
-            // 更新氣體標籤狀態
             const name = elementsData[state.element].name;
             if(state.mode === 'absorption') gasLabel.innerText = name + " (冷)";
             if(state.mode === 'emission') gasLabel.innerText = name + " (熱)";
@@ -387,7 +390,6 @@
             const minW = 380; const maxW = 750;
             ctx.clearRect(0, 0, w, h);
 
-            // 背景彩虹
             let rainbowAlpha = 1;
             if (state.mode === 'emission' && state.targetMode === 'emission') rainbowAlpha = 0;
             if (state.mode === 'absorption' && state.targetMode === 'emission') rainbowAlpha = 1 - state.fadeProgress;
@@ -405,7 +407,6 @@
                 ctx.fillRect(0, 0, w, h);
             }
 
-            // 譜線
             let lineType = 'none';
             let lineAlpha = 0;
 
@@ -425,7 +426,7 @@
                     const x = ((maxW - line.wl) / (maxW - minW)) * w;
                     if (lineType === 'dark') {
                         ctx.fillStyle = 'rgba(0,0,0,0.8)';
-                        ctx.fillRect(x - 1.5, 0, 3, h); // 暗線
+                        ctx.fillRect(x - 1.5, 0, 3, h);
                     } else {
                         ctx.strokeStyle = line.color;
                         ctx.lineWidth = 3;
@@ -448,10 +449,8 @@
             if(target === 'absorption') btnAbs.classList.add('active');
             if(target === 'emission') btnEmit.classList.add('active');
 
-            // 氣體選單控制
             gasSelect.disabled = (target === 'continuous');
 
-            // 宏觀顯示
             if (target === 'continuous') {
                 sourceElem.style.opacity = 1;
                 gasElem.style.opacity = 0;
@@ -474,9 +473,9 @@
                 microText.innerText = `[${elementsData[state.element].name}] 電子從激發態落回基態，釋出特定光子。`;
             }
 
-            checkContainer.innerHTML = ''; // 清空選項
+            checkContainer.innerHTML = '';
             resetMicroView();
-            updateElementData(); // 確保標籤正確
+            updateElementData();
         }
 
         function updateCheckboxes() {
@@ -516,8 +515,8 @@
             photonCont.innerHTML = '';
             electron.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
 
-            const startH = levelHeights[0]; // 基態
-            const endH = levelHeights[lineData.targetLevelIdx]; // 根據波長算出的目標能階
+            const startH = levelHeights[0];
+            const endH = levelHeights[lineData.targetLevelIdx];
 
             if (state.mode === 'absorption') {
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
@@ -572,11 +571,9 @@
         
         gasSelect.addEventListener('change', (e) => {
             state.element = e.target.value;
-            // 切換元素時，重新繪製光譜和更新文字
             updateElementData(); 
             updateCheckboxes();
             resetMicroView();
-            // 重置動畫提示
             microText.innerText = "已切換元素，請重新選擇譜線進行觀察。";
         });
 
