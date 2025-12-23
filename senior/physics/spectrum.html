@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高中物理：光譜實驗模擬器 (含微觀原理)</title>
+    <title>高中物理：光譜實驗模擬器 (互動微觀演示)</title>
     <style>
         :root {
             --bg-color: #1a1a1a;
@@ -12,7 +12,8 @@
             --accent: #4CAF50;
             --energy-level-color: #777;
             --electron-color: #2196F3;
-            --photon-color: #FFC107;
+            /* 新增：動態光子顏色變數，預設黃色 */
+            --active-photon-color: rgb(255, 200, 0);
         }
 
         body {
@@ -29,7 +30,6 @@
         h1 { margin-bottom: 10px; }
         .subtitle { color: #aaa; margin-bottom: 30px; font-size: 0.9em; }
 
-        /* 控制面板 */
         .controls {
             background-color: var(--panel-bg);
             padding: 20px;
@@ -38,235 +38,123 @@
             gap: 20px;
             margin-bottom: 30px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            flex-wrap: wrap;
-            justify-content: center;
         }
 
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .control-group { display: flex; flex-direction: column; gap: 5px; }
+        select { padding: 8px; border-radius: 5px; background: #444; color: white; border: 1px solid #555; }
 
-        select, button {
-            padding: 8px 12px;
-            border-radius: 5px;
-            border: 1px solid #555;
-            background: #444;
-            color: white;
-            font-size: 1rem;
-            cursor: pointer;
-        }
-
-        select:focus { outline: 2px solid var(--accent); }
-
-        /* 實驗示意圖區域 (巨觀) */
+        /* 實驗示意圖 (巨觀) - 保持不變 */
         .experiment-setup {
-            width: 800px;
-            height: 200px;
-            position: relative;
-            background: #222;
-            border: 1px solid #444;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-around;
-            overflow: hidden;
+            width: 800px; height: 180px; position: relative; background: #222;
+            border: 1px solid #444; border-radius: 10px; margin-bottom: 20px;
+            display: flex; align-items: center; justify-content: space-around; overflow: hidden;
         }
-
-        .component {
-            text-align: center;
-            z-index: 2;
-            transition: all 0.5s;
-            position: relative;
-        }
-        
-        .component span { display: block; font-size: 2rem; margin-bottom: 5px; }
+        .component { text-align: center; z-index: 2; position: relative; transition: all 0.3s;}
+        .component span { display: block; font-size: 1.8rem; }
         .component label { font-size: 0.8rem; color: #888; }
+        .beam { position: absolute; height: 8px; top: 50%; transform: translateY(-50%); background: white; z-index: 1; opacity: 0; transition: all 0.5s; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
-        /* 光束動畫 */
-        .beam {
-            position: absolute;
-            height: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: white;
-            z-index: 1;
-            opacity: 0;
-            transition: all 0.5s;
-            box-shadow: 0 0 10px rgba(255,255,255,0.5);
-        }
-
-        /* === 新增：微觀原理動畫區域 === */
+        /* === 微觀原理動畫區域 (大幅更新) === */
         .micro-explanation {
-            width: 800px;
-            margin-bottom: 20px;
-            background: #1a1a1a;
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            padding: 20px;
-            display: none; /* 預設隱藏，在吸收模式下顯示 */
-            position: relative;
-            overflow: hidden;
+            width: 800px; margin-bottom: 20px; background: #151515;
+            border: 2px solid var(--accent); border-radius: 10px; padding: 20px;
+            display: none; /* 預設隱藏 */
             box-sizing: border-box;
         }
         
-        .micro-explanation h3 {
-            text-align: center;
-            color: var(--accent);
-            margin-top: 0;
-        }
-
-        .energy-diagram-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 220px;
-        }
-
-        .energy-diagram {
-            width: 300px;
-            height: 200px;
-            position: relative;
-        }
-
-        .energy-level {
-            position: absolute;
-            width: 100%;
-            height: 2px;
-            background-color: var(--energy-level-color);
-        }
+        .micro-title { text-align: center; color: var(--accent); margin: 0 0 10px 0; }
+        .micro-desc { text-align: center; color: #ccc; font-size: 0.9rem; margin-bottom: 20px; min-height: 1.2em;}
         
-        .level-label {
-            position: absolute;
-            right: -40px;
-            top: -10px;
-            color: #888;
-            font-size: 0.9rem;
-        }
+        .energy-diagram-container { height: 200px; position: relative; margin: 0 auto; width: 400px; border-bottom: 1px dashed #333;}
+        .energy-level { position: absolute; width: 100%; height: 2px; background-color: var(--energy-level-color); }
+        .level-label { position: absolute; right: -60px; top: -10px; color: #888; font-size: 0.8rem; }
         
-        /* 能階位置 (示意) */
-        .n1 { bottom: 30px; }
-        .n2 { bottom: 130px; }
-        .n3 { bottom: 180px; }
+        .n1 { bottom: 40px; }
+        .n2 { bottom: 160px; }
 
         .electron {
-            width: 16px;
-            height: 16px;
-            background-color: var(--electron-color);
-            border-radius: 50%;
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            bottom: 23px; /* 初始在 n=1 上方 */
-            box-shadow: 0 0 10px var(--electron-color);
-            z-index: 3;
+            width: 14px; height: 14px; background-color: var(--electron-color);
+            border-radius: 50%; position: absolute; left: 50%; transform: translateX(-50%);
+            bottom: 33px; /* 預設在 n1 */
+            box-shadow: 0 0 8px var(--electron-color); z-index: 3; transition: bottom 0.3s ease-out;
         }
 
+        /* 使用 CSS 變數來動態改變光子 SVG 的顏色 */
         .photon-wave {
-            position: absolute;
-            width: 40px;
-            height: 15px;
-            /* 用 SVG 畫一個波浪 */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 15'%3E%3Cpath d='M0 7.5 Q 10 0, 20 7.5 Q 30 15, 40 7.5' stroke='%23FFC107' fill='none' stroke-width='2'/%3E%3C/svg%3E");
-            background-size: cover;
-            left: -50px;
-            top: 75px; /* 在 n1 n2 之間 */
-            opacity: 0;
-            z-index: 2;
+            position: absolute; width: 40px; height: 15px;
+            /* 這裡使用了 CSS 變數注入顏色 */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 15'%3E%3Cpath d='M0 7.5 Q 5 0, 10 7.5 T 20 7.5 T 30 7.5 T 40 7.5' stroke='white' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+            /* 利用 mask 技術來為 SVG 上色 */
+            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 15'%3E%3Cpath d='M0 7.5 Q 5 0, 10 7.5 T 20 7.5 T 30 7.5 T 40 7.5' stroke='white' fill='none' stroke-width='3'/%3E%3C/svg%3E");
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 15'%3E%3Cpath d='M0 7.5 Q 5 0, 10 7.5 T 20 7.5 T 30 7.5 T 40 7.5' stroke='white' fill='none' stroke-width='3'/%3E%3C/svg%3E");
+            background-color: var(--active-photon-color); /* 核心：動態顏色 */
+            
+            top: 100px; opacity: 0; z-index: 2;
         }
         
-        /* 微觀動畫定義 */
-        @keyframes absorbPhoton {
+        /* === 動畫定義 === */
+        /* 吸收動畫 */
+        @keyframes photonIn {
             0% { left: -50px; opacity: 1; }
-            45% { left: 130px; opacity: 1; } /* 到達電子位置 */
-            50% { opacity: 0; } /* 被吸收消失 */
-            100% { left: 130px; opacity: 0; }
+            50% { left: 180px; opacity: 1; } /* 撞擊點 */
+            51% { opacity: 0; }
+            100% { left: 200px; opacity: 0; }
         }
+        @keyframes electronJumpUp {
+            0%, 50% { bottom: 33px; } /* 在 n1 等待 */
+            55%, 90% { bottom: 153px; } /* 跳到 n2 */
+            100% { bottom: 33px; } /* 回到 n1 */
+        }
+
+        /* 發射動畫 */
+        @keyframes electronDropDown {
+            0%, 40% { bottom: 153px; } /* 在 n2 等待 */
+            45%, 90% { bottom: 33px; } /* 掉到 n1 */
+            100% { bottom: 153px; } /* 回到 n2 準備下一次 */
+        }
+        @keyframes photonOut {
+            0%, 40% { left: 180px; opacity: 0; } /* 在電子處等待 */
+            45% { opacity: 1; } /* 產生 */
+            100% { left: 450px; opacity: 0; } /* 飛出 */
+        }
+
+        /* 動畫觸發 Classes */
+        .animating-absorption .photon-wave { animation: photonIn 3s infinite linear; }
+        .animating-absorption .electron { animation: electronJumpUp 3s infinite; }
         
-        @keyframes electronJump {
-            0%, 45% { bottom: 23px; } /* 停在 n=1 */
-            50% { bottom: 123px; } /* 瞬間躍遷到 n=2 */
-            90% { bottom: 123px; } /* 停留在 n=2 一陣子 */
-            95% { bottom: 23px; } /* (可選)跳回 n=1 */
-            100% { bottom: 23px; }
-        }
+        .animating-emission .photon-wave { animation: photonOut 3s infinite linear; }
+        .animating-emission .electron { animation: electronDropDown 3s infinite; }
 
-        /* 啟動動畫的 class */
-        .animate-absorption .photon-wave {
-            animation: absorbPhoton 4s infinite linear;
-        }
-        
-        .animate-absorption .electron {
-            animation: electronJump 4s infinite step-end; /* step-end 讓躍遷看起來是瞬間的 */
-        }
+        /* 靜態位置設定 (用於模式切換時的初始狀態) */
+        .diagram-mode-absorption .electron { bottom: 33px; }
+        .diagram-mode-emission .electron { bottom: 153px; }
 
 
-        /* 光譜顯示區域 */
-        .spectrum-container {
-            width: 800px;
-            background: #000;
-            padding: 10px;
-            border: 1px solid #555;
-            border-radius: 10px;
-            position: relative;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100px;
-            display: block;
-            cursor: crosshair;
-        }
-
-        .wavelength-scale {
-            display: flex;
-            justify-content: space-between;
-            color: #888;
-            font-size: 0.8rem;
-            padding: 5px 0;
-        }
-
-        .info-box {
-            margin-top: 10px;
-            text-align: center;
-            height: 20px;
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        /* 說明卡片 */
-        .explanation {
-            width: 800px;
-            margin-top: 20px;
-            background: var(--panel-bg);
-            padding: 20px;
-            border-radius: 10px;
-            border-left: 5px solid var(--accent);
-        }
-
-        /* 狀態類別 */
+        /* 光譜區域 */
+        .spectrum-container { width: 800px; background: #000; padding: 10px; border: 1px solid #555; border-radius: 10px; }
+        canvas { width: 100%; height: 100px; display: block; cursor: crosshair; }
+        .wavelength-scale { display: flex; justify-content: space-between; color: #888; font-size: 0.8rem; padding: 5px 0; }
+        .info-box { margin-top: 10px; text-align: center; height: 25px; color: var(--accent); font-weight: bold; }
+        .explanation { width: 800px; margin-top: 20px; background: var(--panel-bg); padding: 20px; border-radius: 10px; border-left: 5px solid var(--accent); }
         .hidden { opacity: 0.2; filter: grayscale(100%); }
     </style>
 </head>
 <body>
 
     <h1>高中物理：光譜實驗模擬器</h1>
-    <div class="subtitle">結合巨觀光路與微觀能階原理的互動展示</div>
+    <div class="subtitle">請將滑鼠移動到光譜線上，觀察對應的微觀躍遷動畫</div>
 
     <div class="controls">
         <div class="control-group">
-            <label>實驗模式 (光路配置)</label>
+            <label>實驗模式</label>
             <select id="modeSelect">
-                <option value="continuous">連續光譜 (熱黑體輻射)</option>
-                <option value="emission">發射光譜 (受激氣體)</option>
-                <option value="absorption">吸收光譜 (白光通過冷氣體)</option>
+                <option value="continuous">連續光譜</option>
+                <option value="emission">發射光譜</option>
+                <option value="absorption">吸收光譜</option>
             </select>
         </div>
-
         <div class="control-group">
-            <label>氣體元素種類</label>
+            <label>氣體元素</label>
             <select id="elementSelect" disabled>
                 <option value="H">氫 (Hydrogen)</option>
                 <option value="He">氦 (Helium)</option>
@@ -277,48 +165,35 @@
     </div>
 
     <div class="experiment-setup" id="setupBox">
-        <div class="component" id="sourceComp"><span>💡</span><label>高溫白光光源</label></div>
-        <div class="beam" id="beam1" style="left: 100px; width: 200px;"></div>
-        <div class="component hidden" id="gasComp"><span>🧪</span><label>氣體樣本</label></div>
-        <div class="beam" id="beam2" style="left: 380px; width: 200px;"></div>
-        <div class="component" id="prismComp"><span>📐</span><label>三稜鏡/分光器</label></div>
-        <div class="beam" id="beam3" style="left: 650px; width: 100px; background: linear-gradient(to right, red, violet);"></div>
+        <div class="component" id="sourceComp"><span>💡</span><label>光源</label></div>
+        <div class="beam" id="beam1" style="left: 80px; width: 220px;"></div>
+        <div class="component hidden" id="gasComp"><span>🧪</span><label>氣體</label></div>
+        <div class="beam" id="beam2" style="left: 380px; width: 220px;"></div>
+        <div class="component" id="prismComp"><span>📐</span><label>分光器</label></div>
+        <div class="beam" id="beam3" style="left: 680px; width: 80px; background: linear-gradient(to right, red, violet);"></div>
     </div>
     
     <div class="micro-explanation" id="microBox">
-        <h3>微觀原理：原子吸收光子</h3>
-        <p style="text-align: center; color: #ccc; margin-bottom: 10px; font-size: 0.9rem;">
-            示意圖：當光子能量 <span style="color:var(--photon-color)">hf</span> 恰好等於能階差 <span style="color:var(--accent)">(E₂ - E₁)</span> 時，電子吸收光子並躍遷。
-        </p>
-        <div class="energy-diagram-container">
-            <div class="energy-diagram" id="energyDiagram">
-                <div class="energy-level n3"><span class="level-label">n=3</span></div>
-                <div class="energy-level n2"><span class="level-label">n=2 (E₂)</span></div>
-                <div class="energy-level n1"><span class="level-label">n=1 (E₁)</span></div>
-                
-                <div class="photon-wave"></div>
-                <div class="electron"></div>
-            </div>
+        <h3 class="micro-title" id="microTitle">微觀原理</h3>
+        <p class="micro-desc" id="microDesc">請將滑鼠移至下方光譜的特定譜線上...</p>
+        <div class="energy-diagram-container" id="energyDiagram">
+            <div class="energy-level n2"><span class="level-label">高能階 (E₂)</span></div>
+            <div class="energy-level n1"><span class="level-label">低能階 (E₁)</span></div>
+            <div class="photon-wave" id="microPhoton"></div>
+            <div class="electron" id="microElectron"></div>
         </div>
     </div>
 
     <div class="spectrum-container">
         <canvas id="spectrumCanvas" width="800" height="100"></canvas>
-        <div class="wavelength-scale">
-            <span>700nm (紅)</span>
-            <span>600nm</span>
-            <span>500nm</span>
-            <span>400nm (紫)</span>
-        </div>
-        <div class="info-box" id="infoBox">移動滑鼠至光譜上查看波長</div>
+        <div class="wavelength-scale"><span>750nm (紅)</span><span>400nm (紫)</span></div>
+        <div class="info-box" id="infoBox">操作提示：滑鼠滑過光譜以探索</div>
     </div>
 
-    <div class="explanation" id="explainText">
-        載入中...
-    </div>
+    <div class="explanation" id="explainText">載入中...</div>
 
     <script>
-        // === 資料定義 ===
+        // === 資料與工具函數 ===
         const spectralLines = {
             'H': [656.3, 486.1, 434.0, 410.2],
             'He': [667.8, 587.6, 501.6, 492.2, 471.3, 447.1],
@@ -328,12 +203,13 @@
 
         function wavelengthToColor(wavelength) {
             let r, g, b;
+             // 簡化的光譜顏色映射 (750nm Red -> 400nm Violet)
             if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0; b = 1; } 
             else if (wavelength >= 440 && wavelength < 490) { r = 0; g = (wavelength - 440) / (490 - 440); b = 1; } 
             else if (wavelength >= 490 && wavelength < 510) { r = 0; g = 1; b = -(wavelength - 510) / (510 - 490); } 
             else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1; b = 0; } 
             else if (wavelength >= 580 && wavelength < 645) { r = 1; g = -(wavelength - 645) / (645 - 580); b = 0; } 
-            else if (wavelength >= 645 && wavelength <= 780) { r = 1; g = 0; b = 0; } 
+            else if (wavelength >= 645 && wavelength <= 750) { r = 1; g = 0; b = 0; } 
             else { r = 0; g = 0; b = 0; }
             return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
         }
@@ -346,24 +222,28 @@
         const infoBox = document.getElementById('infoBox');
         const explainText = document.getElementById('explainText');
         
+        // 巨觀元件
         const sourceComp = document.getElementById('sourceComp');
         const gasComp = document.getElementById('gasComp');
         const beams = [document.getElementById('beam1'), document.getElementById('beam2')];
         
+        // 微觀元件
         const microBox = document.getElementById('microBox');
+        const microTitle = document.getElementById('microTitle');
+        const microDesc = document.getElementById('microDesc');
         const energyDiagram = document.getElementById('energyDiagram');
 
-        // === 核心繪圖與 UI 更新 ===
+        let currentNearestLine = null; // 用於追蹤當前選中的譜線
+
+        // === 核心繪圖 ===
         function draw() {
             const mode = modeSelect.value;
             const element = elementSelect.value;
-            const width = canvas.width;
-            const height = canvas.height;
-            const minW = 380;
-            const maxW = 750;
+            const width = canvas.width; height = canvas.height;
+            const minW = 400; const maxW = 750;
 
-            // 1. 繪製光譜 Canvas
             ctx.clearRect(0, 0, width, height);
+            // 背景
             if (mode === 'continuous' || mode === 'absorption') {
                 const gradient = ctx.createLinearGradient(0, 0, width, 0);
                 for(let i=0; i<=20; i++) {
@@ -371,76 +251,68 @@
                     let wl = maxW - (pct * (maxW - minW));
                     gradient.addColorStop(pct, wavelengthToColor(wl));
                 }
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = gradient; ctx.fillRect(0, 0, width, height);
             } else {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = 'black'; ctx.fillRect(0, 0, width, height);
             }
-
+            // 譜線
             if (mode !== 'continuous') {
                 const lines = spectralLines[element];
                 lines.forEach(wl => {
                     const x = ((maxW - wl) / (maxW - minW)) * width;
                     if (mode === 'emission') {
-                        ctx.strokeStyle = wavelengthToColor(wl);
-                        ctx.lineWidth = 2;
-                        ctx.shadowBlur = 8;
-                        ctx.shadowColor = ctx.strokeStyle;
+                        ctx.strokeStyle = wavelengthToColor(wl); ctx.lineWidth = 2;
+                        ctx.shadowBlur = 10; ctx.shadowColor = ctx.strokeStyle;
                     } else {
-                        ctx.strokeStyle = 'black';
-                        ctx.lineWidth = 3;
-                        ctx.shadowBlur = 0;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.8)'; ctx.lineWidth = 3; ctx.shadowBlur = 0;
                     }
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
                 });
             }
-
             updateUI(mode);
         }
 
+        // === UI 與狀態更新 ===
         function updateUI(mode) {
-            // 文字說明
-            let explanations = {
-                'continuous': "【連續光譜】由熾熱的黑體（如燈泡絲）發出，包含所有波長的可見光。對應附圖一(a)。",
-                'emission': "【發射光譜】由受激發的高溫氣體發出。電子從高能階躍遷回低能階時，釋放出特定能量（頻率）的光子。對應附圖一(c)。",
-                'absorption': "【吸收光譜】白光通過冷氣體時，氣體原子吸收了特定頻率的光子使電子躍遷，導致該頻率的光強度減弱而在光譜上形成暗線。對應附圖一(b)。",
-            };
-            explainText.innerHTML = explanations[mode];
-
             elementSelect.disabled = (mode === 'continuous');
+            microBox.style.display = (mode === 'continuous') ? 'none' : 'block';
 
-            // 巨觀實驗圖示更新
-            sourceComp.classList.remove('hidden');
-            gasComp.classList.remove('hidden');
-            beams.forEach(b => b.style.opacity = 1);
+            // 巨觀光路更新 (簡化版)
+            sourceComp.classList.toggle('hidden', mode === 'emission');
+            gasComp.classList.toggle('hidden', mode === 'continuous');
+            
+            if (mode === 'continuous') beams[1].style.background = 'white';
+            else if (mode === 'emission') beams[1].style.background = 'linear-gradient(to right, #f0f, #0ff)';
+            else beams[1].style.background = 'white';
+            beams[0].style.opacity = (mode === 'emission') ? 0 : 1;
 
-            if (mode === 'continuous') {
-                sourceComp.querySelector('label').innerText = "熾熱的黑體";
-                gasComp.classList.add('hidden'); // 移開氣體
-                beams[0].style.background = 'white';
-                beams[1].style.background = 'white';
-            } else if (mode === 'emission') {
-                sourceComp.classList.add('hidden'); // 關掉背景光源
-                gasComp.querySelector('label').innerText = "高溫受激氣體";
-                beams[0].style.opacity = 0;
-                beams[1].style.background = 'linear-gradient(to right, #f0f, #0ff)'; // 示意混合色光
-            } else if (mode === 'absorption') {
-                sourceComp.querySelector('label').innerText = "熾熱的黑體";
-                gasComp.querySelector('label').innerText = "冷的氣體";
-                beams[0].style.background = 'white';
-                beams[1].style.background = 'white';
-            }
 
-            // 微觀動畫控制
+            // 微觀標題與初始狀態設定
+            energyDiagram.classList.remove('animating-absorption', 'animating-emission');
+            microDesc.textContent = "請將滑鼠移至下方光譜的特定譜線上以觸發動畫";
+            currentNearestLine = null;
+
             if (mode === 'absorption') {
-                microBox.style.display = 'block';
-                energyDiagram.classList.add('animate-absorption');
-            } else {
-                microBox.style.display = 'none';
-                energyDiagram.classList.remove('animate-absorption');
+                microTitle.textContent = "微觀原理：光的吸收";
+                energyDiagram.className = 'energy-diagram-container diagram-mode-absorption'; // 電子在低處
+            } else if (mode === 'emission') {
+                microTitle.textContent = "微觀原理：光的發射";
+                energyDiagram.className = 'energy-diagram-container diagram-mode-emission'; // 電子在高處
             }
+
+            let explanations = {
+                'continuous': "連續光譜包含所有波長的光。",
+                'emission': "發射光譜：高溫氣體電子不穩定，從高能階掉落至低能階，釋出特定能量的光子。",
+                'absorption': "吸收光譜：冷氣體電子吸收特定能量的光子，跳躍至高能階，消耗了該波長的光。",
+            };
+            explainText.textContent = explanations[mode];
+        }
+
+        // === 互動核心：更新微觀動畫顏色 ===
+        function updateAnimationColor(wavelength) {
+            const color = wavelengthToColor(wavelength);
+            // 設定 CSS 變數，讓光子 SVG 變色
+            document.documentElement.style.setProperty('--active-photon-color', color);
         }
 
         // === 事件監聽 ===
@@ -448,22 +320,80 @@
         elementSelect.addEventListener('change', draw);
 
         canvas.addEventListener('mousemove', (e) => {
+            const mode = modeSelect.value;
+            if (mode === 'continuous') return;
+
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const width = canvas.width;
-            const minW = 380; const maxW = 750;
-            const wl = maxW - (x / width) * (maxW - minW);
-            infoBox.textContent = `波長: ${Math.round(wl)} nm`;
-            draw();
+            const minW = 400; const maxW = 750;
+            // 計算游標下的波長
+            const cursorWl = maxW - (x / width) * (maxW - minW);
+
+            // 尋找最近的譜線
+            const element = elementSelect.value;
+            const lines = spectralLines[element];
+            let nearestWl = null;
+            let minDiff = Infinity;
+
+            lines.forEach(wl => {
+                const diff = Math.abs(wl - cursorWl);
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    nearestWl = wl;
+                }
+            });
+
+            // 判定是否「選中」了譜線 (閾值 5nm)
+            if (minDiff < 5) {
+                if (currentNearestLine !== nearestWl) { // 只有切換線時才更新，避免閃爍
+                    currentNearestLine = nearestWl;
+                    infoBox.innerHTML = `偵測到 ${element} 譜線：<span style="color:${wavelengthToColor(nearestWl)}">${nearestWl.toFixed(1)} nm</span>`;
+                    
+                    // 更新動畫顏色並啟動對應動畫
+                    updateAnimationColor(nearestWl);
+                    
+                    // 強制重啟 CSS 動畫的小技巧 (Reflow)
+                    energyDiagram.classList.remove('animating-absorption', 'animating-emission');
+                    void energyDiagram.offsetWidth; // Trigger reflow
+
+                    if (mode === 'absorption') {
+                        microDesc.innerHTML = `電子吸收 <span style="color:${wavelengthToColor(nearestWl)}">${nearestWl.toFixed(1)}nm</span> 光子能量，躍遷至高能階。`;
+                        energyDiagram.classList.add('animating-absorption');
+                    } else {
+                        microDesc.innerHTML = `電子從高能階落回，發射出 <span style="color:${wavelengthToColor(nearestWl)}">${nearestWl.toFixed(1)}nm</span> 光子。`;
+                        energyDiagram.classList.add('animating-emission');
+                    }
+                }
+            } else {
+                // 滑鼠離開譜線區域
+                if (currentNearestLine !== null) {
+                     currentNearestLine = null;
+                     infoBox.textContent = `目前位置波長: ${Math.round(cursorWl)} nm (未對準譜線)`;
+                     microDesc.textContent = "請將滑鼠對準特定譜線...";
+                     // 停止動畫
+                     energyDiagram.classList.remove('animating-absorption', 'animating-emission');
+                } else {
+                     infoBox.textContent = `目前位置波長: ${Math.round(cursorWl)} nm`;
+                }
+            }
+
+            // 視覺回饋：畫滑鼠游標線
+            draw(); 
             ctx.strokeStyle = '#888'; ctx.lineWidth = 1; ctx.shadowBlur=0;
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
         });
+
         canvas.addEventListener('mouseleave', () => {
-            infoBox.textContent = "移動滑鼠至光譜上查看波長";
+            infoBox.textContent = "操作提示：滑鼠滑過光譜以探索";
+            if (modeSelect.value !== 'continuous') {
+                energyDiagram.classList.remove('animating-absorption', 'animating-emission');
+                microDesc.textContent = "請將滑鼠移至下方光譜的特定譜線上以觸發動畫";
+            }
             draw();
         });
+
         window.addEventListener('resize', draw);
-        
         draw(); // 初始化
     </script>
 </body>
