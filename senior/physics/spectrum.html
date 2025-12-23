@@ -5,17 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特物理：多元光譜實驗室</title>
     <style>
-        /* 應用「物質加熱曲線」的明亮風格 */
+        /* 回歸深色主題 */
         :root {
-            --primary-color: #4a90e2; /* 主藍色 (Primary) */
-            --secondary-color: #f5a623; /* 橙色 (Accent) */
-            --bg-color: #f4f7f6; /* 淺灰色背景 */
-            --text-color: #333; /* 深色文字 */
-            --panel-bg: #ffffff; /* 白色面板 */
-            --nav-bg: rgba(30, 41, 59, 0.95); /* 深色導航欄 */
-            --accent: #38bdf8; /* 藍色強調（用於按鈕等） */
-            --control-group-bg: #f7f7ff; /* 淺藍色控制區背景 */
-            --btn-bg: #eee; /* 按鈕背景 */
+            --primary-color: #4a90e2; /* 主藍色 */
+            --secondary-color: #f5a623; /* 橙色 */
+            --bg-color: #121212; /* 深色背景 */
+            --text-color: #e0e0e0; /* 淺色文字 */
+            --panel-bg: #1e1e1e; /* 深色面板 */
+            --nav-bg: #000000; /* 純黑導航欄 */
+            --accent: #64b5f6; /* 藍色強調 */
+            --control-group-bg: #252525; /* 深色控制區背景 */
+            --btn-bg: #333; /* 深色按鈕背景 */
+            --border-color: #444; /* 通用邊框顏色 */
             --electron-color: #ff5722; /* 電子顏色 */
         }
         
@@ -38,10 +39,10 @@
             display: flex; 
             align-items: center; 
             justify-content: space-between; 
-            border-bottom: 1px solid #334155; 
+            border-bottom: 1px solid var(--border-color); 
             z-index: 20; 
             flex-shrink: 0;
-            color: white;
+            color: var(--text-color);
         }
         .back-btn { 
             text-decoration: none; 
@@ -55,8 +56,8 @@
             display: flex; 
             align-items: center; 
         }
-        .back-btn:hover { background: var(--accent); color: #0f172a; }
-        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: white; }
+        .back-btn:hover { background: var(--accent); color: #000; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: var(--text-color); }
 
         /* 主畫面佈局 */
         .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
@@ -66,13 +67,13 @@
             width: 320px; 
             background: var(--panel-bg); 
             padding: 20px; 
-            border-right: 1px solid #e2e8f0; 
+            border-right: 1px solid var(--border-color); 
             display: flex; 
             flex-direction: column; 
             gap: 20px; 
             z-index: 10; 
             overflow-y: auto; 
-            box-shadow: 5px 0 15px rgba(0,0,0,0.05); 
+            box-shadow: none;
             flex-shrink: 0; 
         }
         
@@ -80,13 +81,13 @@
             background: var(--control-group-bg); 
             padding: 15px; 
             border-radius: 12px; 
-            border: 1px solid #cbd5e1; 
+            border: 1px solid var(--border-color); 
         }
         .control-group h3 { 
             margin: 0 0 15px 0; 
             font-size: 1rem; 
-            color: var(--primary-color); 
-            border-bottom: 1px solid var(--secondary-color); 
+            color: var(--accent); 
+            border-bottom: 1px solid var(--border-color); 
             padding-bottom: 8px; 
             display: flex; 
             align-items: center; 
@@ -97,21 +98,21 @@
         .mode-buttons { display: flex; flex-direction: column; gap: 10px; }
         button {
             padding: 10px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease;
-            background: var(--btn-bg); color: #555; border: 1px solid #ccc; text-align: left; font-weight: 600;
+            background: var(--btn-bg); color: #aaa; border: 1px solid var(--border-color); text-align: left; font-weight: 600;
         }
-        button:hover { background: #ddd; }
-        button.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        button:hover { background: #444; color: white; }
+        button.active { background: var(--accent); color: #000; border-color: var(--accent); }
         .hidden-btn { opacity: 0; pointer-events: none; transform: scale(0.95); transition: all 0.5s; height: 0; padding: 0; border: none; overflow: hidden; }
-        .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); height: auto; padding: 10px; border: 1px solid #ccc; }
+        .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); height: auto; padding: 10px; border: 1px solid var(--border-color); }
 
-        select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; width: 100%; background: white; cursor: pointer; }
-        select:disabled { opacity: 0.6; cursor: not-allowed; background: #eee; }
+        select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; width: 100%; background: #333; color: white; cursor: pointer; }
+        select:disabled { opacity: 0.5; cursor: not-allowed; background: #222; }
 
         /* 右側畫布容器 (實驗區) */
         #experiment-container { 
             flex: 1; 
             position: relative; 
-            background: #e2e8f0; 
+            background: #000; /* 實驗區背景全黑 */
             overflow-y: auto; 
             padding: 20px;
             display: flex;
@@ -123,68 +124,70 @@
         /* 實驗宏觀場景 */
         .macro-stage {
             width: 100%; max-width: 800px; height: 180px; position: relative;
-            background: #fff; border: 1px solid #ccc; border-radius: 12px;
-            overflow: hidden; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            background: #111; border: 1px solid var(--border-color); border-radius: 12px;
+            overflow: hidden; display: flex; align-items: center;
         }
         .comp { position: absolute; text-align: center; transition: opacity 1s; z-index: 2; }
         .comp span { font-size: 2rem; display: block; }
-        .comp label { font-size: 0.8rem; color: #666; white-space: nowrap;}
+        .comp label { font-size: 0.8rem; color: #888; white-space: nowrap;}
         #source { left: 5%; } #gas { left: 35%; opacity: 0; transition: opacity 1.5s ease; } #prism { left: 65%; }
-        .cloud { width: 100px; height: 70px; background: radial-gradient(circle, rgba(74, 144, 226, 0.3) 0%, rgba(0,0,0,0) 70%); filter: blur(10px); border-radius: 50%; animation: float 4s infinite ease-in-out; }
+        .cloud { width: 100px; height: 70px; background: radial-gradient(circle, rgba(100,181,246,0.4) 0%, rgba(0,0,0,0) 70%); filter: blur(10px); border-radius: 50%; animation: float 4s infinite ease-in-out; }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .beam { position: absolute; height: 6px; top: 50%; margin-top: -3px; background: #f0f0f0; z-index: 1; transition: opacity 1s, background 1s; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+        .beam { position: absolute; height: 6px; top: 50%; margin-top: -3px; background: #fff; z-index: 1; transition: opacity 1s, background 1s; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
         /* 光譜與勾選區 */
         .spectrum-wrapper { width: 100%; max-width: 800px; position: relative; }
-        canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid #ccc; border-radius: 8px; background: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid var(--border-color); border-radius: 8px; background: #000; }
         .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
         .line-control { position: absolute; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity 0.5s; cursor: pointer; }
-        .line-control input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color); }
-        .line-control label { display: block; font-size: 0.7rem; color: #555; margin-top: 2px; }
+        .line-control input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
+        .line-control label { display: block; font-size: 0.7rem; color: #aaa; margin-top: 2px; }
 
         /* 微觀能階動畫 */
         .micro-stage {
-            width: 100%; max-width: 800px; height: 320px; background: #fff; border: 1px solid #ccc; border-radius: 12px;
-            position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            width: 100%; max-width: 800px; height: 320px; background: #111; border: 1px solid var(--border-color); border-radius: 12px;
+            position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
         .level-diagram { width: 90%; height: 280px; position: relative; margin-top: 20px; }
-        .level { position: absolute; width: 100%; height: 1px; background: #ddd; left: 0; transition: bottom 0.5s; }
+        .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
         .level-text { position: absolute; right: 5px; top: -15px; font-size: 0.75rem; color: #888; text-align: right;}
-        .electron { width: 14px; height: 14px; background: var(--electron-color); border-radius: 50%; position: absolute; left: 50%; margin-left: -7px; bottom: 20px; box-shadow: 0 0 5px rgba(255,87,34,0.5); z-index: 10; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .electron { width: 14px; height: 14px; background: var(--electron-color); border-radius: 50%; position: absolute; left: 50%; margin-left: -7px; bottom: 20px; box-shadow: 0 0 8px var(--electron-color); z-index: 10; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         
-        /* 波動光子動畫 */
+        /* 波動光子動畫 (修正版) */
         .photon-wave {
-            position: absolute; top: 50%; left: 0; width: 40px; height: 10px; opacity: 0; pointer-events: none; z-index: 5;
-            /* 使用 SVG 繪製波動 */
+            position: absolute; top: 50%; left: 50%; margin-left: -20px; /* 居中設定 */
+            width: 40px; height: 10px; opacity: 0; pointer-events: none; z-index: 5;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='white' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat; background-position: center;
-            /* 使用 mask 技術上色 */
             -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='black' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
             mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='black' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-color: currentColor; /* 顏色由 JS 動態設定 */
+            background-color: currentColor;
         }
 
+        /* 吸收動畫：從左側飛入，在中央撞擊瞬間消失 */
         @keyframes absorb-wave {
-            0% { transform: translate(-100px, -50%); opacity: 1; }
-            45% { transform: translate(calc(50% - 20px), -50%); opacity: 1; } /* 移動到畫面中央 */
-            50% { opacity: 0; } 100% { opacity: 0; }
+            0% { transform: translate(-350px, -50%); opacity: 0; }
+            10% { opacity: 1; } /* 快速淡入 */
+            95% { transform: translate(0, -50%); opacity: 1; } /* 到達中央前保持可見 */
+            100% { transform: translate(0, -50%); opacity: 0; } /* 撞擊瞬間消失 */
         }
+        /* 發射動畫：從中央產生，飛向右側 */
         @keyframes emit-wave {
-            0% { opacity: 0; transform: translate(calc(50% - 20px), -50%); }
-            50% { opacity: 1; transform: translate(calc(50% - 20px), -50%); }
-            100% { transform: translate(400px, -50%); opacity: 0; }
+            0% { opacity: 0; transform: translate(0, -50%); }
+            10% { opacity: 1; }
+            100% { transform: translate(350px, -50%); opacity: 0; }
         }
 
-        .instruction { position: absolute; top: 10px; left: 15px; color: var(--primary-color); font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 5px;}
-        .element-badge { position: absolute; top: 10px; right: 15px; background: #eee; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #666; }
+        .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
+        .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
 
-        /* 浮水印 */
-        .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(0,0,0,0.1); font-size: 1.1rem; pointer-events: none; z-index: 5; }
+        /* 浮水印 (深色背景用淺色字) */
+        .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.15); font-size: 1.1rem; pointer-events: none; z-index: 5; }
 
         /* 手機適配 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            .controls { width: 100%; height: auto; max-height: 35vh; border-right: none; border-top: 2px solid #e2e8f0; order: 2; padding: 15px; gap: 15px; }
+            .controls { width: 100%; height: auto; max-height: 35vh; border-right: none; border-top: 2px solid var(--border-color); order: 2; padding: 15px; gap: 15px; }
             #experiment-container { order: 1; flex: 1; min-height: 50vh; padding: 10px; }
             .macro-stage, .spectrum-wrapper, .micro-stage { width: 100%; }
             #source { left: 2%; } #gas { left: 32%; } #prism { left: 62%; }
@@ -256,7 +259,7 @@
     </div>
 
     <script>
-        // === 資料庫：元素特徵譜線 (nm) ===
+        // === 資料庫與設定 ===
         const elementsData = {
             'H': { name: '氫 (H)', lines: [656.3, 486.1, 434.0, 410.2], color: 'rgba(100,181,246,0.4)' },
             'He': { name: '氦 (He)', lines: [667.8, 587.6, 501.6, 471.3, 447.1], color: 'rgba(255,200,100,0.4)' },
@@ -264,15 +267,9 @@
             'Hg': { name: '汞 (Hg)', lines: [579.1, 546.1, 435.8, 404.7], color: 'rgba(0,255,255,0.4)' },
             'Ne': { name: '氖 (Ne)', lines: [640.2, 614.3, 585.2, 540.1], color: 'rgba(255,50,50,0.5)' }
         };
-
-        // === 視覺能階高度設定 (px from bottom) ===
         const baseLevelHeight = 20;
         const excitedLevelHeights = [70, 100, 130, 160, 190, 220, 250]; 
-
-        // === 狀態變數 ===
-        const state = {
-            mode: 'continuous', targetMode: 'continuous', fadeProgress: 0, element: 'H', mappedLines: []
-        };
+        const state = { mode: 'continuous', targetMode: 'continuous', fadeProgress: 0, element: 'H', mappedLines: [] };
 
         // === DOM ===
         const canvas = document.getElementById('spectrumCanvas');
@@ -302,7 +299,7 @@
         function updateElementData() {
             const data = elementsData[state.element];
             const lines = [...data.lines];
-            lines.sort((a, b) => b - a); // 波長大到小 (能量小到大)
+            lines.sort((a, b) => b - a); 
             state.mappedLines = lines.map((wl, index) => {
                 const heightIndex = Math.min(index, excitedLevelHeights.length - 1);
                 return { wl: wl, color: wlToColor(wl), targetHeight: excitedLevelHeights[heightIndex] };
@@ -323,7 +320,7 @@
 
         function createLevelDiv(bottomPx, labelText, isBase) {
             const div = document.createElement('div'); div.className = 'level'; div.style.bottom = bottomPx + 'px';
-            div.style.borderTop = isBase ? "2px solid #aaa" : "1px solid #ddd";
+            div.style.borderTop = isBase ? "2px solid #aaa" : "1px solid #555";
             const text = document.createElement('span'); text.className = 'level-text'; text.innerText = labelText;
             div.appendChild(text); levelContainer.appendChild(div);
         }
@@ -373,8 +370,8 @@
                     const x = ((maxW - line.wl) / (maxW - minW)) * w;
                     if (lineType === 'dark') { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(x - 2, 0, 4, h); }
                     else {
-                        ctx.strokeStyle = line.color; ctx.lineWidth = 4;
-                        ctx.shadowBlur = 15; ctx.shadowColor = line.color;
+                        ctx.strokeStyle = line.color; ctx.lineWidth = 3;
+                        ctx.shadowBlur = 10; ctx.shadowColor = line.color;
                         ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); ctx.shadowBlur = 0;
                     }
                 });
@@ -393,10 +390,10 @@
             gasSelect.disabled = (target === 'continuous');
 
             if (target === 'continuous') {
-                sourceElem.style.opacity = 1; gasElem.style.opacity = 0; beam1.style.opacity = 1; beam2.style.background = '#f0f0f0'; beam3.style.opacity = 1;
+                sourceElem.style.opacity = 1; gasElem.style.opacity = 0; beam1.style.opacity = 1; beam2.style.background = '#fff'; beam3.style.opacity = 1;
                 microText.innerText = "連續光譜：包含所有波長的光，無特徵譜線。";
             } else if (target === 'absorption') {
-                sourceElem.style.opacity = 1; gasElem.style.opacity = 1; beam1.style.opacity = 1; beam2.style.background = '#f0f0f0'; 
+                sourceElem.style.opacity = 1; gasElem.style.opacity = 1; beam1.style.opacity = 1; beam2.style.background = '#fff'; 
                 btnEmit.classList.remove('hidden-btn'); btnEmit.classList.add('reveal-btn');
                 microText.innerText = `[${elementsData[state.element].name}] 吸收特定能量光子，電子從基態躍遷。`;
             } else if (target === 'emission') {
@@ -419,7 +416,7 @@
             });
         }
 
-        // === 微觀動畫 (修正為波動) ===
+        // === 微觀動畫 (修正同步問題) ===
         function resetMicroView() { electron.style.transition = 'none'; electron.style.bottom = baseLevelHeight + 'px'; photonCont.innerHTML = ''; }
 
         function triggerTransition(lineData) {
@@ -429,19 +426,22 @@
             if (state.mode === 'absorption') {
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
                 const wave = createWave(lineData.color);
-                wave.style.animation = 'absorb-wave 1.2s linear forwards'; // 調整動畫時間
+                // 設定動畫總時長為 1.0s
+                wave.style.animation = 'absorb-wave 1.0s linear forwards';
                 photonCont.appendChild(wave);
+
+                // 在 950ms 時觸發跳躍 (接近動畫結束的撞擊點)
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-out'; electron.style.bottom = endH + 'px';
                     microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至較高能階。`;
-                }, 500); // 在波動到達中央附近時觸發躍遷
+                }, 950); 
             } else if (state.mode === 'emission') {
                 electron.style.transition = 'none'; electron.style.bottom = endH + 'px';
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-in'; electron.style.bottom = startH + 'px';
                     setTimeout(() => {
                         const wave = createWave(lineData.color);
-                        wave.style.animation = 'emit-wave 1.2s linear forwards';
+                        wave.style.animation = 'emit-wave 1.0s linear forwards';
                         photonCont.appendChild(wave);
                         microText.innerHTML = `躍遷回基態，發射 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子。`;
                     }, 500); // 電子落地後發射
@@ -451,9 +451,8 @@
 
         function createWave(color) {
             const w = document.createElement('div'); w.className = 'photon-wave';
-            w.style.color = color; // 設置 CSS color 屬性，供 SVG 的 currentColor 使用
-            // 將波動垂直置中對齊到電子軌道區域
-            w.style.top = `calc(100% - ${baseLevelHeight + (250-baseLevelHeight)/2}px)`; 
+            w.style.color = color; 
+            w.style.top = `calc(100% - ${baseLevelHeight + (280-baseLevelHeight)/2}px)`; 
             return w;
         }
 
