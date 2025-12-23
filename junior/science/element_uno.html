@@ -120,10 +120,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const ROOM_ID = "class_room_101";
-        // 使用加號拼接，避免反引號錯誤
         const roomRef = ref(db, 'rooms/' + ROOM_ID);
 
-        let myId = 'user_' + Math.random().toString(36).substr(2, 9);
+        // ★ 修正 1: 改用「時間」當 ID，確保先來的人排在前面 (解決房主亂跳問題)
+        let myId = 'user_' + Date.now(); 
+        
         let myName = "";
         let myHand = [];
         let playerOrder = [];
@@ -159,12 +160,10 @@
             else modal.classList.remove('show');
         }
 
-        // --- 加入遊戲核心邏輯 ---
         window.joinGame = function() {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
-            // 1. 先讀取資料庫，確認是否為第一人
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                 const players = snapshot.val() || {};
                 const isFirstPlayer = Object.keys(players).length === 0;
@@ -172,15 +171,12 @@
                 const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
                 
                 if (isFirstPlayer) {
-                    // ★ 房主斷線：刪除整個房間
                     onDisconnect(roomRef).remove();
                     console.log("我是房主，設定斷線移除房間");
                 } else {
-                    // ★ 玩家斷線：只刪除自己
                     onDisconnect(myRef).remove();
                 }
 
-                // 2. 寫入資料
                 update(myRef, { name: myName });
                 
                 document.getElementById('my-name-display').innerText = `我: ${myName}`;
@@ -188,30 +184,25 @@
             });
         };
 
-        // --- 監聽房間狀態 (防卡死 + 遊戲邏輯) ---
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            // 【加入這行】由這行來當守門員！
-            // 如果我還沒設定名字 (代表我還沒按加入)，就直接無視後面的更新，讓我乖乖待在登入畫面
-            if (myName === "") return;
-            // 判斷現在是否在登入畫面
+            
+            // ★ 修正 2: 這裡是最重要的守門員，沒名字前不准切換畫面 (解決手機卡死問題)
+            if (myName === "") return; 
+
             const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
 
-            // ★ 狀況 A：房間不存在 (被刪除或是還沒建立)
             if (!data) {
-                // 如果我不在登入畫面 (代表我玩到一半或在大廳)，卻發現房間沒了 -> 踢回首頁
                 if (!isLoginScreen) {
                     alert("房主已離開，房間解散！");
                     location.reload(); 
                 }
-                // 如果我在登入畫面，房間是空的很正常 -> 不做任何事，等待玩家建立
                 return; 
             }
 
-            // ★ 狀況 B：房間存在，處理遊戲邏輯
             const playersMap = data.players || {};
             
-            // 檢查自己是否還在名單上 (防止資料被意外刪除)
+            // 檢查自己是否還在名單上
             if (!isLoginScreen) {
                  if (!playersMap[myId]) {
                      alert('你已斷線，請重新登入');
@@ -222,7 +213,6 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
             
-            // 自動重置機制：如果只剩一人且卡在遊戲中 -> 重置回等待
             if (playerList.length === 1 && data.status !== 'waiting') {
                 update(roomRef, {
                     status: 'waiting',
@@ -269,7 +259,6 @@
         }
 
         window.startGame = function() {
-            // 使用加號拼接
             onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
@@ -341,7 +330,6 @@
                 return;
             }
 
-            // 使用加號拼接
             onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
                 let currentIndex = snap.val() || 0;
                 let jump = 1;
@@ -363,7 +351,6 @@
             const newCard = allCards[Math.floor(Math.random() * allCards.length)];
             myHand.push(newCard);
             renderHand();
-            // 使用加號拼接
             onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
                 const currentIndex = snap.val() || 0;
                 const nextIndex = (currentIndex + 1) % playerOrder.length;
