@@ -105,19 +105,17 @@
             transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         
-        /* 波動光子樣式 (修正版) */
+        /* 波動光子樣式 (Final Version) */
         .photon-wave {
             position: absolute; 
             left: 50%; 
-            margin-left: -40px; /* 寬度 80px 的一半，使其居中對齊電子 */
+            margin-left: -40px; 
             width: 80px; 
             height: 20px; 
             opacity: 0; 
             pointer-events: none; 
             z-index: 5;
-
-            /* 使用 Mask 技術確保顏色正確顯示 */
-            background-color: currentColor; /* 這是關鍵：背景色變成 Javascript 設定的顏色 */
+            background-color: currentColor; 
             -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
             -webkit-mask-repeat: no-repeat;
@@ -126,14 +124,12 @@
             mask-position: center;
         }
 
-        /* 吸收動畫：從左(-450px)飛入，在正中央(0px)撞擊並消失 */
         @keyframes absorb-wave {
             0% { transform: translateX(-450px); opacity: 0; }
             10% { opacity: 1; }
-            95% { transform: translateX(0px); opacity: 1; } /* 撞擊前一刻 */
-            100% { transform: translateX(0px); opacity: 0; } /* 撞擊瞬間消失 */
+            95% { transform: translateX(0px); opacity: 1; } 
+            100% { transform: translateX(0px); opacity: 0; } 
         }
-        /* 發射動畫：從正中央(0px)產生，向右飛出 */
         @keyframes emit-wave {
             0% { opacity: 0; transform: translateX(0px); }
             10% { opacity: 1; }
@@ -142,7 +138,30 @@
 
         .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
         .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
-        .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.15); font-size: 1.1rem; pointer-events: none; z-index: 5; }
+
+        /* 浮水印樣式 (方案B：科技感標籤) 
+           位置改為右下角，增加邊框與背景，提升識別度
+        */
+        .watermark { 
+            position: absolute; 
+            bottom: 15px; 
+            right: 20px; 
+            left: auto; /* 取消左對齊 */
+            font-family: 'Segoe UI', sans-serif; /* 改用無襯線體更現代 */
+            font-weight: bold;
+            color: var(--accent); /* 使用主題藍色 */
+            font-size: 0.9rem; 
+            pointer-events: none; 
+            z-index: 100;
+            
+            /* 增加邊框與背景讓其更像一個 UI 元件 */
+            padding: 5px 12px;
+            border: 1px solid rgba(100, 181, 246, 0.4);
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(2px);
+            letter-spacing: 0.5px;
+        }
 
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
@@ -150,7 +169,7 @@
             #experiment-container { order: 1; flex: 1; min-height: 50vh; padding: 10px; }
             .macro-stage, .spectrum-wrapper, .micro-stage { width: 100%; }
             #source { left: 2%; } #gas { left: 32%; } #prism { left: 62%; }
-            .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
+            .watermark { font-size: 0.8rem; bottom: 10px; right: 10px; } /* 手機版也靠右 */
             .page-title { font-size: 1rem; } .back-btn span { display: none; }
         }
     </style>
@@ -375,7 +394,7 @@
             });
         }
 
-        // === 微觀動畫 (修正顏色與高度) ===
+        // === 微觀動畫 ===
         function resetMicroView() { electron.style.transition = 'none'; electron.style.bottom = baseLevelHeight + 'px'; photonCont.innerHTML = ''; }
 
         function triggerTransition(lineData) {
@@ -424,22 +443,4 @@
             if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0; b = 1; }
             else if (wavelength >= 440 && wavelength < 490) { r = 0; g = (wavelength - 440) / (490 - 440); b = 1; }
             else if (wavelength >= 490 && wavelength < 510) { r = 0; g = 1; b = -(wavelength - 510) / (510 - 490); }
-            else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1; b = 0; }
-            else if (wavelength >= 580 && wavelength < 645) { r = 1; g = -(wavelength - 645) / (645 - 580); b = 0; }
-            else if (wavelength >= 645 && wavelength <= 750) { r = 1; g = 0; b = 0; }
-            else { r = 0; g = 0; b = 0; }
-            return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
-        }
-
-        // === 事件綁定 ===
-        btnCont.addEventListener('click', () => updateScene('continuous'));
-        btnAbs.addEventListener('click', () => updateScene('absorption'));
-        btnEmit.addEventListener('click', () => updateScene('emission'));
-        gasSelect.addEventListener('change', (e) => {
-            state.element = e.target.value; updateElementData(); updateCheckboxes(); resetMicroView();
-            microText.innerText = "已切換元素，請重新選擇譜線進行觀察。";
-        });
-        init();
-    </script>
-</body>
-</html>
+            else if (wavelength >= 510 && wavelength < 580) { r =
