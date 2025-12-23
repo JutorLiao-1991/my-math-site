@@ -5,56 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特物理：多元光譜實驗室</title>
     <style>
-        /* 回歸深色主題 */
+        /* 深色主題變數 */
         :root {
-            --primary-color: #4a90e2; /* 主藍色 */
-            --secondary-color: #f5a623; /* 橙色 */
-            --bg-color: #121212; /* 深色背景 */
-            --text-color: #e0e0e0; /* 淺色文字 */
-            --panel-bg: #1e1e1e; /* 深色面板 */
-            --nav-bg: #000000; /* 純黑導航欄 */
-            --accent: #64b5f6; /* 藍色強調 */
-            --control-group-bg: #252525; /* 深色控制區背景 */
-            --btn-bg: #333; /* 深色按鈕背景 */
-            --border-color: #444; /* 通用邊框顏色 */
-            --electron-color: #ff5722; /* 電子顏色 */
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --panel-bg: #1e1e1e;
+            --nav-bg: #000000;
+            --accent: #64b5f6;
+            --control-group-bg: #252525;
+            --btn-bg: #333;
+            --border-color: #444;
+            --electron-color: #ff5722;
         }
         
         body { 
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
-            margin: 0; 
-            padding: 0; 
-            background: var(--bg-color); 
-            color: var(--text-color); 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
+            margin: 0; padding: 0; background: var(--bg-color); color: var(--text-color); 
+            overflow: hidden; display: flex; flex-direction: column; height: 100vh; 
         }
         
         /* 導覽列 */
         .nav-bar { 
-            padding: 10px 20px; 
-            background: var(--nav-bg); 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            border-bottom: 1px solid var(--border-color); 
-            z-index: 20; 
-            flex-shrink: 0;
-            color: var(--text-color);
+            padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; 
+            justify-content: space-between; border-bottom: 1px solid var(--border-color); z-index: 20; flex-shrink: 0;
         }
         .back-btn { 
-            text-decoration: none; 
-            color: var(--accent); 
-            font-weight: bold; 
-            border: 1px solid var(--accent); 
-            padding: 5px 15px; 
-            border-radius: 20px; 
-            font-size: 0.9rem; 
-            transition: 0.3s; 
-            display: flex; 
-            align-items: center; 
+            text-decoration: none; color: var(--accent); font-weight: bold; border: 1px solid var(--accent); 
+            padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; 
         }
         .back-btn:hover { background: var(--accent); color: #000; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: var(--text-color); }
@@ -64,37 +43,12 @@
         
         /* 左側控制面板 */
         .controls { 
-            width: 320px; 
-            background: var(--panel-bg); 
-            padding: 20px; 
-            border-right: 1px solid var(--border-color); 
-            display: flex; 
-            flex-direction: column; 
-            gap: 20px; 
-            z-index: 10; 
-            overflow-y: auto; 
-            box-shadow: none;
-            flex-shrink: 0; 
+            width: 320px; background: var(--panel-bg); padding: 20px; border-right: 1px solid var(--border-color); 
+            display: flex; flex-direction: column; gap: 20px; z-index: 10; overflow-y: auto; flex-shrink: 0; 
         }
+        .control-group { background: var(--control-group-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .control-group h3 { margin: 0 0 15px 0; font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         
-        .control-group { 
-            background: var(--control-group-bg); 
-            padding: 15px; 
-            border-radius: 12px; 
-            border: 1px solid var(--border-color); 
-        }
-        .control-group h3 { 
-            margin: 0 0 15px 0; 
-            font-size: 1rem; 
-            color: var(--accent); 
-            border-bottom: 1px solid var(--border-color); 
-            padding-bottom: 8px; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px;
-        }
-        
-        /* 按鈕與選單 */
         .mode-buttons { display: flex; flex-direction: column; gap: 10px; }
         button {
             padding: 10px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease;
@@ -108,20 +62,13 @@
         select { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-color); font-size: 1rem; width: 100%; background: #333; color: white; cursor: pointer; }
         select:disabled { opacity: 0.5; cursor: not-allowed; background: #222; }
 
-        /* 右側畫布容器 (實驗區) */
+        /* 右側實驗區 */
         #experiment-container { 
-            flex: 1; 
-            position: relative; 
-            background: #000; /* 實驗區背景全黑 */
-            overflow-y: auto; 
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
+            flex: 1; position: relative; background: #000; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 20px; align-items: center;
         }
 
-        /* 實驗宏觀場景 */
+        /* 宏觀場景 */
         .macro-stage {
             width: 100%; max-width: 800px; height: 180px; position: relative;
             background: #111; border: 1px solid var(--border-color); border-radius: 12px;
@@ -135,7 +82,7 @@
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
         .beam { position: absolute; height: 6px; top: 50%; margin-top: -3px; background: #fff; z-index: 1; transition: opacity 1s, background 1s; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
 
-        /* 光譜與勾選區 */
+        /* 光譜 */
         .spectrum-wrapper { width: 100%; max-width: 800px; position: relative; }
         canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid var(--border-color); border-radius: 8px; background: #000; }
         .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
@@ -143,7 +90,7 @@
         .line-control input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--accent); }
         .line-control label { display: block; font-size: 0.7rem; color: #aaa; margin-top: 2px; }
 
-        /* 微觀能階動畫 */
+        /* 微觀能階動畫區 */
         .micro-stage {
             width: 100%; max-width: 800px; height: 320px; background: #111; border: 1px solid var(--border-color); border-radius: 12px;
             position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center;
@@ -151,43 +98,52 @@
         .level-diagram { width: 90%; height: 280px; position: relative; margin-top: 20px; }
         .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
         .level-text { position: absolute; right: 5px; top: -15px; font-size: 0.75rem; color: #888; text-align: right;}
-        .electron { width: 14px; height: 14px; background: var(--electron-color); border-radius: 50%; position: absolute; left: 50%; margin-left: -7px; bottom: 20px; box-shadow: 0 0 8px var(--electron-color); z-index: 10; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .electron { 
+            width: 14px; height: 14px; background: var(--electron-color); border-radius: 50%; 
+            position: absolute; left: 50%; margin-left: -7px; bottom: 20px; 
+            box-shadow: 0 0 8px var(--electron-color); z-index: 10; 
+            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
         
-        /* 波動光子動畫 (修正版：更長、更粗、打中電子) */
+        /* 波動光子樣式 (修正版) */
         .photon-wave {
-            position: absolute; top: 50%; left: 50%; 
-            width: 80px; height: 20px; /* 增加寬度和高度 */
-            margin-left: -40px; /* 重新居中 */
-            opacity: 0; pointer-events: none; z-index: 5;
-            /* 更新為更長、線條更粗的 SVG */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='white' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: center;
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-color: currentColor;
+            position: absolute; 
+            left: 50%; 
+            margin-left: -40px; /* 寬度 80px 的一半，使其居中對齊電子 */
+            width: 80px; 
+            height: 20px; 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: 5;
+
+            /* 使用 Mask 技術確保顏色正確顯示 */
+            background-color: currentColor; /* 這是關鍵：背景色變成 Javascript 設定的顏色 */
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+            -webkit-mask-position: center;
+            mask-position: center;
         }
 
-        /* 吸收動畫：調整結束位置，讓波的前端打到電子 */
+        /* 吸收動畫：從左(-450px)飛入，在正中央(0px)撞擊並消失 */
         @keyframes absorb-wave {
-            0% { transform: translate(-450px, -50%); opacity: 0; }
+            0% { transform: translateX(-450px); opacity: 0; }
             10% { opacity: 1; }
-            95% { transform: translate(-40px, -50%); opacity: 1; } /* 向左偏移半個波長，讓前端對準中心 */
-            100% { transform: translate(-40px, -50%); opacity: 0; }
+            95% { transform: translateX(0px); opacity: 1; } /* 撞擊前一刻 */
+            100% { transform: translateX(0px); opacity: 0; } /* 撞擊瞬間消失 */
         }
-        /* 發射動畫：從電子位置產生 */
+        /* 發射動畫：從正中央(0px)產生，向右飛出 */
         @keyframes emit-wave {
-            0% { opacity: 0; transform: translate(-40px, -50%); }
+            0% { opacity: 0; transform: translateX(0px); }
             10% { opacity: 1; }
-            100% { transform: translate(400px, -50%); opacity: 0; }
+            100% { transform: translateX(450px); opacity: 0; }
         }
 
         .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
         .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
-
-        /* 浮水印 (深色背景用淺色字) */
         .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(255,255,255,0.15); font-size: 1.1rem; pointer-events: none; z-index: 5; }
 
-        /* 手機適配 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
             .controls { width: 100%; height: auto; max-height: 35vh; border-right: none; border-top: 2px solid var(--border-color); order: 2; padding: 15px; gap: 15px; }
@@ -262,7 +218,7 @@
     </div>
 
     <script>
-        // === 資料庫與設定 ===
+        // === 資料庫 ===
         const elementsData = {
             'H': { name: '氫 (H)', lines: [656.3, 486.1, 434.0, 410.2], color: 'rgba(100,181,246,0.4)' },
             'He': { name: '氦 (He)', lines: [667.8, 587.6, 501.6, 471.3, 447.1], color: 'rgba(255,200,100,0.4)' },
@@ -270,7 +226,7 @@
             'Hg': { name: '汞 (Hg)', lines: [579.1, 546.1, 435.8, 404.7], color: 'rgba(0,255,255,0.4)' },
             'Ne': { name: '氖 (Ne)', lines: [640.2, 614.3, 585.2, 540.1], color: 'rgba(255,50,50,0.5)' }
         };
-        const baseLevelHeight = 20;
+        const baseLevelHeight = 20; // 基態高度 px
         const excitedLevelHeights = [70, 100, 130, 160, 190, 220, 250]; 
         const state = { mode: 'continuous', targetMode: 'continuous', fadeProgress: 0, element: 'H', mappedLines: [] };
 
@@ -419,7 +375,7 @@
             });
         }
 
-        // === 微觀動畫 (修正同步問題) ===
+        // === 微觀動畫 (修正顏色與高度) ===
         function resetMicroView() { electron.style.transition = 'none'; electron.style.bottom = baseLevelHeight + 'px'; photonCont.innerHTML = ''; }
 
         function triggerTransition(lineData) {
@@ -429,11 +385,12 @@
             if (state.mode === 'absorption') {
                 electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
                 const wave = createWave(lineData.color);
-                // 設定動畫總時長為 1.0s
+                
+                // 動畫設為 1.0秒
                 wave.style.animation = 'absorb-wave 1.0s linear forwards';
                 photonCont.appendChild(wave);
 
-                // 在 950ms 時觸發跳躍 (接近動畫結束的撞擊點)
+                // 在 950ms 時 (光波打中電子瞬間) 觸發電子跳躍
                 setTimeout(() => {
                     electron.style.transition = 'bottom 0.5s ease-out'; electron.style.bottom = endH + 'px';
                     microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至較高能階。`;
@@ -454,9 +411,11 @@
 
         function createWave(color) {
             const w = document.createElement('div'); w.className = 'photon-wave';
-            w.style.color = color; 
-            // 將波動垂直置中對齊到電子軌道區域
-            w.style.top = `calc(100% - ${baseLevelHeight + (280-baseLevelHeight)/2}px)`; 
+            w.style.color = color; // 將顏色傳給 CSS currentColor
+            // 修正定位：bottom 設為與基態一致 (20px)，確保與電子在同一水平線
+            w.style.bottom = baseLevelHeight + 'px'; 
+            // 移除 top 屬性，避免它飄在空中
+            w.style.top = 'auto'; 
             return w;
         }
 
