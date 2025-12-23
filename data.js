@@ -60,6 +60,14 @@ const lessonData = [
         tagClass: "phys",      // 藍色標籤
         tagName: "高中物理",
         desc: "親手操作當年的光譜實驗，並以能階理解現象。"
-    }
+    },
+    {
+        title: "元素UNO！",
+        category: "junior",
+        url: "junior/science/element_uno.html",
+        tagClass: "chem",
+        tagName: "國中理化",
+        desc: "來場元素UNO吧！"
+    },
     // ↑↑↑ 請確保這裡有逗號，除非它是陣列中最後一個物件 ↑↑↑
 ];
