@@ -3,51 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v5</title>
+    <title>鳩特元素 UNO v6</title>
     <style>
-        /* --- V5 小抄樣式大改版 --- */
+        /* --- V5/V6 樣式保留 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
         .modal.show { display: flex; }
-        
-        /* 讓小抄寬度適應手機，並支援橫向捲動以免太擠 */
         .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; }
-        
         .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
-
-        /* CSS Grid: 定義 9 個欄位 (1欄週期標示 + 8欄主族元素) */
-        .periodic-grid { 
-            display: grid; 
-            grid-template-columns: 25px repeat(8, 1fr); /* 第一欄窄一點放數字 */
-            gap: 4px; 
-            margin-top: 20px; 
-            width: 100%;
-            min-width: 320px; /* 確保在極小螢幕有捲軸 */
-        }
-
-        /* 格子通用樣式 */
-        .pg-cell { 
-            aspect-ratio: 1; /* 保持正方形 */
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            border-radius: 4px; font-weight: bold; color: #fff; position: relative;
-            font-size: 0.9rem;
-        }
-
-        /* 標頭與座標 */
+        .periodic-grid { display: grid; grid-template-columns: 25px repeat(8, 1fr); gap: 4px; margin-top: 20px; width: 100%; min-width: 320px; }
+        .pg-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #fff; position: relative; font-size: 0.9rem; }
         .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
         .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
-        
-        /* 元素顏色 (對應卡牌) */
         .pg-pink { background: #ffeef0; color: #333; border: 2px solid #e91e63; }
         .pg-yellow { background: #fff8e1; color: #333; border: 2px solid #ffc107; }
         .pg-green { background: #e8f5e9; color: #333; border: 2px solid #4caf50; }
         .pg-purple { background: #f3e5f5; color: #333; border: 2px solid #9c27b0; }
         .pg-blue { background: #e3f2fd; color: #333; border: 2px solid #2196f3; }
-        
-        /* 空白佔位符 (透明) */
         .pg-empty { background: transparent; border: none; }
 
-
-        /* --- 舊有樣式保留 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
         .screen.active { display: flex; }
@@ -78,7 +51,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v5</h1>
+        <h1>元素 UNO v6</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -112,75 +85,26 @@
         <h1>🎉 遊戲結束 🎉</h1>
         <div class="winner-text" id="winner-name">---</div>
         <p>獲得勝利！</p>
-        <button class="big-btn" onclick="backToLobby()">回到大廳</button>
+        <button class="big-btn" onclick="backToLobby()">重置房間並回到大廳</button>
     </div>
 
     <div id="modal-cheatsheet" class="modal">
         <div class="modal-content">
             <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
             <h3 style="margin:5px 0 15px 0; color:white; font-size:1.1rem;">元素週期表 (顏色=族)</h3>
-            
             <div class="periodic-grid">
-                <div class="pg-cell pg-header-row">週</div>
-                <div class="pg-cell pg-header-row">1A</div>
-                <div class="pg-cell pg-header-row">2A</div>
-                <div class="pg-cell pg-header-row">3A</div>
-                <div class="pg-cell pg-header-row">4A</div>
-                <div class="pg-cell pg-header-row">5A</div>
-                <div class="pg-cell pg-header-row">6A</div>
-                <div class="pg-cell pg-header-row">7A</div>
-                <div class="pg-cell pg-header-row">8A</div>
-
-                <div class="pg-cell pg-period-num">1</div>
-                <div class="pg-cell pg-pink">H</div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-purple">He</div>
-
-                <div class="pg-cell pg-period-num">2</div>
-                <div class="pg-cell pg-pink">Li</div>
-                <div class="pg-cell pg-yellow">Be</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">B</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">C</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">N</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">O</div>
-                <div class="pg-cell pg-green">F</div>
-                <div class="pg-cell pg-purple">Ne</div>
-
-                <div class="pg-cell pg-period-num">3</div>
-                <div class="pg-cell pg-pink">Na</div>
-                <div class="pg-cell pg-yellow">Mg</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Al</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Si</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">P</div>
-                <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">S</div>
-                <div class="pg-cell pg-green">Cl</div>
-                <div class="pg-cell pg-purple">Ar</div>
-
-                <div class="pg-cell pg-period-num">4</div>
-                <div class="pg-cell pg-pink">K</div>
-                <div class="pg-cell pg-yellow">Ca</div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-empty"></div>
-                <div class="pg-cell pg-green">Br</div>
-                <div class="pg-cell pg-purple">Kr</div>
+                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">3A</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
+                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
+                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">B</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">C</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">N</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
+                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Al</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">Si</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">P</div> <div class="pg-cell pg-empty" style="font-size:0.6rem; color:#555">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
+                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
             </div>
-            <p style="font-size:0.8rem; color:#aaa; margin-top:15px; text-align: left;">
-                * 僅列出遊戲用牌<br>
-                * 紫色(8A)為 Skip 功能牌
-            </p>
+            <p style="font-size:0.8rem; color:#aaa; margin-top:15px; text-align: left;">* 僅列出遊戲用牌<br>* 紫色(8A)為 Skip 功能牌</p>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        // V5: 引入 onDisconnect 用於斷線處理
         import { getDatabase, ref, set, onValue, update, remove, onDisconnect } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
@@ -195,12 +119,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
         const ROOM_ID = "class_room_101";
         const roomRef = ref(db, `rooms/${ROOM_ID}`);
 
-        // V5 重要更新：不再從 localStorage 讀取舊 ID，每次重新整理都視為新玩家
-        // 這樣可以解決「刷新後狀態卡住」的問題
         let myId = 'user_' + Math.random().toString(36).substr(2, 9);
         let myName = "";
         let myHand = [];
@@ -208,7 +129,6 @@
         let currentTopCard = null;
         let isMyTurn = false;
 
-        // 卡片資料
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -243,13 +163,8 @@
             if(!myName) return alert("請輸入名字！");
 
             const myRef = ref(db, `rooms/${ROOM_ID}/players/${myId}`);
-            
-            // 1. 寫入玩家資料
             update(myRef, { name: myName });
-
-            // V5 重要更新：設定「斷線後自動刪除」
-            // 當這個瀏覽器分頁關閉或刷新時，Firebase 會自動把這個人從資料庫踢掉
-            onDisconnect(myRef).remove();
+            onDisconnect(myRef).remove(); // 斷線自動刪除
 
             document.getElementById('my-name-display').innerText = `我: ${myName}`;
             switchScreen('screen-lobby');
@@ -257,11 +172,10 @@
 
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
-            if(!data) return;
+            if(!data) return; // 空房間
 
             const playersMap = data.players || {};
-            // 如果我不在名單裡（例如被踢了，或刷新頁面後ID變了），強制回到登入頁
-            // 但如果剛登入還沒寫入完成，則忽略
+            // 檢查自己是否還在名單上
             if (document.getElementById('screen-login').classList.contains('active') === false) {
                  if (!playersMap[myId]) {
                      alert('你已斷線，請重新登入');
@@ -272,6 +186,21 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
             
+            // --- V6 修正：自動清潔機制 ---
+            // 如果房間裡只有我一個人 (playerList.length === 1)
+            // 且狀態不是 waiting (例如卡在 finished 或 playing)
+            // -> 強制重置房間
+            if (playerList.length === 1 && data.status !== 'waiting') {
+                update(roomRef, {
+                    status: 'waiting',
+                    msg: '新局開始，等待加入...',
+                    winnerName: null,
+                    topCard: null
+                });
+                return; // 暫停後續渲染，等待重置生效
+            }
+            // ---------------------------
+
             if (data.status === 'playing') {
                 if(!document.getElementById('screen-game').classList.contains('active')){
                     switchScreen('screen-game');
@@ -284,7 +213,8 @@
                 myHand = [];
             } else {
                 updateLobbyUI(playerList);
-                if(document.getElementById('screen-game').classList.contains('active') || document.getElementById('screen-gameover').classList.contains('active')) {
+                // 確保在等待時不會卡在遊戲或結算畫面
+                if(!document.getElementById('screen-lobby').classList.contains('active')) {
                      switchScreen('screen-lobby');
                 }
             }
@@ -298,7 +228,6 @@
                 </div>`
             ).join('');
 
-            // V5 邏輯：如果你是名單上的第一位，你就是房主
             if (playerList.length > 0 && playerList[0].id === myId) {
                 document.getElementById('btn-start').style.display = 'block';
                 document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
@@ -338,16 +267,9 @@
             currentTopCard = data.topCard;
             playerOrder = data.order || [];
             document.getElementById('table-slot').innerHTML = createCardHTML(currentTopCard);
-
-            // 防呆：如果有人斷線，playerOrder 裡可能有舊 ID，需要過濾
-            const validPlayerOrder = playerOrder.filter(id => playerList.find(p => p.id === id));
             
-            // 找出現在輪到誰的 ID
-            // 注意：這裡如果有人斷線，Index 可能會錯位，簡易版暫時依賴 Firebase 的 Index
-            // 進階版應該要動態計算 active player
             const currentPlayerId = playerOrder[data.currentTurnIndex];
             const currentPlayer = playerList.find(p => p.id === currentPlayerId);
-            
             const msgDiv = document.getElementById('turn-msg');
             const drawBtn = document.getElementById('btn-draw');
 
@@ -367,7 +289,6 @@
 
         window.tryPlayCard = function(cardId) {
             if (!isMyTurn) return;
-
             const cardIndex = myHand.findIndex(c => c.id === cardId);
             const selectedCard = myHand[cardIndex];
 
@@ -392,14 +313,11 @@
                 let currentIndex = snap.val() || 0;
                 let jump = 1;
                 let msgAction = "";
-
                 if (selectedCard.action === 'skip') {
                     jump = 2;
                     msgAction = "(下家被跳過!)";
                 }
-
                 let nextIndex = (currentIndex + jump) % playerOrder.length;
-                
                 update(roomRef, {
                     topCard: selectedCard,
                     currentTurnIndex: nextIndex,
@@ -412,7 +330,6 @@
             const newCard = allCards[Math.floor(Math.random() * allCards.length)];
             myHand.push(newCard);
             renderHand();
-
             onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
                 const currentIndex = snap.val() || 0;
                 const nextIndex = (currentIndex + 1) % playerOrder.length;
@@ -423,16 +340,11 @@
             }, { onlyOnce: true });
         };
 
+        // V6 修正：回到大廳按鈕
         window.backToLobby = function() {
-             onValue(ref(db, `rooms/${ROOM_ID}/players`), (snap) => {
-                 const pMap = snap.val();
-                 const pIds = Object.keys(pMap);
-                 if(pIds.length > 0 && pIds[0] === myId) {
-                     update(roomRef, { status: 'waiting', msg: '等待新賽局' });
-                 } else {
-                      switchScreen('screen-lobby');
-                 }
-             }, { onlyOnce: true });
+             // 任何人按下此按鈕，都會嘗試把房間重置為 waiting
+             // 這樣即使不是房主，如果大家都卡住，也可以有人按下重置
+             update(roomRef, { status: 'waiting', msg: '等待新賽局' });
         }
 
         function createCardHTML(card, isClickable = false) {
@@ -451,7 +363,7 @@
         }
 
         document.querySelector('h1').ondblclick = function() {
-            if(confirm('房主專用：重置房間？')) { remove(roomRef); location.reload(); }
+            if(confirm('強制重置房間？')) { remove(roomRef); location.reload(); }
         }
     </script>
 </body>
