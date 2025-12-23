@@ -3,96 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO - 連線測試版</title>
+    <title>鳩特元素 UNO - 多人亂鬥版</title>
     <style>
-        /* --- 樣式設定 --- */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
+        /* --- 全域設定 --- */
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
         
-        h2 { margin: 10px; font-size: 1.2rem; color: #ecf0f1; }
+        /* 登入與大廳 */
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
+        .screen.active { display: flex; }
         
-        /* 遊戲區域 */
-        #game-board { 
-            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; 
-            width: 100%; max-width: 600px;
-        }
+        input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
+        
+        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .big-btn:disabled { background: #95a5a6; cursor: not-allowed; opacity: 0.7; }
 
-        /* 牌桌上的牌 */
-        .table-slot {
-            width: 120px; height: 160px;
-            border: 2px dashed rgba(255,255,255,0.3);
-            border-radius: 12px;
-            display: flex; justify-content: center; align-items: center;
-            margin-bottom: 20px;
-        }
+        /* 玩家列表 */
+        #player-list { width: 90%; max-width: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin: 20px 0; }
+        .player-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .player-row.me { color: #f1c40f; font-weight: bold; }
+        .player-row.host { color: #e74c3c; } /* 房主顏色 */
 
+        /* 遊戲介面 */
+        #top-info { width: 100%; display: flex; justify-content: space-between; padding: 5px; background: rgba(0,0,0,0.2); border-radius: 8px; font-size: 0.9rem; }
+        #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
+        .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
+        
+        /* 手牌區 */
+        #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; }
+        
         /* 卡牌樣式 */
-        .card {
-            width: 100px; height: 140px;
-            background: white;
-            border-radius: 10px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            position: relative;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: transform 0.2s, top 0.2s;
-            color: #333;
-            user-select: none;
-        }
+        .card { width: 90px; height: 130px; background: white; border-radius: 8px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.3); color: #333; user-select: none; transition: transform 0.2s; }
         .card:active { transform: scale(0.95); }
-
-        /* 卡牌內部細節 */
-        .atomic { position: absolute; top: 5px; left: 8px; font-size: 12px; font-weight: bold; }
-        .symbol { font-size: 40px; font-weight: 800; }
-        .name { font-size: 16px; margin-top: 5px; font-weight: 600; }
+        .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
+        .symbol { font-size: 36px; font-weight: 800; }
+        .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
         
         /* 顏色/族分類 */
-        .card.pink { background: #ffeef0; border: 3px solid #e91e63; }    /* 1A */
-        .card.yellow { background: #fff8e1; border: 3px solid #ffc107; }  /* 2A */
-        .card.blue { background: #e3f2fd; border: 3px solid #2196f3; }    /* B族 */
-        .card.green { background: #e8f5e9; border: 3px solid #4caf50; }   /* 7A */
-        .card.purple { background: #f3e5f5; border: 3px solid #9c27b0; }  /* 8A */
+        .card.pink { background: #ffeef0; border: 3px solid #e91e63; }
+        .card.yellow { background: #fff8e1; border: 3px solid #ffc107; }
+        .card.blue { background: #e3f2fd; border: 3px solid #2196f3; }
+        .card.green { background: #e8f5e9; border: 3px solid #4caf50; }
+        .card.purple { background: #f3e5f5; border: 3px solid #9c27b0; }
 
-        /* 手牌區 */
-        #hand-area {
-            background: rgba(0,0,0,0.3);
-            width: 100%;
-            height: 180px;
-            padding: 10px;
-            overflow-x: auto;
-            white-space: nowrap;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        
-        #status-msg { font-size: 1rem; color: #f1c40f; margin-bottom: 10px; min-height: 24px;}
-        
-        /* 連線狀態燈 */
-        .connection-status { position: absolute; top: 10px; right: 10px; font-size: 12px; color: #00e676; }
+        /* 狀態提示 */
+        #turn-msg { font-size: 1.2rem; font-weight: bold; margin: 10px; color: #ecf0f1; text-align: center; min-height: 1.5em; }
+        .active-turn { color: #2ecc71 !important; text-shadow: 0 0 10px #2ecc71; }
     </style>
 </head>
 <body>
 
-    <div class="connection-status">● 連線正常</div>
-    <h2>鳩特元素 UNO</h2>
-    
-    <div id="status-msg">正在同步遊戲資料...</div>
-
-    <div id="game-board">
-        <div style="margin-bottom:5px; font-size:0.9rem; color:#aaa;">檯面上的牌</div>
-        <div id="table-slot" class="table-slot"></div>
+    <div id="screen-login" class="screen active">
+        <h1>元素 UNO</h1>
+        <p>請輸入暱稱加入房間</p>
+        <input type="text" id="username" placeholder="你的名字 (例: Tony)" maxlength="8">
+        <button class="big-btn" onclick="joinGame()">加入遊戲</button>
     </div>
 
-    <div id="hand-area">
+    <div id="screen-lobby" class="screen">
+        <h2>等候室</h2>
+        <div id="room-code-display">房號: 多人測試房</div>
+        <div id="player-list">
+            </div>
+        <p id="lobby-msg">等待房主開始...</p>
+        <button id="btn-start" class="big-btn" style="display:none;" onclick="startGame()">開始遊戲</button>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div id="top-info">
+            <div id="my-name-display">我: ???</div>
+            <div id="player-count">玩家數: 0</div>
+        </div>
+        
+        <div id="turn-msg">等待出牌...</div>
+
+        <div id="game-board">
+            <div id="table-slot" class="table-slot"></div>
+            <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
         </div>
 
-    <script type="module">
-        // 1. 改用 CDN 引入，這樣不需要打包工具也能跑
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        <div id="hand-area"></div>
+    </div>
 
-        // 2. 你的設定檔 (我已經填好你剛剛給我的)
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, remove, push, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // Firebase Config (不用動)
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
             authDomain: "element-uno.firebaseapp.com",
@@ -103,47 +99,232 @@
             appId: "1:665324599764:web:d151cd9014e600fcd53e41"
         };
 
-        // 初始化 Firebase
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // ---------------- 遊戲資料設定 ----------------
-        
-        // 簡易牌庫 (模擬 UNO 顏色與數字)
-        // Group(顏色): 1A=pink, 2A=yellow, B=blue, 7A=green, 8A=purple
-        // Period(數字): 週期數
+        // 房間路徑 (固定一個測試房)
+        const ROOM_ID = "class_room_101";
+        const roomRef = ref(db, `rooms/${ROOM_ID}`);
+        const playersRef = ref(db, `rooms/${ROOM_ID}/players`);
+
+        // 本地變數
+        let myId = localStorage.getItem('uno_uid') || generateId(); // 每個手機唯一的 ID
+        localStorage.setItem('uno_uid', myId);
+        let myName = "";
+        let myHand = [];
+        let playerOrder = []; // 紀錄玩家順序的 ID 陣列
+        let currentTopCard = null;
+
+        // 牌庫定義
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink" },
             { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink" },
             { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink" },
-            
             { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow" },
             { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow" },
             { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow" },
-
             { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green" },
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green" },
-            
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple" }
         ];
 
-        // 隨機產生 5 張手牌給這個玩家 (僅本地端暫存)
-        let myHand = [];
-        for(let i=0; i<5; i++) {
-            myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+        // --- 功能函數 ---
+
+        function generateId() {
+            return 'user_' + Math.random().toString(36).substr(2, 9);
         }
 
-        // 遊戲房間的路徑
-        const roomRef = ref(db, 'rooms/test_room_01');
-        
-        // ---------------- 核心功能 ----------------
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
 
-        // A. 渲染卡牌 HTML 的小工具
+        // 1. 加入遊戲
+        window.joinGame = function() {
+            myName = document.getElementById('username').value;
+            if(!myName) return alert("請輸入名字！");
+
+            // 註冊自己到資料庫
+            update(ref(db, `rooms/${ROOM_ID}/players/${myId}`), {
+                name: myName,
+                score: 0,
+                isReady: true
+            });
+            
+            document.getElementById('my-name-display').innerText = `我: ${myName}`;
+            switchScreen('screen-lobby');
+        };
+
+        // 2. 監聽房間狀態 (核心大腦)
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if(!data) return; // 房間是空的
+
+            // 處理玩家列表 (物件轉陣列)
+            const playersMap = data.players || {};
+            const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
+            
+            // 決定現在是「大廳」還是「遊戲中」
+            if (data.status === 'playing') {
+                if(!document.getElementById('screen-game').classList.contains('active')){
+                    switchScreen('screen-game');
+                    // 如果剛進入遊戲，發手牌給自己 (若是重新整理，這裡需要進階的存檔邏輯，先省略)
+                    if(myHand.length === 0) dealCardsToSelf(); 
+                }
+                updateGameUI(data, playerList);
+            } else {
+                updateLobbyUI(playerList);
+            }
+        });
+
+        // 更新大廳介面
+        function updateLobbyUI(playerList) {
+            const listDiv = document.getElementById('player-list');
+            listDiv.innerHTML = playerList.map(p => 
+                `<div class="player-row ${p.id === myId ? 'me' : ''}">
+                    <span>${p.name}</span>
+                    ${p.id === playerList[0].id ? '<span class="host">★房主</span>' : ''}
+                </div>`
+            ).join('');
+
+            // 如果我是第一個人(名單索引0)，我有權利開始遊戲
+            if (playerList.length > 0 && playerList[0].id === myId) {
+                document.getElementById('btn-start').style.display = 'block';
+                document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
+            } else {
+                document.getElementById('btn-start').style.display = 'none';
+                document.getElementById('lobby-msg').innerText = "等待房主開始遊戲...";
+            }
+        }
+
+        // 3. 開始遊戲 (只有房主能按)
+        window.startGame = function() {
+            // 抓取現在所有玩家 ID，建立順序
+            getDatabase(app); // 確保連線
+            
+            // 讀取一次目前的玩家名單來建立順序
+            onValue(ref(db, `rooms/${ROOM_ID}/players`), (snap) => {
+                const pMap = snap.val();
+                const pIds = Object.keys(pMap);
+                
+                // 初始化遊戲狀態
+                update(roomRef, {
+                    status: 'playing',
+                    order: pIds, // 儲存玩家順序 [id1, id2, id3]
+                    currentTurnIndex: 0, // 從第 0 個人開始
+                    topCard: allCards[Math.floor(Math.random() * allCards.length)],
+                    msg: "遊戲開始！"
+                });
+            }, { onlyOnce: true });
+        };
+
+        // 發牌給自己 (僅本地)
+        function dealCardsToSelf() {
+            myHand = [];
+            for(let i=0; i<5; i++) {
+                myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+            }
+            renderHand();
+        }
+
+        // 更新遊戲畫面
+        function updateGameUI(data, playerList) {
+            currentTopCard = data.topCard;
+            playerOrder = data.order || [];
+            
+            // 1. 顯示桌上的牌
+            document.getElementById('table-slot').innerHTML = createCardHTML(currentTopCard);
+
+            // 2. 判斷現在輪到誰
+            const currentPlayerId = playerOrder[data.currentTurnIndex];
+            const currentPlayer = playerList.find(p => p.id === currentPlayerId);
+            const currentPlayerName = currentPlayer ? currentPlayer.name : "未知";
+
+            const msgDiv = document.getElementById('turn-msg');
+            const drawBtn = document.getElementById('btn-draw');
+
+            if (currentPlayerId === myId) {
+                msgDiv.innerText = "👉 輪到你了！請出牌";
+                msgDiv.classList.add('active-turn');
+                // 啟用按鈕
+                drawBtn.style.opacity = "1"; 
+                drawBtn.style.pointerEvents = "auto";
+            } else {
+                msgDiv.innerText = `⏳ 輪到 ${currentPlayerName}`;
+                msgDiv.classList.remove('active-turn');
+                // 停用按鈕
+                drawBtn.style.opacity = "0.5"; 
+                drawBtn.style.pointerEvents = "none";
+            }
+
+            document.getElementById('player-count').innerText = `線上: ${playerList.length}人`;
+        }
+
+        // 4. 出牌邏輯
+        window.tryPlayCard = function(cardId) {
+            // 先確認是否輪到自己 (雙重驗證：本地檢查 + 按鈕狀態)
+            const msgDiv = document.getElementById('turn-msg');
+            if (!msgDiv.classList.contains('active-turn')) return;
+
+            const cardIndex = myHand.findIndex(c => c.id === cardId);
+            const selectedCard = myHand[cardIndex];
+
+            // 規則檢查
+            const isMatchColor = selectedCard.c === currentTopCard.c;
+            const isMatchPeriod = selectedCard.p === currentTopCard.p;
+
+            if (!isMatchColor && !isMatchPeriod) {
+                alert(`不能出這張！\n需要符合顏色或週期`);
+                return;
+            }
+
+            // 出牌成功：
+            // 計算下一家的 Index
+            // 先去資料庫讀取現在的 index，確保同步 (簡單做直接用本地緩存 + 1)
+            let nextIndex = 0;
+            // 為了準確，我們通常會讀一次 currentTurnIndex，這裡簡化：
+            // 假設本地數據是最新的
+            onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
+                const currentIndex = snap.val() || 0;
+                nextIndex = (currentIndex + 1) % playerOrder.length;
+                
+                // 寫入資料庫
+                update(roomRef, {
+                    topCard: selectedCard,
+                    currentTurnIndex: nextIndex,
+                    msg: `${myName} 出牌了`
+                });
+            }, { onlyOnce: true });
+
+            myHand.splice(cardIndex, 1);
+            renderHand();
+        };
+
+        // 5. 抽牌/跳過邏輯
+        window.drawCardAction = function() {
+            // 抽一張牌
+            const newCard = allCards[Math.floor(Math.random() * allCards.length)];
+            myHand.push(newCard);
+            alert(`你抽到了 ${newCard.n}`);
+            renderHand();
+
+            // 換下一家
+            onValue(ref(db, `rooms/${ROOM_ID}/currentTurnIndex`), (snap) => {
+                const currentIndex = snap.val() || 0;
+                const nextIndex = (currentIndex + 1) % playerOrder.length;
+                
+                update(roomRef, {
+                    currentTurnIndex: nextIndex,
+                    msg: `${myName} 抽了一張牌`
+                });
+            }, { onlyOnce: true });
+        };
+
         function createCardHTML(card, isClickable = false) {
-            return `
+             return `
             <div class="card ${card.c}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
                 <span class="atomic">${card.at}</span>
                 <span class="symbol">${card.s}</span>
@@ -151,59 +332,17 @@
             </div>`;
         }
 
-        // B. 渲染手牌區域
         function renderHand() {
-            const handDiv = document.getElementById('hand-area');
-            handDiv.innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
+            document.getElementById('hand-area').innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
         }
 
-        // C. 監聽 Firebase 資料庫變動 (這裡是連線的魔法)
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            
-            if (!data) {
-                // 如果資料庫是空的，初始化第一張牌
-                set(roomRef, {
-                    topCard: allCards[2], // 預設放一張鈉
-                    msg: "遊戲開始！"
-                });
-                return;
+        // 遊戲結束重置 (隱藏功能：雙擊標題重置房間，方便測試)
+        document.querySelector('h1').ondblclick = function() {
+            if(confirm('確定要重置整個房間嗎？所有人將被踢出')) {
+                remove(roomRef);
+                location.reload();
             }
-
-            // 1. 更新桌上的牌
-            const tableDiv = document.getElementById('table-slot');
-            tableDiv.innerHTML = createCardHTML(data.topCard);
-
-            // 2. 更新狀態文字
-            document.getElementById('status-msg').innerText = data.msg;
-        });
-
-        // D. 玩家出牌邏輯
-        window.tryPlayCard = function(cardId) {
-            // 找出玩家選的那張牌
-            const cardIndex = myHand.findIndex(c => c.id === cardId);
-            if (cardIndex === -1) return;
-            const selectedCard = myHand[cardIndex];
-
-            // 讀取現在桌上的牌 (需要從本地暫存或再次讀取，這裡簡化處理直接讀 DOM 或變數)
-            // 為了確保資料一致，我們用 get 來讀取一次資料庫確認規則 (稍微進階一點，這裡先用簡易版)
-            // 這裡我們先做「無規則強制出牌」來測試連線，成功後再把 UNO 規則加上去
-            
-            // --- 執行出牌 ---
-            // 1. 更新雲端資料庫
-            update(roomRef, {
-                topCard: selectedCard,
-                msg: `有人打出了 ${selectedCard.n} (${selectedCard.s})！`
-            });
-
-            // 2. 移除手牌並重繪
-            myHand.splice(cardIndex, 1);
-            renderHand();
-        };
-
-        // 初始執行
-        renderHand();
-
+        }
     </script>
 </body>
 </html>
