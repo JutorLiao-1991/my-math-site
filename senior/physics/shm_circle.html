@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特物理：多元光譜實驗室</title>
+    <title>鳩特物理：圓周運動與簡諧投影</title>
     <style>
         /* 應用「物質加熱曲線」的明亮風格 */
         :root {
@@ -15,8 +15,6 @@
             --nav-bg: rgba(30, 41, 59, 0.95); /* 深色導航欄 */
             --accent: #38bdf8; /* 藍色強調（用於按鈕等） */
             --control-group-bg: #f7f7ff; /* 淺藍色控制區背景 */
-            --btn-bg: #eee; /* 按鈕背景 */
-            --electron-color: #ff5722; /* 電子顏色 */
         }
         
         body { 
@@ -31,7 +29,7 @@
             height: 100vh; 
         }
         
-        /* 導覽列 */
+        /* 導覽列 (保持深色，與您的範本一致) */
         .nav-bar { 
             padding: 10px 20px; 
             background: var(--nav-bg); 
@@ -41,7 +39,7 @@
             border-bottom: 1px solid #334155; 
             z-index: 20; 
             flex-shrink: 0;
-            color: white;
+            color: white; /* 導航欄文字改白色 */
         }
         .back-btn { 
             text-decoration: none; 
@@ -56,428 +54,566 @@
             align-items: center; 
         }
         .back-btn:hover { background: var(--accent); color: #0f172a; }
-        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: white; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: white; } /* 導航欄標題改白色 */
 
         /* 主畫面佈局 */
         .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
         
         /* 左側控制面板 */
         .controls { 
-            width: 320px; 
-            background: var(--panel-bg); 
+            width: 300px; 
+            background: var(--panel-bg); /* 白色背景 */
             padding: 20px; 
-            border-right: 1px solid #e2e8f0; 
+            border-right: 1px solid #e2e8f0; /* 淺色分隔線 */
             display: flex; 
             flex-direction: column; 
             gap: 20px; 
             z-index: 10; 
             overflow-y: auto; 
-            box-shadow: 5px 0 15px rgba(0,0,0,0.05); 
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05); /* 淺色陰影 */
             flex-shrink: 0; 
         }
         
         .control-group { 
-            background: var(--control-group-bg); 
+            background: var(--control-group-bg); /* 淺藍色塊 */
             padding: 15px; 
             border-radius: 12px; 
-            border: 1px solid #cbd5e1; 
+            border: 1px solid #cbd5e1; /* 淺色邊框 */
         }
         .control-group h3 { 
             margin: 0 0 15px 0; 
             font-size: 1rem; 
-            color: var(--primary-color); 
-            border-bottom: 1px solid var(--secondary-color); 
+            color: var(--primary-color); /* 藍色標題 */
+            border-bottom: 1px solid var(--secondary-color); /* 橙色底線 */
             padding-bottom: 8px; 
             display: flex; 
             align-items: center; 
             gap: 8px;
         }
         
-        /* 按鈕與選單 */
-        .mode-buttons { display: flex; flex-direction: column; gap: 10px; }
-        button {
-            padding: 10px; border: none; border-radius: 8px; font-size: 0.95rem; cursor: pointer; transition: all 0.3s ease;
-            background: var(--btn-bg); color: #555; border: 1px solid #ccc; text-align: left; font-weight: 600;
+        label { display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; margin-bottom: 12px; cursor: pointer; }
+        input[type="range"] { width: 100%; margin-top: 8px; cursor: pointer; accent-color: var(--secondary-color); } /* 橙色滑塊 */
+        input[type="checkbox"] { transform: scale(1.3); cursor: pointer; accent-color: var(--primary-color); } /* 藍色勾選 */
+        
+        .value-display { font-family: 'Roboto Mono', monospace; color: var(--secondary-color); font-weight: bold; }
+        .btn-pause { 
+            width:100%; 
+            margin-top:10px; 
+            padding:10px; 
+            background:var(--secondary-color); /* 橙色按鈕 */
+            color: white; 
+            border:none; 
+            border-radius:8px; 
+            cursor:pointer; 
+            font-weight:bold; 
+            font-size: 1rem; 
+            transition: 0.2s; 
         }
-        button:hover { background: #ddd; }
-        button.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-        .hidden-btn { opacity: 0; pointer-events: none; transform: scale(0.95); transition: all 0.5s; height: 0; padding: 0; border: none; overflow: hidden; }
-        .reveal-btn { opacity: 1; pointer-events: auto; transform: scale(1); height: auto; padding: 10px; border: 1px solid #ccc; }
+        .btn-pause:hover { background: #e67e22; }
 
-        select { padding: 8px 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 1rem; width: 100%; background: white; cursor: pointer; }
-        select:disabled { opacity: 0.6; cursor: not-allowed; background: #eee; }
-
-        /* 右側畫布容器 (實驗區) */
-        #experiment-container { 
+        /* 右側畫布容器 */
+        #canvas-container { 
             flex: 1; 
             position: relative; 
-            background: #e2e8f0; 
-            overflow-y: auto; 
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            align-items: center;
+            background: #e2e8f0; /* 淺灰色畫布背景 */
+            overflow: hidden; 
+        }
+        canvas { 
+            display: block; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
         }
 
-        /* 實驗宏觀場景 */
-        .macro-stage {
-            width: 100%; max-width: 800px; height: 180px; position: relative;
-            background: #fff; border: 1px solid #ccc; border-radius: 12px;
-            overflow: hidden; display: flex; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        /* 浮水印文字顏色調整為深色背景可見 */
+        .watermark { 
+            position: absolute; 
+            bottom: 15px; 
+            left: 20px; 
+            font-family: 'Georgia', serif; 
+            font-style: italic; 
+            color: rgba(0,0,0,0.3); /* 深色浮水印 */
+            font-size: 1.1rem; 
+            pointer-events: none; 
+            z-index: 5; 
         }
-        .comp { position: absolute; text-align: center; transition: opacity 1s; z-index: 2; }
-        .comp span { font-size: 2rem; display: block; }
-        .comp label { font-size: 0.8rem; color: #666; white-space: nowrap;}
-        #source { left: 5%; } #gas { left: 35%; opacity: 0; transition: opacity 1.5s ease; } #prism { left: 65%; }
-        .cloud { width: 100px; height: 70px; background: radial-gradient(circle, rgba(74, 144, 226, 0.3) 0%, rgba(0,0,0,0) 70%); filter: blur(10px); border-radius: 50%; animation: float 4s infinite ease-in-out; }
-        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        .beam { position: absolute; height: 6px; top: 50%; margin-top: -3px; background: #f0f0f0; z-index: 1; transition: opacity 1s, background 1s; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
-
-        /* 光譜與勾選區 */
-        .spectrum-wrapper { width: 100%; max-width: 800px; position: relative; }
-        canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid #ccc; border-radius: 8px; background: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
-        .line-control { position: absolute; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity 0.5s; cursor: pointer; }
-        .line-control input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-color); }
-        .line-control label { display: block; font-size: 0.7rem; color: #555; margin-top: 2px; }
-
-        /* 微觀能階動畫 */
-        .micro-stage {
-            width: 100%; max-width: 800px; height: 320px; background: #fff; border: 1px solid #ccc; border-radius: 12px;
-            position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .level-diagram { width: 90%; height: 280px; position: relative; margin-top: 20px; }
-        .level { position: absolute; width: 100%; height: 1px; background: #ddd; left: 0; transition: bottom 0.5s; }
-        .level-text { position: absolute; right: 5px; top: -15px; font-size: 0.75rem; color: #888; text-align: right;}
-        .electron { width: 14px; height: 14px; background: var(--electron-color); border-radius: 50%; position: absolute; left: 50%; margin-left: -7px; bottom: 20px; box-shadow: 0 0 5px rgba(255,87,34,0.5); z-index: 10; transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        
-        /* 波動光子動畫 */
-        .photon-wave {
-            position: absolute; top: 50%; left: 0; width: 40px; height: 10px; opacity: 0; pointer-events: none; z-index: 5;
-            /* 使用 SVG 繪製波動 */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='white' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: center;
-            /* 使用 mask 技術上色 */
-            -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='black' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 10'%3E%3Cpath d='M0 5 Q 5 0, 10 5 T 20 5 T 30 5 T 40 5' stroke='black' fill='none' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-color: currentColor; /* 顏色由 JS 動態設定 */
-        }
-
-        @keyframes absorb-wave {
-            0% { transform: translate(-100px, -50%); opacity: 1; }
-            45% { transform: translate(calc(50% - 20px), -50%); opacity: 1; } /* 移動到畫面中央 */
-            50% { opacity: 0; } 100% { opacity: 0; }
-        }
-        @keyframes emit-wave {
-            0% { opacity: 0; transform: translate(calc(50% - 20px), -50%); }
-            50% { opacity: 1; transform: translate(calc(50% - 20px), -50%); }
-            100% { transform: translate(400px, -50%); opacity: 0; }
-        }
-
-        .instruction { position: absolute; top: 10px; left: 15px; color: var(--primary-color); font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 5px;}
-        .element-badge { position: absolute; top: 10px; right: 15px; background: #eee; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #666; }
-
-        /* 浮水印 */
-        .watermark { position: absolute; bottom: 15px; left: 20px; font-family: 'Georgia', serif; font-style: italic; color: rgba(0,0,0,0.1); font-size: 1.1rem; pointer-events: none; z-index: 5; }
 
         /* 手機適配 */
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
-            .controls { width: 100%; height: auto; max-height: 35vh; border-right: none; border-top: 2px solid #e2e8f0; order: 2; padding: 15px; gap: 15px; }
-            #experiment-container { order: 1; flex: 1; min-height: 50vh; padding: 10px; }
-            .macro-stage, .spectrum-wrapper, .micro-stage { width: 100%; }
-            #source { left: 2%; } #gas { left: 32%; } #prism { left: 62%; }
+            .controls { width: 100%; height: auto; max-height: 35vh; flex-direction: row; flex-wrap: wrap; border-right: none; border-top: 2px solid #cbd5e1; order: 2; padding: 10px; gap: 10px; }
+            .control-group { flex: 1 1 45%; min-width: 150px; padding: 8px; font-size: 0.9rem; }
+            #canvas-container { order: 1; flex: 1; min-height: 50vh; }
             .watermark { font-size: 0.8rem; bottom: 10px; left: 10px; }
-            .page-title { font-size: 1rem; } .back-btn span { display: none; }
+            .page-title { font-size: 1rem; }
+            .back-btn span { display: none; }
         }
     </style>
 </head>
 <body>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            var div = document.createElement("div");
+            div.style.cssText = "position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(200,0,0,0.9); color:white; padding:20px; border-radius:10px; z-index:9999; max-width:80%; box-shadow:0 10px 30px rgba(0,0,0,0.5); font-family:monospace;";
+            div.innerHTML = "<h3>⚠️ 發生錯誤</h3><p>" + msg + "</p><p>Line: " + line + "</p>";
+            document.body.appendChild(div);
+            return false;
+        };
+    </script>
+
     <div class="nav-bar">
         <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
-        <h2 class="page-title">鳩特物理：多元光譜實驗室</h2>
+        <h2 class="page-title">鳩特物理：圓周運動與簡諧投影</h2>
     </div>
 
     <div class="main-container">
-        <div class="controls">
-            <div class="control-group">
-                <h3>🎛️ 實驗模式設定</h3>
-                <div class="mode-buttons">
-                    <button id="btn-continuous" class="active">1. 連續光譜 (Continuous)</button>
-                    <button id="btn-absorption">2. 吸收光譜 (Absorption)</button>
-                    <button id="btn-emission" class="hidden-btn">3. 發射光譜 (Emission)</button>
-                </div>
-            </div>
-            
-            <div class="control-group">
-                <h3>🧪 氣體元素選擇</h3>
-                <select id="gasSelect" disabled>
-                    <option value="H">氫氣 (Hydrogen, H)</option>
-                    <option value="He">氦氣 (Helium, He)</option>
-                    <option value="Na">鈉蒸氣 (Sodium, Na)</option>
-                    <option value="Hg">汞蒸氣 (Mercury, Hg)</option>
-                    <option value="Ne">氖氣 (Neon, Ne)</option>
-                </select>
-            </div>
+        <div id="canvas-container">
+            <canvas id="simCanvas"></canvas>
+            <div class="watermark">Presented by Jutor</div>
         </div>
 
-        <div id="experiment-container">
-            <div class="watermark">Presented by Jutor</div>
-
-            <div class="macro-stage">
-                <div id="source" class="comp"><span>💡</span><label>高溫光源</label></div>
-                <div id="beam1" class="beam" style="left: 10%; width: 20%;"></div>
-                
-                <div id="gas" class="comp">
-                    <div class="cloud"></div>
-                    <label id="gasLabel">氫氣 (冷)</label>
+        <div class="controls">
+            <div class="control-group">
+                <h3>🔄 運動參數設定</h3>
+                <label>
+                    半徑 (R) <span id="val-R" class="value-display">120</span>
+                    <input type="range" id="input-R" min="50" max="180" value="120">
+                </label>
+                <label>
+                    角速率 (&omega;) <span id="val-W" class="value-display">1.0</span>
+                    <input type="range" id="input-W" min="0.5" max="2.5" step="0.1" value="1.0">
+                </label>
+                <div style="font-size:0.9rem; color:#666; margin-top:5px; background: #eee; padding: 5px 8px; border-radius: 5px;">
+                    速率 v = R&omega; = <span id="val-V" style="color:var(--secondary-color); font-weight:bold;">120</span>
                 </div>
-
-                <div id="beam2" class="beam" style="left: 40%; width: 20%;"></div>
-                <div id="prism" class="comp"><span>📐</span><label>分光器</label></div>
-                <div id="beam3" class="beam" style="left: 70%; width: 25%; background: linear-gradient(to right, red, violet);"></div>
+                <button id="btn-pause" class="btn-pause">⏯ 暫停 / 開始</button>
             </div>
 
-            <div class="spectrum-wrapper">
-                <canvas id="spectrumCanvas" width="800" height="100"></canvas>
-                <div id="checkboxContainer" class="checkbox-container"></div>
-            </div>
-
-            <div class="micro-stage">
-                <div class="instruction" id="microText">請選擇實驗模式...</div>
-                <div class="element-badge" id="elementDisplay">目前元素：氫</div>
-                <div class="level-diagram" id="levelContainer">
-                    <div class="electron" id="electron"></div>
-                    <div id="photonContainer" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></div>
-                </div>
+            <div class="control-group">
+                <h3>📐 物理量顯示 (Vectors)</h3>
+                <label>
+                    <span>位置/位移 (<span style="color:#2ecc71">●</span> $\vec{r}, \theta$)</span>
+                    <input type="checkbox" id="check-pos" checked>
+                </label>
+                <label>
+                    <span>速度 (<span style="color:#3498db">●</span> $\vec{v}, \theta$)</span>
+                    <input type="checkbox" id="check-vel">
+                </label>
+                <label>
+                    <span>加速度 (<span style="color:#e74c3c">●</span> $\vec{a}, \theta$)</span>
+                    <input type="checkbox" id="check-acc">
+                </label>
             </div>
         </div>
     </div>
 
     <script>
-        // === 資料庫：元素特徵譜線 (nm) ===
-        const elementsData = {
-            'H': { name: '氫 (H)', lines: [656.3, 486.1, 434.0, 410.2], color: 'rgba(100,181,246,0.4)' },
-            'He': { name: '氦 (He)', lines: [667.8, 587.6, 501.6, 471.3, 447.1], color: 'rgba(255,200,100,0.4)' },
-            'Na': { name: '鈉 (Na)', lines: [589.0], color: 'rgba(255,215,0,0.6)' },
-            'Hg': { name: '汞 (Hg)', lines: [579.1, 546.1, 435.8, 404.7], color: 'rgba(0,255,255,0.4)' },
-            'Ne': { name: '氖 (Ne)', lines: [640.2, 614.3, 585.2, 540.1], color: 'rgba(255,50,50,0.5)' }
-        };
+        MathJax = { tex: { inlineMath: [['$', '$']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-        // === 視覺能階高度設定 (px from bottom) ===
-        const baseLevelHeight = 20;
-        const excitedLevelHeights = [70, 100, 130, 160, 190, 220, 250]; 
-
-        // === 狀態變數 ===
-        const state = {
-            mode: 'continuous', targetMode: 'continuous', fadeProgress: 0, element: 'H', mappedLines: []
-        };
-
-        // === DOM ===
-        const canvas = document.getElementById('spectrumCanvas');
+    <script>
+        const canvas = document.getElementById('simCanvas');
         const ctx = canvas.getContext('2d');
-        const btnCont = document.getElementById('btn-continuous');
-        const btnAbs = document.getElementById('btn-absorption');
-        const btnEmit = document.getElementById('btn-emission');
-        const gasSelect = document.getElementById('gasSelect');
-        const sourceElem = document.getElementById('source');
-        const gasElem = document.getElementById('gas');
-        const gasLabel = document.getElementById('gasLabel');
-        const cloud = document.querySelector('.cloud');
-        const beam1 = document.getElementById('beam1');
-        const beam2 = document.getElementById('beam2');
-        const beam3 = document.getElementById('beam3');
-        const checkContainer = document.getElementById('checkboxContainer');
-        const electron = document.getElementById('electron');
-        const photonCont = document.getElementById('photonContainer');
-        const microText = document.getElementById('microText');
-        const levelContainer = document.getElementById('levelContainer');
-        const elementDisplay = document.getElementById('elementDisplay');
+        let width, height;
 
-        function init() { updateElementData(); resizeCanvas(); animate(); window.addEventListener('resize', resizeCanvas);}
-        function resizeCanvas() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; drawSpectrum(); }
+        let time = 0;
+        let isPaused = false;
+        let waveHistory = [];
 
-        // === 資料處理 ===
-        function updateElementData() {
-            const data = elementsData[state.element];
-            const lines = [...data.lines];
-            lines.sort((a, b) => b - a); // 波長大到小 (能量小到大)
-            state.mappedLines = lines.map((wl, index) => {
-                const heightIndex = Math.min(index, excitedLevelHeights.length - 1);
-                return { wl: wl, color: wlToColor(wl), targetHeight: excitedLevelHeights[heightIndex] };
-            });
-            gasLabel.innerText = data.name + (state.mode === 'absorption' ? " (冷)" : " (熱)");
-            elementDisplay.innerText = "目前元素：" + data.name;
-            cloud.style.background = `radial-gradient(circle, ${data.color} 0%, rgba(0,0,0,0) 70%)`;
-            drawLevelBackgrounds();
-        }
+        const params = { R: 120, omega: 1.0, cx: 0, cy: 0 };
 
-        function drawLevelBackgrounds() {
-            const oldLevels = document.querySelectorAll('.level'); oldLevels.forEach(el => el.remove());
-            createLevelDiv(baseLevelHeight, "基態 (Ground)", true);
-            state.mappedLines.forEach((line, index) => {
-                createLevelDiv(line.targetHeight, `E${index+1} (${line.wl.toFixed(0)}nm)`, false);
-            });
-        }
+        // 調整顏色以適應白色背景
+        const colors = {
+            pos: "#2ecc71",       // 綠色 (位置)
+            vel: { main: "#3498db", comp: "#2980b9" }, // 藍色 (速度)
+            acc: { main: "#e74c3c", comp: "#c0392b" }, // 紅色 (加速度)
+            wave: "#9b59b6",      // 紫色 (波動)
+            shm: "#f39c12",       // 橘色 (SHM點)
+            guide: "rgba(0, 0, 0, 0.2)",
+            text: "#333",
+            angle: "#f5a623"      // 橙色 (角度)
+        };
 
-        function createLevelDiv(bottomPx, labelText, isBase) {
-            const div = document.createElement('div'); div.className = 'level'; div.style.bottom = bottomPx + 'px';
-            div.style.borderTop = isBase ? "2px solid #aaa" : "1px solid #ddd";
-            const text = document.createElement('span'); text.className = 'level-text'; text.innerText = labelText;
-            div.appendChild(text); levelContainer.appendChild(div);
-        }
+        const ui = {
+            R: document.getElementById('input-R'),
+            W: document.getElementById('input-W'),
+            valR: document.getElementById('val-R'),
+            valW: document.getElementById('val-W'),
+            valV: document.getElementById('val-V'),
+            btnPause: document.getElementById('btn-pause'),
+            showPos: document.getElementById('check-pos'),
+            showVel: document.getElementById('check-vel'),
+            showAcc: document.getElementById('check-acc')
+        };
 
-        // === 動畫循環 ===
-        function animate() {
-            if (state.mode !== state.targetMode) {
-                state.fadeProgress += 0.02;
-                if (state.fadeProgress >= 1) { state.fadeProgress = 0; state.mode = state.targetMode; updateUIForModeComplete(); }
-            } else { state.fadeProgress = 0; }
-            drawSpectrum(); requestAnimationFrame(animate);
-        }
-
-        function updateUIForModeComplete() {
-            updateCheckboxes(); 
-            const name = elementsData[state.element].name;
-            if(state.mode === 'absorption') gasLabel.innerText = name + " (冷)";
-            if(state.mode === 'emission') gasLabel.innerText = name + " (熱)";
-        }
-
-        // === 繪圖 ===
-        function drawSpectrum() {
-            const w = canvas.width; const h = canvas.height;
-            const minW = 380; const maxW = 750;
-            ctx.clearRect(0, 0, w, h);
-
-            let rainbowAlpha = 1;
-            if (state.mode === 'emission' && state.targetMode === 'emission') rainbowAlpha = 0;
-            if (state.mode === 'absorption' && state.targetMode === 'emission') rainbowAlpha = 1 - state.fadeProgress;
-            if (state.mode === 'emission' && state.targetMode === 'absorption') rainbowAlpha = state.fadeProgress;
+        function init() {
+            window.addEventListener('resize', resize);
+            ui.R.addEventListener('input', updateParams);
+            ui.W.addEventListener('input', updateParams);
+            ui.btnPause.addEventListener('click', () => isPaused = !isPaused);
             
-            if (rainbowAlpha > 0) {
-                const grad = ctx.createLinearGradient(0, 0, w, 0);
-                for (let i = 0; i <= 20; i++) { let pct = i / 20; let wl = maxW - pct * (maxW - minW); grad.addColorStop(pct, wlToColor(wl)); }
-                ctx.globalAlpha = rainbowAlpha; ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
-            }
+            setTimeout(() => {
+                resize();
+                updateParams();
+                loop();
+            }, 100);
+        }
 
-            let lineType = 'none'; let lineAlpha = 0;
-            if (state.mode === 'continuous' && state.targetMode === 'absorption') { lineType = 'dark'; lineAlpha = state.fadeProgress; }
-            else if (state.mode === 'absorption' && state.targetMode === 'absorption') { lineType = 'dark'; lineAlpha = 1; }
-            else if (state.mode === 'absorption' && state.targetMode === 'emission') { lineType = 'bright'; lineAlpha = state.fadeProgress; }
-            else if (state.mode === 'emission') { lineType = 'bright'; lineAlpha = 1; }
-
-            if (lineType !== 'none') {
-                ctx.globalAlpha = lineAlpha;
-                state.mappedLines.forEach(line => {
-                    const x = ((maxW - line.wl) / (maxW - minW)) * w;
-                    if (lineType === 'dark') { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(x - 2, 0, 4, h); }
-                    else {
-                        ctx.strokeStyle = line.color; ctx.lineWidth = 4;
-                        ctx.shadowBlur = 15; ctx.shadowColor = line.color;
-                        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); ctx.shadowBlur = 0;
+        function resize() {
+            const container = document.getElementById('canvas-container');
+            if (container) {
+                width = canvas.width = container.clientWidth;
+                height = canvas.height = container.clientHeight;
+                
+                const isMobile = width < 800;
+                
+                if (isMobile) {
+                    params.cx = width * 0.25; 
+                    params.cy = height * 0.35; 
+                    const maxSafeR = Math.min(width, height) * 0.2;
+                    if (parseInt(ui.R.value) > maxSafeR) {
+                        ui.R.value = Math.floor(maxSafeR);
                     }
-                });
-            }
-            ctx.globalAlpha = 1;
-        }
-
-        // === UI 更新 ===
-        function updateScene(target) {
-            state.targetMode = target;
-            [btnCont, btnAbs, btnEmit].forEach(b => b.classList.remove('active'));
-            if(target === 'continuous') btnCont.classList.add('active');
-            if(target === 'absorption') btnAbs.classList.add('active');
-            if(target === 'emission') btnEmit.classList.add('active');
-
-            gasSelect.disabled = (target === 'continuous');
-
-            if (target === 'continuous') {
-                sourceElem.style.opacity = 1; gasElem.style.opacity = 0; beam1.style.opacity = 1; beam2.style.background = '#f0f0f0'; beam3.style.opacity = 1;
-                microText.innerText = "連續光譜：包含所有波長的光，無特徵譜線。";
-            } else if (target === 'absorption') {
-                sourceElem.style.opacity = 1; gasElem.style.opacity = 1; beam1.style.opacity = 1; beam2.style.background = '#f0f0f0'; 
-                btnEmit.classList.remove('hidden-btn'); btnEmit.classList.add('reveal-btn');
-                microText.innerText = `[${elementsData[state.element].name}] 吸收特定能量光子，電子從基態躍遷。`;
-            } else if (target === 'emission') {
-                sourceElem.style.opacity = 0.2; gasElem.style.opacity = 1; beam1.style.opacity = 0; beam2.style.background = 'linear-gradient(90deg, #f0f, #0ff)';
-                microText.innerText = `[${elementsData[state.element].name}] 電子從激發態落回基態，釋出特定光子。`;
-            }
-            checkContainer.innerHTML = ''; resetMicroView(); updateElementData();
-        }
-
-        function updateCheckboxes() {
-            if (state.mode === 'continuous') return;
-            const w = canvas.width; const minW = 380, maxW = 750; checkContainer.innerHTML = '';
-            state.mappedLines.forEach((line, index) => {
-                const x = ((maxW - line.wl) / (maxW - minW)) * w;
-                const wrapper = document.createElement('div'); wrapper.className = 'line-control'; wrapper.style.left = x + 'px'; wrapper.style.opacity = 1; 
-                const input = document.createElement('input'); input.type = 'radio'; input.name = 'spectralLine'; input.id = 'line-'+index;
-                input.onclick = () => triggerTransition(line);
-                const label = document.createElement('label'); label.htmlFor = 'line-'+index; label.innerText = state.mode === 'absorption' ? '吸收' : '發射';
-                wrapper.appendChild(input); wrapper.appendChild(label); checkContainer.appendChild(wrapper);
-            });
-        }
-
-        // === 微觀動畫 (修正為波動) ===
-        function resetMicroView() { electron.style.transition = 'none'; electron.style.bottom = baseLevelHeight + 'px'; photonCont.innerHTML = ''; }
-
-        function triggerTransition(lineData) {
-            photonCont.innerHTML = ''; electron.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-            const startH = baseLevelHeight; const endH = lineData.targetHeight;
-
-            if (state.mode === 'absorption') {
-                electron.style.transition = 'none'; electron.style.bottom = startH + 'px';
-                const wave = createWave(lineData.color);
-                wave.style.animation = 'absorb-wave 1.2s linear forwards'; // 調整動畫時間
-                photonCont.appendChild(wave);
-                setTimeout(() => {
-                    electron.style.transition = 'bottom 0.5s ease-out'; electron.style.bottom = endH + 'px';
-                    microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，躍遷至較高能階。`;
-                }, 500); // 在波動到達中央附近時觸發躍遷
-            } else if (state.mode === 'emission') {
-                electron.style.transition = 'none'; electron.style.bottom = endH + 'px';
-                setTimeout(() => {
-                    electron.style.transition = 'bottom 0.5s ease-in'; electron.style.bottom = startH + 'px';
-                    setTimeout(() => {
-                        const wave = createWave(lineData.color);
-                        wave.style.animation = 'emit-wave 1.2s linear forwards';
-                        photonCont.appendChild(wave);
-                        microText.innerHTML = `躍遷回基態，發射 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子。`;
-                    }, 500); // 電子落地後發射
-                }, 100);
+                } else {
+                    params.cx = width * 0.3;
+                    params.cy = height * 0.45;
+                }
             }
         }
 
-        function createWave(color) {
-            const w = document.createElement('div'); w.className = 'photon-wave';
-            w.style.color = color; // 設置 CSS color 屬性，供 SVG 的 currentColor 使用
-            // 將波動垂直置中對齊到電子軌道區域
-            w.style.top = `calc(100% - ${baseLevelHeight + (250-baseLevelHeight)/2}px)`; 
-            return w;
+        function updateParams() {
+            params.R = parseInt(ui.R.value);
+            params.omega = parseFloat(ui.W.value);
+            ui.valR.textContent = params.R;
+            ui.valW.textContent = params.omega.toFixed(1);
+            ui.valV.textContent = (params.R * params.omega).toFixed(0);
         }
 
-        function wlToColor(wavelength) {
-            let r, g, b;
-            if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0; b = 1; }
-            else if (wavelength >= 440 && wavelength < 490) { r = 0; g = (wavelength - 440) / (490 - 440); b = 1; }
-            else if (wavelength >= 490 && wavelength < 510) { r = 0; g = 1; b = -(wavelength - 510) / (510 - 490); }
-            else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1; b = 0; }
-            else if (wavelength >= 580 && wavelength < 645) { r = 1; g = -(wavelength - 645) / (645 - 580); b = 0; }
-            else if (wavelength >= 645 && wavelength <= 750) { r = 1; g = 0; b = 0; }
-            else { r = 0; g = 0; b = 0; }
-            return `rgb(${Math.round(r * 255)},${Math.round(g * 255)},${Math.round(b * 255)})`;
+        function loop() {
+            requestAnimationFrame(loop);
+            if (!isPaused) time += 0.02 * params.omega;
+            if (!width || !height) resize();
+
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = "#e2e8f0"; // 畫布背景色
+            ctx.fillRect(0, 0, width, height);
+
+            const theta = time % (2 * Math.PI); 
+            const physX = params.R * Math.cos(theta);
+            const physY = params.R * Math.sin(theta);
+            const canvasX = physX;
+            const canvasY = -physY; 
+
+            const px = params.cx + canvasX;
+            const py = params.cy + canvasY;
+
+            drawSystemGrid(params.cx, params.cy);
+            drawCircle(params.cx, params.cy, params.R);
+            drawWaveSystem(canvasX, canvasY);
+            drawSHMSystem(canvasX, canvasY, theta);
+            drawParticle(px, py, "#000", 6); // 質點改黑色
+            drawVectors(canvasX, canvasY, theta, px, py);
         }
 
-        // === 事件綁定 ===
-        btnCont.addEventListener('click', () => updateScene('continuous'));
-        btnAbs.addEventListener('click', () => updateScene('absorption'));
-        btnEmit.addEventListener('click', () => updateScene('emission'));
-        gasSelect.addEventListener('change', (e) => {
-            state.element = e.target.value; updateElementData(); updateCheckboxes(); resetMicroView();
-            microText.innerText = "已切換元素，請重新選擇譜線進行觀察。";
-        });
-        init();
+        function drawArrow(fromX, fromY, vecX, vecY, color, label, scale = 1, isComponent = false) {
+            const toX = fromX + vecX * scale;
+            const toY = fromY + vecY * scale;
+            const headlen = isComponent ? 8 : 12; 
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const lineWidth = isComponent ? 2 : 4; 
+
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(toX, toY);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(toX - headlen * Math.cos(angle - Math.PI / 6), toY - headlen * Math.sin(angle - Math.PI / 6));
+            ctx.lineTo(toX - headlen * Math.cos(angle + Math.PI / 6), toY - headlen * Math.sin(angle + Math.PI / 6));
+            ctx.closePath();
+            ctx.fillStyle = color;
+            ctx.fill();
+
+            if (label) {
+                ctx.fillStyle = colors.text; // 文字顏色
+                ctx.shadowColor = "rgba(255,255,255,0.8)"; // 淺色背景加白色陰影
+                ctx.shadowBlur = 4;
+                ctx.font = isComponent ? "bold 14px serif" : "bold 18px serif";
+                ctx.textBaseline = "middle";
+                
+                let mainText = label;
+                let subText = "";
+                if(label && label.includes('_')){
+                    const parts = label.split('_');
+                    mainText = parts[0];
+                    subText = parts[1];
+                }
+
+                const textX = toX + (vecX >= 0 ? 12 : -20);
+                const textY = toY + (vecY >= 0 ? 15 : -15);
+                
+                ctx.fillText(mainText, textX, textY);
+                if(subText){
+                    ctx.font = isComponent ? "bold 10px serif" : "bold 12px serif";
+                    const mainWidth = ctx.measureText(mainText).width;
+                    ctx.fillText(subText, textX + mainWidth + 1, textY + 6);
+                }
+                ctx.shadowBlur = 0; 
+            }
+        }
+
+        function drawAngle(cx, cy, startAngle, endAngle, r = 40, label = "θ", drawFill = true) {
+            const isMobile = width < 800;
+            const arcR = isMobile ? r - 15 : r;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.arc(cx, cy, arcR, startAngle, endAngle, true); 
+            ctx.closePath();
+            
+            if(drawFill) {
+                ctx.fillStyle = "rgba(245, 166, 35, 0.2)"; // 橙色透明填滿
+                ctx.fill();
+            }
+            
+            ctx.strokeStyle = colors.angle;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const midAngle = (startAngle + endAngle) / 2;
+            const textR = arcR + 12;
+            ctx.fillStyle = colors.angle;
+            ctx.font = "bold 16px serif";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(label, cx + textR * Math.cos(midAngle), cy + textR * Math.sin(midAngle));
+        }
+
+        function drawSystemGrid(cx, cy) {
+            ctx.beginPath();
+            ctx.strokeStyle = "#999"; // 軸線顏色
+            ctx.lineWidth = 1;
+            ctx.moveTo(0, cy); ctx.lineTo(width, cy); 
+            ctx.moveTo(cx, 0); ctx.lineTo(cx, height);
+            ctx.stroke();
+            ctx.fillStyle = colors.text;
+            ctx.font = "14px sans-serif";
+            ctx.fillText("O", cx + 5, cy + 15);
+        }
+
+        function drawCircle(x, y, r) {
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.strokeStyle = "#999"; // 圓周虛線顏色
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawParticle(x, y, color, size) {
+            ctx.beginPath();
+            ctx.arc(x, y, size, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = "rgba(0,0,0,0.5)"; 
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function drawWaveSystem(canvasX, canvasY) {
+            const isMobile = width < 800;
+            const waveGap = isMobile ? 30 : 60; 
+            const waveStartX = params.cx + params.R + waveGap;
+            
+            ctx.beginPath();
+            ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
+            ctx.lineTo(waveStartX, params.cy + canvasY);
+            ctx.strokeStyle = colors.guide;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            if (!isPaused) {
+                waveHistory.unshift(canvasY); 
+                if (waveHistory.length > width) waveHistory.pop();
+            }
+
+            ctx.beginPath();
+            ctx.strokeStyle = colors.wave;
+            ctx.lineWidth = 3;
+            ctx.lineJoin = 'round';
+            for (let i = 0; i < waveHistory.length; i++) {
+                const wx = waveStartX + i * (isMobile ? 2 : 3); 
+                const wy = params.cy + waveHistory[i];
+                if (wx > width) break;
+                if (i === 0) ctx.moveTo(wx, wy);
+                else ctx.lineTo(wx, wy);
+            }
+            ctx.stroke();
+            
+            if (waveHistory.length > 0) drawParticle(waveStartX, params.cy + waveHistory[0], colors.wave, 5);
+        }
+
+        function drawSHMSystem(canvasX, canvasY, theta) {
+            const isMobile = width < 800;
+            const shmGap = isMobile ? 50 : 100;
+            const shmY = params.cy + params.R + shmGap;
+            
+            if (shmY < height - 10) {
+                ctx.beginPath();
+                ctx.moveTo(params.cx + canvasX, params.cy + canvasY);
+                ctx.lineTo(params.cx + canvasX, shmY);
+                ctx.strokeStyle = colors.guide;
+                ctx.setLineDash([4, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                ctx.beginPath();
+                ctx.moveTo(params.cx - params.R - 20, shmY); ctx.lineTo(params.cx + params.R + 20, shmY);
+                ctx.strokeStyle = "#999"; ctx.lineWidth = 2; ctx.stroke();
+                
+                ctx.beginPath(); ctx.moveTo(params.cx, shmY - 8); ctx.lineTo(params.cx, shmY + 8); ctx.stroke();
+                
+                ctx.fillStyle = "#999";
+                ctx.font = "12px sans-serif";
+                if (!isMobile) {
+                    ctx.fillText("-R", params.cx - params.R - 30, shmY + 25);
+                    ctx.fillText("+R", params.cx + params.R + 10, shmY + 25);
+                }
+                
+                drawParticle(params.cx + canvasX, shmY, colors.shm, 8);
+                
+                // 動態公式顯示
+                let formulaText = "";
+                let formulaVal = "";
+                
+                if (ui.showPos.checked) {
+                    const val = Math.cos(theta).toFixed(2);
+                    formulaText = "x = R cos(θ)";
+                    formulaVal = `= ${params.R} × ${val}`;
+                } else if (ui.showVel.checked) {
+                    const val = -Math.sin(theta).toFixed(2);
+                    formulaText = "v_x = -v sin(θ)";
+                    formulaVal = `∝ ${val}`;
+                } else if (ui.showAcc.checked) {
+                    const val = -Math.cos(theta).toFixed(2);
+                    formulaText = "a_x = -a_c cos(θ)";
+                    formulaVal = `∝ ${val}`;
+                } else {
+                    formulaText = "SHM";
+                }
+
+                if(formulaText) {
+                    ctx.fillStyle = colors.shm;
+                    ctx.font = "bold 16px serif";
+                    ctx.fillText(formulaText, params.cx + params.R + (isMobile?10:30), shmY);
+                    if(formulaVal) {
+                        ctx.font = "12px monospace";
+                        ctx.fillStyle = colors.text;
+                        ctx.fillText(formulaVal, params.cx + params.R + (isMobile?10:30), shmY + 18);
+                    }
+                }
+            }
+        }
+
+        function drawVectors(canvasX, canvasY, theta, px, py) {
+            const isMobile = width < 800;
+            const shmGap = isMobile ? 50 : 100;
+            const shmY = params.cy + params.R + shmGap;
+            const shmX = params.cx + canvasX;
+
+            const vScale = 0.7;
+            const aScale = 0.7;
+
+            // 1. 位置/位移 (R, x)
+            if (ui.showPos.checked) {
+                // 1.1. 投影三角形
+                ctx.beginPath();
+                ctx.moveTo(params.cx, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy); 
+                ctx.lineTo(params.cx + canvasX, params.cy + canvasY); 
+                ctx.strokeStyle = "rgba(46, 204, 113, 0.3)"; 
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                
+                // 1.2. 向量
+                drawArrow(params.cx, params.cy, canvasX, canvasY, colors.pos, "r");
+                drawArrow(params.cx, params.cy, canvasX, 0, colors.pos, "x", 1, true);
+                if (shmY < height - 10) drawArrow(params.cx, shmY, canvasX, 0, colors.pos, "x");
+                
+                // 1.3. θ 角: 圓心處
+                drawAngle(params.cx, params.cy, 0, -theta);
+            }
+
+            // 2. 速度 (v)
+            if (ui.showVel.checked) {
+                const vMag = params.R * params.omega;
+                const physVx = -vMag * Math.sin(theta);
+                const physVy = vMag * Math.cos(theta);
+                const vecVx = physVx * vScale;
+                const vecVy = -physVy * vScale;
+
+                // 2.1. 投影輔助線/矩形
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px + vecVx, py); ctx.lineTo(px + vecVx, py + vecVy); 
+                ctx.lineTo(px, py + vecVy); ctx.closePath();
+                ctx.strokeStyle = "rgba(52, 152, 219, 0.2)";
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                
+                // 2.2. 向量
+                drawArrow(px, py, vecVx, 0, colors.vel.comp, "v_x", 1, true); 
+                drawArrow(px + vecVx, py, 0, vecVy, colors.vel.comp, null, 1, true); 
+                drawArrow(px, py, vecVx, vecVy, colors.vel.main, "v", 1); 
+
+                // 2.3. θ 角: v 與 鉛垂線 夾角
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px, py - 40);
+                ctx.strokeStyle = colors.guide; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+                
+                drawAngle(px, py, -Math.PI/2, -Math.PI/2 - theta, 25);
+
+                if (shmY < height - 10) drawArrow(shmX, shmY - 20, vecVx, 0, colors.vel.main, "v_x");
+            }
+
+            // 3. 加速度 (a)
+            if (ui.showAcc.checked) {
+                const aMag = params.R * params.omega * params.omega;
+                const physAx = -aMag * Math.cos(theta);
+                const physAy = -aMag * Math.sin(theta);
+                const vecAx = physAx * aScale;
+                const vecAy = -physAy * aScale;
+
+                // 3.1. 投影輔助線/矩形
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px + vecAx, py); ctx.lineTo(px + vecAx, py + vecAy);
+                ctx.lineTo(px, py + vecAy); ctx.closePath();
+                ctx.strokeStyle = "rgba(231, 76, 60, 0.2)";
+                ctx.lineWidth = 1; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
+                // 3.2. 向量
+                drawArrow(px, py, vecAx, 0, colors.acc.comp, "a_x", 1, true);
+                drawArrow(px + vecAx, py, 0, vecAy, colors.acc.comp, null, 1, true);
+                drawArrow(px, py, vecAx, vecAy, colors.acc.main, "a", 1);
+
+                // 3.3. θ 角: a 與 水平線 夾角
+                ctx.beginPath();
+                ctx.moveTo(px, py); ctx.lineTo(px - 40, py);
+                ctx.strokeStyle = colors.guide; ctx.setLineDash([2,2]); ctx.stroke(); ctx.setLineDash([]);
+
+                drawAngle(px, py, Math.PI, Math.PI - theta, 25);
+
+                if (shmY < height - 10) drawArrow(shmX, shmY + 20, vecAx, 0, colors.acc.comp, "a_x");
+            }
+        }
+
+        window.onload = init;
     </script>
 </body>
 </html>
