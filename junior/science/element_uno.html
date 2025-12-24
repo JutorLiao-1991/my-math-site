@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v11 - 選色戰略版</title>
+    <title>鳩特元素 UNO v12 - 修復版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -12,19 +12,15 @@
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
         .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         
-        /* --- 彈出視窗 (通用) --- */
+        /* --- 彈出視窗 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
         .modal.show { display: flex; }
         .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; text-align: center; }
         .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
         
-        /* --- V11 新增：選色按鈕 --- */
+        /* --- 選色按鈕 --- */
         .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .color-btn { 
-            padding: 20px; border: 3px solid rgba(255,255,255,0.5); border-radius: 12px; 
-            font-size: 1.2rem; font-weight: bold; color: white; cursor: pointer; 
-            text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.1s;
-        }
+        .color-btn { padding: 20px; border: 3px solid rgba(255,255,255,0.5); border-radius: 12px; font-size: 1.2rem; font-weight: bold; color: white; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.1s; }
         .color-btn:active { transform: scale(0.95); }
         .btn-pink { background: #e91e63; }
         .btn-yellow { background: #f1c40f; color: #333; text-shadow: none; }
@@ -62,15 +58,15 @@
         .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
 
         #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; }
-        /* V11: 桌面卡槽加上過渡動畫，方便顯示指定色 */
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative;}
         
-        /* 指定色的標籤 */
-        #color-indicator { 
-            position: absolute; top: -30px; left: 50%; transform: translateX(-50%); 
+        /* 標籤樣式 */
+        .slot-indicator { 
+            position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
             background: #333; padding: 5px 15px; border-radius: 20px; 
-            font-size: 0.9rem; font-weight: bold; white-space: nowrap; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s; pointer-events: none;
+            font-size: 0.8rem; font-weight: bold; white-space: nowrap; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
+            z-index: 20; color: #fff;
         }
 
         #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; }
@@ -92,7 +88,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v11</h1>
+        <h1>元素 UNO v12</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -118,8 +114,7 @@
 
         <div id="game-board">
             <div id="table-slot" class="table-slot">
-                <div id="color-indicator">指定色: 紅</div>
-            </div>
+                </div>
             <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
         </div>
 
@@ -200,9 +195,7 @@
         let currentTopCard = null;
         let isMyTurn = false;
         
-        // V11: 暫存 Wild 卡，等待選色
         let pendingWildCard = null; 
-        // V11: 目前指定的顏色 (若無則為 null)
         let currentAuditColor = null; 
 
         // V10 (Scheme A) 卡牌庫
@@ -269,7 +262,6 @@
             else modal.classList.remove('show');
         }
 
-        // V11: 選色完成後執行
         window.finishWildPlay = function(selectedColor) {
             document.getElementById('modal-color-picker').classList.remove('show');
             if (pendingWildCard) {
@@ -323,7 +315,6 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // Ghostbuster (防斷線卡死)
             if (data.status === 'playing' && data.order) {
                 const currentOrder = data.order;
                 const onlineIds = Object.keys(playersMap);
@@ -359,11 +350,10 @@
                     if(myHand.length === 0) dealCardsToSelf(7);
                 }
                 
-                // ★ 修正重點 1：先更新畫面，讓您看到最新的牌局
-                updateGameUI(data, playerList);
+                updateGameUI(data, playerList); // 修正順序：先更新UI
 
-                // ★ 修正重點 2：檢查是否有針對自己的懲罰，稍微延遲執行以免卡住畫面渲染
                 if (data.drawPenalty && data.drawPenalty.targetId === myId) {
+                    // 稍微延遲執行懲罰，避免畫面更新被阻擋
                     setTimeout(() => {
                         handleDrawPenalty(data.drawPenalty.count);
                     }, 100);
@@ -426,7 +416,7 @@
                     order: pIds,
                     currentTurnIndex: 0,
                     topCard: startCard,
-                    currentAuditColor: null, // 初始化無指定色
+                    currentAuditColor: null, 
                     msg: "遊戲開始！",
                     winnerName: null,
                     drawPenalty: null
@@ -448,12 +438,12 @@
             currentAuditColor = data.currentAuditColor;
 
             playerOrder = data.order || [];
-            document.getElementById('table-slot').innerHTML = createCardHTML(currentTopCard);
             
-            // --- V11 視覺化指定顏色 ---
-            const tableSlot = document.getElementById('table-slot');
-            const colorIndicator = document.getElementById('color-indicator');
-            
+            // ★ V12 修正：正確構建 HTML 字串，防止 innerHTML 覆蓋錯誤 ★
+            const cardHTML = createCardHTML(currentTopCard);
+            let indicatorHTML = '';
+
+            // 決定顯示「指定顏色」還是「除錯 ID」
             if (currentAuditColor) {
                 let colorHex = '';
                 let colorName = '';
@@ -462,40 +452,31 @@
                 if(currentAuditColor === 'blue') { colorHex = '#e3f2fd'; colorName = '藍色 (金屬)'; }
                 if(currentAuditColor === 'green') { colorHex = '#e8f5e9'; colorName = '綠色 (非金)'; }
                 
-                tableSlot.style.background = colorHex;
-                tableSlot.style.borderColor = 'white';
-                tableSlot.style.boxShadow = `0 0 20px ${colorHex}`;
-                // 除錯資訊：顯示指定色
-                colorIndicator.innerHTML = `指定色: ${colorName}`;
-                colorIndicator.style.opacity = 1;
-                colorIndicator.style.background = colorHex;
-                colorIndicator.style.color = '#333';
-            } else {
-                tableSlot.style.background = 'transparent';
-                tableSlot.style.borderColor = 'rgba(255,255,255,0.3)';
-                tableSlot.style.boxShadow = 'none';
+                // 改變桌子背景
+                document.getElementById('table-slot').style.background = colorHex;
+                document.getElementById('table-slot').style.boxShadow = `0 0 20px ${colorHex}`;
                 
-                // ★★★ 除錯模式：顯示 ID 比對 (找出誰卡住了) ★★★
+                // 建立標籤
+                indicatorHTML = `<div class="slot-indicator" style="background:${colorHex}; color:#333;">指定色: ${colorName}</div>`;
+            } else {
+                document.getElementById('table-slot').style.background = 'transparent';
+                document.getElementById('table-slot').style.boxShadow = 'none';
+                
+                // 如果沒有指定色，顯示除錯資訊 (幫助你確認是否為 ID 錯亂)
                 const currentPlayerId = playerOrder[data.currentTurnIndex];
-                const debugInfo = `
-                    <span style="font-size:0.7rem; color:#aaa;">
-                        ID: ...${myId.substr(-4)} <br> 
-                        Turn: ...${String(currentPlayerId).substr(-4)}
-                    </span>`;
-                colorIndicator.innerHTML = debugInfo;
-                colorIndicator.style.opacity = 1;
-                colorIndicator.style.background = 'rgba(0,0,0,0.5)';
-                colorIndicator.style.color = 'white';
+                // indicatorHTML = `<div class="slot-indicator" style="background:#333; opacity:0.5; font-size:0.7rem;">ID: ...${myId.substr(-3)} / Turn: ...${String(currentPlayerId).substr(-3)}</div>`;
             }
+
+            // 一次性寫入，防止元素丟失
+            document.getElementById('table-slot').innerHTML = indicatorHTML + cardHTML;
 
             const currentPlayerId = playerOrder[data.currentTurnIndex];
             const currentPlayer = playerList.find(p => p.id === currentPlayerId);
-            const currentName = currentPlayer ? currentPlayer.name : "已離線(幽靈)";
+            const currentName = currentPlayer ? currentPlayer.name : "已離線";
 
             const msgDiv = document.getElementById('turn-msg');
             const drawBtn = document.getElementById('btn-draw');
 
-            // 判斷是否輪到我
             isMyTurn = (currentPlayerId === myId);
 
             if (isMyTurn) {
@@ -526,41 +507,31 @@
             const cardIndex = myHand.findIndex(c => c.id === cardId);
             const selectedCard = myHand[cardIndex];
 
-            // V11: 如果是 Wild 牌，直接開啟選色視窗，不執行後續檢查
             if (selectedCard.action === 'wild' || selectedCard.action === 'wild4') {
                 pendingWildCard = selectedCard;
                 document.getElementById('modal-color-picker').classList.add('show');
                 return;
             }
 
-            // V11: 普通牌檢查邏輯
             let canPlay = false;
             
-            // 1. 如果目前有指定顏色 (Wild 後)
             if (currentAuditColor) {
                 if (selectedCard.c === currentAuditColor) canPlay = true;
-            } 
-            // 2. 如果沒有指定顏色 (正常情況)
-            else {
-                // 如果上一張是 Wild (但沒指定色? 理論上不該發生，除非剛開局)，或顏色/週期相同
+            } else {
                 if (currentTopCard.action === 'wild' || currentTopCard.action === 'wild4') canPlay = true;
                 else if (selectedCard.c === currentTopCard.c || selectedCard.p === currentTopCard.p) canPlay = true;
             }
 
             if (!canPlay) {
-                // V11: 提示訊息優化
                 if (currentAuditColor) alert(`必須出【指定顏色】的牌！`);
                 else alert(`不能出這張！\n需要符合顏色或週期`);
                 return;
             }
 
-            // 普通牌直接出
             submitCardPlay(selectedCard, null);
         };
 
-        // V11: 統一出牌邏輯 (包含 Wild 指定色)
         function submitCardPlay(selectedCard, chosenColor) {
-            // 從手牌移除 (注意：如果是 Wild，pendingWildCard 已經存了引用，這裡要重抓 index)
             const cardIndex = myHand.findIndex(c => c.id === selectedCard.id);
             if (cardIndex > -1) {
                 myHand.splice(cardIndex, 1);
@@ -585,9 +556,6 @@
                 const nextPlayerIndex = (currentIndex + 1) % playerOrder.length;
                 const nextPlayerId = playerOrder[nextPlayerIndex];
 
-                // 判斷是否清除指定色 (只有打出 Wild 時才設定新顏色，打出普通牌則清除)
-                // 邏輯：如果你這回合出了牌，代表你滿足了上一家的指定色，下家就不用再守這個顏色了
-                // 除非你打出的又是 Wild
                 let nextAuditColor = null; 
 
                 if (selectedCard.action === 'skip') { jump = 2; msgAction = "(下家被跳過!)"; } 
@@ -595,11 +563,11 @@
                 else if (selectedCard.action === 'wild4') { 
                     jump = 2; msgAction = "(核能爆炸! 下家抽4張!)"; 
                     penalty = { targetId: nextPlayerId, count: 4 }; 
-                    nextAuditColor = chosenColor; // 設定下下家要遵守的顏色
+                    nextAuditColor = chosenColor; 
                 } 
                 else if (selectedCard.action === 'wild') { 
                     msgAction = "(轉色!)"; 
-                    nextAuditColor = chosenColor; // 設定下家要遵守的顏色
+                    nextAuditColor = chosenColor; 
                 }
 
                 let nextIndex = (currentIndex + jump) % playerOrder.length;
@@ -607,7 +575,7 @@
                 update(roomRef, {
                     topCard: selectedCard,
                     currentTurnIndex: nextIndex,
-                    currentAuditColor: nextAuditColor, // 更新指定色狀態
+                    currentAuditColor: nextAuditColor,
                     msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
                     drawPenalty: penalty
                 });
