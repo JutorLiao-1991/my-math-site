@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v18 - 穩定懲罰音效版</title>
+    <title>鳩特元素 UNO v19 - 手機浮水印修復版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -64,12 +64,30 @@
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
         #btn-draw { z-index: 5; position: relative; }
 
-        /* --- V17 新增浮水印樣式 --- */
+        /* --- V19 浮水印修正 --- */
         .table-watermark {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
-            font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
-            pointer-events: none; z-index: 0; user-select: none; white-space: nowrap; font-family: 'Arial Black', 'Impact', sans-serif;
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: 12vw; /* PC版大小 */
+            font-weight: 900;
+            color: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            z-index: 0;
+            user-select: none;
+            white-space: nowrap;
+            font-family: 'Arial Black', 'Impact', sans-serif;
         }
+        
+        /* 針對手機 (直向) 螢幕的特別設定 */
+        @media (max-width: 768px) {
+            .table-watermark {
+                font-size: 40vw; /* 手機版放大為 40%，確保超出牌的範圍 */
+                opacity: 0.08;   /* 手機上稍微清楚一點點 */
+            }
+        }
+
         .jutor-watermark {
             position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3);
             font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
@@ -105,7 +123,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v18</h1>
+        <h1>元素 UNO v19</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
