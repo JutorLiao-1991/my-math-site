@@ -140,11 +140,13 @@
         .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
         .level-text { position: absolute; right: 0; top: -15px; font-size: 0.75rem; color: #888; text-align: right; width: 50px;}
         
+        /* 電子樣式：移除預設 transition，完全由 JS 控制以避免初始位置亂跑 */
         .electron { 
-            width: 16px; height: 16px; /* 稍微加大電子 */
+            width: 14px; height: 14px; 
             background: #fff; border-radius: 50%; 
-            position: absolute; margin-left: -8px; 
+            position: absolute; margin-left: -7px; 
             box-shadow: 0 0 8px rgba(255,255,255,0.8); z-index: 10; 
+            /* 注意：這裡不寫 transition，由 JS 動態添加 */
         }
         
         /* 波動光子 (加大) */
@@ -411,6 +413,7 @@
             });
         }
 
+// === 多電子微觀動畫 (修正初始位置與顏色邏輯) ===
         function resetMicroView() { 
             electronContainer.innerHTML = ''; 
             photonCont.innerHTML = '';
@@ -425,35 +428,40 @@
                 const leftPos = (index + 1) * (100 / (count + 1));
                 el.style.left = leftPos + '%';
 
-                // 重要：移除 transition 避免歸位動畫
+                // 【關鍵步驟 1】先關閉動畫，準備瞬間移動
                 el.style.transition = 'none';
 
+                // 【關鍵步驟 2】根據模式設定「絕對初始位置」與「初始顏色」
                 if (state.mode === 'absorption') {
+                    // 吸收模式：如果不見了(未勾選)，一定要乖乖待在基態(白色)
                     if (line.visible) {
-                        el.style.bottom = line.targetHeight + 'px';
-                        el.style.backgroundColor = line.color;
+                        el.style.bottom = line.targetHeight + 'px'; // 已經跳上去了
+                        el.style.backgroundColor = line.color;      // 變色了
                         el.style.boxShadow = `0 0 8px ${line.color}`;
                     } else {
-                        el.style.bottom = baseLevelHeight + 'px';
-                        el.style.backgroundColor = '#fff';
+                        el.style.bottom = baseLevelHeight + 'px';   // 在基態
+                        el.style.backgroundColor = '#fff';          // 白色
                         el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                     }
                 } else if (state.mode === 'emission') {
+                    // 發射模式：如果不見了(未勾選)，一定要乖乖待在激發態(有色)準備掉下來
                     if (line.visible) {
-                        el.style.bottom = baseLevelHeight + 'px'; // 已經掉下來
-                        el.style.backgroundColor = '#fff';
+                        el.style.bottom = baseLevelHeight + 'px';   // 已經掉下來了
+                        el.style.backgroundColor = '#fff';          // 變回白色
                         el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                     } else {
-                        el.style.bottom = line.targetHeight + 'px'; // 尚未激發(還沒點擊)時，應顯示在高能階準備
-                        el.style.backgroundColor = line.color; 
+                        el.style.bottom = line.targetHeight + 'px'; // 在高能階準備
+                        el.style.backgroundColor = line.color;      // 帶有能量(有色)
                         el.style.boxShadow = `0 0 8px ${line.color}`;
                     }
                 }
                 
-                // Force Reflow
+                // 【關鍵步驟 3】強制瀏覽器「現在」就繪製出這個位置 (Force Reflow)
+                // 這行代碼看起來沒做事，但讀取 offsetWidth 會強迫瀏覽器計算版面
                 void el.offsetWidth;
 
-                // 恢復 transition
+                // 【關鍵步驟 4】恢復動畫能力，讓之後的點擊可以跑動畫
+                // 使用 setTimeout 確保上面的初始設定已經生效
                 setTimeout(() => {
                      el.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s';
                 }, 50);
