@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v8 - 多人強化版</title>
+    <title>鳩特元素 UNO v10 - 方案A精簡版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -43,11 +43,11 @@
         .player-row.me { color: #f1c40f; font-weight: bold; }
         .player-row.host { color: #e74c3c; }
 
-        /* V8 新增：對手儀表板 */
+        /* 對手儀表板 */
         #opponents-bar {
             display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; 
             background: rgba(0,0,0,0.2); margin-bottom: 10px;
-            justify-content: start; /* 改為 start 避免人數少時置中不好看 */
+            justify-content: start; 
         }
         .opp-card {
             background: #34495e; padding: 8px 12px; border-radius: 8px; 
@@ -83,7 +83,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v8</h1>
+        <h1>元素 UNO v10</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -129,14 +129,49 @@
             
             <div class="periodic-grid">
                 <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
-                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
-                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
-                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
-                <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
-                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Rn</div>
-                <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> <div class="pg-cell pg-black">U</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                
+                <div class="pg-cell pg-period-num">1</div> 
+                <div class="pg-cell pg-pink">H</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-purple">He</div>
+                
+                <div class="pg-cell pg-period-num">2</div> 
+                <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> 
+                <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> 
+                <div class="pg-cell pg-purple">Ne</div>
+                
+                <div class="pg-cell pg-period-num">3</div> 
+                <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> 
+                <div class="pg-cell pg-blue">Al</div> 
+                <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> 
+                <div class="pg-cell pg-purple">Ar</div>
+                
+                <div class="pg-cell pg-period-num">4</div> 
+                <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> 
+                <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> 
+                <div class="pg-cell pg-purple">Kr</div>
+
+                <div class="pg-cell pg-period-num">5</div> 
+                <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> 
+                <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> 
+                <div class="pg-cell pg-purple">Xe</div>
+
+                <div class="pg-cell pg-period-num">6</div> 
+                <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> 
+                <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> 
+                <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-purple">Rn</div>
+
+                <div class="pg-cell pg-period-num">7</div> 
+                <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> 
+                <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> 
+                <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> 
+                <div class="pg-cell pg-purple">Og</div>
             </div>
+
             <div class="legend-row">
                 <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A族 (粉)</div>
                 <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A族 (黃)</div>
@@ -147,7 +182,7 @@
                 <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫色 = 跳過 (Skip)</div>
                 <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
                 <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
-                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U = 核爆 (+4)</div>
+                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
             </div>
         </div>
     </div>
@@ -178,7 +213,9 @@
         let currentTopCard = null;
         let isMyTurn = false;
 
+        // V10 (Scheme A) 卡牌庫: 不含 Zr, Pd, Cd
         const allCards = [
+            // Pink (1A)
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
             { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
@@ -186,12 +223,14 @@
             { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
             { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
             { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
+            // Yellow (2A)
             { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow", group: "2A" },
             { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow", group: "2A" },
             { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow", group: "2A" },
             { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
             { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
             { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
+            // Blue (Transition - Scheme A only)
             { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans" },
             { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
             { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
@@ -204,6 +243,8 @@
             { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" },
             { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
             { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
+            
+            // Green (Non-metal/Halogen)
             { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
             { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
             { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
@@ -211,20 +252,30 @@
             { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
             { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
             { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
+            
+            // Draw 2
             { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
             { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
             { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+            
+            // Skip (含 Og)
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
             { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
             { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
             { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
+            { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, // New!
+            
+            // Wild
             { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" },
             { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
             { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" }
+            
+            // Wild4 (含 Pu)
+            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
+            { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" } // New!
         ];
 
         function switchScreen(screenId) {
@@ -255,7 +306,7 @@
                     onDisconnect(myRef).remove();
                 }
 
-                update(myRef, { name: myName, handCount: 0 }); // 初始化牌數
+                update(myRef, { name: myName, handCount: 0 });
                 document.getElementById('my-name-display').innerText = `我: ${myName}`;
                 switchScreen('screen-lobby');
             });
@@ -283,47 +334,24 @@
             }
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
-            
-            // --- ★★★ V9 新增：自動踢除斷線玩家邏輯 (Ghostbuster) ★★★ ---
+
+            // Ghostbuster (防斷線卡死)
             if (data.status === 'playing' && data.order) {
                 const currentOrder = data.order;
                 const onlineIds = Object.keys(playersMap);
-                
-                // 檢查順序表裡，是否有人已經不在線上 (變成了幽靈)
                 const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
-                
                 if (ghosts.length > 0) {
-                    console.log("發現斷線玩家，正在踢除...", ghosts);
-                    
-                    // 產生新的順序表 (只保留在線的人)
                     const newOrder = currentOrder.filter(id => onlineIds.includes(id));
-                    
-                    // 如果剩不到 2 人，直接結束遊戲
                     if (newOrder.length < 2) {
-                        update(roomRef, {
-                            status: 'finished',
-                            winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人",
-                            msg: "因人數不足，遊戲結束"
-                        });
+                        update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
                         return;
                     }
-
-                    // 修正當前回合索引 (確保不會超出範圍)
                     let newIndex = data.currentTurnIndex;
-                    if (newIndex >= newOrder.length) {
-                        newIndex = 0;
-                    }
-
-                    // 更新資料庫：踢掉幽靈，更新順序
-                    update(roomRef, {
-                        order: newOrder,
-                        currentTurnIndex: newIndex,
-                        msg: "有人斷線，已自動跳過"
-                    });
-                    return; // 中斷這次渲染，等待資料庫更新回來
+                    if (newIndex >= newOrder.length) newIndex = 0;
+                    update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
+                    return;
                 }
             }
-            // -----------------------------------------------------------
 
             if (data.drawPenalty && data.drawPenalty.targetId === myId && data.status === 'playing') {
                 handleDrawPenalty(data.drawPenalty.count);
@@ -358,32 +386,17 @@
                 }
             }
         });
-        if(myHand.length === 0) dealCardsToSelf(7);
-                }
-                updateGameUI(data, playerList);
-            } else if (data.status === 'finished') {
-                document.getElementById('winner-name').innerText = data.winnerName || "???";
-                switchScreen('screen-gameover');
-                myHand = [];
-            } else {
-                updateLobbyUI(data, playerList);
-                if(!document.getElementById('screen-lobby').classList.contains('active')) {
-                     switchScreen('screen-lobby');
-                }
-            }
-        });
 
         function handleDrawPenalty(count) {
              alert(`你被攻擊了！必須抽 ${count} 張牌並暫停一回合。`);
              for(let i=0; i<count; i++) {
                  myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
              }
-             updateHandCount(); // 更新雲端牌數
+             updateHandCount(); 
              renderHand();
              update(roomRef, { drawPenalty: null });
         }
 
-        // V8: 統一更新手牌數量到資料庫，讓別人看得到
         function updateHandCount() {
             const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
             update(myRef, { handCount: myHand.length });
@@ -442,8 +455,6 @@
             
             const currentPlayerId = playerOrder[data.currentTurnIndex];
             const currentPlayer = playerList.find(p => p.id === currentPlayerId);
-            
-            // 防呆：如果輪到的人斷線了 (不在 list 裡)，顯示離線
             const currentName = currentPlayer ? currentPlayer.name : "已離線";
 
             const msgDiv = document.getElementById('turn-msg');
@@ -462,10 +473,9 @@
                 drawBtn.style.opacity = "0.5"; drawBtn.style.pointerEvents = "none";
             }
 
-            // V8: 更新對手儀表板
             const oppBar = document.getElementById('opponents-bar');
             oppBar.innerHTML = playerList.map(p => {
-                if(p.id === myId) return ''; // 不顯示自己
+                if(p.id === myId) return ''; 
                 const isActive = (p.id === currentPlayerId);
                 return `
                 <div class="opp-card ${isActive ? 'active-turn' : ''}">
@@ -560,7 +570,7 @@
              else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
              
              let classColor = (bgStyle === '') ? card.c : '';
-             let textColor = card.id === 'U' ? 'color: #f1c40f;' : '';
+             let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
 
              return `
             <div class="card ${classColor} ${extraClass}" style="${bgStyle} ${textColor}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
