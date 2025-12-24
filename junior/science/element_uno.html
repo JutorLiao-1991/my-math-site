@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v15 - 高級音效版</title>
+    <title>鳩特元素 UNO v16 - iOS 完美音效版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -90,7 +90,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v15</h1>
+        <h1>元素 UNO v16</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -200,16 +200,16 @@
         let currentAuditColor = null; 
         let isHandlingPenalty = false;
 
-        // V15 高級音效系統
+        // V16: 全域音效喚醒系統
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
 
-        // 產生粉紅噪音 Buffer (用於紙張聲)
         function createNoiseBuffer() {
             if (!audioCtx) return;
-            const bufferSize = audioCtx.sampleRate * 2; // 2 seconds
+            const bufferSize = audioCtx.sampleRate * 2;
             const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
             const data = buffer.getChannelData(0);
+            let lastOut = 0;
             for (let i = 0; i < bufferSize; i++) {
                 const white = Math.random() * 2 - 1;
                 data[i] = (lastOut + (0.02 * white)) / 1.02;
@@ -218,29 +218,33 @@
             }
             cardNoiseBuffer = buffer;
         }
-        let lastOut = 0;
 
-        function unlockAudio() {
+        // 強制解鎖音效：在任何點擊時嘗試喚醒
+        function wakeUpAudio() {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume().then(() => {
+                    // 播放極短靜音來佔領音頻通道
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     gain.gain.value = 0;
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 0.01);
+                    osc.stop(audioCtx.currentTime + 0.001);
                 });
             }
             if(!cardNoiseBuffer) createNoiseBuffer();
         }
+
+        // 綁定到整個文件，確保任何觸摸都能喚醒
+        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
+        document.addEventListener('click', wakeUpAudio);
 
         function playSound(type) {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
 
             if(type === 'pop') {
-                // 擬真卡片聲：濾波噪音 + 短暫音調
                 if(cardNoiseBuffer) {
                     const src = audioCtx.createBufferSource();
                     src.buffer = cardNoiseBuffer;
@@ -258,7 +262,6 @@
                     src.stop(now + 0.15);
                 }
             } else if (type === 'alert') {
-                // 被攻擊：低沉警報
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sawtooth';
@@ -270,8 +273,7 @@
                 gain.connect(audioCtx.destination);
                 osc.start(); osc.stop(now + 0.4);
             } else if (type === 'win') {
-                // 勝利：大三和弦歡呼
-                const notes = [523.25, 659.25, 783.99, 1046.50]; // C Major
+                const notes = [523.25, 659.25, 783.99, 1046.50];
                 notes.forEach((freq, i) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
@@ -286,14 +288,13 @@
                     osc.stop(now + i*0.1 + 0.6);
                 });
             } else if (type === 'lose') {
-                // 失敗：Sad Trombone (滑音下降)
                 [0, 0.4, 0.8].forEach((delay, i) => {
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.type = 'sawtooth';
-                    const startFreq = 300 - (i*30); // 降音階
+                    const startFreq = 300 - (i*30);
                     osc.frequency.setValueAtTime(startFreq, now + delay);
-                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3); // 滑音
+                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3);
                     gain.gain.setValueAtTime(0.2, now + delay);
                     gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.3);
                     osc.connect(gain);
@@ -316,6 +317,7 @@
             }
         }
 
+        // V14 卡牌庫: Scheme A + Cu(銅) + At(砈)
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -353,7 +355,7 @@
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
             { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
             { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
-            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, 
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, // New!
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
@@ -389,7 +391,6 @@
         }
 
         window.joinGame = function() {
-            unlockAudio(); 
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
@@ -434,7 +435,7 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // 重置 penalty 鎖定
+            // 重置 penalty 鎖定狀態
             if (!data.drawPenalty) {
                 isHandlingPenalty = false; 
             }
@@ -476,17 +477,20 @@
                 
                 updateGameUI(data, playerList); 
 
+                // ★ V16 iOS 修正：將音效移出 setTimeout
                 if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                     isHandlingPenalty = true;
+                    // 先播聲音
+                    playSound('alert');
+                    // 再處理畫面邏輯
                     setTimeout(() => {
                         handleDrawPenalty(data.drawPenalty.count);
-                    }, 200);
+                    }, 50); // 縮短延遲
                 }
 
             } else if (data.status === 'finished') {
                 document.getElementById('winner-name').innerText = data.winnerName || "???";
                 switchScreen('screen-gameover');
-                // V15: 贏家歡呼，輸家沮喪
                 if(data.winnerName === myName) {
                     playSound('win');
                     createConfetti();
@@ -503,7 +507,7 @@
         });
 
         function handleDrawPenalty(count) {
-             playSound('alert');
+             // 移除這裡的 playSound，因為已經在上面呼叫了
              alert(`你被攻擊了！必須抽 ${count} 張牌並暫停一回合。`);
              for(let i=0; i<count; i++) {
                  myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
@@ -537,7 +541,6 @@
         }
 
         window.startGame = function() {
-            unlockAudio(); 
             onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
