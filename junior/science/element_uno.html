@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v17 - 浮水印版</title>
+    <title>鳩特元素 UNO v18 - 穩定懲罰音效版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -12,6 +12,8 @@
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
         .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;}
         .big-btn:active { transform: scale(0.95); }
+        .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
         /* --- 彈出視窗 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
@@ -63,31 +65,14 @@
         #btn-draw { z-index: 5; position: relative; }
 
         /* --- V17 新增浮水印樣式 --- */
-        /* 牌桌中央的大浮水印 */
         .table-watermark {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-12deg);
-            font-size: 12vw; /* 使用視窗寬度單位，確保響應式大小 */
-            font-weight: 900;
-            color: rgba(255, 255, 255, 0.05); /* 極淡的白色 */
-            pointer-events: none; /* 不阻擋滑鼠事件 */
-            z-index: 0; /* 放在最底層 */
-            user-select: none;
-            white-space: nowrap;
-            font-family: 'Arial Black', 'Impact', sans-serif;
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
+            pointer-events: none; z-index: 0; user-select: none; white-space: nowrap; font-family: 'Arial Black', 'Impact', sans-serif;
         }
-        /* 右下角的小浮水印 */
         .jutor-watermark {
-            position: fixed;
-            bottom: 10px;
-            right: 15px;
-            color: rgba(255, 255, 255, 0.3);
-            font-size: 0.8rem;
-            pointer-events: none;
-            z-index: 99;
-            font-style: italic;
+            position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
         }
         
         .slot-indicator { 
@@ -120,7 +105,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v17</h1>
+        <h1>元素 UNO v18</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -146,7 +131,6 @@
 
         <div id="game-board">
             <div class="table-watermark">JUNO!</div>
-
             <div id="table-slot" class="table-slot"></div>
             <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
         </div>
@@ -162,6 +146,16 @@
     </div>
 
     <div class="jutor-watermark">Presented by Jutor</div>
+
+        <div id="modal-penalty" class="modal">
+        <div class="modal-content" style="max-width: 320px; border: 2px solid #e74c3c; background: #2c0a0a;">
+            <h2 style="color: #e74c3c; margin-top: 0;">⚠️ 遭到攻擊 ⚠️</h2>
+            <p style="font-size: 1.2rem; margin: 20px 0;">你必須抽取</p>
+            <div id="penalty-count-display" style="font-size: 4rem; font-weight: bold; color: #fff; margin: 10px 0;">2</div>
+            <p style="font-size: 1.2rem; margin: 20px 0;">張牌並暫停一回合</p>
+            <button class="big-btn btn-red" onclick="confirmPenalty()">😡 認命接受</button>
+        </div>
+    </div>
 
     <div id="modal-color-picker" class="modal">
         <div class="modal-content" style="max-width: 300px;">
@@ -202,6 +196,7 @@
                 <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
             </div>
         </div>
+        
     </div>
 
     <script type="module">
@@ -233,6 +228,7 @@
         let pendingWildCard = null; 
         let currentAuditColor = null; 
         let isHandlingPenalty = false;
+        let pendingPenaltyCount = 0; // V18: 暫存懲罰數量
 
         // V16: 全域音效喚醒系統
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -257,7 +253,6 @@
         function wakeUpAudio() {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume().then(() => {
-                    // 播放極短靜音來佔領音頻通道
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     gain.gain.value = 0;
@@ -270,7 +265,6 @@
             if(!cardNoiseBuffer) createNoiseBuffer();
         }
 
-        // 綁定到整個文件，確保任何觸摸都能喚醒
         document.addEventListener('touchstart', wakeUpAudio, {passive: true});
         document.addEventListener('click', wakeUpAudio);
 
@@ -511,15 +505,12 @@
                 
                 updateGameUI(data, playerList); 
 
-                // ★ V16 iOS 修正：將音效移出 setTimeout
+                // ★ V18 iOS 修正：不再自動彈 alert，而是顯示模態視窗等待玩家按下
                 if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                     isHandlingPenalty = true;
-                    // 先播聲音
-                    playSound('alert');
-                    // 再處理畫面邏輯
-                    setTimeout(() => {
-                        handleDrawPenalty(data.drawPenalty.count);
-                    }, 50); // 縮短延遲
+                    pendingPenaltyCount = data.drawPenalty.count;
+                    document.getElementById('penalty-count-display').innerText = pendingPenaltyCount;
+                    document.getElementById('modal-penalty').classList.add('show');
                 }
 
             } else if (data.status === 'finished') {
@@ -540,16 +531,21 @@
             }
         });
 
-        function handleDrawPenalty(count) {
-             // 移除這裡的 playSound，因為已經在上面呼叫了
-             alert(`你被攻擊了！必須抽 ${count} 張牌並暫停一回合。`);
-             for(let i=0; i<count; i++) {
-                 myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
-             }
-             updateHandCount(); 
-             renderHand();
-             update(roomRef, { drawPenalty: null });
-        }
+        // V18: 新增確認懲罰函式，綁定在按鈕上確保音效播放
+        window.confirmPenalty = function() {
+            playSound('alert'); // 這裡播放音效絕對不會失敗！
+            
+            const count = pendingPenaltyCount;
+            for(let i=0; i<count; i++) {
+                myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+            }
+            updateHandCount(); 
+            renderHand();
+            
+            // 關閉視窗並更新 DB
+            document.getElementById('modal-penalty').classList.remove('show');
+            update(roomRef, { drawPenalty: null });
+        }
 
         function updateHandCount() {
             const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
