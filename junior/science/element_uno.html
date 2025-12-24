@@ -323,7 +323,7 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // Ghostbuster
+            // Ghostbuster (防斷線卡死)
             if (data.status === 'playing' && data.order) {
                 const currentOrder = data.order;
                 const onlineIds = Object.keys(playersMap);
@@ -341,11 +341,6 @@
                 }
             }
 
-            if (data.drawPenalty && data.drawPenalty.targetId === myId && data.status === 'playing') {
-                handleDrawPenalty(data.drawPenalty.count);
-                return;
-            }
-
             if (playerList.length === 1 && data.status !== 'waiting') {
                 update(roomRef, {
                     status: 'waiting',
@@ -353,7 +348,7 @@
                     winnerName: null,
                     topCard: null,
                     drawPenalty: null,
-                    currentAuditColor: null // 重置指定色
+                    currentAuditColor: null
                 });
                 return; 
             }
@@ -363,7 +358,17 @@
                     switchScreen('screen-game');
                     if(myHand.length === 0) dealCardsToSelf(7);
                 }
+                
+                // ★ 修正重點 1：先更新畫面，讓您看到最新的牌局
                 updateGameUI(data, playerList);
+
+                // ★ 修正重點 2：檢查是否有針對自己的懲罰，稍微延遲執行以免卡住畫面渲染
+                if (data.drawPenalty && data.drawPenalty.targetId === myId) {
+                    setTimeout(() => {
+                        handleDrawPenalty(data.drawPenalty.count);
+                    }, 100);
+                }
+
             } else if (data.status === 'finished') {
                 document.getElementById('winner-name').innerText = data.winnerName || "???";
                 switchScreen('screen-gameover');
