@@ -1,68 +1,68 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v18 - 穩定懲罰音效版</title>
-    <style>
-        /* --- 基礎設定 --- */
-        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
-        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
-        .screen.active { display: flex; }
-        input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
-        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鳩特元素 UNO v18 - 穩定懲罰音效版</title>
+    <style>
+        /* --- 基礎設定 --- */
+        body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
+        .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
+        .screen.active { display: flex; }
+        input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
+        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;}
         .big-btn:active { transform: scale(0.95); }
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        
-        /* --- 彈出視窗 --- */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
-        .modal.show { display: flex; }
-        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; text-align: center; }
-        .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
-        
-        /* --- 選色按鈕 --- */
-        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .color-btn { padding: 20px; border: 3px solid rgba(255,255,255,0.5); border-radius: 12px; font-size: 1.2rem; font-weight: bold; color: white; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.1s; }
-        .color-btn:active { transform: scale(0.95); }
-        .btn-pink { background: #e91e63; }
-        .btn-yellow { background: #f1c40f; color: #333; text-shadow: none; }
-        .btn-blue { background: #2196f3; }
-        .btn-green { background: #27ae60; }
+        
+        /* --- 彈出視窗 --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
+        .modal.show { display: flex; }
+        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 600px; max-height: 90%; overflow: auto; border: 1px solid #555; text-align: center; }
+        .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
+        
+        /* --- 選色按鈕 --- */
+        .color-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .color-btn { padding: 20px; border: 3px solid rgba(255,255,255,0.5); border-radius: 12px; font-size: 1.2rem; font-weight: bold; color: white; cursor: pointer; text-shadow: 0 1px 3px rgba(0,0,0,0.5); transition: transform 0.1s; }
+        .color-btn:active { transform: scale(0.95); }
+        .btn-pink { background: #e91e63; }
+        .btn-yellow { background: #f1c40f; color: #333; text-shadow: none; }
+        .btn-blue { background: #2196f3; }
+        .btn-green { background: #27ae60; }
 
-        /* --- 小抄樣式 --- */
-        .periodic-grid { display: grid; grid-template-columns: 25px repeat(8, 1fr); gap: 4px; margin-top: 20px; width: 100%; min-width: 320px; }
-        .pg-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #fff; position: relative; font-size: 0.9rem; }
-        .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
-        .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
-        .pg-pink { background: #ffeef0; color: #c2185b; border: 2px solid #e91e63; }
-        .pg-yellow { background: #fff8e1; color: #f57f17; border: 2px solid #ffc107; }
-        .pg-blue { background: #e3f2fd; color: #1565c0; border: 2px solid #2196f3; }
-        .pg-green { background: #e8f5e9; color: #2e7d32; border: 2px solid #4caf50; }
-        .pg-purple { background: #f3e5f5; color: #7b1fa2; border: 2px solid #9c27b0; }
-        .pg-gold { background: linear-gradient(135deg, #fff9c4, #ffd54f); color: #8d6e63; border: 2px solid #ffca28; box-shadow: 0 0 5px #ffca28; }
-        .pg-black { background: #2c3e50; color: #f1c40f; border: 2px solid #000; box-shadow: 0 0 5px red; }
-        .pg-empty { background: transparent; border: none; }
-        .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;}
-        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+        /* --- 小抄樣式 --- */
+        .periodic-grid { display: grid; grid-template-columns: 25px repeat(8, 1fr); gap: 4px; margin-top: 20px; width: 100%; min-width: 320px; }
+        .pg-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #fff; position: relative; font-size: 0.9rem; }
+        .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
+        .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
+        .pg-pink { background: #ffeef0; color: #c2185b; border: 2px solid #e91e63; }
+        .pg-yellow { background: #fff8e1; color: #f57f17; border: 2px solid #ffc107; }
+        .pg-blue { background: #e3f2fd; color: #1565c0; border: 2px solid #2196f3; }
+        .pg-green { background: #e8f5e9; color: #2e7d32; border: 2px solid #4caf50; }
+        .pg-purple { background: #f3e5f5; color: #7b1fa2; border: 2px solid #9c27b0; }
+        .pg-gold { background: linear-gradient(135deg, #fff9c4, #ffd54f); color: #8d6e63; border: 2px solid #ffca28; box-shadow: 0 0 5px #ffca28; }
+        .pg-black { background: #2c3e50; color: #f1c40f; border: 2px solid #000; box-shadow: 0 0 5px red; }
+        .pg-empty { background: transparent; border: none; }
+        .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;}
+        .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
-        /* --- 遊戲介面 --- */
-        #player-list { width: 90%; max-width: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin: 20px 0; }
-        .player-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-        .player-row.me { color: #f1c40f; font-weight: bold; }
-        .player-row.host { color: #e74c3c; }
+        /* --- 遊戲介面 --- */
+        #player-list { width: 90%; max-width: 400px; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 10px; margin: 20px 0; }
+        .player-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .player-row.me { color: #f1c40f; font-weight: bold; }
+        .player-row.host { color: #e74c3c; }
 
-        #opponents-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; background: rgba(0,0,0,0.2); margin-bottom: 10px; justify-content: start; z-index: 5; position: relative;}
-        .opp-card { background: #34495e; padding: 8px 12px; border-radius: 8px; min-width: 80px; text-align: center; border: 2px solid transparent; transition: 0.3s; opacity: 0.7; }
-        .opp-card.active-turn { border-color: #f1c40f; background: #2c3e50; opacity: 1; transform: scale(1.05); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
-        .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
-        .opp-count { font-size: 1.2rem; color: #e74c3c; }
-        .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
+        #opponents-bar { display: flex; gap: 10px; overflow-x: auto; padding: 10px; width: 100%; background: rgba(0,0,0,0.2); margin-bottom: 10px; justify-content: start; z-index: 5; position: relative;}
+        .opp-card { background: #34495e; padding: 8px 12px; border-radius: 8px; min-width: 80px; text-align: center; border: 2px solid transparent; transition: 0.3s; opacity: 0.7; }
+        .opp-card.active-turn { border-color: #f1c40f; background: #2c3e50; opacity: 1; transform: scale(1.05); box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); }
+        .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+        .opp-count { font-size: 1.2rem; color: #e74c3c; }
+        .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
 
-        #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; }
-        .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
-        #btn-draw { z-index: 5; position: relative; }
+        #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; }
+        .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
+        #btn-draw { z-index: 5; position: relative; }
 
         /* --- V17 新增浮水印樣式 --- */
         .table-watermark {
@@ -74,462 +74,462 @@
             position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3);
             font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
         }
-        
-        .slot-indicator { 
-            position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
-            background: #333; padding: 5px 15px; border-radius: 20px; 
-            font-size: 0.8rem; font-weight: bold; white-space: nowrap; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
-            z-index: 20; color: #fff;
-        }
+        
+        .slot-indicator { 
+            position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
+            background: #333; padding: 5px 15px; border-radius: 20px; 
+            font-size: 0.8rem; font-weight: bold; white-space: nowrap; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
+            z-index: 20; color: #fff;
+        }
 
-        #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; z-index: 5; position: relative; }
-        
-        .card { width: 90px; height: 130px; background: white; border-radius: 8px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.3); color: #333; user-select: none; transition: transform 0.2s; border: 3px solid #ccc;}
-        .card:active { transform: scale(0.95); }
-        .card.pink { background: #ffeef0; border-color: #e91e63; }
-        .card.yellow { background: #fff8e1; border-color: #ffc107; }
-        .card.green { background: #e8f5e9; border-color: #4caf50; }
-        .card.purple { background: #f3e5f5; border-color: #9c27b0; }
-        .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
-        .symbol { font-size: 36px; font-weight: 800; }
-        .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
-        .action-badge { position: absolute; bottom: 5px; right: 5px; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;}
-        .helper-btn { padding: 5px 10px; font-size: 0.8rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; margin-left: 10px; position: relative; z-index: 5;}
-        .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
+        #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; z-index: 5; position: relative; }
+        
+        .card { width: 90px; height: 130px; background: white; border-radius: 8px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.3); color: #333; user-select: none; transition: transform 0.2s; border: 3px solid #ccc;}
+        .card:active { transform: scale(0.95); }
+        .card.pink { background: #ffeef0; border-color: #e91e63; }
+        .card.yellow { background: #fff8e1; border-color: #ffc107; }
+        .card.green { background: #e8f5e9; border-color: #4caf50; }
+        .card.purple { background: #f3e5f5; border-color: #9c27b0; }
+        .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
+        .symbol { font-size: 36px; font-weight: 800; }
+        .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
+        .action-badge { position: absolute; bottom: 5px; right: 5px; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;}
+        .helper-btn { padding: 5px 10px; font-size: 0.8rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; margin-left: 10px; position: relative; z-index: 5;}
+        .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
 
-        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f2d74e; animation: fall linear forwards; z-index: 9999; pointer-events: none;}
-        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
-    </style>
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f2d74e; animation: fall linear forwards; z-index: 9999; pointer-events: none;}
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+    </style>
 </head>
 <body>
 
-    <div id="screen-login" class="screen active">
-        <h1>元素 UNO v18</h1>
-        <p>請輸入暱稱加入房間</p>
-        <input type="text" id="username" placeholder="你的名字" maxlength="8">
-        <button class="big-btn" onclick="joinGame()">加入遊戲</button>
-    </div>
+    <div id="screen-login" class="screen active">
+        <h1>元素 UNO v18</h1>
+        <p>請輸入暱稱加入房間</p>
+        <input type="text" id="username" placeholder="你的名字" maxlength="8">
+        <button class="big-btn" onclick="joinGame()">加入遊戲</button>
+    </div>
 
-    <div id="screen-lobby" class="screen">
-        <h2>等候室</h2>
-        <div id="room-code-display">房號: Class 101</div>
-        <div id="player-list"></div>
-        <p id="lobby-msg">等待房主開始...</p>
-        <button id="btn-start" class="big-btn" style="display:none;" onclick="startGame()">開始遊戲</button>
-    </div>
+    <div id="screen-lobby" class="screen">
+        <h2>等候室</h2>
+        <div id="room-code-display">房號: Class 101</div>
+        <div id="player-list"></div>
+        <p id="lobby-msg">等待房主開始...</p>
+        <button id="btn-start" class="big-btn" style="display:none;" onclick="startGame()">開始遊戲</button>
+    </div>
 
-    <div id="screen-game" class="screen">
-        <div id="opponents-bar"></div>
+    <div id="screen-game" class="screen">
+        <div id="opponents-bar"></div>
 
-        <div id="top-info" style="justify-content: flex-end; position: relative; z-index: 5;">
-             <div id="my-name-display" style="font-weight:bold; color:#f1c40f;">我: ???</div>
-             <button class="helper-btn" onclick="toggleCheatSheet(true)">📊 小抄</button>
-        </div>
-        
-        <div id="turn-msg" style="position: relative; z-index: 5;">等待出牌...</div>
+        <div id="top-info" style="justify-content: flex-end; position: relative; z-index: 5;">
+             <div id="my-name-display" style="font-weight:bold; color:#f1c40f;">我: ???</div>
+             <button class="helper-btn" onclick="toggleCheatSheet(true)">📊 小抄</button>
+        </div>
+        
+        <div id="turn-msg" style="position: relative; z-index: 5;">等待出牌...</div>
 
-        <div id="game-board">
+        <div id="game-board">
             <div class="table-watermark">JUNO!</div>
-            <div id="table-slot" class="table-slot"></div>
-            <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
-        </div>
+            <div id="table-slot" class="table-slot"></div>
+            <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
+        </div>
 
-        <div id="hand-area"></div>
-    </div>
+        <div id="hand-area"></div>
+    </div>
 
-    <div id="screen-gameover" class="screen" style="background: rgba(0,0,0,0.85); z-index: 101;">
-        <h1>🎉 遊戲結束 🎉</h1>
-        <div class="winner-text" id="winner-name">---</div>
-        <p>獲得勝利！</p>
-        <button class="big-btn" onclick="backToLobby()">重置房間並回到大廳</button>
-    </div>
+    <div id="screen-gameover" class="screen" style="background: rgba(0,0,0,0.85); z-index: 101;">
+        <h1>🎉 遊戲結束 🎉</h1>
+        <div class="winner-text" id="winner-name">---</div>
+        <p>獲得勝利！</p>
+        <button class="big-btn" onclick="backToLobby()">重置房間並回到大廳</button>
+    </div>
 
     <div class="jutor-watermark">Presented by Jutor</div>
 
-        <div id="modal-penalty" class="modal">
-        <div class="modal-content" style="max-width: 320px; border: 2px solid #e74c3c; background: #2c0a0a;">
-            <h2 style="color: #e74c3c; margin-top: 0;">⚠️ 遭到攻擊 ⚠️</h2>
-            <p style="font-size: 1.2rem; margin: 20px 0;">你必須抽取</p>
-            <div id="penalty-count-display" style="font-size: 4rem; font-weight: bold; color: #fff; margin: 10px 0;">2</div>
-            <p style="font-size: 1.2rem; margin: 20px 0;">張牌並暫停一回合</p>
-            <button class="big-btn btn-red" onclick="confirmPenalty()">😡 認命接受</button>
-        </div>
-    </div>
+    <div id="modal-penalty" class="modal">
+        <div class="modal-content" style="max-width: 320px; border: 2px solid #e74c3c; background: #2c0a0a;">
+            <h2 style="color: #e74c3c; margin-top: 0;">⚠️ 遭到攻擊 ⚠️</h2>
+            <p style="font-size: 1.2rem; margin: 20px 0;">你必須抽取</p>
+            <div id="penalty-count-display" style="font-size: 4rem; font-weight: bold; color: #fff; margin: 10px 0;">2</div>
+            <p style="font-size: 1.2rem; margin: 20px 0;">張牌並暫停一回合</p>
+            <button class="big-btn btn-red" onclick="confirmPenalty()">😡 認命接受</button>
+        </div>
+    </div>
 
-    <div id="modal-color-picker" class="modal">
-        <div class="modal-content" style="max-width: 300px;">
-            <h3 style="color:white; margin-top:0;">請選擇下一家要出的顏色</h3>
-            <div class="color-grid">
-                <div class="color-btn btn-pink" onclick="finishWildPlay('pink')">粉紅<br>(1A)</div>
-                <div class="color-btn btn-yellow" onclick="finishWildPlay('yellow')">黃色<br>(2A)</div>
-                <div class="color-btn btn-blue" onclick="finishWildPlay('blue')">藍色<br>(金屬)</div>
-                <div class="color-btn btn-green" onclick="finishWildPlay('green')">綠色<br>(非金)</div>
-            </div>
-        </div>
-    </div>
+    <div id="modal-color-picker" class="modal">
+        <div class="modal-content" style="max-width: 300px;">
+            <h3 style="color:white; margin-top:0;">請選擇下一家要出的顏色</h3>
+            <div class="color-grid">
+                <div class="color-btn btn-pink" onclick="finishWildPlay('pink')">粉紅<br>(1A)</div>
+                <div class="color-btn btn-yellow" onclick="finishWildPlay('yellow')">黃色<br>(2A)</div>
+                <div class="color-btn btn-blue" onclick="finishWildPlay('blue')">藍色<br>(金屬)</div>
+                <div class="color-btn btn-green" onclick="finishWildPlay('green')">綠色<br>(非金)</div>
+            </div>
+        </div>
+    </div>
 
-    <div id="modal-cheatsheet" class="modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
-            <h3 style="margin:5px 0 10px 0; color:white; font-size:1.1rem;">元素功能對照表</h3>
-            <div class="periodic-grid">
-                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
-                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
-                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
-                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
-                <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
-                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">At</div> <div class="pg-cell pg-purple">Rn</div>
-                <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
-            </div>
-            <div class="legend-row">
-                <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A族 (粉)</div>
-                <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A族 (黃)</div>
-                <div class="legend-item"><span class="dot" style="background:#2196f3"></span> 金屬 (藍)</div>
-                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 生命 (綠)</div>
-            </div>
-            <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
-                <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫色 = 跳過 (Skip)</div>
-                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
-                <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
-                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
-            </div>
-        </div>
-        
-    </div>
+    <div id="modal-cheatsheet" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
+            <h3 style="margin:5px 0 10px 0; color:white; font-size:1.1rem;">元素功能對照表</h3>
+            <div class="periodic-grid">
+                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
+                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
+                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
+                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
+                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
+                <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
+                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">At</div> <div class="pg-cell pg-purple">Rn</div>
+                <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
+            </div>
+            <div class="legend-row">
+                <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A族 (粉)</div>
+                <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A族 (黃)</div>
+                <div class="legend-item"><span class="dot" style="background:#2196f3"></span> 金屬 (藍)</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 生命 (綠)</div>
+            </div>
+            <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
+                <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫色 = 跳過 (Skip)</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
+                <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
+                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
+            </div>
+        </div>
+        
+    </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
-            authDomain: "element-uno.firebaseapp.com",
-            databaseURL: "https://element-uno-default-rtdb.firebaseio.com",
-            projectId: "element-uno",
-            storageBucket: "element-uno.firebasestorage.app",
-            messagingSenderId: "665324599764",
-            appId: "1:665324599764:web:d151cd9014e600fcd53e41"
-        };
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
+            authDomain: "element-uno.firebaseapp.com",
+            databaseURL: "https://element-uno-default-rtdb.firebaseio.com",
+            projectId: "element-uno",
+            storageBucket: "element-uno.firebasestorage.app",
+            messagingSenderId: "665324599764",
+            appId: "1:665324599764:web:d151cd9014e600fcd53e41"
+        };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const ROOM_ID = "class_room_101";
-        const roomRef = ref(db, 'rooms/' + ROOM_ID);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const ROOM_ID = "class_room_101";
+        const roomRef = ref(db, 'rooms/' + ROOM_ID);
 
-        let myId = 'user_' + Date.now(); 
-        let myName = "";
-        let myHand = [];
-        let playerOrder = [];
-        let currentTopCard = null;
-        let isMyTurn = false;
-        
-        let pendingWildCard = null; 
-        let currentAuditColor = null; 
-        let isHandlingPenalty = false;
+        let myId = 'user_' + Date.now(); 
+        let myName = "";
+        let myHand = [];
+        let playerOrder = [];
+        let currentTopCard = null;
+        let isMyTurn = false;
+        
+        let pendingWildCard = null; 
+        let currentAuditColor = null; 
+        let isHandlingPenalty = false;
         let pendingPenaltyCount = 0; // V18: 暫存懲罰數量
 
-        // V16: 全域音效喚醒系統
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let cardNoiseBuffer = null;
+        // V16: 全域音效喚醒系統
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let cardNoiseBuffer = null;
 
-        function createNoiseBuffer() {
-            if (!audioCtx) return;
-            const bufferSize = audioCtx.sampleRate * 2;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            let lastOut = 0;
-            for (let i = 0; i < bufferSize; i++) {
-                const white = Math.random() * 2 - 1;
-                data[i] = (lastOut + (0.02 * white)) / 1.02;
-                lastOut = data[i];
-                data[i] *= 3.5; 
-            }
-            cardNoiseBuffer = buffer;
-        }
+        function createNoiseBuffer() {
+            if (!audioCtx) return;
+            const bufferSize = audioCtx.sampleRate * 2;
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            let lastOut = 0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                data[i] = (lastOut + (0.02 * white)) / 1.02;
+                lastOut = data[i];
+                data[i] *= 3.5; 
+            }
+            cardNoiseBuffer = buffer;
+        }
 
-        // 強制解鎖音效：在任何點擊時嘗試喚醒
-        function wakeUpAudio() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume().then(() => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    gain.gain.value = 0;
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.001);
-                });
-            }
-            if(!cardNoiseBuffer) createNoiseBuffer();
-        }
+        // 強制解鎖音效：在任何點擊時嘗試喚醒
+        function wakeUpAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.001);
+                });
+            }
+            if(!cardNoiseBuffer) createNoiseBuffer();
+        }
 
-        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
-        document.addEventListener('click', wakeUpAudio);
+        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
+        document.addEventListener('click', wakeUpAudio);
 
-        function playSound(type) {
-            if(audioCtx.state === 'suspended') audioCtx.resume();
-            const now = audioCtx.currentTime;
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const now = audioCtx.currentTime;
 
-            if(type === 'pop') {
-                if(cardNoiseBuffer) {
-                    const src = audioCtx.createBufferSource();
-                    src.buffer = cardNoiseBuffer;
-                    const filter = audioCtx.createBiquadFilter();
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(1200, now);
-                    filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                    const gain = audioCtx.createGain();
-                    gain.gain.setValueAtTime(0.5, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    src.connect(filter);
-                    filter.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    src.start();
-                    src.stop(now + 0.15);
-                }
-            } else if (type === 'alert') {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(80, now + 0.4);
-                gain.gain.setValueAtTime(0.3, now);
-                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(); osc.stop(now + 0.4);
-            } else if (type === 'win') {
-                const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, i) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.value = freq;
-                    gain.gain.setValueAtTime(0, now + i*0.1);
-                    gain.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.6);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + i*0.1);
-                    osc.stop(now + i*0.1 + 0.6);
-                });
-            } else if (type === 'lose') {
-                [0, 0.4, 0.8].forEach((delay, i) => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    osc.type = 'sawtooth';
-                    const startFreq = 300 - (i*30);
-                    osc.frequency.setValueAtTime(startFreq, now + delay);
-                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3);
-                    gain.gain.setValueAtTime(0.2, now + delay);
-                    gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.3);
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(now + delay);
-                    osc.stop(now + delay + 0.35);
-                });
-            }
-        }
+            if(type === 'pop') {
+                if(cardNoiseBuffer) {
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = cardNoiseBuffer;
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1200, now);
+                    filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                    const gain = audioCtx.createGain();
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    src.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    src.start();
+                    src.stop(now + 0.15);
+                }
+            } else if (type === 'alert') {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.4);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, now + i*0.1);
+                    gain.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + i*0.1);
+                    osc.stop(now + i*0.1 + 0.6);
+                });
+            } else if (type === 'lose') {
+                [0, 0.4, 0.8].forEach((delay, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    const startFreq = 300 - (i*30);
+                    osc.frequency.setValueAtTime(startFreq, now + delay);
+                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3);
+                    gain.gain.setValueAtTime(0.2, now + delay);
+                    gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.35);
+                });
+            }
+        }
 
-        function createConfetti() {
-            for(let i=0; i<50; i++) {
-                const c = document.createElement('div');
-                c.className = 'confetti';
-                c.style.left = Math.random() * 100 + 'vw';
-                c.style.backgroundColor = ['#e91e63', '#2196f3', '#ffc107', '#4caf50'][Math.floor(Math.random()*4)];
-                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                document.body.appendChild(c);
-                setTimeout(() => c.remove(), 4000);
-            }
-        }
+        function createConfetti() {
+            for(let i=0; i<50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#e91e63', '#2196f3', '#ffc107', '#4caf50'][Math.floor(Math.random()*4)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
 
-        // V14 卡牌庫: Scheme A + Cu(銅) + At(砈)
-        const allCards = [
-            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
-            { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
-            { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
-            { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
-            { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
-            { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
-            { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
-            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow", group: "2A" },
-            { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow", group: "2A" },
-            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow", group: "2A" },
-            { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
-            { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
-            { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans" },
-            { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
-            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
-            { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
-            { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
-            { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
-            { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
-            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
-            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
-            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" },
-            { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
-            { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
-            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
-            { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
-            { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
-            { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" },
-            { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
-            { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
-            { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
-            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
-            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
-            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
-            { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
-            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, // New!
-            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
-            { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
-            { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
-            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
-            { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
-            { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
-            { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
-            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
-            { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
-        ];
+        // V14 卡牌庫: Scheme A + Cu(銅) + At(砈)
+        const allCards = [
+            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
+            { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
+            { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
+            { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
+            { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
+            { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
+            { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
+            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "yellow", group: "2A" },
+            { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "yellow", group: "2A" },
+            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "yellow", group: "2A" },
+            { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
+            { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
+            { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans" },
+            { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
+            { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
+            { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
+            { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
+            { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
+            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
+            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" },
+            { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
+            { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
+            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
+            { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
+            { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
+            { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" },
+            { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
+            { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
+            { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
+            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
+            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
+            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
+            { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, // New!
+            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
+            { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
+            { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
+            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
+            { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
+            { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
+            { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
+            { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
+        ];
 
-        function switchScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            toggleCheatSheet(false);
-        }
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            toggleCheatSheet(false);
+        }
 
-        window.toggleCheatSheet = function(show) {
-            const modal = document.getElementById('modal-cheatsheet');
-            if(show) modal.classList.add('show');
-            else modal.classList.remove('show');
-        }
+        window.toggleCheatSheet = function(show) {
+            const modal = document.getElementById('modal-cheatsheet');
+            if(show) modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
 
-        window.finishWildPlay = function(selectedColor) {
-            document.getElementById('modal-color-picker').classList.remove('show');
-            if (pendingWildCard) {
-                submitCardPlay(pendingWildCard, selectedColor);
-                pendingWildCard = null;
-            }
-        }
+        window.finishWildPlay = function(selectedColor) {
+            document.getElementById('modal-color-picker').classList.remove('show');
+            if (pendingWildCard) {
+                submitCardPlay(pendingWildCard, selectedColor);
+                pendingWildCard = null;
+            }
+        }
 
-        window.joinGame = function() {
-            myName = document.getElementById('username').value;
-            if(!myName) return alert("請輸入名字！");
+        window.joinGame = function() {
+            myName = document.getElementById('username').value;
+            if(!myName) return alert("請輸入名字！");
 
-            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
-                const players = snapshot.val() || {};
-                const isFirstPlayer = Object.keys(players).length === 0;
-                const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
-                
-                if (isFirstPlayer) {
-                    onDisconnect(roomRef).remove();
-                    update(roomRef, { hostId: myId });
-                } else {
-                    onDisconnect(myRef).remove();
-                }
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
+                const players = snapshot.val() || {};
+                const isFirstPlayer = Object.keys(players).length === 0;
+                const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
+                
+                if (isFirstPlayer) {
+                    onDisconnect(roomRef).remove();
+                    update(roomRef, { hostId: myId });
+                } else {
+                    onDisconnect(myRef).remove();
+                }
 
-                update(myRef, { name: myName, handCount: 0 });
-                document.getElementById('my-name-display').innerText = `我: ${myName}`;
-                switchScreen('screen-lobby');
-            });
-        };
+                update(myRef, { name: myName, handCount: 0 });
+                document.getElementById('my-name-display').innerText = `我: ${myName}`;
+                switchScreen('screen-lobby');
+            });
+        };
 
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (myName === "") return; 
+        onValue(roomRef, (snapshot) => {
+            const data = snapshot.val();
+            if (myName === "") return; 
 
-            const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
+            const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
 
-            if (!data) {
-                if (!isLoginScreen) {
-                    alert("房主已離開，房間解散！");
-                    location.reload(); 
-                }
-                return; 
-            }
+            if (!data) {
+                if (!isLoginScreen) {
+                    alert("房主已離開，房間解散！");
+                    location.reload(); 
+                }
+                return; 
+            }
 
-            const playersMap = data.players || {};
-            if (!isLoginScreen && !playersMap[myId]) {
-                 alert('你已斷線，請重新登入');
-                 location.reload();
-                 return;
-            }
+            const playersMap = data.players || {};
+            if (!isLoginScreen && !playersMap[myId]) {
+                 alert('你已斷線，請重新登入');
+                 location.reload();
+                 return;
+            }
 
-            const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
+            const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // 重置 penalty 鎖定狀態
-            if (!data.drawPenalty) {
-                isHandlingPenalty = false; 
-            }
+            // 重置 penalty 鎖定狀態
+            if (!data.drawPenalty) {
+                isHandlingPenalty = false; 
+            }
 
-            if (data.status === 'playing' && data.order) {
-                const currentOrder = data.order;
-                const onlineIds = Object.keys(playersMap);
-                const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
-                if (ghosts.length > 0) {
-                    const newOrder = currentOrder.filter(id => onlineIds.includes(id));
-                    if (newOrder.length < 2) {
-                        update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
-                        return;
-                    }
-                    let newIndex = data.currentTurnIndex;
-                    if (newIndex >= newOrder.length) newIndex = 0;
-                    update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
-                    return;
-                }
-            }
+            if (data.status === 'playing' && data.order) {
+                const currentOrder = data.order;
+                const onlineIds = Object.keys(playersMap);
+                const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
+                if (ghosts.length > 0) {
+                    const newOrder = currentOrder.filter(id => onlineIds.includes(id));
+                    if (newOrder.length < 2) {
+                        update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
+                        return;
+                    }
+                    let newIndex = data.currentTurnIndex;
+                    if (newIndex >= newOrder.length) newIndex = 0;
+                    update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
+                    return;
+                }
+            }
 
-            if (playerList.length === 1 && data.status !== 'waiting') {
-                update(roomRef, {
-                    status: 'waiting',
-                    msg: '新局開始，等待加入...',
-                    winnerName: null,
-                    topCard: null,
-                    drawPenalty: null,
-                    currentAuditColor: null
-                });
-                return; 
-            }
+            if (playerList.length === 1 && data.status !== 'waiting') {
+                update(roomRef, {
+                    status: 'waiting',
+                    msg: '新局開始，等待加入...',
+                    winnerName: null,
+                    topCard: null,
+                    drawPenalty: null,
+                    currentAuditColor: null
+                });
+                return; 
+            }
 
-            if (data.status === 'playing') {
-                if(!document.getElementById('screen-game').classList.contains('active')){
-                    switchScreen('screen-game');
-                    if(myHand.length === 0) dealCardsToSelf(7);
-                }
-                
-                updateGameUI(data, playerList); 
+            if (data.status === 'playing') {
+                if(!document.getElementById('screen-game').classList.contains('active')){
+                    switchScreen('screen-game');
+                    if(myHand.length === 0) dealCardsToSelf(7);
+                }
+                
+                updateGameUI(data, playerList); 
 
-                // ★ V18 iOS 修正：不再自動彈 alert，而是顯示模態視窗等待玩家按下
-                if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
-                    isHandlingPenalty = true;
+                // ★ V18 iOS 修正：不再自動彈 alert，而是顯示模態視窗等待玩家按下
+                if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
+                    isHandlingPenalty = true;
                     pendingPenaltyCount = data.drawPenalty.count;
                     document.getElementById('penalty-count-display').innerText = pendingPenaltyCount;
                     document.getElementById('modal-penalty').classList.add('show');
-                }
+                }
 
-            } else if (data.status === 'finished') {
-                document.getElementById('winner-name').innerText = data.winnerName || "???";
-                switchScreen('screen-gameover');
-                if(data.winnerName === myName) {
-                    playSound('win');
-                    createConfetti();
-                } else {
-                    playSound('lose');
-                }
-                myHand = [];
-            } else {
-                updateLobbyUI(data, playerList);
-                if(!document.getElementById('screen-lobby').classList.contains('active')) {
-                     switchScreen('screen-lobby');
-                }
-            }
-        });
+            } else if (data.status === 'finished') {
+                document.getElementById('winner-name').innerText = data.winnerName || "???";
+                switchScreen('screen-gameover');
+                if(data.winnerName === myName) {
+                    playSound('win');
+                    createConfetti();
+                } else {
+                    playSound('lose');
+                }
+                myHand = [];
+            } else {
+                updateLobbyUI(data, playerList);
+                if(!document.getElementById('screen-lobby').classList.contains('active')) {
+                      switchScreen('screen-lobby');
+                }
+            }
+        });
 
         // V18: 新增確認懲罰函式，綁定在按鈕上確保音效播放
         window.confirmPenalty = function() {
@@ -547,250 +547,250 @@
             update(roomRef, { drawPenalty: null });
         }
 
-        function updateHandCount() {
-            const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
-            update(myRef, { handCount: myHand.length });
-        }
+        function updateHandCount() {
+            const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
+            update(myRef, { handCount: myHand.length });
+        }
 
-        function updateLobbyUI(data, playerList) {
-            const realHostId = data.hostId;
-            const listDiv = document.getElementById('player-list');
-            listDiv.innerHTML = playerList.map(p => 
-                `<div class="player-row ${p.id === myId ? 'me' : ''}">
-                    <span>${p.name}</span> ${p.id === realHostId ? '<span class="host">★房主</span>' : ''}
-                </div>`
-            ).join('');
+        function updateLobbyUI(data, playerList) {
+            const realHostId = data.hostId;
+            const listDiv = document.getElementById('player-list');
+            listDiv.innerHTML = playerList.map(p => 
+                `<div class="player-row ${p.id === myId ? 'me' : ''}">
+                    <span>${p.name}</span> ${p.id === realHostId ? '<span class="host">★房主</span>' : ''}
+                </div>`
+            ).join('');
 
-            if (myId === realHostId) {
-                document.getElementById('btn-start').style.display = 'block';
-                document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
-            } else {
-                document.getElementById('btn-start').style.display = 'none';
-                document.getElementById('lobby-msg').innerText = "等待房主開始遊戲...";
-            }
-        }
+            if (myId === realHostId) {
+                document.getElementById('btn-start').style.display = 'block';
+                document.getElementById('lobby-msg').innerText = "你是房主，等人齊了就按開始";
+            } else {
+                document.getElementById('btn-start').style.display = 'none';
+                document.getElementById('lobby-msg').innerText = "等待房主開始遊戲...";
+            }
+        }
 
-        window.startGame = function() {
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
-                const pMap = snap.val();
-                const pIds = Object.keys(pMap);
-                let startCard;
-                do { startCard = allCards[Math.floor(Math.random() * allCards.length)]; } while (startCard.action);
+        window.startGame = function() {
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
+                const pMap = snap.val();
+                const pIds = Object.keys(pMap);
+                let startCard;
+                do { startCard = allCards[Math.floor(Math.random() * allCards.length)]; } while (startCard.action);
 
-                update(roomRef, {
-                    status: 'playing',
-                    order: pIds,
-                    currentTurnIndex: 0,
-                    topCard: startCard,
-                    currentAuditColor: null, 
-                    msg: "遊戲開始！",
-                    winnerName: null,
-                    drawPenalty: null
-                });
-            }, { onlyOnce: true });
-        };
+                update(roomRef, {
+                    status: 'playing',
+                    order: pIds,
+                    currentTurnIndex: 0,
+                    topCard: startCard,
+                    currentAuditColor: null, 
+                    msg: "遊戲開始！",
+                    winnerName: null,
+                    drawPenalty: null
+                });
+            }, { onlyOnce: true });
+        };
 
-        function dealCardsToSelf(num) {
-            myHand = [];
-            for(let i=0; i<num; i++) {
-                myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
-            }
-            updateHandCount();
-            renderHand();
-        }
+        function dealCardsToSelf(num) {
+            myHand = [];
+            for(let i=0; i<num; i++) {
+                myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+            }
+            updateHandCount();
+            renderHand();
+        }
 
-        function updateGameUI(data, playerList) {
-            currentTopCard = data.topCard;
-            currentAuditColor = data.currentAuditColor;
+        function updateGameUI(data, playerList) {
+            currentTopCard = data.topCard;
+            currentAuditColor = data.currentAuditColor;
 
-            playerOrder = data.order || [];
-            
-            const cardHTML = createCardHTML(currentTopCard);
-            let indicatorHTML = '';
+            playerOrder = data.order || [];
+            
+            const cardHTML = createCardHTML(currentTopCard);
+            let indicatorHTML = '';
 
-            if (currentAuditColor) {
-                let colorHex = '';
-                let colorName = '';
-                if(currentAuditColor === 'pink') { colorHex = '#ffeef0'; colorName = '粉紅 (1A)'; }
-                if(currentAuditColor === 'yellow') { colorHex = '#fff8e1'; colorName = '黃色 (2A)'; }
-                if(currentAuditColor === 'blue') { colorHex = '#e3f2fd'; colorName = '藍色 (金屬)'; }
-                if(currentAuditColor === 'green') { colorHex = '#e8f5e9'; colorName = '綠色 (非金)'; }
-                
-                document.getElementById('table-slot').style.background = colorHex;
-                document.getElementById('table-slot').style.boxShadow = `0 0 20px ${colorHex}`;
-                indicatorHTML = `<div class="slot-indicator" style="background:${colorHex}; color:#333;">指定色: ${colorName}</div>`;
-            } else {
-                document.getElementById('table-slot').style.background = 'transparent';
-                document.getElementById('table-slot').style.boxShadow = 'none';
-            }
+            if (currentAuditColor) {
+                let colorHex = '';
+                let colorName = '';
+                if(currentAuditColor === 'pink') { colorHex = '#ffeef0'; colorName = '粉紅 (1A)'; }
+                if(currentAuditColor === 'yellow') { colorHex = '#fff8e1'; colorName = '黃色 (2A)'; }
+                if(currentAuditColor === 'blue') { colorHex = '#e3f2fd'; colorName = '藍色 (金屬)'; }
+                if(currentAuditColor === 'green') { colorHex = '#e8f5e9'; colorName = '綠色 (非金)'; }
+                
+                document.getElementById('table-slot').style.background = colorHex;
+                document.getElementById('table-slot').style.boxShadow = `0 0 20px ${colorHex}`;
+                indicatorHTML = `<div class="slot-indicator" style="background:${colorHex}; color:#333;">指定色: ${colorName}</div>`;
+            } else {
+                document.getElementById('table-slot').style.background = 'transparent';
+                document.getElementById('table-slot').style.boxShadow = 'none';
+            }
 
-            document.getElementById('table-slot').innerHTML = indicatorHTML + cardHTML;
+            document.getElementById('table-slot').innerHTML = indicatorHTML + cardHTML;
 
-            const currentPlayerId = playerOrder[data.currentTurnIndex];
-            const currentPlayer = playerList.find(p => p.id === currentPlayerId);
-            const currentName = currentPlayer ? currentPlayer.name : "已離線";
+            const currentPlayerId = playerOrder[data.currentTurnIndex];
+            const currentPlayer = playerList.find(p => p.id === currentPlayerId);
+            const currentName = currentPlayer ? currentPlayer.name : "已離線";
 
-            const msgDiv = document.getElementById('turn-msg');
-            const drawBtn = document.getElementById('btn-draw');
+            const msgDiv = document.getElementById('turn-msg');
+            const drawBtn = document.getElementById('btn-draw');
 
-            isMyTurn = (currentPlayerId === myId);
+            isMyTurn = (currentPlayerId === myId);
 
-            if (isMyTurn) {
-                msgDiv.innerText = data.msg.includes("跳過") ? data.msg + " -> 輪到你了！" : "👉 輪到你了！請出牌";
-                msgDiv.classList.add('active-turn');
-                drawBtn.style.opacity = "1"; drawBtn.style.pointerEvents = "auto";
-                if(navigator.vibrate) navigator.vibrate(200);
-            } else {
-                msgDiv.innerText = `⏳ 輪到 ${currentName} (${data.msg})`;
-                msgDiv.classList.remove('active-turn');
-                drawBtn.style.opacity = "0.5"; drawBtn.style.pointerEvents = "none";
-            }
+            if (isMyTurn) {
+                msgDiv.innerText = data.msg.includes("跳過") ? data.msg + " -> 輪到你了！" : "👉 輪到你了！請出牌";
+                msgDiv.classList.add('active-turn');
+                drawBtn.style.opacity = "1"; drawBtn.style.pointerEvents = "auto";
+                if(navigator.vibrate) navigator.vibrate(200);
+            } else {
+                msgDiv.innerText = `⏳ 輪到 ${currentName} (${data.msg})`;
+                msgDiv.classList.remove('active-turn');
+                drawBtn.style.opacity = "0.5"; drawBtn.style.pointerEvents = "none";
+            }
 
-            const oppBar = document.getElementById('opponents-bar');
-            oppBar.innerHTML = playerList.map(p => {
-                if(p.id === myId) return ''; 
-                const isActive = (p.id === currentPlayerId);
-                return `
-                <div class="opp-card ${isActive ? 'active-turn' : ''}">
-                    <div class="opp-name">${p.name}</div>
-                    <div class="opp-count">${p.handCount || 0}</div>
-                </div>`;
-            }).join('');
-        }
+            const oppBar = document.getElementById('opponents-bar');
+            oppBar.innerHTML = playerList.map(p => {
+                if(p.id === myId) return ''; 
+                const isActive = (p.id === currentPlayerId);
+                return `
+                <div class="opp-card ${isActive ? 'active-turn' : ''}">
+                    <div class="opp-name">${p.name}</div>
+                    <div class="opp-count">${p.handCount || 0}</div>
+                </div>`;
+            }).join('');
+        }
 
-        window.tryPlayCard = function(cardId) {
-            if (!isMyTurn) return;
-            const cardIndex = myHand.findIndex(c => c.id === cardId);
-            const selectedCard = myHand[cardIndex];
+        window.tryPlayCard = function(cardId) {
+            if (!isMyTurn) return;
+            const cardIndex = myHand.findIndex(c => c.id === cardId);
+            const selectedCard = myHand[cardIndex];
 
-            if (selectedCard.action === 'wild' || selectedCard.action === 'wild4') {
-                pendingWildCard = selectedCard;
-                document.getElementById('modal-color-picker').classList.add('show');
-                return;
-            }
+            if (selectedCard.action === 'wild' || selectedCard.action === 'wild4') {
+                pendingWildCard = selectedCard;
+                document.getElementById('modal-color-picker').classList.add('show');
+                return;
+            }
 
-            let canPlay = false;
-            
-            if (currentAuditColor) {
-                if (selectedCard.c === currentAuditColor) canPlay = true;
-            } else {
-                if (currentTopCard.action === 'wild' || currentTopCard.action === 'wild4') canPlay = true;
-                else if (selectedCard.c === currentTopCard.c || selectedCard.p === currentTopCard.p) canPlay = true;
-            }
+            let canPlay = false;
+            
+            if (currentAuditColor) {
+                if (selectedCard.c === currentAuditColor) canPlay = true;
+            } else {
+                if (currentTopCard.action === 'wild' || currentTopCard.action === 'wild4') canPlay = true;
+                else if (selectedCard.c === currentTopCard.c || selectedCard.p === currentTopCard.p) canPlay = true;
+            }
 
-            if (!canPlay) {
-                if (currentAuditColor) alert(`必須出【指定顏色】的牌！`);
-                else alert(`不能出這張！\n需要符合顏色或週期`);
-                return;
-            }
+            if (!canPlay) {
+                if (currentAuditColor) alert(`必須出【指定顏色】的牌！`);
+                else alert(`不能出這張！\n需要符合顏色或週期`);
+                return;
+            }
 
-            submitCardPlay(selectedCard, null);
-        };
+            submitCardPlay(selectedCard, null);
+        };
 
-        function submitCardPlay(selectedCard, chosenColor) {
-            const cardIndex = myHand.findIndex(c => c.id === selectedCard.id);
-            if (cardIndex > -1) {
-                myHand.splice(cardIndex, 1);
-                updateHandCount();
-                renderHand();
-                playSound('pop'); 
-            }
+        function submitCardPlay(selectedCard, chosenColor) {
+            const cardIndex = myHand.findIndex(c => c.id === selectedCard.id);
+            if (cardIndex > -1) {
+                myHand.splice(cardIndex, 1);
+                updateHandCount();
+                renderHand();
+                playSound('pop'); 
+            }
 
-            if (myHand.length === 0) {
-                update(roomRef, {
-                    status: 'finished',
-                    winnerName: myName,
-                    msg: `${myName} 贏得了勝利！`
-                });
-                return;
-            }
+            if (myHand.length === 0) {
+                update(roomRef, {
+                    status: 'finished',
+                    winnerName: myName,
+                    msg: `${myName} 贏得了勝利！`
+                });
+                return;
+            }
 
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
-                let currentIndex = snap.val() || 0;
-                let jump = 1;
-                let msgAction = "";
-                let penalty = null;
-                const nextPlayerIndex = (currentIndex + 1) % playerOrder.length;
-                const nextPlayerId = playerOrder[nextPlayerIndex];
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
+                let currentIndex = snap.val() || 0;
+                let jump = 1;
+                let msgAction = "";
+                let penalty = null;
+                const nextPlayerIndex = (currentIndex + 1) % playerOrder.length;
+                const nextPlayerId = playerOrder[nextPlayerIndex];
 
-                let nextAuditColor = null; 
+                let nextAuditColor = null; 
 
-                if (selectedCard.action === 'skip') { jump = 2; msgAction = "(下家被跳過!)"; } 
-                else if (selectedCard.action === 'draw2') { jump = 2; msgAction = "(下家抽2張!)"; penalty = { targetId: nextPlayerId, count: 2 }; } 
-                else if (selectedCard.action === 'wild4') { 
-                    jump = 2; msgAction = "(核能爆炸! 下家抽4張!)"; 
-                    penalty = { targetId: nextPlayerId, count: 4 }; 
-                    nextAuditColor = chosenColor; 
-                } 
-                else if (selectedCard.action === 'wild') { 
-                    msgAction = "(轉色!)"; 
-                    nextAuditColor = chosenColor; 
-                }
+                if (selectedCard.action === 'skip') { jump = 2; msgAction = "(下家被跳過!)"; } 
+                else if (selectedCard.action === 'draw2') { jump = 2; msgAction = "(下家抽2張!)"; penalty = { targetId: nextPlayerId, count: 2 }; } 
+                else if (selectedCard.action === 'wild4') { 
+                    jump = 2; msgAction = "(核能爆炸! 下家抽4張!)"; 
+                    penalty = { targetId: nextPlayerId, count: 4 }; 
+                    nextAuditColor = chosenColor; 
+                } 
+                else if (selectedCard.action === 'wild') { 
+                    msgAction = "(轉色!)"; 
+                    nextAuditColor = chosenColor; 
+                }
 
-                let nextIndex = (currentIndex + jump) % playerOrder.length;
-                
-                update(roomRef, {
-                    topCard: selectedCard,
-                    currentTurnIndex: nextIndex,
-                    currentAuditColor: nextAuditColor,
-                    msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
-                    drawPenalty: penalty
-                });
-            }, { onlyOnce: true });
-        }
+                let nextIndex = (currentIndex + jump) % playerOrder.length;
+                
+                update(roomRef, {
+                    topCard: selectedCard,
+                    currentTurnIndex: nextIndex,
+                    currentAuditColor: nextAuditColor,
+                    msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
+                    drawPenalty: penalty
+                });
+            }, { onlyOnce: true });
+        }
 
-        window.drawCardAction = function() {
-            const newCard = allCards[Math.floor(Math.random() * allCards.length)];
-            myHand.push(newCard);
-            updateHandCount();
-            renderHand();
-            playSound('pop');
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
-                const currentIndex = snap.val() || 0;
-                const nextIndex = (currentIndex + 1) % playerOrder.length;
-                update(roomRef, {
-                    currentTurnIndex: nextIndex,
-                    msg: `${myName} 抽了一張牌`
-                });
-            }, { onlyOnce: true });
-        };
+        window.drawCardAction = function() {
+            const newCard = allCards[Math.floor(Math.random() * allCards.length)];
+            myHand.push(newCard);
+            updateHandCount();
+            renderHand();
+            playSound('pop');
+            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
+                const currentIndex = snap.val() || 0;
+                const nextIndex = (currentIndex + 1) % playerOrder.length;
+                update(roomRef, {
+                    currentTurnIndex: nextIndex,
+                    msg: `${myName} 抽了一張牌`
+                });
+            }, { onlyOnce: true });
+        };
 
-        window.backToLobby = function() {
-             update(roomRef, { status: 'waiting', msg: '等待新賽局' });
-        }
+        window.backToLobby = function() {
+             update(roomRef, { status: 'waiting', msg: '等待新賽局' });
+        }
 
-        function createCardHTML(card, isClickable = false) {
-             let actionBadge = '';
-             let extraClass = '';
-             if (card.action === 'draw2') actionBadge = `<span class="action-badge" style="background:#d35400">+2</span>`;
-             else if (card.action === 'skip') actionBadge = `<span class="action-badge" style="background:#8e44ad">SKIP</span>`;
-             else if (card.action === 'wild') { actionBadge = `<span class="action-badge" style="background:linear-gradient(45deg, gold, white);">WILD</span>`; extraClass = 'card-wild'; }
-             else if (card.action === 'wild4') { actionBadge = `<span class="action-badge" style="background:black; color:yellow;">+4</span>`; extraClass = 'card-wild4'; }
+        function createCardHTML(card, isClickable = false) {
+             let actionBadge = '';
+             let extraClass = '';
+             if (card.action === 'draw2') actionBadge = `<span class="action-badge" style="background:#d35400">+2</span>`;
+             else if (card.action === 'skip') actionBadge = `<span class="action-badge" style="background:#8e44ad">SKIP</span>`;
+             else if (card.action === 'wild') { actionBadge = `<span class="action-badge" style="background:linear-gradient(45deg, gold, white);">WILD</span>`; extraClass = 'card-wild'; }
+             else if (card.action === 'wild4') { actionBadge = `<span class="action-badge" style="background:black; color:yellow;">+4</span>`; extraClass = 'card-wild4'; }
 
-             let bgStyle = '';
-             if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
-             else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
-             else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
-             
-             let classColor = (bgStyle === '') ? card.c : '';
-             let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
+             let bgStyle = '';
+             if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
+             else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
+             else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
+             
+             let classColor = (bgStyle === '') ? card.c : '';
+             let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
 
-             return `
-            <div class="card ${classColor} ${extraClass}" style="${bgStyle} ${textColor}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
-                <span class="atomic">${card.at}</span>
-                <span class="symbol">${card.s}</span>
-                <span class="name">${card.n}</span>
-                ${actionBadge}
-            </div>`;
-        }
+             return `
+            <div class="card ${classColor} ${extraClass}" style="${bgStyle} ${textColor}" ${isClickable ? `onclick="window.tryPlayCard('${card.id}')"` : ''}>
+                <span class="atomic">${card.at}</span>
+                <span class="symbol">${card.s}</span>
+                <span class="name">${card.n}</span>
+                ${actionBadge}
+            </div>`;
+        }
 
-        function renderHand() {
-            document.getElementById('hand-area').innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
-        }
+        function renderHand() {
+            document.getElementById('hand-area').innerHTML = myHand.map(card => createCardHTML(card, true)).join('');
+        }
 
-        document.querySelector('h1').ondblclick = function() {
-            if(confirm('強制重置房間？')) { remove(roomRef); location.reload(); }
-        }
-    </script>
+        document.querySelector('h1').ondblclick = function() {
+            if(confirm('強制重置房間？')) { remove(roomRef); location.reload(); }
+        }
+    </script>
 </body>
 </html>
