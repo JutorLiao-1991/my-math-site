@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特物理：多元光譜實驗室 (Final)</title>
+    <title>鳩特物理：多元光譜實驗室 (手動電子版)</title>
     <style>
         /* === 深色主題變數 === */
         :root {
@@ -18,7 +18,7 @@
             --electron-color: #fff;
         }
         
-        * { box-sizing: border-box; } /* 確保所有寬度計算包含邊框 */
+        * { box-sizing: border-box; }
 
         body { 
             font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
@@ -39,14 +39,23 @@
 
         /* 頂部控制列 */
         .control-bar {
-            background: #222; padding: 10px 15px; display: flex; gap: 10px;
-            border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 15;
+            background: #222; padding: 10px 15px; display: flex; gap: 10px; align-items: center;
+            border-bottom: 1px solid var(--border-color); flex-shrink: 0; z-index: 15; flex-wrap: wrap;
         }
         
         select { 
             padding: 8px 12px; border-radius: 8px; border: 1px solid #555; font-size: 0.95rem; 
-            background: #333; color: white; cursor: pointer; flex: 1; max-width: 50%;
+            background: #333; color: white; cursor: pointer; flex: 1; min-width: 120px;
         }
+
+        /* 放入電子開關樣式 */
+        .toggle-container {
+            display: flex; align-items: center; gap: 8px; 
+            background: #333; padding: 5px 12px; border-radius: 8px; border: 1px solid #555;
+            cursor: pointer; user-select: none;
+        }
+        .toggle-container input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--secondary-color); }
+        .toggle-container label { cursor: pointer; font-size: 0.95rem; color: var(--secondary-color); font-weight: bold; }
 
         /* 主畫面 */
         .main-container { 
@@ -90,11 +99,9 @@
             box-shadow: 0 0 8px rgba(255,255,255,0.7); 
         }
 
-        /* 光譜區 (RWD 修正重點) */
+        /* 光譜區 */
         .spectrum-wrapper { 
-            width: 100%; position: relative; flex-shrink: 0; 
-            /* 確保容器不會被 padding 擠壓 */
-            padding: 0 2px; 
+            width: 100%; position: relative; flex-shrink: 0; padding: 0 2px; 
         }
         canvas#spectrumCanvas { 
             width: 100%; height: 80px; display: block; 
@@ -104,9 +111,7 @@
         
         .line-control { 
             position: absolute; transform: translateX(-50%); text-align: center; 
-            opacity: 0; transition: opacity 0.5s; cursor: pointer; 
-            /* 確保觸控區域夠大 */
-            min-width: 40px; 
+            opacity: 0; transition: opacity 0.5s; cursor: pointer; min-width: 40px; 
         }
         .line-control input { width: 24px; height: 24px; cursor: pointer; accent-color: var(--accent); }
         .line-control label { display: block; font-size: 0.75rem; color: #aaa; margin-top: 2px; white-space: nowrap; }
@@ -121,12 +126,16 @@
         .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
         .level-text { position: absolute; right: 0; top: -15px; font-size: 0.75rem; color: #888; text-align: right; width: 50px;}
         
-        /* 電子樣式 (預設無 transition) */
+        /* 電子樣式 - 移除 transition 以便 JS 控制 */
         .electron { 
             width: 16px; height: 16px; background: #fff; border-radius: 50%; 
             position: absolute; margin-left: -8px; 
             box-shadow: 0 0 8px rgba(255,255,255,0.8); z-index: 10; 
+            /* 預設隱藏，直到 JS 定位完成 */
+            opacity: 0; 
+            animation: fadeIn 0.3s forwards;
         }
+        @keyframes fadeIn { to { opacity: 1; } }
         
         /* 波動光子 */
         .photon-wave {
@@ -163,12 +172,17 @@
         </select>
         
         <select id="gasSelect" disabled>
-            <option value="H">氫 (Hydrogen)</option>
-            <option value="He">氦 (Helium)</option>
-            <option value="Na">鈉 (Sodium)</option>
-            <option value="Hg">汞 (Mercury)</option>
-            <option value="Ne">氖 (Neon)</option>
+            <option value="H">氫 (H)</option>
+            <option value="He">氦 (He)</option>
+            <option value="Na">鈉 (Na)</option>
+            <option value="Hg">汞 (Hg)</option>
+            <option value="Ne">氖 (Ne)</option>
         </select>
+
+        <div class="toggle-container" id="electronToggleGroup" style="display:none;">
+            <input type="checkbox" id="electronToggle">
+            <label for="electronToggle">放入電子</label>
+        </div>
     </div>
 
     <div class="main-container">
@@ -216,6 +230,9 @@
         const ctx = canvas.getContext('2d');
         const modeSelect = document.getElementById('modeSelect');
         const gasSelect = document.getElementById('gasSelect');
+        const electronToggle = document.getElementById('electronToggle');
+        const electronToggleGroup = document.getElementById('electronToggleGroup');
+        
         const sourceElem = document.getElementById('source');
         const gasElem = document.getElementById('gas');
         const gasLabel = document.getElementById('gasLabel');
@@ -229,7 +246,6 @@
         const levelContainer = document.getElementById('levelContainer');
         const elementDisplay = document.getElementById('elementDisplay');
 
-        // === 初始化與響應式處理 ===
         function init() { 
             updateElementData(); 
             resizeCanvas(); 
@@ -241,21 +257,14 @@
         }
         
         function resizeCanvas() { 
-            // 手機版高清修正：使用 devicePixelRatio
             const dpr = window.devicePixelRatio || 1;
             const rect = canvas.getBoundingClientRect();
-            
-            // 設定 Canvas 的實際像素大小 (Resolution)
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
-            
-            // 縮放繪圖 Context，讓之後的座標操作可以繼續使用 CSS 像素單位
             ctx.scale(dpr, dpr);
-            
             drawSpectrum(); 
         }
 
-        // === 數據處理 ===
         function updateElementData() {
             const data = elementsData[state.element];
             const lines = [...data.lines];
@@ -274,7 +283,8 @@
             document.querySelector('.cloud').style.background = `radial-gradient(circle, ${data.color} 0%, rgba(0,0,0,0) 70%)`;
             
             drawLevelBackgrounds();
-            if(state.mode !== 'continuous') resetMicroView();
+            // 切換元素時，若電子開關是開的，重新生成電子
+            if(electronToggle.checked && state.mode !== 'continuous') resetMicroView();
         }
 
         function drawLevelBackgrounds() {
@@ -308,7 +318,6 @@
         }
 
         function drawSpectrum() {
-            // 注意：因為有 scale(dpr, dpr)，這裡的 w, h 應該用 CSS 尺寸，而非 canvas.width
             const w = canvas.width / (window.devicePixelRatio || 1);
             const h = canvas.height / (window.devicePixelRatio || 1);
             const minW = 380; const maxW = 750;
@@ -354,26 +363,35 @@
         function updateScene(target) {
             state.targetMode = target;
             gasSelect.disabled = (target === 'continuous');
-
+            
+            // 模式切換時，隱藏或顯示電子開關
             if (target === 'continuous') {
+                electronToggleGroup.style.display = 'none';
                 sourceElem.style.opacity = 1; gasElem.style.opacity = 0; beam1.style.opacity = 1; beam2.style.background = '#fff'; beam3.style.opacity = 1;
                 microText.innerText = "連續光譜：包含所有波長的光，無特徵譜線。";
-            } else if (target === 'absorption') {
-                sourceElem.style.opacity = 1; gasElem.style.opacity = 1; beam1.style.opacity = 1; beam2.style.background = '#fff'; 
-                microText.innerText = `[${elementsData[state.element].name}] 點擊下方方塊，觀察電子吸收能量並產生暗線。`;
-            } else if (target === 'emission') {
-                sourceElem.style.opacity = 0.2; gasElem.style.opacity = 1; beam1.style.opacity = 0; beam2.style.background = 'linear-gradient(90deg, #f0f, #0ff)';
-                microText.innerText = `[${elementsData[state.element].name}] 點擊下方方塊，觀察電子躍遷回基態並產生亮線。`;
+            } else {
+                electronToggleGroup.style.display = 'flex';
+                // 每次切換模式，先強制取消勾選並清空電子
+                electronToggle.checked = false;
+                electronContainer.innerHTML = '';
+                photonCont.innerHTML = '';
+                
+                if (target === 'absorption') {
+                    sourceElem.style.opacity = 1; gasElem.style.opacity = 1; beam1.style.opacity = 1; beam2.style.background = '#fff'; 
+                    microText.innerText = `[${elementsData[state.element].name}] 請勾選「放入電子」開始實驗，再點擊下方方塊。`;
+                } else if (target === 'emission') {
+                    sourceElem.style.opacity = 0.2; gasElem.style.opacity = 1; beam1.style.opacity = 0; beam2.style.background = 'linear-gradient(90deg, #f0f, #0ff)';
+                    microText.innerText = `[${elementsData[state.element].name}] 請勾選「放入電子」開始實驗，再點擊下方方塊。`;
+                }
             }
             
             updateElementData();
             checkContainer.innerHTML = ''; 
-            resetMicroView();
         }
 
         function updateCheckboxes() {
             if (state.mode === 'continuous') return;
-            const w = canvas.width / (window.devicePixelRatio || 1); // 使用 CSS 寬度
+            const w = canvas.width / (window.devicePixelRatio || 1); 
             const minW = 380, maxW = 750; 
             checkContainer.innerHTML = '';
             
@@ -391,12 +409,18 @@
                 input.checked = line.visible;
 
                 input.onclick = (e) => {
+                    if (!electronToggle.checked) {
+                        e.preventDefault();
+                        microText.innerText = "請先勾選上方「放入電子」！";
+                        return;
+                    }
                     if (e.target.checked) {
                         triggerTransition(line, index);
                     } else {
                         line.visible = false;
                         drawSpectrum();
-                        resetMicroView(); 
+                        // 這裡可以選擇是否重置該電子，但為了簡單，我們只重繪光譜
+                        // 如果想讓電子回到初始狀態，可以呼叫 resetMicroView()
                     }
                 };
 
@@ -405,6 +429,22 @@
                 wrapper.appendChild(input); wrapper.appendChild(label); checkContainer.appendChild(wrapper);
             });
         }
+
+        // === 電子開關事件 ===
+        electronToggle.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                resetMicroView(); // 放入電子
+                microText.innerText = "電子已就位！現在請點擊下方波長方塊進行實驗。";
+            } else {
+                electronContainer.innerHTML = ''; // 移除電子
+                photonCont.innerHTML = '';
+                // 同時也隱藏光譜線
+                state.mappedLines.forEach(l => l.visible = false);
+                drawSpectrum();
+                updateCheckboxes(); // 更新勾選框狀態
+                microText.innerText = "電子已移除。";
+            }
+        });
 
         // === 多電子微觀動畫 (修正初始位置問題) ===
         function resetMicroView() { 
@@ -421,48 +461,33 @@
                 const leftPos = (index + 1) * (100 / (count + 1));
                 el.style.left = leftPos + '%';
 
-                // 【關鍵】直接在 inline style 強制設定位置和關閉 transition
-                // 這樣瀏覽器在繪製第一幀時，絕對會依照這裡的設定
+                // 【關鍵】直接設定初始位置，不要有過渡
                 el.style.transition = 'none';
 
                 if (state.mode === 'absorption') {
-                    if (line.visible) {
-                        el.style.bottom = line.targetHeight + 'px';
-                        el.style.backgroundColor = line.color;
-                        el.style.boxShadow = `0 0 8px ${line.color}`;
-                    } else {
-                        el.style.bottom = baseLevelHeight + 'px'; // 強制基態
-                        el.style.backgroundColor = '#fff';
-                        el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
-                    }
+                    // 吸收模式：電子在基態，白色
+                    el.style.bottom = baseLevelHeight + 'px';
+                    el.style.backgroundColor = '#fff';
+                    el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                 } else if (state.mode === 'emission') {
-                    if (line.visible) {
-                        el.style.bottom = baseLevelHeight + 'px';
-                        el.style.backgroundColor = '#fff';
-                        el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
-                    } else {
-                        el.style.bottom = line.targetHeight + 'px'; // 強制高能階
-                        el.style.backgroundColor = line.color; // 且有顏色
-                        el.style.boxShadow = `0 0 8px ${line.color}`;
-                    }
+                    // 發射模式：電子在高能階，有顏色
+                    el.style.bottom = line.targetHeight + 'px';
+                    el.style.backgroundColor = line.color;
+                    el.style.boxShadow = `0 0 8px ${line.color}`;
                 }
                 
-                // 加到 DOM
                 electronContainer.appendChild(el);
 
-                // 使用 requestAnimationFrame 來在下一幀恢復 transition
-                // 這比 setTimeout 更可靠
-                requestAnimationFrame(() => {
-                    // Force reflow again just to be safe
-                    void el.offsetWidth; 
-                    el.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s';
-                });
+                // 延遲啟用動畫效果
+                setTimeout(() => {
+                     el.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s';
+                }, 100);
             });
         }
 
         function triggerTransition(lineData, index) {
             const targetElectron = document.getElementById('electron-' + index);
-            if (!targetElectron) return;
+            if (!targetElectron) return; // 保護機制
 
             const startH = baseLevelHeight; 
             const endH = lineData.targetHeight;
@@ -470,14 +495,15 @@
             const containerRect = levelContainer.getBoundingClientRect();
             const electronLeftPx = electronRect.left - containerRect.left + (electronRect.width/2);
 
-            targetElectron.style.transition = 'none';
+            targetElectron.style.transition = 'none'; // 暫時關閉動畫以重置
 
             if (state.mode === 'absorption') {
+                // 1. 強制電子回到基態 (白色) 準備接球
                 targetElectron.style.bottom = startH + 'px';
                 targetElectron.style.backgroundColor = '#fff';
                 targetElectron.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                 
-                void targetElectron.offsetWidth; 
+                void targetElectron.offsetWidth; // Force Reflow
                 targetElectron.style.transition = 'bottom 0.5s ease-out, background-color 0.3s';
 
                 const wave = createWave(lineData.color);
@@ -496,23 +522,24 @@
                     targetElectron.style.backgroundColor = lineData.color;
                     targetElectron.style.boxShadow = `0 0 15px ${lineData.color}`;
                     targetElectron.style.bottom = endH + 'px';
+                    
                     lineData.visible = true;
                     drawSpectrum();
                     microText.innerHTML = `吸收 <span style="color:${lineData.color}">${lineData.wl.toFixed(1)}nm</span> 光子，電子變色並躍遷。`;
                 }, 950); 
 
             } else if (state.mode === 'emission') {
-                // 發射模式：確保起始狀態是高能階、有顏色
+                // 1. 強制回到激發態 (有色) 準備掉落
                 targetElectron.style.bottom = endH + 'px';
                 targetElectron.style.backgroundColor = lineData.color;
                 targetElectron.style.boxShadow = `0 0 8px ${lineData.color}`;
                 
-                void targetElectron.offsetWidth; // Force Reflow
+                void targetElectron.offsetWidth; 
                 targetElectron.style.transition = 'bottom 0.5s ease-in, background-color 0.3s';
 
                 setTimeout(() => {
                     targetElectron.style.bottom = startH + 'px';
-                    targetElectron.style.backgroundColor = '#fff'; 
+                    targetElectron.style.backgroundColor = '#fff'; // 掉落變白
                     targetElectron.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                     
                     setTimeout(() => {
