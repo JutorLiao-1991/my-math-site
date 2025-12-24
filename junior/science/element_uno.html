@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v19 - 手機浮水印修復版</title>
+    <title>鳩特元素 UNO v21 - Sn/Cr/Al 迴轉版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -64,38 +64,19 @@
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
         #btn-draw { z-index: 5; position: relative; }
 
-        /* --- V19 浮水印修正 (高對比版) --- */
+        /* --- 浮水印 (V19 高對比版) --- */
         .table-watermark {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%) rotate(-12deg);
-            font-size: 12vw;
-            font-weight: 900;
-            /* 電腦版：維持原本淡淡的質感 */
-            color: rgba(255, 255, 255, 0.05);
-            pointer-events: none;
-            z-index: 0;
-            user-select: none;
-            white-space: nowrap;
-            font-family: 'Arial Black', 'Impact', sans-serif;
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
+            font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
+            pointer-events: none; z-index: 0; user-select: none; white-space: nowrap; font-family: 'Arial Black', 'Impact', sans-serif;
         }
-        
-        /* 針對手機 (直向) 螢幕的特別設定 */
         @media (max-width: 768px) {
             .table-watermark {
-                font-size: 35vw; /* 稍微縮小一點點，避免字撐太開看不出是字 */
-                
-                /* 改用白色，透明度加倍到 0.15 */
+                font-size: 35vw;
                 color: rgba(255, 255, 255, 0.15); 
-                
-                /* 移除 opacity 屬性，直接用 color 控制比較準確 */
                 opacity: 1; 
-
-                /* 增加一點深色陰影，讓字像是「凹」在桌面上，增加辨識度 */
                 text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
             }
-
         }
 
         .jutor-watermark {
@@ -119,6 +100,7 @@
         .card.yellow { background: #fff8e1; border-color: #ffc107; }
         .card.green { background: #e8f5e9; border-color: #4caf50; }
         .card.purple { background: #f3e5f5; border-color: #9c27b0; }
+        .card.blue { background: #e3f2fd; border-color: #2196f3; }
         .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
         .symbol { font-size: 36px; font-weight: 800; }
         .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
@@ -133,7 +115,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v19</h1>
+        <h1>元素 UNO v21</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -203,8 +185,11 @@
             <h3 style="margin:5px 0 10px 0; color:white; font-size:1.1rem;">元素功能對照表</h3>
             <div class="periodic-grid">
                 <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
+                
                 <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
+                
+                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-green">B</div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
+                
                 <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
                 <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
                 <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
@@ -222,6 +207,7 @@
                 <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
                 <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
                 <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
+                <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Sn/Cr/Al = 迴轉</div>
             </div>
         </div>
         
@@ -256,9 +242,8 @@
         let pendingWildCard = null; 
         let currentAuditColor = null; 
         let isHandlingPenalty = false;
-        let pendingPenaltyCount = 0; // V18: 暫存懲罰數量
+        let pendingPenaltyCount = 0;
 
-        // V16: 全域音效喚醒系統
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
 
@@ -277,7 +262,6 @@
             cardNoiseBuffer = buffer;
         }
 
-        // 強制解鎖音效：在任何點擊時嘗試喚醒
         function wakeUpAudio() {
             if (audioCtx.state === 'suspended') {
                 audioCtx.resume().then(() => {
@@ -373,7 +357,7 @@
             }
         }
 
-        // V14 卡牌庫: Scheme A + Cu(銅) + At(砈)
+        // V21 卡牌庫: Reverse = Al, Cr, Sn
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -388,16 +372,16 @@
             { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
             { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
             { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans" },
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, // Reverse
             { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
-            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans", action: "reverse" }, // Reverse
             { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
             { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
             { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
             { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
             { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
             { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
-            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" },
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans", action: "reverse" }, // Reverse
             { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
             { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
             { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
@@ -411,7 +395,7 @@
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
             { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
             { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
-            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, // New!
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, 
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
@@ -491,7 +475,6 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // 重置 penalty 鎖定狀態
             if (!data.drawPenalty) {
                 isHandlingPenalty = false; 
             }
@@ -520,7 +503,8 @@
                     winnerName: null,
                     topCard: null,
                     drawPenalty: null,
-                    currentAuditColor: null
+                    currentAuditColor: null,
+                    direction: 1 // 重置方向
                 });
                 return; 
             }
@@ -533,7 +517,6 @@
                 
                 updateGameUI(data, playerList); 
 
-                // ★ V18 iOS 修正：不再自動彈 alert，而是顯示模態視窗等待玩家按下
                 if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                     isHandlingPenalty = true;
                     pendingPenaltyCount = data.drawPenalty.count;
@@ -559,18 +542,14 @@
             }
         });
 
-        // V18: 新增確認懲罰函式，綁定在按鈕上確保音效播放
         window.confirmPenalty = function() {
-            playSound('alert'); // 這裡播放音效絕對不會失敗！
-            
+            playSound('alert');
             const count = pendingPenaltyCount;
             for(let i=0; i<count; i++) {
                 myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
             }
             updateHandCount(); 
             renderHand();
-            
-            // 關閉視窗並更新 DB
             document.getElementById('modal-penalty').classList.remove('show');
             update(roomRef, { drawPenalty: null });
         }
@@ -613,7 +592,8 @@
                     currentAuditColor: null, 
                     msg: "遊戲開始！",
                     winnerName: null,
-                    drawPenalty: null
+                    drawPenalty: null,
+                    direction: 1 // V20: 初始化方向 1 (順時針)
                 });
             }, { onlyOnce: true });
         };
@@ -733,36 +713,65 @@
                 return;
             }
 
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
-                let currentIndex = snap.val() || 0;
+            // V20: 修改核心邏輯以支援 Reverse
+            onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
+                const roomData = snap.val();
+                let currentIndex = roomData.currentTurnIndex || 0;
+                let direction = roomData.direction || 1; // 1: 順時針, -1: 逆時針
+                
                 let jump = 1;
                 let msgAction = "";
                 let penalty = null;
-                const nextPlayerIndex = (currentIndex + 1) % playerOrder.length;
-                const nextPlayerId = playerOrder[nextPlayerIndex];
-
+                
                 let nextAuditColor = null; 
 
-                if (selectedCard.action === 'skip') { jump = 2; msgAction = "(下家被跳過!)"; } 
-                else if (selectedCard.action === 'draw2') { jump = 2; msgAction = "(下家抽2張!)"; penalty = { targetId: nextPlayerId, count: 2 }; } 
+                if (selectedCard.action === 'skip') { 
+                    jump = 2; msgAction = "(下家被跳過!)"; 
+                } 
+                else if (selectedCard.action === 'draw2') { 
+                    // Draw2 攻擊誰？需要根據方向計算
+                    const victimIndex = (currentIndex + (1 * direction) + playerOrder.length) % playerOrder.length;
+                    const victimId = playerOrder[victimIndex];
+                    jump = 2; 
+                    msgAction = "(下家抽2張!)"; 
+                    penalty = { targetId: victimId, count: 2 }; 
+                } 
                 else if (selectedCard.action === 'wild4') { 
-                    jump = 2; msgAction = "(核能爆炸! 下家抽4張!)"; 
-                    penalty = { targetId: nextPlayerId, count: 4 }; 
+                    const victimIndex = (currentIndex + (1 * direction) + playerOrder.length) % playerOrder.length;
+                    const victimId = playerOrder[victimIndex];
+                    jump = 2; 
+                    msgAction = "(核能爆炸! 下家抽4張!)"; 
+                    penalty = { targetId: victimId, count: 4 }; 
                     nextAuditColor = chosenColor; 
                 } 
                 else if (selectedCard.action === 'wild') { 
                     msgAction = "(轉色!)"; 
                     nextAuditColor = chosenColor; 
                 }
+                else if (selectedCard.action === 'reverse') {
+                    if (playerOrder.length === 2) {
+                        // 兩人對戰：Reverse = Skip
+                        jump = 2;
+                        msgAction = "(兩人對戰: 迴轉=跳過!)";
+                    } else {
+                        // 多人：改變方向
+                        direction *= -1;
+                        msgAction = "(迴轉!)";
+                    }
+                }
 
-                let nextIndex = (currentIndex + jump) % playerOrder.length;
+                // 計算下一家：(目前位置 + (步數 * 方向)) % 總人數
+                // + playerOrder.length 是為了防止負數
+                let nextIndex = (currentIndex + (jump * direction)) % playerOrder.length;
+                if (nextIndex < 0) nextIndex += playerOrder.length;
                 
                 update(roomRef, {
                     topCard: selectedCard,
                     currentTurnIndex: nextIndex,
                     currentAuditColor: nextAuditColor,
                     msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
-                    drawPenalty: penalty
+                    drawPenalty: penalty,
+                    direction: direction // 更新方向
                 });
             }, { onlyOnce: true });
         }
@@ -773,9 +782,16 @@
             updateHandCount();
             renderHand();
             playSound('pop');
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/currentTurnIndex'), (snap) => {
-                const currentIndex = snap.val() || 0;
-                const nextIndex = (currentIndex + 1) % playerOrder.length;
+            
+            // V20: 抽牌後換下家，也要考慮方向
+            onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
+                const roomData = snap.val();
+                let currentIndex = roomData.currentTurnIndex || 0;
+                let direction = roomData.direction || 1;
+                
+                let nextIndex = (currentIndex + (1 * direction)) % playerOrder.length;
+                if (nextIndex < 0) nextIndex += playerOrder.length;
+
                 update(roomRef, {
                     currentTurnIndex: nextIndex,
                     msg: `${myName} 抽了一張牌`
@@ -792,6 +808,7 @@
              let extraClass = '';
              if (card.action === 'draw2') actionBadge = `<span class="action-badge" style="background:#d35400">+2</span>`;
              else if (card.action === 'skip') actionBadge = `<span class="action-badge" style="background:#8e44ad">SKIP</span>`;
+             else if (card.action === 'reverse') actionBadge = `<span class="action-badge" style="background:#2980b9">REV</span>`; // New
              else if (card.action === 'wild') { actionBadge = `<span class="action-badge" style="background:linear-gradient(45deg, gold, white);">WILD</span>`; extraClass = 'card-wild'; }
              else if (card.action === 'wild4') { actionBadge = `<span class="action-badge" style="background:black; color:yellow;">+4</span>`; extraClass = 'card-wild4'; }
 
