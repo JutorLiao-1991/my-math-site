@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特物理：多元光譜實驗室 (最終完美版)</title>
+    <title>鳩特物理：多元光譜實驗室 (最終版)</title>
     <style>
-        /* === 1. 深色主題變數 === */
+        /* === 深色主題變數 === */
         :root {
             --primary-color: #4a90e2;
             --secondary-color: #f5a623;
@@ -38,7 +38,7 @@
         .back-btn:hover { background: var(--accent); color: #000; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; color: var(--text-color); }
 
-        /* 主畫面佈局 */
+        /* 主畫面 */
         .main-container { flex: 1; display: flex; position: relative; overflow: hidden; }
         
         /* 左側控制面板 */
@@ -72,7 +72,7 @@
         .macro-stage {
             width: 100%; max-width: 800px; height: 180px; position: relative;
             background: #111; border: 1px solid var(--border-color); border-radius: 12px;
-            overflow: hidden; 
+            overflow: hidden; flex-shrink: 0;
         }
         .comp { 
             position: absolute; top: 50%; transform: translate(-50%, -50%); 
@@ -95,44 +95,52 @@
             animation: float 4s infinite ease-in-out; 
         }
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-        
         .beam { 
             position: absolute; height: 6px; top: 50%; margin-top: -3px; 
             background: #fff; z-index: 1; transition: opacity 1s, background 1s; 
             box-shadow: 0 0 10px rgba(255,255,255,0.7); 
         }
 
-        /* 光譜 */
-        .spectrum-wrapper { width: 100%; max-width: 800px; position: relative; }
-        canvas#spectrumCanvas { width: 100%; height: 100px; display: block; border: 1px solid var(--border-color); border-radius: 8px; background: #000; }
+        /* 光譜 (RWD 修正重點) */
+        .spectrum-wrapper { 
+            width: 100%; max-width: 800px; position: relative; 
+            flex-shrink: 0; /* 防止被壓縮 */
+        }
+        canvas#spectrumCanvas { 
+            width: 100%; height: 100px; display: block; 
+            border: 1px solid var(--border-color); border-radius: 8px; background: #000; 
+        }
         .checkbox-container { width: 100%; height: 40px; position: relative; margin-top: 5px; }
-        .line-control { position: absolute; transform: translateX(-50%); text-align: center; opacity: 0; transition: opacity 0.5s; cursor: pointer; }
+        
+        /* 勾選框定位改用 left % 控制，這裡只需設定基本樣式 */
+        .line-control { 
+            position: absolute; 
+            transform: translateX(-50%); /* 確保中心對齊 */
+            text-align: center; 
+            opacity: 0; transition: opacity 0.5s; cursor: pointer; 
+        }
         .line-control input { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
         .line-control label { display: block; font-size: 0.7rem; color: #aaa; margin-top: 2px; }
 
-        /* 微觀能階動畫區 */
+        /* 微觀能階 */
         .micro-stage {
             width: 100%; max-width: 800px; height: 320px; background: #111; border: 1px solid var(--border-color); border-radius: 12px;
-            position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center;
+            position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; flex-shrink: 0;
         }
         .level-diagram { width: 90%; height: 280px; position: relative; margin-top: 20px; }
         .level { position: absolute; width: 100%; height: 1px; background: #444; left: 0; transition: bottom 0.5s; }
-        .level-text { position: absolute; right: 5px; top: -15px; font-size: 0.75rem; color: #888; text-align: right;}
+        .level-text { position: absolute; right: 0; top: -15px; font-size: 0.75rem; color: #888; text-align: right; width: 50px;}
         
         .electron { 
             width: 14px; height: 14px; 
-            background: #fff; /* 預設白色 */
-            border-radius: 50%; 
+            background: #fff; border-radius: 50%; 
             position: absolute; margin-left: -7px; 
             box-shadow: 0 0 8px rgba(255,255,255,0.8); z-index: 10; 
-            transition: bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s; 
+            /* 移除預設 transition，由 JS 動態控制，避免初始位置跑掉 */
         }
         
-        /* 波動光子 - 修正定位方式 */
         .photon-wave {
-            position: absolute; 
-            left: 0; /* 關鍵：從容器最左邊開始計算 */
-            width: 80px; height: 20px; 
+            position: absolute; width: 80px; height: 20px; 
             opacity: 0; pointer-events: none; z-index: 5; background-color: currentColor; 
             -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
             mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 20'%3E%3Cpath d='M0 10 Q 10 0, 20 10 T 40 10 T 60 10 T 80 10' stroke='black' fill='none' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -141,8 +149,6 @@
 
         .instruction { position: absolute; top: 10px; left: 15px; color: var(--accent); font-size: 0.9rem; font-weight: 600; background: rgba(30,30,30,0.8); padding: 5px 10px; border-radius: 5px;}
         .element-badge { position: absolute; top: 10px; right: 15px; background: #333; padding: 5px 10px; border-radius: 5px; font-size: 0.8rem; color: #aaa; }
-
-        /* 浮水印 */
         .watermark {
             position: absolute; bottom: 20px; right: 25px; left: auto;
             font-family: 'Segoe UI', sans-serif; font-weight: bold; font-style: italic; font-size: 1.2rem;
@@ -154,7 +160,7 @@
         @media (max-width: 800px) {
             .main-container { flex-direction: column; }
             .controls { width: 100%; height: auto; max-height: 35vh; border-right: none; border-top: 2px solid var(--border-color); order: 2; padding: 15px; gap: 15px; }
-            #experiment-container { order: 1; flex: 1; min-height: 50vh; padding: 10px; }
+            #experiment-container { order: 1; flex: 1; min-height: 50vh; padding: 10px; overflow-x: hidden; }
             .macro-stage, .spectrum-wrapper, .micro-stage { width: 100%; }
             #source { left: 2%; } #gas { left: 32%; } #prism { left: 62%; }
             .watermark { font-size: 0.8rem; bottom: 10px; right: 10px; }
@@ -197,12 +203,10 @@
             <div class="macro-stage">
                 <div id="source" class="comp"><span>💡</span><label>高溫光源</label></div>
                 <div id="beam1" class="beam" style="left: 10%; width: 18%;"></div>
-                
                 <div id="gas" class="comp">
                     <div class="cloud"></div>
                     <label id="gasLabel">氫氣 (冷)</label>
                 </div>
-
                 <div id="beam2" class="beam" style="left: 42%; width: 20%;"></div>
                 <div id="prism" class="comp"><span>📐</span><label>分光器</label></div>
                 <div id="beam3" class="beam" style="left: 72%; width: 23%; background: linear-gradient(to right, red, violet);"></div>
@@ -252,13 +256,28 @@
         const levelContainer = document.getElementById('levelContainer');
         const elementDisplay = document.getElementById('elementDisplay');
 
-        function init() { updateElementData(); resizeCanvas(); animate(); window.addEventListener('resize', resizeCanvas);}
-        function resizeCanvas() { canvas.width = canvas.clientWidth; canvas.height = canvas.clientHeight; drawSpectrum(); }
+        function init() { 
+            updateElementData(); 
+            resizeCanvas(); 
+            animate(); 
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                // 重新計算電子位置（雖然是百分比，但重繪確保萬無一失）
+                if(state.mode !== 'continuous') drawSpectrum();
+            });
+        }
+        
+        function resizeCanvas() { 
+            // 讓 Canvas 解析度跟隨容器寬度，解決手機模糊或跑版問題
+            canvas.width = canvas.clientWidth; 
+            canvas.height = canvas.clientHeight; 
+            drawSpectrum(); 
+        }
 
         function updateElementData() {
             const data = elementsData[state.element];
             const lines = [...data.lines];
-            lines.sort((a, b) => b - a); // 大到小排序 (紅 -> 紫)
+            lines.sort((a, b) => b - a); 
             state.mappedLines = lines.map((wl, index) => {
                 const heightIndex = Math.min(index, excitedLevelHeights.length - 1);
                 return { 
@@ -319,7 +338,12 @@
 
             if (rainbowAlpha > 0) {
                 const grad = ctx.createLinearGradient(0, 0, w, 0);
-                for (let i = 0; i <= 20; i++) { let pct = i / 20; let wl = maxW - pct * (maxW - minW); grad.addColorStop(pct, wlToColor(wl)); }
+                // 增加採樣點，讓彩虹更平滑
+                for (let i = 0; i <= 50; i++) { 
+                    let pct = i / 50; 
+                    let wl = maxW - pct * (maxW - minW); 
+                    grad.addColorStop(pct, wlToColor(wl)); 
+                }
                 ctx.globalAlpha = rainbowAlpha; ctx.fillStyle = grad; ctx.fillRect(0, 0, w, h);
             }
 
@@ -333,7 +357,10 @@
                 ctx.globalAlpha = lineAlpha;
                 state.mappedLines.forEach(line => {
                     if (line.visible) { 
-                        const x = ((maxW - line.wl) / (maxW - minW)) * w;
+                        // 改用百分比計算 x 座標，解決手機版跑版問題
+                        const pct = (maxW - line.wl) / (maxW - minW);
+                        const x = pct * w;
+                        
                         if (lineType === 'dark') { 
                             ctx.fillStyle = 'rgba(0,0,0,0.9)'; ctx.fillRect(x - 2, 0, 4, h); 
                         } else {
@@ -377,8 +404,13 @@
             if (state.mode === 'continuous') return;
             const w = canvas.width; const minW = 380, maxW = 750; checkContainer.innerHTML = '';
             state.mappedLines.forEach((line, index) => {
-                const x = ((maxW - line.wl) / (maxW - minW)) * w;
-                const wrapper = document.createElement('div'); wrapper.className = 'line-control'; wrapper.style.left = x + 'px'; wrapper.style.opacity = 1; 
+                // 改用百分比定位，解決手機跑版
+                const pct = ((maxW - line.wl) / (maxW - minW)) * 100;
+                
+                const wrapper = document.createElement('div'); 
+                wrapper.className = 'line-control'; 
+                wrapper.style.left = pct + '%'; // 使用 % 定位
+                wrapper.style.opacity = 1; 
                 
                 const input = document.createElement('input'); 
                 input.type = 'checkbox'; 
@@ -401,6 +433,7 @@
             });
         }
 
+        // === 多電子微觀動畫 (修正發射光譜初始位置) ===
         function resetMicroView() { 
             electronContainer.innerHTML = ''; 
             photonCont.innerHTML = '';
@@ -414,6 +447,9 @@
                 
                 const leftPos = (index + 1) * (100 / (count + 1));
                 el.style.left = leftPos + '%';
+
+                // 重要：初始化時移除 transition，避免瀏覽器播放歸位動畫
+                el.style.transition = 'none';
 
                 if (state.mode === 'absorption') {
                     // 吸收模式：初始在基態
@@ -429,15 +465,26 @@
                 } else if (state.mode === 'emission') {
                     // 發射模式：初始在激發態(有色)
                     if (line.visible) {
-                        el.style.bottom = baseLevelHeight + 'px'; // 掉下來了
+                        el.style.bottom = baseLevelHeight + 'px'; // 已經掉下來
                         el.style.backgroundColor = '#fff';
                         el.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                     } else {
-                        el.style.bottom = line.targetHeight + 'px'; // 還沒掉
+                        // **修正點**：還沒勾選時，電子必須乖乖待在上面
+                        el.style.bottom = line.targetHeight + 'px'; 
                         el.style.backgroundColor = line.color; 
                         el.style.boxShadow = `0 0 8px ${line.color}`;
                     }
                 }
+                
+                // 強制重繪，確保上述 style 設定生效且不會被過渡
+                void el.offsetWidth;
+
+                // 恢復正常的 transition 設定供後續動畫使用
+                // 注意：這裡只加回了動畫需要的屬性
+                setTimeout(() => {
+                     el.style.transition = 'bottom 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.3s';
+                }, 50);
+
                 electronContainer.appendChild(el);
             });
         }
@@ -449,12 +496,11 @@
             const startH = baseLevelHeight; 
             const endH = lineData.targetHeight;
             
-            // 計算電子的精確 X 座標 (相對於容器)
             const electronRect = targetElectron.getBoundingClientRect();
             const containerRect = levelContainer.getBoundingClientRect();
+            // 改用百分比計算的相對座標會比較準
             const electronLeftPx = electronRect.left - containerRect.left + (electronRect.width/2);
 
-            // 清除該電子上可能正在進行的轉場，確保位置是瞬間重置的
             targetElectron.style.transition = 'none';
 
             if (state.mode === 'absorption') {
@@ -463,32 +509,23 @@
                 targetElectron.style.backgroundColor = '#fff';
                 targetElectron.style.boxShadow = `0 0 8px rgba(255,255,255,0.8)`;
                 
-                // 強制重繪 (Force Reflow) - 解決動畫瞬移問題
                 void targetElectron.offsetWidth; 
-
-                // 2. 恢復 CSS transition
                 targetElectron.style.transition = 'bottom 0.5s ease-out, background-color 0.3s';
 
-                // 3. JS 控制光波動畫 (精準導航)
+                // 2. 發射光波 (座標定位修正為 left:0)
                 const wave = createWave(lineData.color);
-                // 設定光波垂直高度與基態一致
+                wave.style.left = '0px'; 
                 wave.style.bottom = baseLevelHeight + 'px';
                 
-                // 動畫：從左外(-100) 飛到 電子中心(electronLeftPx - 40)
-                // 註：40是波寬的一半
                 wave.animate([
                     { transform: 'translateX(-100px)', opacity: 0 },
                     { transform: 'translateX(-100px)', opacity: 1, offset: 0.1 },
                     { transform: `translateX(${electronLeftPx - 40}px)`, opacity: 1, offset: 0.95 },
                     { transform: `translateX(${electronLeftPx - 40}px)`, opacity: 0 }
-                ], {
-                    duration: 1000,
-                    easing: 'linear',
-                    fill: 'forwards'
-                });
+                ], { duration: 1000, easing: 'linear', fill: 'forwards' });
                 photonCont.appendChild(wave);
 
-                // 4. 撞擊瞬間
+                // 3. 撞擊瞬間
                 setTimeout(() => {
                     targetElectron.style.backgroundColor = lineData.color;
                     targetElectron.style.boxShadow = `0 0 15px ${lineData.color}`;
@@ -505,8 +542,7 @@
                 targetElectron.style.backgroundColor = lineData.color;
                 targetElectron.style.boxShadow = `0 0 8px ${lineData.color}`;
                 
-                void targetElectron.offsetWidth; // Force Reflow
-
+                void targetElectron.offsetWidth; 
                 targetElectron.style.transition = 'bottom 0.5s ease-in, background-color 0.3s';
 
                 // 2. 電子掉落
@@ -518,7 +554,6 @@
                     // 3. 落地瞬間發光
                     setTimeout(() => {
                         const wave = createWave(lineData.color);
-                        // 波產生在電子位置
                         wave.style.left = electronLeftPx + 'px'; 
                         wave.style.marginLeft = '-40px'; 
                         wave.style.bottom = baseLevelHeight + 'px';
@@ -527,11 +562,7 @@
                             { transform: 'translateX(0)', opacity: 0 },
                             { transform: 'translateX(0)', opacity: 1, offset: 0.1 },
                             { transform: 'translateX(400px)', opacity: 0 }
-                        ], {
-                            duration: 1000,
-                            easing: 'linear',
-                            fill: 'forwards'
-                        });
+                        ], { duration: 1000, easing: 'linear', fill: 'forwards' });
                         photonCont.appendChild(wave);
                         
                         lineData.visible = true;
