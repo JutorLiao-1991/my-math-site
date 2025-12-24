@@ -445,18 +445,16 @@
 
         function updateGameUI(data, playerList) {
             currentTopCard = data.topCard;
-            // V11: 更新指定色變數
             currentAuditColor = data.currentAuditColor;
 
             playerOrder = data.order || [];
             document.getElementById('table-slot').innerHTML = createCardHTML(currentTopCard);
             
-            // V11: 視覺化指定顏色
+            // --- V11 視覺化指定顏色 ---
             const tableSlot = document.getElementById('table-slot');
             const colorIndicator = document.getElementById('color-indicator');
             
             if (currentAuditColor) {
-                // 有指定顏色時，改變背景並顯示標籤
                 let colorHex = '';
                 let colorName = '';
                 if(currentAuditColor === 'pink') { colorHex = '#ffeef0'; colorName = '粉紅 (1A)'; }
@@ -467,25 +465,37 @@
                 tableSlot.style.background = colorHex;
                 tableSlot.style.borderColor = 'white';
                 tableSlot.style.boxShadow = `0 0 20px ${colorHex}`;
-                colorIndicator.innerText = `指定色: ${colorName}`;
+                // 除錯資訊：顯示指定色
+                colorIndicator.innerHTML = `指定色: ${colorName}`;
                 colorIndicator.style.opacity = 1;
                 colorIndicator.style.background = colorHex;
                 colorIndicator.style.color = '#333';
             } else {
-                // 沒指定顏色，恢復原狀
                 tableSlot.style.background = 'transparent';
                 tableSlot.style.borderColor = 'rgba(255,255,255,0.3)';
                 tableSlot.style.boxShadow = 'none';
-                colorIndicator.style.opacity = 0;
+                
+                // ★★★ 除錯模式：顯示 ID 比對 (找出誰卡住了) ★★★
+                const currentPlayerId = playerOrder[data.currentTurnIndex];
+                const debugInfo = `
+                    <span style="font-size:0.7rem; color:#aaa;">
+                        ID: ...${myId.substr(-4)} <br> 
+                        Turn: ...${String(currentPlayerId).substr(-4)}
+                    </span>`;
+                colorIndicator.innerHTML = debugInfo;
+                colorIndicator.style.opacity = 1;
+                colorIndicator.style.background = 'rgba(0,0,0,0.5)';
+                colorIndicator.style.color = 'white';
             }
 
             const currentPlayerId = playerOrder[data.currentTurnIndex];
             const currentPlayer = playerList.find(p => p.id === currentPlayerId);
-            const currentName = currentPlayer ? currentPlayer.name : "已離線";
+            const currentName = currentPlayer ? currentPlayer.name : "已離線(幽靈)";
 
             const msgDiv = document.getElementById('turn-msg');
             const drawBtn = document.getElementById('btn-draw');
 
+            // 判斷是否輪到我
             isMyTurn = (currentPlayerId === myId);
 
             if (isMyTurn) {
