@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v13 - 音效爽快版</title>
+    <title>鳩特元素 UNO v14 - iOS 音效修復版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -83,7 +83,6 @@
         .helper-btn { padding: 5px 10px; font-size: 0.8rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; margin-left: 10px;}
         .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
 
-        /* 彩帶動畫 */
         .confetti { position: fixed; width: 10px; height: 10px; background-color: #f2d74e; animation: fall linear forwards; z-index: 9999; pointer-events: none;}
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
@@ -91,7 +90,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v13</h1>
+        <h1>元素 UNO v14</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <button class="big-btn" onclick="joinGame()">加入遊戲</button>
@@ -153,7 +152,7 @@
                 <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
                 <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
                 <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
-                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Rn</div>
+                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-yellow">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">At</div> <div class="pg-cell pg-purple">Rn</div>
                 <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
             </div>
             <div class="legend-row">
@@ -199,10 +198,27 @@
         
         let pendingWildCard = null; 
         let currentAuditColor = null; 
-        let isHandlingPenalty = false; // ★ V13: 防止重複抽牌的鎖
+        let isHandlingPenalty = false;
 
         // 音效系統
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        // ★ V14 iOS 修正: 在用戶交互時強制解鎖音頻
+        function unlockAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    // 播放一個極短的靜音，騙過 iOS 的自動播放限制
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0; // 靜音
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.01);
+                });
+            }
+        }
+
         function playSound(type) {
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
@@ -253,7 +269,7 @@
             }
         }
 
-        // V10 (Scheme A) 卡牌庫
+        // V14 卡牌庫: Scheme A + Cu(銅) + At(砈)
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -291,6 +307,7 @@
             { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
             { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
             { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, // New!
             { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
             { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
             { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
@@ -326,6 +343,7 @@
         }
 
         window.joinGame = function() {
+            unlockAudio(); // ★ iOS: 在用戶點擊時解鎖音效
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
@@ -370,7 +388,7 @@
 
             const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
 
-            // ★ V13 修正：重置 penalty 鎖定狀態
+            // 重置 penalty 鎖定狀態
             if (!data.drawPenalty) {
                 isHandlingPenalty = false; 
             }
@@ -412,7 +430,6 @@
                 
                 updateGameUI(data, playerList); 
 
-                // ★ V13 修正：加入鎖定機制，防止重複執行
                 if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                     isHandlingPenalty = true;
                     setTimeout(() => {
@@ -471,6 +488,7 @@
         }
 
         window.startGame = function() {
+            unlockAudio(); // ★ iOS: 在用戶點擊時解鎖音效
             onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
                 const pMap = snap.val();
                 const pIds = Object.keys(pMap);
@@ -593,7 +611,7 @@
                 myHand.splice(cardIndex, 1);
                 updateHandCount();
                 renderHand();
-                playSound('pop'); // 音效
+                playSound('pop'); 
             }
 
             if (myHand.length === 0) {
