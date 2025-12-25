@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v26 - 殭屍防禦最終版</title>
+    <title>鳩特元素 UNO v27 - 貨幣戰爭版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -116,7 +116,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>鳩特老師的元素JUNO!</h1>
+        <h1>元素 UNO v27</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -207,9 +207,9 @@
             <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
                 <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫=Skip</div>
                 <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A=攻+2</div>
-                <div class="legend-item"><span class="dot" style="background:gold"></span> 金=Wild</div>
+                <div class="legend-item"><span class="dot" style="background:gold"></span> Ag/Au=Wild</div>
                 <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu=+4</div>
-                <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Sn/Cr/Al=Rev</div>
+                <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Al/Zn=Rev</div>
             </div>
         </div>
         
@@ -249,7 +249,7 @@
         let isSinglePlayerMode = false; 
 
         let roomListenerOff = null;
-        let botTimer = null; // V26: 用來追蹤並殺死殭屍機器人
+        let botTimer = null; 
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
@@ -364,6 +364,7 @@
             }
         }
 
+        // V27 卡牌庫更新: Al, Zn = Reverse; Ag, Au = Wild
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -378,16 +379,16 @@
             { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
             { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
             { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, // Reverse
             { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
-            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" }, // Normal
             { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
             { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
             { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
             { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
-            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
-            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
-            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans", action: "reverse" }, // Reverse
+            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "gold", group: "Wild", action: "wild" }, // New Wild
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" }, // Normal
             { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
             { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
             { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
@@ -410,8 +411,8 @@
             { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
             { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
             { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "gold", group: "Wild", action: "wild" },
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "blue", group: "Trans" }, // Normal
+            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, // Normal
             { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
             { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
         ];
@@ -444,7 +445,7 @@
                 roomListenerOff();
                 roomListenerOff = null;
             }
-            if (botTimer) clearTimeout(botTimer); // 清除舊機器人
+            if (botTimer) clearTimeout(botTimer);
 
             if (mode === 'single') {
                 isSinglePlayerMode = true;
@@ -582,14 +583,6 @@
                     if(!document.getElementById('screen-game').classList.contains('active')){
                         switchScreen('screen-game');
                         if(myHand.length === 0) dealCardsToSelf(7);
-                        
-                        if(isSinglePlayerMode) {
-                            playerList.forEach(p => {
-                                if(p.id.startsWith('bot_')) {
-                                    update(ref(db, 'rooms/' + ROOM_ID + '/players/' + p.id), { handCount: 7 });
-                                }
-                            });
-                        }
                     }
                     
                     updateGameUI(data, playerList); 
@@ -623,23 +616,33 @@
         function handleBotTurn(botId, currentData) {
             if (!isSinglePlayerMode) return; 
             
-            if (botTimer) clearTimeout(botTimer); // 清除上一個機器人的思考
+            if (botTimer) clearTimeout(botTimer);
 
             botTimer = setTimeout(() => {
-                // ★ V26 關鍵修正：再次檢查遊戲狀態，避免「前朝餘孽」作祟
                 get(roomRef).then(snapshot => {
-                   const latestData = snapshot.val();
-                   if (!latestData || latestData.status !== 'playing') return; // 遊戲已結束或重置，停止動作
-                   if (latestData.order[latestData.currentTurnIndex] !== botId) return; // 已經不是該機器人的回合，停止動作
+                   const botData = snapshot.val();
+                   if (!botData || botData.status !== 'playing') return;
+                   if (botData.order[botData.currentTurnIndex] !== botId) return;
 
-                   // 使用 latestData 進行決策，確保不會覆寫新狀態
-                   const botData = latestData;
-                   
+                   // ★ V27 修正：機器人被懲罰時，必須乖乖交出下一回合的控制權
                    if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
                        const count = botData.drawPenalty.count;
+                       const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
+                       
+                       // 1. 抽牌
                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (botData.players[botId].handCount || 0) + count });
-                       update(roomRef, { drawPenalty: null });
+                       
+                       // 2. 計算跳過後的下一家
+                       let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
+                       if (nextIndex < 0) nextIndex += botData.order.length;
+
+                       // 3. 更新：解除懲罰 + 移交回合
+                       update(roomRef, { 
+                           drawPenalty: null,
+                           currentTurnIndex: nextIndex,
+                           msg: `${bName} 被懲罰抽了 ${count} 張牌`
+                       });
                        return; 
                    }
 
@@ -761,7 +764,7 @@
         }
 
         window.startGame = function() {
-            if (botTimer) clearTimeout(botTimer); // 再次確保清除
+            if (botTimer) clearTimeout(botTimer);
 
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                 const pMap = snapshot.val();
@@ -986,7 +989,7 @@
         };
 
         window.backToLobby = function() {
-             if (botTimer) clearTimeout(botTimer); // 離開遊戲時清除
+             if (botTimer) clearTimeout(botTimer); 
              update(roomRef, { status: 'waiting', msg: '等待新賽局' });
         }
 
