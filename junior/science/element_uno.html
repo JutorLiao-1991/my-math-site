@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v21 - Sn/Cr/Al 迴轉版</title>
+    <title>鳩特元素 UNO v23 - 多人混戰單機版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -12,6 +12,7 @@
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
         .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;}
         .big-btn:active { transform: scale(0.95); }
+        .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         
@@ -27,7 +28,7 @@
         .color-btn:active { transform: scale(0.95); }
         .btn-pink { background: #e91e63; }
         .btn-yellow { background: #f1c40f; color: #333; text-shadow: none; }
-        .btn-blue { background: #2196f3; }
+        .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
         /* --- 小抄樣式 --- */
@@ -115,10 +116,13 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v21</h1>
+        <h1>元素 UNO v23</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
-        <button class="big-btn" onclick="joinGame()">加入遊戲</button>
+        <div style="display:flex; gap:10px; justify-content:center;">
+            <button class="big-btn" onclick="joinGame('multi')">多人連線</button>
+            <button class="big-btn btn-blue" onclick="joinGame('single')">🤖 單機挑戰</button>
+        </div>
     </div>
 
     <div id="screen-lobby" class="screen">
@@ -173,7 +177,7 @@
             <div class="color-grid">
                 <div class="color-btn btn-pink" onclick="finishWildPlay('pink')">粉紅<br>(1A)</div>
                 <div class="color-btn btn-yellow" onclick="finishWildPlay('yellow')">黃色<br>(2A)</div>
-                <div class="color-btn btn-blue" onclick="finishWildPlay('blue')">藍色<br>(金屬)</div>
+                <div class="color-btn btn-c-blue" onclick="finishWildPlay('blue')">藍色<br>(金屬)</div>
                 <div class="color-btn btn-green" onclick="finishWildPlay('green')">綠色<br>(非金)</div>
             </div>
         </div>
@@ -187,9 +191,7 @@
                 <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
                 
                 <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                
                 <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-yellow">Be</div> <div class="pg-cell pg-green">B</div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
-                
                 <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-yellow">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
                 <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-yellow">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
                 <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-yellow">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
@@ -197,17 +199,17 @@
                 <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-yellow">Ra</div> <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
             </div>
             <div class="legend-row">
-                <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A族 (粉)</div>
-                <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A族 (黃)</div>
+                <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A (粉)</div>
+                <div class="legend-item"><span class="dot" style="background:#ffc107"></span> 2A (黃)</div>
                 <div class="legend-item"><span class="dot" style="background:#2196f3"></span> 金屬 (藍)</div>
                 <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 生命 (綠)</div>
             </div>
             <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
-                <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫色 = 跳過 (Skip)</div>
-                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A族 = 攻擊 (+2)</div>
-                <div class="legend-item"><span class="dot" style="background:gold"></span> 金色 = 萬用 (Wild)</div>
-                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu = 核爆 (+4)</div>
-                <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Sn/Cr/Al = 迴轉</div>
+                <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫=Skip</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A=攻+2</div>
+                <div class="legend-item"><span class="dot" style="background:gold"></span> 金=Wild</div>
+                <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu=+4</div>
+                <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Sn/Cr/Al=Rev</div>
             </div>
         </div>
         
@@ -229,8 +231,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const ROOM_ID = "class_room_101";
-        const roomRef = ref(db, 'rooms/' + ROOM_ID);
+        
+        let ROOM_ID = "class_room_101"; // 預設房號
+        let roomRef = ref(db, 'rooms/' + ROOM_ID);
 
         let myId = 'user_' + Date.now(); 
         let myName = "";
@@ -243,6 +246,7 @@
         let currentAuditColor = null; 
         let isHandlingPenalty = false;
         let pendingPenaltyCount = 0;
+        let isSinglePlayerMode = false; 
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
@@ -372,16 +376,16 @@
             { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "yellow", group: "2A" },
             { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "yellow", group: "2A" },
             { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "yellow", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, // Reverse
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, 
             { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
-            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans", action: "reverse" }, // Reverse
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans", action: "reverse" }, 
             { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
             { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
             { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
             { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
             { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans" },
             { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" },
-            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans", action: "reverse" }, // Reverse
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans", action: "reverse" }, 
             { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
             { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
             { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
@@ -430,27 +434,166 @@
             }
         }
 
-        window.joinGame = function() {
+        window.joinGame = function(mode) {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
-            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
-                const players = snapshot.val() || {};
-                const isFirstPlayer = Object.keys(players).length === 0;
-                const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
+            if (mode === 'single') {
+                isSinglePlayerMode = true;
                 
-                if (isFirstPlayer) {
-                    onDisconnect(roomRef).remove();
-                    update(roomRef, { hostId: myId });
-                } else {
-                    onDisconnect(myRef).remove();
+                // V23: 詢問要幾個機器人
+                let botCount = parseInt(prompt("要加幾個機器人？(1-7)", "3"));
+                if (isNaN(botCount) || botCount < 1) botCount = 1;
+                if (botCount > 7) botCount = 7;
+
+                ROOM_ID = "single_player_" + Date.now();
+                roomRef = ref(db, 'rooms/' + ROOM_ID);
+                document.getElementById('room-code-display').innerText = "房號: 單機練習室";
+
+                get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
+                    const players = snapshot.val() || {};
+                    const isFirstPlayer = Object.keys(players).length === 0;
+                    const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
+                    
+                    if (isFirstPlayer) {
+                        onDisconnect(roomRef).remove();
+                        update(roomRef, { hostId: myId });
+                    }
+
+                    update(myRef, { name: myName, handCount: 0 });
+                    document.getElementById('my-name-display').innerText = `我: ${myName}`;
+                    switchScreen('screen-lobby');
+
+                    // V23: 產生指定數量的機器人
+                    setTimeout(() => {
+                        const botNames = ["🤖 氫寶", "🤖 氦寶", "🤖 鋰寶", "🤖 鈹寶", "🤖 硼寶", "🤖 碳寶", "🤖 氮寶"];
+                        for(let i=1; i<=botCount; i++) {
+                            const botId = 'bot_' + Date.now() + '_' + i;
+                            const name = botNames[i-1] || `🤖 機器人${i}`;
+                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { name: name, handCount: 0 });
+                        }
+                        setTimeout(startGame, 1000); 
+                    }, 500);
+                });
+            } else {
+                // 多人連線模式
+                ROOM_ID = "class_room_101"; // 恢復預設房號
+                roomRef = ref(db, 'rooms/' + ROOM_ID);
+                document.getElementById('room-code-display').innerText = "房號: Class 101";
+                
+                get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
+                    const players = snapshot.val() || {};
+                    const isFirstPlayer = Object.keys(players).length === 0;
+                    const myRef = ref(db, 'rooms/' + ROOM_ID + '/players/' + myId);
+                    
+                    if (isFirstPlayer) {
+                        onDisconnect(roomRef).remove();
+                        update(roomRef, { hostId: myId });
+                    } else {
+                        onDisconnect(myRef).remove();
+                    }
+
+                    update(myRef, { name: myName, handCount: 0 });
+                    document.getElementById('my-name-display').innerText = `我: ${myName}`;
+                    switchScreen('screen-lobby');
+                });
+            }
+        };
+
+        // --- V22/V23 AI 邏輯 ---
+        function handleBotTurn(botId, currentData) {
+            if (!isSinglePlayerMode) return; 
+            
+            setTimeout(() => {
+                if (currentData.drawPenalty && currentData.drawPenalty.targetId === botId) {
+                    const count = currentData.drawPenalty.count;
+                    playSound('pop');
+                    update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (currentData.players[botId].handCount || 0) + count });
+                    update(roomRef, { drawPenalty: null });
+                    return; 
                 }
 
-                update(myRef, { name: myName, handCount: 0 });
-                document.getElementById('my-name-display').innerText = `我: ${myName}`;
-                switchScreen('screen-lobby');
-            });
-        };
+                const canPlay = Math.random() > 0.2; // 80% 機率出牌 (稍微聰明一點)
+                
+                if (canPlay) {
+                    let validCards = allCards.filter(c => {
+                        if (c.action === 'wild' || c.action === 'wild4') return true;
+                        if (currentAuditColor) return c.c === currentAuditColor;
+                        return c.c === currentTopCard.c || c.p === currentTopCard.p;
+                    });
+
+                    if (validCards.length > 0) {
+                        validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
+                        const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
+                        
+                        playSound('pop');
+                        
+                        let currentIndex = currentData.currentTurnIndex;
+                        let direction = currentData.direction || 1;
+                        let jump = 1;
+                        let msgAction = "";
+                        let penalty = null;
+                        let nextAuditColor = null;
+                        let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
+
+                        if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
+                        else if (cardToPlay.action === 'draw2') { 
+                            const victimIndex = (currentIndex + (1 * direction) + currentData.order.length) % currentData.order.length;
+                            const victimId = currentData.order[victimIndex];
+                            jump = 2; msgAction = "(攻擊!)"; 
+                            penalty = { targetId: victimId, count: 2 }; 
+                        }
+                        else if (cardToPlay.action === 'wild4') { 
+                            const victimIndex = (currentIndex + (1 * direction) + currentData.order.length) % currentData.order.length;
+                            const victimId = currentData.order[victimIndex];
+                            jump = 2; msgAction = "(核爆!)"; 
+                            penalty = { targetId: victimId, count: 4 }; 
+                            nextAuditColor = chosenColor; 
+                        }
+                        else if (cardToPlay.action === 'wild') { msgAction = "(轉色!)"; nextAuditColor = chosenColor; }
+                        else if (cardToPlay.action === 'reverse') {
+                             if (currentData.order.length === 2) { jump = 2; msgAction = "(跳過!)"; }
+                             else { direction *= -1; msgAction = "(迴轉!)"; }
+                        }
+
+                        let nextIndex = (currentIndex + (jump * direction)) % currentData.order.length;
+                        if (nextIndex < 0) nextIndex += currentData.order.length;
+
+                        // 取得機器人名字
+                        const bName = currentData.players[botId].name || "機器人";
+
+                        update(roomRef, {
+                            topCard: cardToPlay,
+                            currentTurnIndex: nextIndex,
+                            currentAuditColor: nextAuditColor,
+                            msg: `${bName} 出了 ${cardToPlay.n} ${msgAction}`,
+                            drawPenalty: penalty,
+                            direction: direction
+                        });
+                        
+                        let currentCount = currentData.players[botId].handCount || 0;
+                        if (currentCount > 0) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: currentCount - 1 });
+                        
+                        if (currentCount - 1 <= 0) {
+                             update(roomRef, { status: 'finished', winnerName: bName, msg: `${bName} 統治了世界！` });
+                        }
+                        return;
+                    }
+                }
+
+                playSound('pop');
+                let nextIndex = (currentData.currentTurnIndex + (1 * (currentData.direction||1))) % currentData.order.length;
+                if (nextIndex < 0) nextIndex += currentData.order.length;
+                
+                const bName = currentData.players[botId].name || "機器人";
+                update(roomRef, {
+                    currentTurnIndex: nextIndex,
+                    msg: `${bName} 抽了一張牌`
+                });
+                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (currentData.players[botId].handCount || 0) + 1 });
+
+            }, 1000); // 縮短思考時間到1秒
+        }
 
         onValue(roomRef, (snapshot) => {
             const data = snapshot.val();
@@ -467,6 +610,14 @@
             }
 
             const playersMap = data.players || {};
+            
+            if (isSinglePlayerMode && data.status === 'playing') {
+                const currentPlayerId = data.order[data.currentTurnIndex];
+                if (currentPlayerId && currentPlayerId.startsWith('bot_')) {
+                    handleBotTurn(currentPlayerId, data);
+                }
+            }
+
             if (!isLoginScreen && !playersMap[myId]) {
                  alert('你已斷線，請重新登入');
                  location.reload();
@@ -482,21 +633,23 @@
             if (data.status === 'playing' && data.order) {
                 const currentOrder = data.order;
                 const onlineIds = Object.keys(playersMap);
-                const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
-                if (ghosts.length > 0) {
-                    const newOrder = currentOrder.filter(id => onlineIds.includes(id));
-                    if (newOrder.length < 2) {
-                        update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
+                if (!isSinglePlayerMode) {
+                    const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
+                    if (ghosts.length > 0) {
+                        const newOrder = currentOrder.filter(id => onlineIds.includes(id));
+                        if (newOrder.length < 2) {
+                            update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
+                            return;
+                        }
+                        let newIndex = data.currentTurnIndex;
+                        if (newIndex >= newOrder.length) newIndex = 0;
+                        update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
                         return;
                     }
-                    let newIndex = data.currentTurnIndex;
-                    if (newIndex >= newOrder.length) newIndex = 0;
-                    update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
-                    return;
                 }
             }
 
-            if (playerList.length === 1 && data.status !== 'waiting') {
+            if (playerList.length === 1 && data.status !== 'waiting' && !isSinglePlayerMode) {
                 update(roomRef, {
                     status: 'waiting',
                     msg: '新局開始，等待加入...',
@@ -504,7 +657,7 @@
                     topCard: null,
                     drawPenalty: null,
                     currentAuditColor: null,
-                    direction: 1 // 重置方向
+                    direction: 1 
                 });
                 return; 
             }
@@ -513,6 +666,14 @@
                 if(!document.getElementById('screen-game').classList.contains('active')){
                     switchScreen('screen-game');
                     if(myHand.length === 0) dealCardsToSelf(7);
+                    
+                    if(isSinglePlayerMode) {
+                        playerList.forEach(p => {
+                            if(p.id.startsWith('bot_')) {
+                                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + p.id), { handCount: 7 });
+                            }
+                        });
+                    }
                 }
                 
                 updateGameUI(data, playerList); 
@@ -593,7 +754,7 @@
                     msg: "遊戲開始！",
                     winnerName: null,
                     drawPenalty: null,
-                    direction: 1 // V20: 初始化方向 1 (順時針)
+                    direction: 1 
                 });
             }, { onlyOnce: true });
         };
@@ -713,7 +874,6 @@
                 return;
             }
 
-            // V20: 修改核心邏輯以支援 Reverse
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const roomData = snap.val();
                 let currentIndex = roomData.currentTurnIndex || 0;
@@ -729,7 +889,6 @@
                     jump = 2; msgAction = "(下家被跳過!)"; 
                 } 
                 else if (selectedCard.action === 'draw2') { 
-                    // Draw2 攻擊誰？需要根據方向計算
                     const victimIndex = (currentIndex + (1 * direction) + playerOrder.length) % playerOrder.length;
                     const victimId = playerOrder[victimIndex];
                     jump = 2; 
@@ -750,18 +909,14 @@
                 }
                 else if (selectedCard.action === 'reverse') {
                     if (playerOrder.length === 2) {
-                        // 兩人對戰：Reverse = Skip
                         jump = 2;
                         msgAction = "(兩人對戰: 迴轉=跳過!)";
                     } else {
-                        // 多人：改變方向
                         direction *= -1;
                         msgAction = "(迴轉!)";
                     }
                 }
 
-                // 計算下一家：(目前位置 + (步數 * 方向)) % 總人數
-                // + playerOrder.length 是為了防止負數
                 let nextIndex = (currentIndex + (jump * direction)) % playerOrder.length;
                 if (nextIndex < 0) nextIndex += playerOrder.length;
                 
@@ -771,7 +926,7 @@
                     currentAuditColor: nextAuditColor,
                     msg: `${myName} 出了 ${selectedCard.n} ${msgAction}`,
                     drawPenalty: penalty,
-                    direction: direction // 更新方向
+                    direction: direction 
                 });
             }, { onlyOnce: true });
         }
@@ -783,7 +938,6 @@
             renderHand();
             playSound('pop');
             
-            // V20: 抽牌後換下家，也要考慮方向
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const roomData = snap.val();
                 let currentIndex = roomData.currentTurnIndex || 0;
@@ -808,7 +962,7 @@
              let extraClass = '';
              if (card.action === 'draw2') actionBadge = `<span class="action-badge" style="background:#d35400">+2</span>`;
              else if (card.action === 'skip') actionBadge = `<span class="action-badge" style="background:#8e44ad">SKIP</span>`;
-             else if (card.action === 'reverse') actionBadge = `<span class="action-badge" style="background:#2980b9">REV</span>`; // New
+             else if (card.action === 'reverse') actionBadge = `<span class="action-badge" style="background:#2980b9">REV</span>`; 
              else if (card.action === 'wild') { actionBadge = `<span class="action-badge" style="background:linear-gradient(45deg, gold, white);">WILD</span>`; extraClass = 'card-wild'; }
              else if (card.action === 'wild4') { actionBadge = `<span class="action-badge" style="background:black; color:yellow;">+4</span>`; extraClass = 'card-wild4'; }
 
