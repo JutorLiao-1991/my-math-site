@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v23 - 多人混戰單機版</title>
+    <title>鳩特元素 UNO v24 - 單機模式修復版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -65,7 +65,7 @@
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
         #btn-draw { z-index: 5; position: relative; }
 
-        /* --- 浮水印 (V19 高對比版) --- */
+        /* --- 浮水印 --- */
         .table-watermark {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
             font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
@@ -116,7 +116,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v23</h1>
+        <h1>元素 UNO v24</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -232,7 +232,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        let ROOM_ID = "class_room_101"; // 預設房號
+        let ROOM_ID = "class_room_101"; 
         let roomRef = ref(db, 'rooms/' + ROOM_ID);
 
         let myId = 'user_' + Date.now(); 
@@ -247,6 +247,9 @@
         let isHandlingPenalty = false;
         let pendingPenaltyCount = 0;
         let isSinglePlayerMode = false; 
+
+        // V24: 監聽器控制變數
+        let roomListenerOff = null;
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
@@ -361,7 +364,6 @@
             }
         }
 
-        // V21 卡牌庫: Reverse = Al, Cr, Sn
         const allCards = [
             { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
             { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
@@ -438,10 +440,14 @@
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
+            // V24: 確保先切斷舊的監聽
+            if (roomListenerOff) {
+                roomListenerOff();
+                roomListenerOff = null;
+            }
+
             if (mode === 'single') {
                 isSinglePlayerMode = true;
-                
-                // V23: 詢問要幾個機器人
                 let botCount = parseInt(prompt("要加幾個機器人？(1-7)", "3"));
                 if (isNaN(botCount) || botCount < 1) botCount = 1;
                 if (botCount > 7) botCount = 7;
@@ -449,6 +455,9 @@
                 ROOM_ID = "single_player_" + Date.now();
                 roomRef = ref(db, 'rooms/' + ROOM_ID);
                 document.getElementById('room-code-display').innerText = "房號: 單機練習室";
+
+                // V24: 先建立監聽，再寫入資料
+                setupRoomListener();
 
                 get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                     const players = snapshot.val() || {};
@@ -464,7 +473,6 @@
                     document.getElementById('my-name-display').innerText = `我: ${myName}`;
                     switchScreen('screen-lobby');
 
-                    // V23: 產生指定數量的機器人
                     setTimeout(() => {
                         const botNames = ["🤖 氫寶", "🤖 氦寶", "🤖 鋰寶", "🤖 鈹寶", "🤖 硼寶", "🤖 碳寶", "🤖 氮寶"];
                         for(let i=1; i<=botCount; i++) {
@@ -476,11 +484,14 @@
                     }, 500);
                 });
             } else {
-                // 多人連線模式
-                ROOM_ID = "class_room_101"; // 恢復預設房號
+                // 多人連線
+                ROOM_ID = "class_room_101"; 
                 roomRef = ref(db, 'rooms/' + ROOM_ID);
                 document.getElementById('room-code-display').innerText = "房號: Class 101";
                 
+                // V24: 先建立監聽
+                setupRoomListener();
+
                 get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
                     const players = snapshot.val() || {};
                     const isFirstPlayer = Object.keys(players).length === 0;
@@ -500,7 +511,120 @@
             }
         };
 
-        // --- V22/V23 AI 邏輯 ---
+        // V24: 將監聽邏輯獨立封裝
+        function setupRoomListener() {
+            // 確保監聽的是當前最新的 roomRef
+            const currentRoomRef = ref(db, 'rooms/' + ROOM_ID);
+            
+            roomListenerOff = onValue(currentRoomRef, (snapshot) => {
+                const data = snapshot.val();
+                if (myName === "") return; 
+
+                const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
+
+                if (!data) {
+                    if (!isLoginScreen) {
+                        alert("房主已離開，房間解散！");
+                        location.reload(); 
+                    }
+                    return; 
+                }
+
+                const playersMap = data.players || {};
+                
+                if (isSinglePlayerMode && data.status === 'playing') {
+                    const currentPlayerId = data.order[data.currentTurnIndex];
+                    if (currentPlayerId && currentPlayerId.startsWith('bot_')) {
+                        handleBotTurn(currentPlayerId, data);
+                    }
+                }
+
+                if (!isLoginScreen && !playersMap[myId]) {
+                     alert('你已斷線，請重新登入');
+                     location.reload();
+                     return;
+                }
+
+                const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
+
+                if (!data.drawPenalty) {
+                    isHandlingPenalty = false; 
+                }
+
+                if (data.status === 'playing' && data.order) {
+                    const currentOrder = data.order;
+                    const onlineIds = Object.keys(playersMap);
+                    if (!isSinglePlayerMode) {
+                        const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
+                        if (ghosts.length > 0) {
+                            const newOrder = currentOrder.filter(id => onlineIds.includes(id));
+                            if (newOrder.length < 2) {
+                                update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
+                                return;
+                            }
+                            let newIndex = data.currentTurnIndex;
+                            if (newIndex >= newOrder.length) newIndex = 0;
+                            update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
+                            return;
+                        }
+                    }
+                }
+
+                if (playerList.length === 1 && data.status !== 'waiting' && !isSinglePlayerMode) {
+                    update(roomRef, {
+                        status: 'waiting',
+                        msg: '新局開始，等待加入...',
+                        winnerName: null,
+                        topCard: null,
+                        drawPenalty: null,
+                        currentAuditColor: null,
+                        direction: 1 
+                    });
+                    return; 
+                }
+
+                if (data.status === 'playing') {
+                    if(!document.getElementById('screen-game').classList.contains('active')){
+                        switchScreen('screen-game');
+                        if(myHand.length === 0) dealCardsToSelf(7);
+                        
+                        if(isSinglePlayerMode) {
+                            playerList.forEach(p => {
+                                if(p.id.startsWith('bot_')) {
+                                    update(ref(db, 'rooms/' + ROOM_ID + '/players/' + p.id), { handCount: 7 });
+                                }
+                            });
+                        }
+                    }
+                    
+                    updateGameUI(data, playerList); 
+
+                    if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
+                        isHandlingPenalty = true;
+                        pendingPenaltyCount = data.drawPenalty.count;
+                        document.getElementById('penalty-count-display').innerText = pendingPenaltyCount;
+                        document.getElementById('modal-penalty').classList.add('show');
+                    }
+
+                } else if (data.status === 'finished') {
+                    document.getElementById('winner-name').innerText = data.winnerName || "???";
+                    switchScreen('screen-gameover');
+                    if(data.winnerName === myName) {
+                        playSound('win');
+                        createConfetti();
+                    } else {
+                        playSound('lose');
+                    }
+                    myHand = [];
+                } else {
+                    updateLobbyUI(data, playerList);
+                    if(!document.getElementById('screen-lobby').classList.contains('active')) {
+                          switchScreen('screen-lobby');
+                    }
+                }
+            });
+        }
+
         function handleBotTurn(botId, currentData) {
             if (!isSinglePlayerMode) return; 
             
@@ -513,7 +637,7 @@
                     return; 
                 }
 
-                const canPlay = Math.random() > 0.2; // 80% 機率出牌 (稍微聰明一點)
+                const canPlay = Math.random() > 0.2; 
                 
                 if (canPlay) {
                     let validCards = allCards.filter(c => {
@@ -559,7 +683,6 @@
                         let nextIndex = (currentIndex + (jump * direction)) % currentData.order.length;
                         if (nextIndex < 0) nextIndex += currentData.order.length;
 
-                        // 取得機器人名字
                         const bName = currentData.players[botId].name || "機器人";
 
                         update(roomRef, {
@@ -592,116 +715,8 @@
                 });
                 update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (currentData.players[botId].handCount || 0) + 1 });
 
-            }, 1000); // 縮短思考時間到1秒
+            }, 1000); 
         }
-
-        onValue(roomRef, (snapshot) => {
-            const data = snapshot.val();
-            if (myName === "") return; 
-
-            const isLoginScreen = document.getElementById('screen-login').classList.contains('active');
-
-            if (!data) {
-                if (!isLoginScreen) {
-                    alert("房主已離開，房間解散！");
-                    location.reload(); 
-                }
-                return; 
-            }
-
-            const playersMap = data.players || {};
-            
-            if (isSinglePlayerMode && data.status === 'playing') {
-                const currentPlayerId = data.order[data.currentTurnIndex];
-                if (currentPlayerId && currentPlayerId.startsWith('bot_')) {
-                    handleBotTurn(currentPlayerId, data);
-                }
-            }
-
-            if (!isLoginScreen && !playersMap[myId]) {
-                 alert('你已斷線，請重新登入');
-                 location.reload();
-                 return;
-            }
-
-            const playerList = Object.keys(playersMap).map(key => ({ id: key, ...playersMap[key] }));
-
-            if (!data.drawPenalty) {
-                isHandlingPenalty = false; 
-            }
-
-            if (data.status === 'playing' && data.order) {
-                const currentOrder = data.order;
-                const onlineIds = Object.keys(playersMap);
-                if (!isSinglePlayerMode) {
-                    const ghosts = currentOrder.filter(id => !onlineIds.includes(id));
-                    if (ghosts.length > 0) {
-                        const newOrder = currentOrder.filter(id => onlineIds.includes(id));
-                        if (newOrder.length < 2) {
-                            update(roomRef, { status: 'finished', winnerName: newOrder[0] ? playersMap[newOrder[0]].name : "無人", msg: "因人數不足，遊戲結束" });
-                            return;
-                        }
-                        let newIndex = data.currentTurnIndex;
-                        if (newIndex >= newOrder.length) newIndex = 0;
-                        update(roomRef, { order: newOrder, currentTurnIndex: newIndex, msg: "有人斷線，已自動跳過" });
-                        return;
-                    }
-                }
-            }
-
-            if (playerList.length === 1 && data.status !== 'waiting' && !isSinglePlayerMode) {
-                update(roomRef, {
-                    status: 'waiting',
-                    msg: '新局開始，等待加入...',
-                    winnerName: null,
-                    topCard: null,
-                    drawPenalty: null,
-                    currentAuditColor: null,
-                    direction: 1 
-                });
-                return; 
-            }
-
-            if (data.status === 'playing') {
-                if(!document.getElementById('screen-game').classList.contains('active')){
-                    switchScreen('screen-game');
-                    if(myHand.length === 0) dealCardsToSelf(7);
-                    
-                    if(isSinglePlayerMode) {
-                        playerList.forEach(p => {
-                            if(p.id.startsWith('bot_')) {
-                                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + p.id), { handCount: 7 });
-                            }
-                        });
-                    }
-                }
-                
-                updateGameUI(data, playerList); 
-
-                if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
-                    isHandlingPenalty = true;
-                    pendingPenaltyCount = data.drawPenalty.count;
-                    document.getElementById('penalty-count-display').innerText = pendingPenaltyCount;
-                    document.getElementById('modal-penalty').classList.add('show');
-                }
-
-            } else if (data.status === 'finished') {
-                document.getElementById('winner-name').innerText = data.winnerName || "???";
-                switchScreen('screen-gameover');
-                if(data.winnerName === myName) {
-                    playSound('win');
-                    createConfetti();
-                } else {
-                    playSound('lose');
-                }
-                myHand = [];
-            } else {
-                updateLobbyUI(data, playerList);
-                if(!document.getElementById('screen-lobby').classList.contains('active')) {
-                      switchScreen('screen-lobby');
-                }
-            }
-        });
 
         window.confirmPenalty = function() {
             playSound('alert');
@@ -877,7 +892,7 @@
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const roomData = snap.val();
                 let currentIndex = roomData.currentTurnIndex || 0;
-                let direction = roomData.direction || 1; // 1: 順時針, -1: 逆時針
+                let direction = roomData.direction || 1; 
                 
                 let jump = 1;
                 let msgAction = "";
