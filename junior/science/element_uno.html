@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v24 - 單機模式修復版</title>
+    <title>鳩特元素 UNO v26 - 殭屍防禦最終版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -116,7 +116,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v24</h1>
+        <h1>元素 UNO v26</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -248,8 +248,8 @@
         let pendingPenaltyCount = 0;
         let isSinglePlayerMode = false; 
 
-        // V24: 監聽器控制變數
         let roomListenerOff = null;
+        let botTimer = null; // V26: 用來追蹤並殺死殭屍機器人
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
@@ -440,11 +440,11 @@
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
-            // V24: 確保先切斷舊的監聽
             if (roomListenerOff) {
                 roomListenerOff();
                 roomListenerOff = null;
             }
+            if (botTimer) clearTimeout(botTimer); // 清除舊機器人
 
             if (mode === 'single') {
                 isSinglePlayerMode = true;
@@ -456,7 +456,6 @@
                 roomRef = ref(db, 'rooms/' + ROOM_ID);
                 document.getElementById('room-code-display').innerText = "房號: 單機練習室";
 
-                // V24: 先建立監聽，再寫入資料
                 setupRoomListener();
 
                 get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
@@ -478,18 +477,16 @@
                         for(let i=1; i<=botCount; i++) {
                             const botId = 'bot_' + Date.now() + '_' + i;
                             const name = botNames[i-1] || `🤖 機器人${i}`;
-                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { name: name, handCount: 0 });
+                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { name: name, handCount: 7 });
                         }
                         setTimeout(startGame, 1000); 
                     }, 500);
                 });
             } else {
-                // 多人連線
                 ROOM_ID = "class_room_101"; 
                 roomRef = ref(db, 'rooms/' + ROOM_ID);
                 document.getElementById('room-code-display').innerText = "房號: Class 101";
                 
-                // V24: 先建立監聽
                 setupRoomListener();
 
                 get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
@@ -511,9 +508,7 @@
             }
         };
 
-        // V24: 將監聽邏輯獨立封裝
         function setupRoomListener() {
-            // 確保監聽的是當前最新的 roomRef
             const currentRoomRef = ref(db, 'rooms/' + ROOM_ID);
             
             roomListenerOff = onValue(currentRoomRef, (snapshot) => {
@@ -628,92 +623,104 @@
         function handleBotTurn(botId, currentData) {
             if (!isSinglePlayerMode) return; 
             
-            setTimeout(() => {
-                if (currentData.drawPenalty && currentData.drawPenalty.targetId === botId) {
-                    const count = currentData.drawPenalty.count;
-                    playSound('pop');
-                    update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (currentData.players[botId].handCount || 0) + count });
-                    update(roomRef, { drawPenalty: null });
-                    return; 
-                }
+            if (botTimer) clearTimeout(botTimer); // 清除上一個機器人的思考
 
-                const canPlay = Math.random() > 0.2; 
-                
-                if (canPlay) {
-                    let validCards = allCards.filter(c => {
-                        if (c.action === 'wild' || c.action === 'wild4') return true;
-                        if (currentAuditColor) return c.c === currentAuditColor;
-                        return c.c === currentTopCard.c || c.p === currentTopCard.p;
-                    });
+            botTimer = setTimeout(() => {
+                // ★ V26 關鍵修正：再次檢查遊戲狀態，避免「前朝餘孽」作祟
+                get(roomRef).then(snapshot => {
+                   const latestData = snapshot.val();
+                   if (!latestData || latestData.status !== 'playing') return; // 遊戲已結束或重置，停止動作
+                   if (latestData.order[latestData.currentTurnIndex] !== botId) return; // 已經不是該機器人的回合，停止動作
 
-                    if (validCards.length > 0) {
-                        validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
-                        const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
-                        
-                        playSound('pop');
-                        
-                        let currentIndex = currentData.currentTurnIndex;
-                        let direction = currentData.direction || 1;
-                        let jump = 1;
-                        let msgAction = "";
-                        let penalty = null;
-                        let nextAuditColor = null;
-                        let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
+                   // 使用 latestData 進行決策，確保不會覆寫新狀態
+                   const botData = latestData;
+                   
+                   if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
+                       const count = botData.drawPenalty.count;
+                       playSound('pop');
+                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (botData.players[botId].handCount || 0) + count });
+                       update(roomRef, { drawPenalty: null });
+                       return; 
+                   }
 
-                        if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
-                        else if (cardToPlay.action === 'draw2') { 
-                            const victimIndex = (currentIndex + (1 * direction) + currentData.order.length) % currentData.order.length;
-                            const victimId = currentData.order[victimIndex];
-                            jump = 2; msgAction = "(攻擊!)"; 
-                            penalty = { targetId: victimId, count: 2 }; 
-                        }
-                        else if (cardToPlay.action === 'wild4') { 
-                            const victimIndex = (currentIndex + (1 * direction) + currentData.order.length) % currentData.order.length;
-                            const victimId = currentData.order[victimIndex];
-                            jump = 2; msgAction = "(核爆!)"; 
-                            penalty = { targetId: victimId, count: 4 }; 
-                            nextAuditColor = chosenColor; 
-                        }
-                        else if (cardToPlay.action === 'wild') { msgAction = "(轉色!)"; nextAuditColor = chosenColor; }
-                        else if (cardToPlay.action === 'reverse') {
-                             if (currentData.order.length === 2) { jump = 2; msgAction = "(跳過!)"; }
-                             else { direction *= -1; msgAction = "(迴轉!)"; }
-                        }
+                   const canPlay = Math.random() > 0.2; 
+                   
+                   if (canPlay) {
+                       let validCards = allCards.filter(c => {
+                           if (c.action === 'wild' || c.action === 'wild4') return true;
+                           if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
+                           return c.c === botData.topCard.c || c.p === botData.topCard.p;
+                       });
 
-                        let nextIndex = (currentIndex + (jump * direction)) % currentData.order.length;
-                        if (nextIndex < 0) nextIndex += currentData.order.length;
+                       if (validCards.length > 0) {
+                           validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
+                           const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
+                           
+                           playSound('pop');
+                           
+                           let currentIndex = botData.currentTurnIndex;
+                           let direction = botData.direction || 1;
+                           let jump = 1;
+                           let msgAction = "";
+                           let penalty = null;
+                           let nextAuditColor = null;
+                           let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
 
-                        const bName = currentData.players[botId].name || "機器人";
+                           if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
+                           else if (cardToPlay.action === 'draw2') { 
+                               const victimIndex = (currentIndex + (1 * direction) + botData.order.length) % botData.order.length;
+                               const victimId = botData.order[victimIndex];
+                               jump = 2; msgAction = "(攻擊!)"; 
+                               penalty = { targetId: victimId, count: 2 }; 
+                           }
+                           else if (cardToPlay.action === 'wild4') { 
+                               const victimIndex = (currentIndex + (1 * direction) + botData.order.length) % botData.order.length;
+                               const victimId = botData.order[victimIndex];
+                               jump = 2; msgAction = "(核爆!)"; 
+                               penalty = { targetId: victimId, count: 4 }; 
+                               nextAuditColor = chosenColor; 
+                           }
+                           else if (cardToPlay.action === 'wild') { msgAction = "(轉色!)"; nextAuditColor = chosenColor; }
+                           else if (cardToPlay.action === 'reverse') {
+                                if (botData.order.length === 2) { jump = 2; msgAction = "(跳過!)"; }
+                                else { direction *= -1; msgAction = "(迴轉!)"; }
+                           }
 
-                        update(roomRef, {
-                            topCard: cardToPlay,
-                            currentTurnIndex: nextIndex,
-                            currentAuditColor: nextAuditColor,
-                            msg: `${bName} 出了 ${cardToPlay.n} ${msgAction}`,
-                            drawPenalty: penalty,
-                            direction: direction
-                        });
-                        
-                        let currentCount = currentData.players[botId].handCount || 0;
-                        if (currentCount > 0) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: currentCount - 1 });
-                        
-                        if (currentCount - 1 <= 0) {
-                             update(roomRef, { status: 'finished', winnerName: bName, msg: `${bName} 統治了世界！` });
-                        }
-                        return;
-                    }
-                }
+                           let nextIndex = (currentIndex + (jump * direction)) % botData.order.length;
+                           if (nextIndex < 0) nextIndex += botData.order.length;
 
-                playSound('pop');
-                let nextIndex = (currentData.currentTurnIndex + (1 * (currentData.direction||1))) % currentData.order.length;
-                if (nextIndex < 0) nextIndex += currentData.order.length;
-                
-                const bName = currentData.players[botId].name || "機器人";
-                update(roomRef, {
-                    currentTurnIndex: nextIndex,
-                    msg: `${bName} 抽了一張牌`
+                           const bName = botData.players[botId].name || "機器人";
+
+                           update(roomRef, {
+                               topCard: cardToPlay,
+                               currentTurnIndex: nextIndex,
+                               currentAuditColor: nextAuditColor,
+                               msg: `${bName} 出了 ${cardToPlay.n} ${msgAction}`,
+                               drawPenalty: penalty,
+                               direction: direction
+                           });
+                           
+                           let currentCount = botData.players[botId].handCount || 0;
+                           if (currentCount > 0) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: currentCount - 1 });
+                           
+                           if (currentCount - 1 <= 0) {
+                                update(roomRef, { status: 'finished', winnerName: bName, msg: `${bName} 統治了世界！` });
+                           }
+                           return;
+                       }
+                   }
+
+                   playSound('pop');
+                   let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
+                   if (nextIndex < 0) nextIndex += botData.order.length;
+                   
+                   const bName = botData.players[botId].name || "機器人";
+                   update(roomRef, {
+                       currentTurnIndex: nextIndex,
+                       msg: `${bName} 抽了一張牌`
+                   });
+                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (botData.players[botId].handCount || 0) + 1 });
                 });
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (currentData.players[botId].handCount || 0) + 1 });
 
             }, 1000); 
         }
@@ -754,24 +761,34 @@
         }
 
         window.startGame = function() {
-            onValue(ref(db, 'rooms/' + ROOM_ID + '/players'), (snap) => {
-                const pMap = snap.val();
+            if (botTimer) clearTimeout(botTimer); // 再次確保清除
+
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then((snapshot) => {
+                const pMap = snapshot.val();
+                const updates = {};
+                
+                Object.keys(pMap).forEach(key => {
+                    updates['rooms/' + ROOM_ID + '/players/' + key + '/handCount'] = 7;
+                });
+
                 const pIds = Object.keys(pMap);
                 let startCard;
                 do { startCard = allCards[Math.floor(Math.random() * allCards.length)]; } while (startCard.action);
 
-                update(roomRef, {
-                    status: 'playing',
-                    order: pIds,
-                    currentTurnIndex: 0,
-                    topCard: startCard,
-                    currentAuditColor: null, 
-                    msg: "遊戲開始！",
-                    winnerName: null,
-                    drawPenalty: null,
-                    direction: 1 
+                update(ref(db), updates).then(() => {
+                    update(roomRef, {
+                        status: 'playing',
+                        order: pIds,
+                        currentTurnIndex: 0,
+                        topCard: startCard,
+                        currentAuditColor: null, 
+                        msg: "遊戲開始！",
+                        winnerName: null,
+                        drawPenalty: null,
+                        direction: 1 
+                    });
                 });
-            }, { onlyOnce: true });
+            });
         };
 
         function dealCardsToSelf(num) {
@@ -969,6 +986,7 @@
         };
 
         window.backToLobby = function() {
+             if (botTimer) clearTimeout(botTimer); // 離開遊戲時清除
              update(roomRef, { status: 'waiting', msg: '等待新賽局' });
         }
 
