@@ -310,6 +310,96 @@ var jutorDB = {
           "en": "food",
           "ch": "食物",
           "sentence": "We need food to live and grow."
+        },
+        {
+          "en": "some",
+          "ch": "一些的 (亦當代名詞)",
+          "sentence": "I need some water."
+        },
+        {
+          "en": "any",
+          "ch": "任何的 (亦當代名詞)",
+          "sentence": "Do you have any questions?"
+        },
+        {
+          "en": "right",
+          "ch": "正確的",
+          "sentence": "That's the right answer."
+        },
+        {
+          "en": "full",
+          "ch": "飽的；滿的",
+          "sentence": "The glass is full of water."
+        },
+        {
+          "en": "healthy",
+          "ch": "健康的",
+          "sentence": "Eating vegetables keeps you healthy."
+        },
+        {
+          "en": "clean",
+          "ch": "乾淨的",
+          "sentence": "Please keep your room clean."
+        },
+        {
+          "en": "so",
+          "ch": "如此地",
+          "sentence": "It was so cold yesterday."
+        },
+        {
+          "en": "over there",
+          "ch": "在那裡",
+          "sentence": "My car is parked over there."
+        },
+        {
+          "en": "clean up",
+          "ch": "清理；打掃",
+          "sentence": "We need to clean up the mess."
+        },
+        {
+          "en": "thanks to",
+          "ch": "幸虧；由於",
+          "sentence": "Thanks to your help, we finished on time."
+        },
+        {
+          "en": "herd",
+          "ch": "獸群",
+          "sentence": "A herd of elephants walked by."
+        },
+        {
+          "en": "oxpecker",
+          "ch": "牛椋鳥",
+          "sentence": "An oxpecker often sits on the back of a rhino."
+        },
+        {
+          "en": "expert",
+          "ch": "專家",
+          "sentence": "She is an expert in computer programming."
+        },
+        {
+          "en": "coat",
+          "ch": "毛皮",
+          "sentence": "I need a warm coat in winter."
+        },
+        {
+          "en": "never",
+          "ch": "從不",
+          "sentence": "I never eat meat."
+        },
+        {
+          "en": "luckily",
+          "ch": "幸運地",
+          "sentence": "Luckily, no one was hurt in the accident."
+        },
+        {
+          "en": "know",
+          "ch": "知道",
+          "sentence": "Do you know the answer?"
+        },
+        {
+          "en": "provide",
+          "ch": "提供",
+          "sentence": "The hotel provides free Wi-Fi."
         }
       ]
     }
