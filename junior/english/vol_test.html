@@ -12,6 +12,19 @@
         
         select, input, button { font-size: 1.1rem; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; -webkit-appearance: none; }
         
+        /* 品牌 Logo 樣式 */
+        .brand-logo {
+            display: inline-block;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 5px 15px;
+            border-radius: 50px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
         .btn-primary { background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-exam { background: var(--exam); color: white; border: none; font-weight: bold; cursor: pointer; }
         .btn-giveup { background: #95a5a6; color: white; border: none; font-size: 0.9rem; margin-top: 10px; display: none; }
@@ -47,7 +60,8 @@
 
 <div class="container">
     <div id="setup-screen">
-        <h1 style="color: var(--primary);">英語單字與句型測驗</h1>
+        <div class="brand-logo">鳩特數理</div>
+        <h1 style="color: var(--primary); margin-top: 5px;">英語單字與句型測驗</h1>
         
         <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 1. 選擇年級 --</option></select>
         <select id="versionSelect" onchange="updateRanges()"><option value="">-- 2. 選擇版本 --</option></select>
@@ -77,7 +91,7 @@
 
         <div style="margin-top: 10px; display: flex; gap: 10px; flex-direction: column;">
             <button class="btn-primary" onclick="startQuiz('practice')">💪 開始練習</button>
-            <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混合20題)</button>
+            <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混和20題)</button>
         </div>
         
         <div style="margin-top: 20px;">
@@ -98,7 +112,9 @@
         <div id="step-spelling">
             <div class="listening-icon" onclick="playCurrentWord()" title="點擊重聽">🔊</div>
             <div id="questionDisplay" class="cloze-sentence"></div>
-            <input type="text" id="spellingInput" placeholder="輸入答案" autocomplete="off" style="text-align:center; font-size:1.3rem; letter-spacing: 0.5px;">
+            
+            <input type="text" id="spellingInput" placeholder="輸入答案" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="text-align:center; font-size:1.3rem; letter-spacing: 0.5px;">
+            
             <button id="submitBtn" class="btn-primary" onclick="checkSpelling()">送出 (Enter)</button>
             <button id="giveUpBtn" class="btn-giveup" onclick="giveUpSpelling()">🏳️ 我認輸，看答案</button>
         </div>
@@ -220,28 +236,16 @@
             document.getElementById('scoreDisplay').classList.remove('hidden');
             document.getElementById('currentScore').textContent = '0';
         } else {
-            // --- 練習模式邏輯 (支援分類) ---
-            if (pType === 'word') {
-                currentList = wordList;
-            } else if (pType === 'sentence') {
+            if (pType === 'word') currentList = wordList;
+            else if (pType === 'sentence') {
                 if (sentenceList.length === 0) return alert("此範圍目前沒有句型資料喔！");
                 currentList = sentenceList;
-            } else {
-                // 混合
-                currentList = [...sentenceList, ...wordList];
-            }
+            } else currentList = [...sentenceList, ...wordList];
             
-            // 洗牌
             currentList.sort(() => Math.random() - 0.5);
-            
-            // 題數截斷邏輯 (防呆：如果題目不夠，就全考，不報錯)
             let limit = (pCount === 'all') ? currentList.length : parseInt(pCount);
-            if (currentList.length < limit) {
-                // 默默接受，或者可以 alert 提示
-                // alert(`目前只有 ${currentList.length} 題，將全部測驗！`); 
-            }
+            if (currentList.length < limit) { /* 不做動作，接受 */ }
             currentList = currentList.slice(0, limit);
-            
             document.getElementById('scoreDisplay').classList.add('hidden');
         }
 
@@ -310,11 +314,9 @@
 
     function checkSpelling() {
         if (isSubmitted) return; 
-        
         const input = document.getElementById('spellingInput').value.trim();
         const feedback = document.getElementById('feedback');
         const correctAns = currentWordObj.en.trim();
-        
         if (quizMode === 'exam') isSubmitted = true; 
 
         if (isSentenceMode) {
@@ -346,7 +348,6 @@
                 }
             }
             if (quizMode === 'exam') document.getElementById('currentScore').textContent = score;
-
         } else {
             if (input.toLowerCase() === correctAns.toLowerCase()) {
                 isSubmitted = true; 
@@ -400,14 +401,11 @@
         const input = document.getElementById('spellingInput');
         const feedback = document.getElementById('feedback');
         const btn = document.getElementById('giveUpBtn');
-
         input.value = currentWordObj.en;
         input.disabled = true; 
         document.getElementById('submitBtn').disabled = true;
-        
         feedback.textContent = "正確答案是： " + currentWordObj.en;
         feedback.className = "feedback text-partial";
-
         btn.textContent = "👌 我懂了 (重新測驗)";
         btn.className = "btn-retry"; 
         btn.onclick = resetCurrentQuestion; 
@@ -418,16 +416,13 @@
         document.getElementById('spellingInput').disabled = false;
         document.getElementById('submitBtn').disabled = false;
         document.getElementById('feedback').textContent = '';
-        
         const btn = document.getElementById('giveUpBtn');
         btn.style.display = 'none'; 
         btn.textContent = "🏳️ 我認輸，看答案";
         btn.className = "btn-giveup";
         btn.onclick = giveUpSpelling;
-
         spellingAttempts = 0;
         isSubmitted = false;
-
         document.getElementById('spellingInput').focus();
         playCurrentWord();
     }
