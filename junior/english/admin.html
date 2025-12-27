@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>鳩特數理 - AI 雲端出題後台 (Gemini 2.5)</title>
+    <title>鳩特數理 - AI 雲端出題後台 (會考衝刺版)</title>
     <script src="database.js"></script>
     <style>
         body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #2c3e50; color: #ecf0f1; max-width: 800px; margin: 0 auto; }
@@ -54,7 +54,7 @@
 </div>
 
 <div id="main-app" class="hidden">
-    <h1>鳩特數理 - AI 全自動出題後台 (v2.5)</h1>
+    <h1>鳩特數理 - AI 全自動出題後台 (會考衝刺版)</h1>
 
     <div class="panel">
         <h3 onclick="togglePanel('configPanel')">⚙️ 系統連線設定 (點此展開) <span id="configState">◀</span></h3>
@@ -95,11 +95,13 @@
                 <option value="國一">國一</option>
                 <option value="國二">國二</option>
                 <option value="國三">國三</option>
+                <option value="會考複習" style="background: #e67e22; color: white;">★ 會考複習</option>
             </select>
             <select id="version">
                 <option value="翰林版">翰林版</option>
                 <option value="康軒版">康軒版</option>
                 <option value="南一版">南一版</option>
+                <option value="全廠商">全廠商 (會考用)</option>
             </select>
         </div>
         
@@ -107,16 +109,7 @@
             <select id="bookSelect">
                 </select>
             <select id="unitSelect">
-                <option value="Unit 1">Unit 1</option>
-                <option value="Unit 2">Unit 2</option>
-                <option value="Unit 3">Unit 3</option>
-                <option value="Unit 4">Unit 4</option>
-                <option value="Unit 5">Unit 5</option>
-                <option value="Unit 6">Unit 6</option>
-                <option value="Review 1">Review 1</option>
-                <option value="Review 2">Review 2</option>
-                <option value="Review 3">Review 3</option>
-            </select>
+                </select>
         </div>
 
         <textarea id="jsonInput" placeholder='等待 AI 辨識結果...'></textarea>
@@ -136,16 +129,31 @@
 
 <script>
     // ==========================================
-    // 🔑 後台登入密碼 (已更新)
+    // 🔑 後台登入密碼
     const MY_ADMIN_PASSWORD = "357080"; 
     // ==========================================
 
     let db = (typeof jutorDB !== 'undefined') ? jutorDB : {};
 
+    // 定義書本結構
     const bookMap = {
         "國一": ["Book 1", "Book 2"],
         "國二": ["Book 3", "Book 4"],
-        "國三": ["Book 5", "Book 6"]
+        "國三": ["Book 5", "Book 6"],
+        "會考複習": ["會考單字(全)"]
+    };
+
+    // 定義單元結構 (一般 vs 會考)
+    const unitMap = {
+        "standard": [
+            "Unit 1", "Unit 2", "Unit 3", "Unit 4", "Unit 5", "Unit 6", 
+            "Review 1", "Review 2", "Review 3"
+        ],
+        "exam": [
+            "Part A-C", "Part D-F", "Part G-I", "Part J-L", 
+            "Part M-O", "Part P-R", "Part S-U", "Part V-Z",
+            "精選重要單字", "易混淆單字"
+        ]
     };
 
     window.onload = function() {
@@ -155,21 +163,38 @@
         if(localStorage.getItem('gh_path')) document.getElementById('filePath').value = localStorage.getItem('gh_path');
         if(localStorage.getItem('gh_token')) document.getElementById('githubToken').value = localStorage.getItem('gh_token');
         if(localStorage.getItem('gemini_key')) document.getElementById('geminiKey').value = localStorage.getItem('gemini_key');
-        updateBooks();
+        updateBooks(); // 初始化選單
         renderPreview();
     }
 
+    // 連動邏輯：年級 -> 書本 -> 單元
     function updateBooks() {
         const grade = document.getElementById('grade').value;
         const bookSelect = document.getElementById('bookSelect');
+        const unitSelect = document.getElementById('unitSelect');
+        const versionSelect = document.getElementById('version');
+
+        // 1. 更新書本
         bookSelect.innerHTML = '';
         const books = bookMap[grade] || [];
         books.forEach(b => {
-            const opt = document.createElement('option');
-            opt.value = b;
-            opt.textContent = b;
-            bookSelect.appendChild(opt);
+            bookSelect.add(new Option(b, b));
         });
+
+        // 2. 更新單元 (根據是否為會考複習)
+        unitSelect.innerHTML = '';
+        let units = (grade === "會考複習") ? unitMap.exam : unitMap.standard;
+        
+        units.forEach(u => {
+            unitSelect.add(new Option(u, u));
+        });
+
+        // 3. 自動切換版本建議
+        if (grade === "會考複習") {
+            versionSelect.value = "全廠商";
+        } else if (versionSelect.value === "全廠商") {
+            versionSelect.value = "翰林版"; // 切回來預設
+        }
     }
 
     function verifyLogin() {
@@ -228,7 +253,6 @@
             reader.onerror = error => reject(error);
         });
 
-        // Prompt 設定
         const promptText = `
             你是一個英語教材數位化專家。請辨識圖片內容，並將其分類為「單字」與「句型」。
             請回傳一個純 JSON 物件 (不要 Markdown)，格式如下：
@@ -248,7 +272,6 @@
         `;
 
         try {
-            // ★★★ 更新為 Gemini 2.5 Flash 模型 ★★★
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
