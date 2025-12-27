@@ -38,8 +38,9 @@
         .score-board { display: flex; justify-content: space-around; background: #eee; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 0.9rem; font-weight: bold; color: #555; }
         .sentence-mode .cloze-sentence { color: #e67e22; }
         
-        .practice-settings { display: flex; align-items: center; gap: 10px; margin-top: 10px; background: #f0f3f5; padding: 5px 10px; border-radius: 8px; }
-        .practice-settings select { margin: 0; padding: 8px; flex: 1; font-size: 1rem; }
+        .practice-settings { display: flex; align-items: center; gap: 5px; margin-top: 10px; background: #f0f3f5; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
+        .practice-settings label { font-size: 0.9rem; color: #555; font-weight: bold; margin-right: 5px;}
+        .practice-settings select { margin: 0; padding: 8px; font-size: 1rem; flex: 1; min-width: 120px; }
     </style>
 </head>
 <body>
@@ -53,20 +54,30 @@
         <select id="rangeSelect"><option value="">-- 3. 選擇範圍 --</option></select>
         
         <div class="practice-settings">
-            <label>練習題數:</label>
-            <select id="practiceCount">
-                <option value="5">5 題 (快速)</option>
-                <option value="10">10 題</option>
-                <option value="15">15 題</option>
-                <option value="20">20 題</option>
-                <option value="25">25 題</option>
-                <option value="all">全部題目</option>
-            </select>
+            <div style="flex: 100%; display: flex; align-items: center; margin-bottom: 5px;">
+                <label>練習內容:</label>
+                <select id="practiceType">
+                    <option value="mixed">混合 (單字+句型)</option>
+                    <option value="word">只練單字</option>
+                    <option value="sentence">只練句型</option>
+                </select>
+            </div>
+            <div style="flex: 100%; display: flex; align-items: center;">
+                <label>練習題數:</label>
+                <select id="practiceCount">
+                    <option value="5">5 題 (快速)</option>
+                    <option value="10">10 題</option>
+                    <option value="15">15 題</option>
+                    <option value="20">20 題</option>
+                    <option value="25">25 題</option>
+                    <option value="all">全部題目</option>
+                </select>
+            </div>
         </div>
 
         <div style="margin-top: 10px; display: flex; gap: 10px; flex-direction: column;">
             <button class="btn-primary" onclick="startQuiz('practice')">💪 開始練習</button>
-            <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混合20題)</button>
+            <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混和20題)</button>
         </div>
         
         <div style="margin-top: 20px;">
@@ -160,7 +171,7 @@
     }
 
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
-    let isSubmitted = false; // ★防止重複送出標記
+    let isSubmitted = false;
 
     window.onload = function() {
         if (typeof jutorDB === 'undefined') return;
@@ -189,6 +200,7 @@
         const g = document.getElementById('gradeSelect').value;
         const v = document.getElementById('versionSelect').value;
         const r = document.getElementById('rangeSelect').value;
+        const pType = document.getElementById('practiceType').value;
         const pCount = document.getElementById('practiceCount').value;
 
         if (!g || !v || !r) return alert("請完整選擇年級、版本與範圍！");
@@ -208,11 +220,28 @@
             document.getElementById('scoreDisplay').classList.remove('hidden');
             document.getElementById('currentScore').textContent = '0';
         } else {
-            currentList = wordList;
-            currentList.sort(() => Math.random() - 0.5);
-            if (pCount !== 'all') {
-                currentList = currentList.slice(0, parseInt(pCount));
+            // --- 練習模式邏輯 (支援分類) ---
+            if (pType === 'word') {
+                currentList = wordList;
+            } else if (pType === 'sentence') {
+                if (sentenceList.length === 0) return alert("此範圍目前沒有句型資料喔！");
+                currentList = sentenceList;
+            } else {
+                // 混合
+                currentList = [...sentenceList, ...wordList];
             }
+            
+            // 洗牌
+            currentList.sort(() => Math.random() - 0.5);
+            
+            // 題數截斷邏輯 (防呆：如果題目不夠，就全考，不報錯)
+            let limit = (pCount === 'all') ? currentList.length : parseInt(pCount);
+            if (currentList.length < limit) {
+                // 默默接受，或者可以 alert 提示
+                // alert(`目前只有 ${currentList.length} 題，將全部測驗！`); 
+            }
+            currentList = currentList.slice(0, limit);
+            
             document.getElementById('scoreDisplay').classList.add('hidden');
         }
 
@@ -227,7 +256,7 @@
     function loadQuestion() {
         currentWordObj = currentList[currentIndex];
         spellingAttempts = 0;
-        isSubmitted = false; // ★重置送出狀態
+        isSubmitted = false; 
         isSentenceMode = currentWordObj.en.includes(' ');
 
         document.getElementById('step-spelling').classList.remove('hidden');
@@ -235,10 +264,9 @@
         document.getElementById('step-next').classList.add('hidden');
         document.getElementById('feedback').textContent = '';
         document.getElementById('spellingInput').value = '';
-        document.getElementById('spellingInput').disabled = false; // 解鎖輸入
-        document.getElementById('submitBtn').disabled = false;     // 解鎖按鈕
+        document.getElementById('spellingInput').disabled = false; 
+        document.getElementById('submitBtn').disabled = false;     
         
-        // 重置放棄按鈕狀態
         const giveUpBtn = document.getElementById('giveUpBtn');
         giveUpBtn.style.display = 'none';
         giveUpBtn.textContent = "🏳️ 我認輸，看答案";
@@ -281,42 +309,36 @@
     }
 
     function checkSpelling() {
-        if (isSubmitted) return; // ★防止重複送出
+        if (isSubmitted) return; 
         
         const input = document.getElementById('spellingInput').value.trim();
         const feedback = document.getElementById('feedback');
         const correctAns = currentWordObj.en.trim();
         
-        // 考試模式：答錯不能重試，所以這裡先標記已送出
         if (quizMode === 'exam') isSubmitted = true; 
 
         if (isSentenceMode) {
-            // --- 句型題 ---
             let dist = levenshtein(input.toLowerCase(), correctAns.toLowerCase());
             let maxPoints = 5;
             let earnedPoints = Math.max(0, maxPoints - dist);
             if (Math.abs(input.length - correctAns.length) > 5) earnedPoints = Math.max(0, earnedPoints - 2);
 
             if (dist === 0 || input === correctAns) {
-                // 答對
-                isSubmitted = true; // 鎖定
+                isSubmitted = true; 
                 playSound('correct');
                 feedback.textContent = "Perfect! 完全正確！";
                 feedback.className = "feedback text-correct";
                 if (quizMode === 'exam') score += 5;
                 showNextButton();
             } else {
-                // 答錯
                 playSound('wrong');
                 if (quizMode === 'exam') {
-                    // ★考試模式：直接給分並跳下一題
                     score += earnedPoints;
                     document.getElementById('currentScore').textContent = score;
                     feedback.textContent = `不完全正確。\n你的答案：${input}\n正確答案：${correctAns}\n(誤差 ${dist} 處，得 ${earnedPoints} 分)`;
                     feedback.className = "feedback text-partial";
                     showNextButton();
                 } else {
-                    // ★練習模式：允許重試 (解鎖)
                     if (quizMode !== 'exam') isSubmitted = false; 
                     feedback.textContent = `有 ${dist} 處不同，再試一次！`;
                     feedback.className = "feedback text-wrong";
@@ -326,10 +348,8 @@
             if (quizMode === 'exam') document.getElementById('currentScore').textContent = score;
 
         } else {
-            // --- 單字題 ---
             if (input.toLowerCase() === correctAns.toLowerCase()) {
-                // 答對
-                isSubmitted = true; // 鎖定
+                isSubmitted = true; 
                 playSound('correct');
                 feedback.textContent = "Bingo! 答對了！";
                 feedback.className = "feedback text-correct";
@@ -337,12 +357,9 @@
                     score += 3;
                     document.getElementById('currentScore').textContent = score;
                 }
-                
-                // 單字題多一步：選中文
                 setTimeout(() => {
                     document.getElementById('step-spelling').classList.add('hidden');
                     document.getElementById('step-meaning').classList.remove('hidden');
-                    
                     if (currentWordObj.sentence) {
                         const regex = new RegExp(currentWordObj.en, "gi");
                         const fullSentence = currentWordObj.sentence.replace(regex, `<u style="color:var(--accent);">${currentWordObj.en}</u>`);
@@ -353,22 +370,16 @@
                     generateOptions();
                     feedback.textContent = ""; 
                 }, 800);
-
             } else {
-                // 答錯
                 playSound('wrong'); 
-                
                 if (quizMode === 'exam') {
-                    // ★考試模式：直接跳下一題 (不給分，也不考中文意思了)
                     feedback.textContent = `答錯了。\n正確答案是：${correctAns}`;
                     feedback.className = "feedback text-wrong";
                     showNextButton();
                 } else {
-                    // ★練習模式：允許重試
                     if (quizMode !== 'exam') isSubmitted = false; 
                     spellingAttempts++;
                     if (spellingAttempts >= 3) document.getElementById('giveUpBtn').style.display = 'inline-block';
-                    
                     feedback.textContent = "拼錯囉，請再試一次！";
                     feedback.className = "feedback text-wrong";
                     playCurrentWord();
@@ -379,53 +390,44 @@
         }
     }
 
-    // 只有在完成題目(或考試模式答錯放棄)時才呼叫
     function showNextButton() {
         document.getElementById('step-spelling').classList.add('hidden');
         document.getElementById('step-next').classList.remove('hidden');
         document.getElementById('nextBtn').focus();
     }
 
-    // ★ 練習模式：認輸 -> 顯示答案 -> 變成「我懂了」重考機制
     function giveUpSpelling() {
         const input = document.getElementById('spellingInput');
         const feedback = document.getElementById('feedback');
         const btn = document.getElementById('giveUpBtn');
 
-        // 顯示正確答案
         input.value = currentWordObj.en;
-        input.disabled = true; // 暫時鎖住不給改
+        input.disabled = true; 
         document.getElementById('submitBtn').disabled = true;
         
         feedback.textContent = "正確答案是： " + currentWordObj.en;
         feedback.className = "feedback text-partial";
 
-        // 按鈕變身
         btn.textContent = "👌 我懂了 (重新測驗)";
-        btn.className = "btn-retry"; // 換個顏色
-        btn.onclick = resetCurrentQuestion; // 改綁定事件
+        btn.className = "btn-retry"; 
+        btn.onclick = resetCurrentQuestion; 
     }
 
-    // ★ 重新測驗當前題目 (不跳下一題)
     function resetCurrentQuestion() {
-        // 清空欄位
         document.getElementById('spellingInput').value = '';
         document.getElementById('spellingInput').disabled = false;
         document.getElementById('submitBtn').disabled = false;
         document.getElementById('feedback').textContent = '';
         
-        // 重置按鈕
         const btn = document.getElementById('giveUpBtn');
-        btn.style.display = 'none'; // 先隱藏，等錯三次再出來
+        btn.style.display = 'none'; 
         btn.textContent = "🏳️ 我認輸，看答案";
         btn.className = "btn-giveup";
         btn.onclick = giveUpSpelling;
 
-        // 重置次數
         spellingAttempts = 0;
         isSubmitted = false;
 
-        // 聚焦並重聽
         document.getElementById('spellingInput').focus();
         playCurrentWord();
     }
