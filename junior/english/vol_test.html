@@ -43,7 +43,7 @@
 
 <div class="container">
     <div id="setup-screen">
-        <h1 style="color: var(--primary);">英語單字聽寫測驗</h1>
+        <h1 style="color: var(--primary);">鳩特數理‧英語單字聽寫測驗</h1>
         
         <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 1. 選擇年級 --</option></select>
         <select id="versionSelect" onchange="updateRanges()"><option value="">-- 2. 選擇版本 --</option></select>
@@ -55,7 +55,7 @@
         </div>
         
         <div style="margin-top: 20px;">
-            <button onclick="playSound('correct')" style="background:none; border:1px dashed #ccc; color:#888; font-size:0.8rem; width:auto; padding:5px 15px;">🔊 按此測試音效 (iPad 必按)</button>
+            <button onclick="playSound('correct')" style="background:none; border:1px dashed #ccc; color:#888; font-size:0.8rem; width:auto; padding:5px 15px;">🔊 按此測試音效 (叮-咚)</button>
         </div>
 
         <p style="font-size: 0.8rem; color: #999; margin-top: 10px;">System: <span id="dataVer">Checking...</span></p>
@@ -108,33 +108,63 @@
 </div>
 
 <script>
-    // --- 1. 高品質音效生成 (解決當機問題) ---
+    // --- 1. 雙音階叮咚音效生成 ---
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
         const now = audioCtx.currentTime;
 
         if (type === 'correct') {
-            // 清脆叮咚 (C6 -> E6)
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(1046.5, now); 
-            osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.1); 
-            gain.gain.setValueAtTime(0, now);
-            gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-            osc.start(now); osc.stop(now + 0.6);
+            // 第一聲：叮 (高音 E6 1318Hz)
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(1046, now); // C6
+            
+            // 聲音包絡 (Fade out)
+            gain1.gain.setValueAtTime(0, now);
+            gain1.gain.linearRampToValueAtTime(0.3, now + 0.02);
+            gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+            
+            osc1.start(now);
+            osc1.stop(now + 0.5);
+
+            // 第二聲：咚 (低音 A5 880Hz, 延遲 0.4秒播放)
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(784, now + 0.4); // G5 (大三度下行)
+            
+            // 聲音包絡 (Longer fade out)
+            gain2.gain.setValueAtTime(0, now + 0.4);
+            gain2.gain.linearRampToValueAtTime(0.3, now + 0.42);
+            gain2.gain.exponentialRampToValueAtTime(0.001, now + 1.2);
+            
+            osc2.start(now + 0.4);
+            osc2.stop(now + 1.2);
+
         } else {
-            // 答錯嗡嗡聲
+            // 答錯音效 (低沉鋸齒波)
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.linearRampToValueAtTime(100, now + 0.3);
+            
             gain.gain.setValueAtTime(0.2, now);
             gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
-            osc.start(now); osc.stop(now + 0.3);
+            
+            osc.start(now);
+            osc.stop(now + 0.3);
         }
     }
 
@@ -161,7 +191,6 @@
         const gradeSelect = document.getElementById('gradeSelect');
         Object.keys(jutorDB).forEach(g => gradeSelect.add(new Option(g, g)));
         
-        // 綁定 Enter 鍵
         document.getElementById('spellingInput').addEventListener('keypress', (e) => { 
             if(e.key==='Enter') checkSpelling(); 
         });
@@ -200,7 +229,6 @@
             [fullList[i], fullList[j]] = [fullList[j], fullList[i]];
         }
 
-        // 考試模式只取20題，練習模式取全部
         if (mode === 'exam') {
             currentList = fullList.slice(0, 20);
         } else {
@@ -209,11 +237,9 @@
 
         if (currentList.length === 0) return alert("此範圍尚無資料！");
         
-        // 初始化狀態
         currentIndex = 0;
         score = 0;
         
-        // UI 切換
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         
@@ -231,19 +257,16 @@
         currentWordObj = currentList[currentIndex];
         spellingAttempts = 0;
 
-        // 重置介面
         document.getElementById('step-spelling').classList.remove('hidden');
         document.getElementById('step-meaning').classList.add('hidden');
         document.getElementById('step-next').classList.add('hidden');
         document.getElementById('feedback').textContent = '';
         document.getElementById('spellingInput').value = '';
-        document.getElementById('giveUpBtn').style.display = 'none'; // 隱藏放棄按鈕
+        document.getElementById('giveUpBtn').style.display = 'none';
         
-        // 更新進度條
         document.getElementById('progressText').textContent = `${currentIndex + 1} / ${currentList.length}`;
         document.getElementById('progressBar').style.width = ((currentIndex / currentList.length) * 100) + '%';
 
-        // 產生克漏字
         const displayArea = document.getElementById('questionDisplay');
         if (currentWordObj.sentence) {
             const regex = new RegExp(currentWordObj.en, "gi");
@@ -270,25 +293,21 @@
         const input = document.getElementById('spellingInput').value.trim();
         const feedback = document.getElementById('feedback');
 
-        // 比對 (忽略大小寫)
         if (input.toLowerCase() === currentWordObj.en.toLowerCase()) {
-            // 答對
+            // 答對 - 播放叮咚聲
             playSound('correct');
             feedback.textContent = "Bingo! 答對了！";
             feedback.className = "feedback text-correct";
 
-            // 計分 (僅考試模式)
             if (quizMode === 'exam') {
-                score += 3; // 拼字對得3分
+                score += 3; 
                 document.getElementById('currentScore').textContent = score;
             }
 
-            // 延遲進入下一階段
             setTimeout(() => {
                 document.getElementById('step-spelling').classList.add('hidden');
                 document.getElementById('step-meaning').classList.remove('hidden');
                 
-                // 顯示完整句子
                 if (currentWordObj.sentence) {
                     const regex = new RegExp(currentWordObj.en, "gi");
                     const fullSentence = currentWordObj.sentence.replace(regex, `<u style="color:var(--accent);">${currentWordObj.en}</u>`);
@@ -299,15 +318,13 @@
 
                 generateOptions();
                 feedback.textContent = ""; 
-            }, 600);
+            }, 800); // 稍微延遲讓音效播完
 
         } else {
-            // 答錯
             playSound('wrong'); 
             spellingAttempts++;
             
             if (quizMode === 'practice') {
-                // 練習模式：錯3次顯示放棄按鈕
                 if (spellingAttempts >= 3) {
                     document.getElementById('giveUpBtn').style.display = 'inline-block';
                     feedback.textContent = "加油！再試試看，或選擇放棄。";
@@ -315,8 +332,6 @@
                     feedback.textContent = "拼錯囉，再聽一次！";
                 }
             } else {
-                // 考試模式：錯了就錯了，提示錯誤但不給無限機會 (這裡簡單處理：允許重試但沒分，或直接扣分? 
-                // 依照需求，這裡維持簡單：提示錯誤，需訂正到對才能往下，但不加分)
                 feedback.textContent = "拼錯囉，請再試一次！";
             }
             
@@ -328,10 +343,8 @@
     }
 
     function giveUpSpelling() {
-        // 只有練習模式有這功能
         document.getElementById('spellingInput').value = currentWordObj.en;
         document.getElementById('feedback').textContent = "答案是 " + currentWordObj.en + "，請記住它！";
-        // 自動送出
         setTimeout(checkSpelling, 1500); 
     }
 
@@ -355,7 +368,6 @@
     }
 
     function checkMeaning(btn, opt) {
-        // 鎖定按鈕
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
         
         if (opt.en === currentWordObj.en) {
@@ -365,12 +377,11 @@
             playSound('correct');
 
             if (quizMode === 'exam') {
-                score += 2; // 意思對得2分 (總分5分)
+                score += 2; 
                 document.getElementById('currentScore').textContent = score;
             }
         } else {
             btn.classList.add('wrong-ans');
-            // 標示正確答案
             document.querySelectorAll('.option-btn').forEach(b => {
                 if (b.textContent === currentWordObj.ch) b.classList.add('correct-ans');
             });
@@ -399,9 +410,6 @@
         if (quizMode === 'exam') {
             document.getElementById('examResult').classList.remove('hidden');
             document.getElementById('practiceResult').classList.add('hidden');
-            
-            // 計算滿分 (因為題目可能少於20題)
-            // 這裡簡單顯示總分
             document.getElementById('finalScore').textContent = score;
         } else {
             document.getElementById('examResult').classList.add('hidden');
