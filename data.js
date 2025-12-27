@@ -69,5 +69,13 @@ const lessonData = [
         tagName: "國中理化",
         desc: "來場元素JUNO吧！"
     },
+    {
+        title: "鳩特數理‧國中單字練習",
+        category: "language",
+        url: "junior/english/vol_test.html",
+        tagClass: "lang",
+        tagName: "國中英文",
+        desc: "單字是根本中的根本，請好好來紮根。"
+    }
     // ↑↑↑ 請確保這裡有逗號，除非它是陣列中最後一個物件 ↑↑↑
 ];
