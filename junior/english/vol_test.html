@@ -13,10 +13,15 @@
         button { background: var(--accent); color: white; border: none; cursor: pointer; }
         button:hover { filter: brightness(0.9); }
         .hidden { display: none; }
-        .question-display { font-size: 1.5rem; margin: 20px 0; color: var(--primary); font-weight: bold; line-height: 1.4; }
-        .hint-text { font-size: 0.9rem; color: #7f8c8d; margin-bottom: 10px; }
-        .feedback { margin-top: 15px; font-weight: bold; min-height: 1.5em; }
+        
+        /* 調整顯示區域 */
+        .hint-area { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; }
+        .chinese-hint { font-size: 1.8rem; font-weight: bold; color: var(--primary); margin-bottom: 10px; }
+        .sentence-display { font-size: 1.3rem; color: #555; line-height: 1.5; font-style: italic; }
+        
+        .feedback { margin-top: 15px; font-weight: bold; min-height: 1.5em; font-size: 1.2rem; }
         .text-correct { color: var(--success); } .text-wrong { color: var(--error); }
+        
         .option-btn { background: #ecf0f1; color: #333; margin-top: 10px; text-align: left; transition: 0.2s; }
         .correct-ans { background: #d5f5e3 !important; border: 1px solid var(--success); }
         .wrong-ans { background: #fadbd8 !important; border: 1px solid var(--error); opacity: 0.6; }
@@ -26,31 +31,45 @@
 
 <div class="container">
     <div id="setup-screen">
-        <h1 style="color: var(--primary);">鳩特數理測驗系統</h1>
-        <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 選擇年級 --</option></select>
-        <select id="versionSelect" onchange="updateRanges()"><option value="">-- 選擇版本 --</option></select>
-        <select id="rangeSelect"><option value="">-- 選擇範圍 --</option></select>
-        <button onclick="startQuiz()" style="margin-top: 20px;">開始測驗</button>
-        <p style="font-size: 0.8rem; color: #999; margin-top: 20px;">System Ready</p>
+        <h1 style="color: var(--primary);">鳩特數理單字測驗</h1>
+        <p>請設定考試內容</p>
+        
+        <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 1. 選擇年級 --</option></select>
+        <select id="versionSelect" onchange="updateRanges()"><option value="">-- 2. 選擇版本 --</option></select>
+        <select id="rangeSelect"><option value="">-- 3. 選擇範圍 --</option></select>
+        
+        <select id="qCountSelect">
+            <option value="10">測驗 10 題</option>
+            <option value="15">測驗 15 題</option>
+            <option value="20">測驗 20 題</option>
+            <option value="25">測驗 25 題</option>
+            <option value="all">全部測驗</option>
+        </select>
+
+        <button onclick="startQuiz()" style="margin-top: 20px; font-weight:bold;">開始測驗</button>
+        <p style="font-size: 0.8rem; color: #999; margin-top: 20px;">System Status: <span id="dataVer">Checking...</span></p>
     </div>
 
     <div id="quiz-screen" class="hidden">
         <div style="background:#eee; height:8px; border-radius:4px; margin-bottom:10px;"><div id="progressBar" style="width:0%; height:100%; background:var(--success); border-radius:4px; transition:0.3s;"></div></div>
-        <div style="color:#666;">進度: <span id="progressText"></span></div>
+        <div style="color:#666; margin-bottom:10px;">題數: <span id="progressText"></span></div>
         
-        <div id="questionArea">
-            <div id="icon-speaker" style="font-size: 3rem; cursor: pointer; display:none;" onclick="playAudio()">🔊</div>
-            <div id="chinese-prompt" class="question-display" style="display:none;"></div>
-            <p id="mode-hint" class="hint-text"></p>
-        </div>
+        <div style="font-size: 2.5rem; cursor: pointer; display:inline-block;" onclick="playAudio()">🔊</div>
+        <span style="font-size: 0.9rem; color: #999; cursor: pointer;" onclick="playAudio()">(點擊重聽)</span>
         
-        <div id="step-input">
-            <input type="text" id="answerInput" placeholder="請輸入英文" autocomplete="off">
-            <button onclick="checkAnswer()">送出 (Enter)</button>
+        <div id="step-spelling">
+            <div class="hint-area">
+                <div id="chineseDisplay" class="chinese-hint"></div>
+                <div id="sentenceArea" class="sentence-display"></div>
+            </div>
+
+            <input type="text" id="spellingInput" placeholder="請輸入英文單字" autocomplete="off" style="text-align:center; font-size:1.4rem;">
+            <button onclick="checkSpelling()">送出 (Enter)</button>
         </div>
 
         <div id="step-meaning" class="hidden">
-            <h2 id="targetWordDisplay" style="color:var(--accent);"></h2>
+            <h2 style="color:var(--accent);">請確認中文意思</h2>
+            <h3 id="targetWordDisplay" style="color:#333;"></h3>
             <div id="options-container"></div>
         </div>
 
@@ -63,10 +82,241 @@
     <div id="result-screen" class="hidden">
         <h2>測驗結束</h2>
         <h1 id="finalScore" style="color:var(--accent); font-size:3rem;"></h1>
+        <p id="scoreMsg"></p>
         <button onclick="location.reload()">重新選擇範圍</button>
     </div>
 </div>
 
 <script>
-    // 音效 (Base64 編碼，以免除外部檔案需求)
-    const sndCorrect = new Audio("data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbqWEzM2Cput3MZDo6ZqzB385lPj5qrsfh0WdBPmuvyOLSaEU+bq/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeLTaUY/b6/J4tNpRj9vr8ni02lGP2+vyeL
+    // 檢查資料庫
+    if (typeof jutorDB === 'undefined') {
+        document.getElementById('dataVer').textContent = "未讀取到 database.js";
+        document.getElementById('dataVer').style.color = "red";
+        alert("錯誤：找不到資料庫 (database.js)");
+    } else {
+        document.getElementById('dataVer').textContent = "Ready";
+        document.getElementById('dataVer').style.color = "green";
+    }
+
+    let currentList = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let currentWordObj = null;
+    
+    // 音效產生器 (無須外部檔案)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'correct') {
+            // 叮咚 (高音)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(660, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // 錯誤 (低音)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // 選單初始化
+    window.onload = function() {
+        if (typeof jutorDB === 'undefined') return;
+        const gradeSelect = document.getElementById('gradeSelect');
+        Object.keys(jutorDB).forEach(g => gradeSelect.add(new Option(g, g)));
+    };
+
+    function updateVersions() {
+        const grade = document.getElementById('gradeSelect').value;
+        const vSelect = document.getElementById('versionSelect');
+        vSelect.innerHTML = '<option value="">-- 2. 選擇版本 --</option>';
+        document.getElementById('rangeSelect').innerHTML = '<option value="">-- 3. 選擇範圍 --</option>';
+        if (grade && jutorDB[grade]) Object.keys(jutorDB[grade]).forEach(v => vSelect.add(new Option(v, v)));
+    }
+
+    function updateRanges() {
+        const grade = document.getElementById('gradeSelect').value;
+        const ver = document.getElementById('versionSelect').value;
+        const rSelect = document.getElementById('rangeSelect');
+        rSelect.innerHTML = '<option value="">-- 3. 選擇範圍 --</option>';
+        if (grade && ver && jutorDB[grade][ver]) Object.keys(jutorDB[grade][ver]).forEach(r => rSelect.add(new Option(r, r)));
+    }
+
+    function startQuiz() {
+        const g = document.getElementById('gradeSelect').value;
+        const v = document.getElementById('versionSelect').value;
+        const r = document.getElementById('rangeSelect').value;
+        const qCount = document.getElementById('qCountSelect').value;
+
+        if (!g || !v || !r) return alert("請完整選擇年級、版本與範圍！");
+
+        // 取得題目並洗牌
+        let fullList = [...jutorDB[g][v][r]];
+        for (let i = fullList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [fullList[i], fullList[j]] = [fullList[j], fullList[i]];
+        }
+
+        // 處理題數限制
+        if (qCount !== 'all') {
+            currentList = fullList.slice(0, parseInt(qCount));
+        } else {
+            currentList = fullList;
+        }
+
+        if (currentList.length === 0) return alert("此範圍尚無資料！");
+        
+        currentIndex = 0; correctCount = 0;
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        currentWordObj = currentList[currentIndex];
+        document.getElementById('step-spelling').classList.remove('hidden');
+        document.getElementById('step-meaning').classList.add('hidden');
+        document.getElementById('step-next').classList.add('hidden');
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('spellingInput').value = '';
+        document.getElementById('progressText').textContent = `${currentIndex + 1} / ${currentList.length}`;
+        document.getElementById('progressBar').style.width = ((currentIndex / currentList.length) * 100) + '%';
+
+        // 1. 顯示中文 (不管是單字還是例句，都顯示中文當提示)
+        document.getElementById('chineseDisplay').textContent = currentWordObj.ch;
+
+        // 2. 顯示例句 (如果有)
+        const sentenceArea = document.getElementById('sentenceArea');
+        if (currentWordObj.sentence) {
+            const regex = new RegExp(currentWordObj.en, "gi");
+            // 挖空單字，顯示句子
+            const clozeSentence = currentWordObj.sentence.replace(regex, "______");
+            sentenceArea.innerHTML = clozeSentence;
+        } else {
+            // 沒有例句就顯示聽寫提示
+            sentenceArea.textContent = "(請聽發音拼寫單字)";
+        }
+
+        document.getElementById('spellingInput').focus();
+        setTimeout(playAudio, 500);
+    }
+
+    function playAudio() {
+        // 有例句唸例句，沒例句唸單字
+        const textToRead = currentWordObj.sentence || currentWordObj.en;
+        const u = new SpeechSynthesisUtterance(textToRead);
+        u.lang = 'en-US'; u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+        document.getElementById('spellingInput').focus();
+    }
+
+    function checkSpelling() {
+        const input = document.getElementById('spellingInput').value.trim();
+        const feedback = document.getElementById('feedback');
+
+        if (input.toLowerCase() === currentWordObj.en.toLowerCase()) {
+            // 答對
+            playSound('correct'); 
+            feedback.textContent = "✅ Correct!";
+            feedback.className = "feedback text-correct";
+            
+            // 延遲一下跳轉，讓學生看到勾勾
+            setTimeout(() => {
+                document.getElementById('step-spelling').classList.add('hidden');
+                document.getElementById('step-meaning').classList.remove('hidden');
+                document.getElementById('targetWordDisplay').textContent = currentWordObj.en;
+                generateOptions();
+                feedback.textContent = ""; 
+            }, 500);
+        } else {
+            // 答錯
+            playSound('wrong'); 
+            feedback.textContent = "❌ 錯誤，請再試一次 (或是聽聽看發音)";
+            feedback.className = "feedback text-wrong";
+            playAudio();
+            document.getElementById('spellingInput').value = '';
+            document.getElementById('spellingInput').focus();
+        }
+    }
+
+    function generateOptions() {
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        // 產生選項
+        let pool = currentList.filter(w => w.en !== currentWordObj.en); 
+        pool.sort(() => Math.random() - 0.5);
+        let options = pool.slice(0, 4); 
+        options.push(currentWordObj); 
+        options.sort(() => Math.random() - 0.5);
+
+        options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.ch; // 選項顯示中文
+            btn.onclick = () => checkMeaning(btn, opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkMeaning(btn, opt) {
+        // 這裡不放音效，因為只是確認意義
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        if (opt.en === currentWordObj.en) {
+            btn.classList.add('correct-ans');
+            document.getElementById('feedback').textContent = "回答正確！";
+            document.getElementById('feedback').className = "feedback text-correct";
+            correctCount++;
+        } else {
+            btn.classList.add('wrong-ans');
+            document.querySelectorAll('.option-btn').forEach(b => {
+                if (b.textContent === currentWordObj.ch) b.classList.add('correct-ans');
+            });
+            document.getElementById('feedback').textContent = "選錯了";
+            document.getElementById('feedback').className = "feedback text-wrong";
+        }
+        document.getElementById('step-next').classList.remove('hidden');
+        document.getElementById('step-next').querySelector('button').focus();
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < currentList.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        const score = Math.round((correctCount / currentList.length) * 100);
+        document.getElementById('finalScore').textContent = score + "分";
+        
+        let msg = "";
+        if(score === 100) msg = "🎉 太強了！全部答對！";
+        else if(score >= 80) msg = "👏 很棒喔！繼續保持！";
+        else msg = "💪 再多練習幾次會更好！";
+        document.getElementById('scoreMsg').textContent = msg;
+    }
+
+    // 支援 Enter 鍵
+    document.getElementById('spellingInput').addEventListener('keypress', (e) => { if(e.key==='Enter') checkSpelling(); });
+</script>
+</body>
+</html>
