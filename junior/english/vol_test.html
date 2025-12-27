@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英語單字與例句測驗 - 鳩特數理</title>
+    <script src="database.js"></script> 
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --error: #e74c3c; }
+        body { font-family: 'Segoe UI', Microsoft JhengHei, sans-serif; background: #f4f6f9; display: flex; justify-content: center; min-height: 100vh; margin: 0; padding-top: 20px; }
+        .container { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 90%; max-width: 600px; text-align: center; }
+        select, input, button { font-size: 1.1rem; padding: 10px; margin: 5px; border-radius: 8px; border: 1px solid #ddd; width: 100%; box-sizing: border-box; }
+        button { background: var(--accent); color: white; border: none; cursor: pointer; }
+        button:hover { filter: brightness(0.9); }
+        .hidden { display: none; }
+        .sentence-display { font-size: 1.3rem; margin: 20px 0; color: var(--primary); font-weight: bold; line-height: 1.5; }
+        .cloze-blank { border-bottom: 2px solid var(--accent); padding: 0 10px; color: var(--accent); }
+        .feedback { margin-top: 15px; font-weight: bold; min-height: 1.5em; }
+        .text-correct { color: var(--success); } .text-wrong { color: var(--error); }
+        .option-btn { background: #ecf0f1; color: #333; margin-top: 10px; text-align: left; transition: 0.2s; }
+        .option-btn:hover { background: #dce4e6; }
+        .correct-ans { background: #d5f5e3 !important; border: 1px solid var(--success); }
+        .wrong-ans { background: #fadbd8 !important; border: 1px solid var(--error); opacity: 0.6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="setup-screen">
+        <h1 style="color: var(--primary);">鳩特數理單字系統</h1>
+        <p>請選擇考試範圍</p>
+        <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 選擇年級 --</option></select>
+        <select id="versionSelect" onchange="updateRanges()"><option value="">-- 選擇版本 --</option></select>
+        <select id="rangeSelect"><option value="">-- 選擇範圍 --</option></select>
+        <button onclick="startQuiz()" style="margin-top: 20px;">開始測驗</button>
+        <p style="font-size: 0.8rem; color: #999; margin-top: 20px;">Data: <span id="dataVer">Checking...</span></p>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+        <div style="background:#eee; height:8px; border-radius:4px; margin-bottom:10px;"><div id="progressBar" style="width:0%; height:100%; background:var(--success); border-radius:4px; transition:0.3s;"></div></div>
+        <div style="color:#666; margin-bottom:10px;">Progress: <span id="progressText"></span></div>
+        
+        <div style="font-size: 3rem; cursor: pointer;" onclick="playAudio()">🔊</div>
+        <p style="font-size: 0.8rem; color: #999;">點擊喇叭重聽</p>
+        
+        <div id="step-spelling">
+            <div id="sentenceArea" class="sentence-display"></div>
+            <input type="text" id="spellingInput" placeholder="輸入單字" autocomplete="off">
+            <button onclick="checkSpelling()">送出 (Enter)</button>
+        </div>
+
+        <div id="step-meaning" class="hidden">
+            <h2 id="targetWordDisplay" style="color:var(--accent);"></h2>
+            <div id="options-container"></div>
+        </div>
+
+        <div id="step-next" class="hidden">
+            <button onclick="nextQuestion()" style="background:var(--success);">下一題 ➔</button>
+        </div>
+        <div id="feedback" class="feedback"></div>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>測驗結束</h2>
+        <h1 id="finalScore" style="color:var(--accent); font-size:3rem;"></h1>
+        <button onclick="location.reload()">重新選擇範圍</button>
+    </div>
+</div>
+
+<script>
+    // 檢查資料庫是否存在
+    if (typeof jutorDB === 'undefined') {
+        document.getElementById('dataVer').textContent = "未讀取到 database.js";
+        document.getElementById('dataVer').style.color = "red";
+        alert("找不到資料庫 (database.js)。請確認檔案是否在同一資料夾中。");
+    } else {
+        document.getElementById('dataVer').textContent = "Loaded Successfully";
+        document.getElementById('dataVer').style.color = "green";
+    }
+
+    let currentList = [];
+    let currentIndex = 0;
+    let correctCount = 0;
+    let currentWordObj = null;
+
+    // 初始化選單
+    window.onload = function() {
+        if (typeof jutorDB === 'undefined') return;
+        const gradeSelect = document.getElementById('gradeSelect');
+        Object.keys(jutorDB).forEach(g => gradeSelect.add(new Option(g, g)));
+    };
+
+    function updateVersions() {
+        const grade = document.getElementById('gradeSelect').value;
+        const vSelect = document.getElementById('versionSelect');
+        vSelect.innerHTML = '<option value="">-- 選擇版本 --</option>';
+        document.getElementById('rangeSelect').innerHTML = '<option value="">-- 選擇範圍 --</option>';
+        
+        if (grade && jutorDB[grade]) {
+            Object.keys(jutorDB[grade]).forEach(v => vSelect.add(new Option(v, v)));
+        }
+    }
+
+    function updateRanges() {
+        const grade = document.getElementById('gradeSelect').value;
+        const ver = document.getElementById('versionSelect').value;
+        const rSelect = document.getElementById('rangeSelect');
+        rSelect.innerHTML = '<option value="">-- 選擇範圍 --</option>';
+        
+        if (grade && ver && jutorDB[grade][ver]) {
+            Object.keys(jutorDB[grade][ver]).forEach(r => rSelect.add(new Option(r, r)));
+        }
+    }
+
+    function startQuiz() {
+        const g = document.getElementById('gradeSelect').value;
+        const v = document.getElementById('versionSelect').value;
+        const r = document.getElementById('rangeSelect').value;
+        if (!g || !v || !r) return alert("請完整選擇年級、版本與範圍！");
+
+        // 複製並打亂陣列
+        currentList = [...jutorDB[g][v][r]];
+        for (let i = currentList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [currentList[i], currentList[j]] = [currentList[j], currentList[i]];
+        }
+
+        if (currentList.length === 0) return alert("此範圍尚無資料！");
+        
+        currentIndex = 0; correctCount = 0;
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        currentWordObj = currentList[currentIndex];
+        document.getElementById('step-spelling').classList.remove('hidden');
+        document.getElementById('step-meaning').classList.add('hidden');
+        document.getElementById('step-next').classList.add('hidden');
+        document.getElementById('feedback').textContent = '';
+        document.getElementById('spellingInput').value = '';
+        document.getElementById('progressText').textContent = `${currentIndex + 1} / ${currentList.length}`;
+        document.getElementById('progressBar').style.width = ((currentIndex / currentList.length) * 100) + '%';
+
+        // 處理例句顯示
+        const sentenceArea = document.getElementById('sentenceArea');
+        if (currentWordObj.sentence) {
+            const regex = new RegExp(currentWordObj.en, "gi");
+            const clozeSentence = currentWordObj.sentence.replace(regex, "______");
+            sentenceArea.innerHTML = clozeSentence;
+        } else {
+            sentenceArea.textContent = "(聽音檔拼單字)";
+        }
+
+        document.getElementById('spellingInput').focus();
+        setTimeout(playAudio, 500);
+    }
+
+    function playAudio() {
+        const textToRead = currentWordObj.sentence || currentWordObj.en;
+        const u = new SpeechSynthesisUtterance(textToRead);
+        u.lang = 'en-US'; u.rate = 0.8;
+        window.speechSynthesis.speak(u);
+        document.getElementById('spellingInput').focus();
+    }
+
+    function checkSpelling() {
+        const input = document.getElementById('spellingInput').value.trim();
+        if (input.toLowerCase() === currentWordObj.en.toLowerCase()) {
+            document.getElementById('step-spelling').classList.add('hidden');
+            document.getElementById('step-meaning').classList.remove('hidden');
+            document.getElementById('targetWordDisplay').textContent = currentWordObj.en;
+            generateOptions();
+        } else {
+            document.getElementById('feedback').textContent = "拼寫錯誤，請再聽一次";
+            document.getElementById('feedback').className = "feedback text-wrong";
+            playAudio();
+            document.getElementById('spellingInput').value = '';
+        }
+    }
+
+    function generateOptions() {
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        // 取得錯誤選項
+        let pool = currentList.filter(w => w.en !== currentWordObj.en); 
+        pool.sort(() => Math.random() - 0.5);
+        let options = pool.slice(0, 4); // 取最多4個錯誤選項
+        options.push(currentWordObj); // 加入正確答案
+        options.sort(() => Math.random() - 0.5); // 再次打亂
+
+        options.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.ch;
+            btn.onclick = () => checkMeaning(btn, opt);
+            container.appendChild(btn);
+        });
+    }
+
+    function checkMeaning(btn, opt) {
+        document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
+        if (opt.en === currentWordObj.en) {
+            btn.classList.add('correct-ans');
+            document.getElementById('feedback').textContent = "正確！";
+            document.getElementById('feedback').className = "feedback text-correct";
+            correctCount++;
+        } else {
+            btn.classList.add('wrong-ans');
+            document.querySelectorAll('.option-btn').forEach(b => {
+                if (b.textContent === currentWordObj.ch) b.classList.add('correct-ans');
+            });
+            document.getElementById('feedback').textContent = "答錯了";
+            document.getElementById('feedback').className = "feedback text-wrong";
+        }
+        document.getElementById('step-next').classList.remove('hidden');
+        document.getElementById('step-next').querySelector('button').focus();
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < currentList.length) loadQuestion();
+        else {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = Math.round((correctCount / currentList.length) * 100) + "分";
+        }
+    }
+
+    document.getElementById('spellingInput').addEventListener('keypress', (e) => { if(e.key==='Enter') checkSpelling(); });
+</script>
+</body>
+</html>
