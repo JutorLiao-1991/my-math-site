@@ -8,24 +8,32 @@
         body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #2c3e50; color: #ecf0f1; max-width: 800px; margin: 0 auto; }
         h1 { text-align: center; color: #f1c40f; }
         
-        /* 登入畫面樣式 */
         #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #2c3e50; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .login-box { background: #34495e; padding: 40px; border-radius: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; width: 300px; }
         .login-input { padding: 15px; width: 90%; margin-bottom: 20px; border-radius: 5px; border: none; font-size: 1.2rem; }
         
-        /* 主介面樣式 */
         .panel { background: #34495e; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .panel h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #555; padding-bottom: 10px; cursor: pointer; display: flex; justify-content: space-between; }
         .panel-content { display: block; }
-        /* 預設收折的樣式 */
         .panel-content.collapsed { display: none; }
         
         textarea { width: 100%; height: 150px; background: #2c3e50; color: #2ecc71; border: 1px solid #7f8c8d; padding: 10px; font-family: monospace; border-radius: 5px; box-sizing: border-box;}
-        input, select { padding: 10px; border-radius: 5px; border: none; margin-right: 5px; margin-bottom: 5px; }
-        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
+        
+        /* 下拉選單群組樣式 */
+        .select-group { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 15px; }
+        select, input[type="text"], input[type="password"] { padding: 10px; border-radius: 5px; border: none; flex: 1; min-width: 100px; }
+        
+        /* 核取方塊樣式 */
+        .checkbox-wrapper { display: flex; align-items: center; background: #2980b9; padding: 0 10px; border-radius: 5px; cursor: pointer; }
+        .checkbox-wrapper input { width: auto; margin-right: 5px; }
+        .checkbox-wrapper:hover { background: #3498db; }
+
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: 0.3s; width: 100%; }
         button:hover { background: #2980b9; }
         
-        .config-area input { width: 45%; background: #ecf0f1; color: #333; }
+        .config-area input { width: 100%; background: #ecf0f1; color: #333; margin-bottom: 10px; box-sizing: border-box; }
+        .config-area label { display: block; margin-bottom: 5px; color: #bdc3c7; }
+        
         .save-btn { background: #e74c3c; width: 100%; font-size: 1.2rem; font-weight: bold; margin-top: 10px; }
         .save-btn:hover { background: #c0392b; }
         .status-msg { margin-top: 10px; text-align: center; font-weight: bold; min-height: 1.5em; }
@@ -50,37 +58,33 @@
 </div>
 
 <div id="main-app" class="hidden">
-
     <h1>鳩特數理 - AI 智慧出題後台</h1>
 
     <div class="panel">
-        <h3 onclick="togglePanel('configPanel')">⚙️ 系統連線設定 (點此展開/收合) <span id="configState">◀</span></h3>
+        <h3 onclick="togglePanel('configPanel')">⚙️ 系統連線設定 (點此展開) <span id="configState">◀</span></h3>
         <div id="configPanel" class="panel-content collapsed">
             <div class="config-area">
-                <p style="color:#aaa; font-size:0.9rem; margin-top:0;">* 此處設定僅需輸入一次，瀏覽器會自動記憶。</p>
+                <p style="color:#aaa; font-size:0.9rem; margin-top:0;">* 設定僅需輸入一次，瀏覽器會自動記憶。</p>
                 <label>GitHub 帳號:</label>
                 <input type="text" id="repoOwner" value="JutorLiao-1991">
                 <label>倉庫名稱:</label>
                 <input type="text" id="repoName" value="my-math-site">
-                <br>
                 <label>檔案路徑:</label>
-                <input type="text" id="filePath" value="junior/english/database.js" style="width: 90%;">
-                <br>
+                <input type="text" id="filePath" value="junior/english/database.js">
                 <label>GitHub Token:</label>
                 <input type="password" id="githubToken" placeholder="請輸入 ghp_ 開頭的 Token">
                 <label>Gemini Key:</label>
                 <input type="password" id="geminiKey" placeholder="請輸入 AIza 開頭的 Key" style="border: 2px solid #8e44ad;">
-                <br>
                 <button onclick="saveConfig()" style="margin-top:10px;">💾 儲存設定並收起</button>
             </div>
         </div>
     </div>
 
     <div class="panel">
-        <h3>📸 步驟一：拍照辨識 (AI 自動化)</h3>
+        <h3>📸 步驟一：拍照辨識</h3>
         <div class="ai-zone">
-            <p style="margin-top:0;">直接選擇講義或筆記的照片：</p>
-            <input type="file" id="imageInput" accept="image/*" style="background: white; color: black; width: auto;">
+            <p style="margin-top:0;">選擇講義或筆記照片：</p>
+            <input type="file" id="imageInput" accept="image/*" style="background: white; color: black; width: auto; max-width: 100%;">
             <br><br>
             <button class="ai-btn" onclick="analyzeImage()">✨ 啟動 AI 辨識與出題</button>
             <div id="aiStatus" class="status-msg"></div>
@@ -88,12 +92,42 @@
     </div>
 
     <div class="panel">
-        <h3>📝 步驟二：確認資料 (可手動修改)</h3>
-        <div>
-            <select id="grade"><option value="國一">國一</option><option value="國二">國二</option><option value="國三">國三</option></select>
-            <select id="version"><option value="翰林版">翰林版</option><option value="康軒版">康軒版</option><option value="南一版">南一版</option></select>
-            <input type="text" id="rangeName" placeholder="輸入範圍 (如: Book 1 Unit 2)" style="width: 200px;">
+        <h3>📝 步驟二：確認資料與範圍</h3>
+        
+        <div class="select-group">
+            <select id="grade" onchange="updateBooks()">
+                <option value="國一">國一</option>
+                <option value="國二">國二</option>
+                <option value="國三">國三</option>
+            </select>
+            <select id="version">
+                <option value="翰林版">翰林版</option>
+                <option value="康軒版">康軒版</option>
+                <option value="南一版">南一版</option>
+            </select>
         </div>
+        
+        <div class="select-group">
+            <select id="bookSelect">
+                </select>
+            <select id="unitSelect">
+                <option value="Unit 1">Unit 1</option>
+                <option value="Unit 2">Unit 2</option>
+                <option value="Unit 3">Unit 3</option>
+                <option value="Unit 4">Unit 4</option>
+                <option value="Unit 5">Unit 5</option>
+                <option value="Unit 6">Unit 6</option>
+                <option value="Review 1">Review 1</option>
+                <option value="Review 2">Review 2</option>
+                <option value="Review 3">Review 3</option>
+            </select>
+            
+            <label class="checkbox-wrapper">
+                <input type="checkbox" id="isSentence">
+                <span>這是句型題庫</span>
+            </label>
+        </div>
+
         <textarea id="jsonInput" placeholder='AI 辨識結果會出現在這裡...'></textarea>
         <br><br>
         <button onclick="smartMergeData()">⬇️ 智慧合併到暫存區</button>
@@ -104,34 +138,48 @@
         <h3>☁️ 步驟三：上傳發布</h3>
         <p>目前的資料庫結構預覽：</p>
         <pre id="previewArea" style="background:#222; padding:10px; overflow:auto; max-height:200px; border-radius:5px; font-size: 0.8rem;"></pre>
-        
         <button class="save-btn" onclick="uploadToGitHub()">🚀 一鍵更新到網站</button>
         <div id="uploadStatus" class="status-msg"></div>
     </div>
-
 </div>
 
 <script>
-    // ==========================================
-    // 🔑 後台登入密碼設定
-    const MY_ADMIN_PASSWORD = "JutorEnglish"; 
-    // ==========================================
-
+    const MY_ADMIN_PASSWORD = "jutor"; 
     let db = (typeof jutorDB !== 'undefined') ? jutorDB : {};
 
-    window.onload = function() {
-        if (sessionStorage.getItem('isLoggedIn') === 'true') {
-            showMainApp();
-        }
+    // 書本對照表
+    const bookMap = {
+        "國一": ["Book 1", "Book 2"],
+        "國二": ["Book 3", "Book 4"],
+        "國三": ["Book 5", "Book 6"]
+    };
 
-        // 讀取 LocalStorage 設定
+    window.onload = function() {
+        if (sessionStorage.getItem('isLoggedIn') === 'true') showMainApp();
+        
         if(localStorage.getItem('gh_owner')) document.getElementById('repoOwner').value = localStorage.getItem('gh_owner');
         if(localStorage.getItem('gh_repo')) document.getElementById('repoName').value = localStorage.getItem('gh_repo');
         if(localStorage.getItem('gh_path')) document.getElementById('filePath').value = localStorage.getItem('gh_path');
         if(localStorage.getItem('gh_token')) document.getElementById('githubToken').value = localStorage.getItem('gh_token');
         if(localStorage.getItem('gemini_key')) document.getElementById('geminiKey').value = localStorage.getItem('gemini_key');
         
+        updateBooks(); // 初始化書本選單
         renderPreview();
+    }
+
+    // 連動邏輯：年級改了，書本就要變
+    function updateBooks() {
+        const grade = document.getElementById('grade').value;
+        const bookSelect = document.getElementById('bookSelect');
+        bookSelect.innerHTML = ''; // 清空
+        
+        const books = bookMap[grade] || [];
+        books.forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b;
+            opt.textContent = b;
+            bookSelect.appendChild(opt);
+        });
     }
 
     function verifyLogin() {
@@ -140,7 +188,7 @@
             sessionStorage.setItem('isLoggedIn', 'true');
             showMainApp();
         } else {
-            document.getElementById('loginMsg').textContent = "密碼錯誤，請重新輸入。";
+            document.getElementById('loginMsg').textContent = "密碼錯誤";
         }
     }
 
@@ -167,13 +215,8 @@
         localStorage.setItem('gh_path', document.getElementById('filePath').value.trim());
         localStorage.setItem('gh_token', document.getElementById('githubToken').value.trim());
         localStorage.setItem('gemini_key', document.getElementById('geminiKey').value.trim());
-        
         alert("設定已儲存！");
-        // 存完後自動收起來，保持畫面乾淨
-        const el = document.getElementById('configPanel');
-        if (!el.classList.contains('collapsed')) {
-            togglePanel('configPanel');
-        }
+        togglePanel('configPanel');
     }
 
     async function analyzeImage() {
@@ -185,7 +228,7 @@
         if (fileInput.files.length === 0) return alert("請先選擇一張照片！");
 
         const file = fileInput.files[0];
-        statusDiv.innerHTML = '<span class="loading">正在傳送圖片給 AI 分析中，請稍候...</span>';
+        statusDiv.innerHTML = '<span class="loading">AI 辨識中，請稍候...</span>';
         statusDiv.style.color = "#f1c40f";
 
         const base64Data = await new Promise((resolve, reject) => {
@@ -196,28 +239,20 @@
         });
 
         const promptText = `
-            你是一個專業的英語教材數位化助理。請辨識這張圖片中的英文單字、中文意思與例句。
+            你是一個英語教材助理。請辨識圖片中的英文單字、中文意思與例句。
             規則：
-            1. 輸出格式必須是純 JSON Array，不要 Markdown 標記。
+            1. 輸出格式為純 JSON Array。
             2. JSON 格式：[{"en": "單字", "ch": "中文", "sentence": "例句"}]
-            3. 如果圖片中有寫例句，請辨識並填入 sentence。
-            4. 如果圖片中沒有例句，請你「自動造一個」適合國中程度的簡單例句填入。
-            5. 如果是「句型題」(整句翻譯)，請將 en 填入完整英文句子，ch 填入完整中文。
-            6. 若有重複單字請自動過濾。
+            3. 如果有寫例句，填入 sentence。沒有則自動造一個國中程度例句。
+            4. 若是「句型翻譯題」，請將 en 填完整英文句子，ch 填完整中文。
+            5. 去除 Markdown 標記。
         `;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [
-                            { text: promptText },
-                            { inline_data: { mime_type: file.type, data: base64Data } }
-                        ]
-                    }]
-                })
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }, { inline_data: { mime_type: file.type, data: base64Data } }] }] })
             });
 
             const data = await response.json();
@@ -227,12 +262,10 @@
             text = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
             document.getElementById('jsonInput').value = text;
-            statusDiv.textContent = "✅ AI 辨識完成！";
+            statusDiv.textContent = "✅ 辨識完成！";
             statusDiv.style.color = "#2ecc71";
-
         } catch (error) {
-            console.error(error);
-            statusDiv.textContent = "❌ 辨識失敗：" + error.message;
+            statusDiv.textContent = "❌ 失敗：" + error.message;
             statusDiv.style.color = "#e74c3c";
         }
     }
@@ -240,20 +273,30 @@
     function smartMergeData() {
         const grade = document.getElementById('grade').value;
         const version = document.getElementById('version').value;
-        const range = document.getElementById('rangeName').value.trim();
+        
+        // ★ 自動組裝範圍名稱 ★
+        const book = document.getElementById('bookSelect').value;
+        const unit = document.getElementById('unitSelect').value;
+        const isSentence = document.getElementById('isSentence').checked;
+        
+        // 格式： "Book 1 Unit 5" 或 "Book 1 Unit 5 (句型)"
+        let rangeName = `${book} ${unit}`;
+        if (isSentence) {
+            rangeName += " (句型)";
+        }
+
         const jsonText = document.getElementById('jsonInput').value.trim();
         const logDiv = document.getElementById('mergeLog');
 
-        if (!range || !jsonText) return alert("請完整填寫範圍與 JSON 資料！");
+        if (!jsonText) return alert("請先輸入或辨識 JSON 資料！");
 
         try {
             const newData = JSON.parse(jsonText);
             if (!db[grade]) db[grade] = {};
             if (!db[grade][version]) db[grade][version] = {};
             
-            let existingList = db[grade][version][range] || [];
-            let addedCount = 0;
-            let updatedCount = 0;
+            let existingList = db[grade][version][rangeName] || [];
+            let addedCount = 0, updatedCount = 0;
 
             newData.forEach(newItem => {
                 const index = existingList.findIndex(oldItem => 
@@ -268,10 +311,12 @@
                 }
             });
 
-            db[grade][version][range] = existingList;
+            db[grade][version][rangeName] = existingList;
             document.getElementById('jsonInput').value = ''; 
             renderPreview();
-            logDiv.textContent = `✅ 成功合併！(新增 ${addedCount}, 更新 ${updatedCount})`;
+            
+            let typeMsg = isSentence ? " (句型庫)" : " (單字庫)";
+            logDiv.textContent = `✅ 成功合併至 [${rangeName}]！新增 ${addedCount}, 更新 ${updatedCount}`;
             setTimeout(() => { logDiv.textContent = ''; }, 5000);
         } catch (e) {
             alert("JSON 格式錯誤！");
@@ -289,9 +334,7 @@
         const path = document.getElementById('filePath').value.trim();
         const statusDiv = document.getElementById('uploadStatus');
 
-        if (!owner || !repo || !token || !path) return alert("請先檢查連線設定！");
-
-        statusDiv.textContent = "正在連線到 GitHub...";
+        statusDiv.textContent = "連線中...";
         statusDiv.style.color = "#f39c12";
 
         const newContent = "var jutorDB = " + JSON.stringify(db, null, 2) + ";";
@@ -302,10 +345,7 @@
                 headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' }
             });
             let sha = null;
-            if (getRes.ok) {
-                const getData = await getRes.json();
-                sha = getData.sha;
-            }
+            if (getRes.ok) sha = (await getRes.json()).sha;
 
             const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
                 method: 'PUT',
@@ -320,11 +360,10 @@
                 throw new Error((await putRes.json()).message);
             }
         } catch (error) {
-            statusDiv.textContent = "❌ 上傳失敗：" + error.message;
+            statusDiv.textContent = "❌ 失敗：" + error.message;
             statusDiv.style.color = "#e74c3c";
         }
     }
 </script>
-
 </body>
 </html>
