@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>鳩特數理 - 出題後台 (Admin)</title>
+    <script src="database.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background: #333; color: white; }
+        .panel { background: #444; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        textarea { width: 100%; height: 150px; background: #222; color: #0f0; border: 1px solid #555; padding: 10px; font-family: monospace; }
+        input, select { padding: 8px; border-radius: 4px; border: none; }
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #2980b9; }
+        button.save { background: #27ae60; width: 100%; font-size: 1.5rem; margin-top: 20px; }
+        .tag { background: #e67e22; padding: 2px 5px; border-radius: 3px; font-size: 0.8em; margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+<h1>鳩特數理單字系統 - 出題後台</h1>
+
+<div class="panel">
+    <h3>1. 設定範圍</h3>
+    <label>年級：</label>
+    <select id="grade">
+        <option value="國一">國一</option>
+        <option value="國二">國二</option>
+        <option value="國三">國三</option>
+    </select>
+    &nbsp;
+    <label>版本：</label>
+    <select id="version">
+        <option value="翰林版">翰林版</option>
+        <option value="康軒版">康軒版</option>
+        <option value="南一版">南一版</option>
+    </select>
+    &nbsp;
+    <label>範圍名稱 (如 Book 1 Unit 2)：</label>
+    <input type="text" id="rangeName" placeholder="輸入範圍名稱">
+</div>
+
+<div class="panel">
+    <h3>2. 匯入資料 (使用 AI 輔助)</h3>
+    <p style="color: #bbb;">
+        請員工拍照，將照片傳給 ChatGPT，並輸入以下指令：<br>
+        <code style="background:#000; padding:2px; color:yellow;">
+        請幫我將這張圖片的單字與例句整理成 JSON 格式，格式如下：
+        [ { "en": "英文單字", "ch": "中文意思", "sentence": "英文例句" } ]
+        不要其他文字，只要 JSON 代碼。
+        </code>
+    </p>
+    <p>將 AI 產生的 JSON 貼在下面：</p>
+    <textarea id="jsonInput" placeholder='[
+  { "en": "apple", "ch": "蘋果", "sentence": "I eat an apple." }
+]'></textarea>
+    <br><br>
+    <button onclick="previewData()">預覽並加入暫存</button>
+</div>
+
+<div class="panel">
+    <h3>3. 確認目前系統內的資料架構</h3>
+    <pre id="previewArea" style="background:#222; padding:10px; overflow:auto; max-height:300px;"></pre>
+    
+    <button class="save" onclick="downloadDB()">下載更新後的 database.js</button>
+    <p style="text-align: center; color: #bbb;">下載後，請將檔案覆蓋原本資料夾中的 database.js</p>
+</div>
+
+<script>
+    // 初始化全域變數，若讀取失敗則建立空物件
+    let db = (typeof jutorDB !== 'undefined') ? jutorDB : {};
+
+    function previewData() {
+        const grade = document.getElementById('grade').value;
+        const version = document.getElementById('version').value;
+        const range = document.getElementById('rangeName').value.trim();
+        const jsonText = document.getElementById('jsonInput').value.trim();
+
+        if (!range) return alert("請輸入範圍名稱！");
+        if (!jsonText) return alert("請輸入 JSON 資料！");
+
+        try {
+            const newData = JSON.parse(jsonText);
+            
+            // 建構路徑
+            if (!db[grade]) db[grade] = {};
+            if (!db[grade][version]) db[grade][version] = {};
+            
+            // 存入資料
+            db[grade][version][range] = newData;
+
+            alert(`成功加入 ${newData.length} 筆單字到 [${grade} / ${version} / ${range}]`);
+            renderPreview();
+
+        } catch (e) {
+            alert("JSON 格式錯誤！請檢查是否有多餘的符號。");
+        }
+    }
+
+    function renderPreview() {
+        document.getElementById('previewArea').textContent = JSON.stringify(db, null, 2);
+    }
+
+    function downloadDB() {
+        const content = "var jutorDB = " + JSON.stringify(db, null, 2) + ";";
+        const blob = new Blob([content], { type: "text/javascript" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "database.js";
+        link.click();
+    }
+
+    // 初始顯示
+    renderPreview();
+</script>
+
+</body>
+</html>
