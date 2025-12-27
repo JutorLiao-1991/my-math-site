@@ -405,5 +405,311 @@ var jutorDB = {
     }
   },
   "國二": {},
-  "國三": {}
+  "國三": {},
+  "會考複習": {
+    "全廠商": {
+      "會考單字(全) Part A-C": [
+        {
+          "en": "a / an",
+          "ch": "一個",
+          "sentence": "I have an apple and a banana."
+        },
+        {
+          "en": "able",
+          "ch": "能夠…的",
+          "sentence": "She is able to speak three languages."
+        },
+        {
+          "en": "about",
+          "ch": "關於；大約",
+          "sentence": "What is the story about?"
+        },
+        {
+          "en": "above",
+          "ch": "在…上方",
+          "sentence": "The bird is flying above the trees."
+        },
+        {
+          "en": "accident",
+          "ch": "意外",
+          "sentence": "He had a car accident yesterday."
+        },
+        {
+          "en": "across",
+          "ch": "在…對面；橫越",
+          "sentence": "The convenience store is across the street."
+        },
+        {
+          "en": "act",
+          "ch": "扮演；行動",
+          "sentence": "He can act very well."
+        },
+        {
+          "en": "action",
+          "ch": "動作；行動",
+          "sentence": "Actions speak louder than words."
+        },
+        {
+          "en": "actor",
+          "ch": "男演員",
+          "sentence": "Who is your favorite actor?"
+        },
+        {
+          "en": "actress",
+          "ch": "女演員",
+          "sentence": "She wants to be an actress."
+        },
+        {
+          "en": "add",
+          "ch": "增加",
+          "sentence": "Please add some sugar to the tea."
+        },
+        {
+          "en": "address",
+          "ch": "地址",
+          "sentence": "What is your home address?"
+        },
+        {
+          "en": "adult",
+          "ch": "成年人",
+          "sentence": "Tickets are 10 dollars for adults."
+        },
+        {
+          "en": "afraid",
+          "ch": "害怕的",
+          "sentence": "Don't be afraid of making mistakes."
+        },
+        {
+          "en": "after",
+          "ch": "在…之後",
+          "sentence": "Let's play basketball after school."
+        },
+        {
+          "en": "afternoon",
+          "ch": "下午",
+          "sentence": "Good afternoon, Mr. Lin."
+        },
+        {
+          "en": "again",
+          "ch": "再一次",
+          "sentence": "Please say that again."
+        },
+        {
+          "en": "against",
+          "ch": "反對；倚靠",
+          "sentence": "Are you for or against the idea?"
+        },
+        {
+          "en": "age",
+          "ch": "年齡",
+          "sentence": "What is your age?"
+        },
+        {
+          "en": "ago",
+          "ch": "以前",
+          "sentence": "I met him three years ago."
+        },
+        {
+          "en": "agree",
+          "ch": "同意",
+          "sentence": "I agree with you."
+        },
+        {
+          "en": "ahead",
+          "ch": "在前方",
+          "sentence": "Go ahead and turn right."
+        },
+        {
+          "en": "air",
+          "ch": "空氣",
+          "sentence": "The air is fresh in the mountains."
+        },
+        {
+          "en": "airplane",
+          "ch": "飛機",
+          "sentence": "Look at the airplane in the sky."
+        },
+        {
+          "en": "airport",
+          "ch": "機場",
+          "sentence": "We arrived at the airport on time."
+        },
+        {
+          "en": "all",
+          "ch": "全部的",
+          "sentence": "All the students are here."
+        },
+        {
+          "en": "almost",
+          "ch": "幾乎",
+          "sentence": "It is almost twelve o'clock."
+        },
+        {
+          "en": "along",
+          "ch": "沿著",
+          "sentence": "We walked along the river."
+        },
+        {
+          "en": "already",
+          "ch": "已經",
+          "sentence": "I have already finished my homework."
+        },
+        {
+          "en": "also",
+          "ch": "也",
+          "sentence": "She likes music, and I also like music."
+        },
+        {
+          "en": "although",
+          "ch": "雖然",
+          "sentence": "Although it rained, we still went out."
+        },
+        {
+          "en": "always",
+          "ch": "總是",
+          "sentence": "He is always late for school."
+        },
+        {
+          "en": "America",
+          "ch": "美國",
+          "sentence": "My uncle lives in America."
+        },
+        {
+          "en": "American",
+          "ch": "美國的；美國人",
+          "sentence": "She is an American singer."
+        },
+        {
+          "en": "among",
+          "ch": "在…之中 (三者以上)",
+          "sentence": "He is popular among the students."
+        },
+        {
+          "en": "and",
+          "ch": "和",
+          "sentence": "I like blue and white."
+        },
+        {
+          "en": "angry",
+          "ch": "生氣的",
+          "sentence": "Why are you so angry?"
+        },
+        {
+          "en": "animal",
+          "ch": "動物",
+          "sentence": "The lion is the king of animals."
+        },
+        {
+          "en": "another",
+          "ch": "另一個",
+          "sentence": "Would you like another cup of tea?"
+        },
+        {
+          "en": "answer",
+          "ch": "答案；回答",
+          "sentence": "Do you know the answer to the question?"
+        },
+        {
+          "en": "ant",
+          "ch": "螞蟻",
+          "sentence": "There is an ant on the cake."
+        },
+        {
+          "en": "any",
+          "ch": "任何的",
+          "sentence": "Do you have any brothers or sisters?"
+        },
+        {
+          "en": "anyone",
+          "ch": "任何人",
+          "sentence": "Is anyone home?"
+        },
+        {
+          "en": "anything",
+          "ch": "任何事物",
+          "sentence": "Do you need anything else?"
+        },
+        {
+          "en": "apartment",
+          "ch": "公寓",
+          "sentence": "They live in a small apartment."
+        },
+        {
+          "en": "appear",
+          "ch": "出現",
+          "sentence": "A rainbow appeared after the rain."
+        },
+        {
+          "en": "apple",
+          "ch": "蘋果",
+          "sentence": "An apple a day keeps the doctor away."
+        },
+        {
+          "en": "April",
+          "ch": "四月",
+          "sentence": "My birthday is in April."
+        },
+        {
+          "en": "arm",
+          "ch": "手臂",
+          "sentence": "He broke his arm playing baseball."
+        },
+        {
+          "en": "around",
+          "ch": "在…周圍",
+          "sentence": "The earth goes around the sun."
+        },
+        {
+          "en": "arrive",
+          "ch": "到達",
+          "sentence": "When will the train arrive?"
+        },
+        {
+          "en": "art",
+          "ch": "藝術；美術",
+          "sentence": "I like art class very much."
+        },
+        {
+          "en": "as",
+          "ch": "像…一樣；當…時",
+          "sentence": "He is as tall as his father."
+        },
+        {
+          "en": "ask",
+          "ch": "詢問；要求",
+          "sentence": "May I ask you a question?"
+        },
+        {
+          "en": "at",
+          "ch": "在…",
+          "sentence": "Look at the picture."
+        },
+        {
+          "en": "attack",
+          "ch": "攻擊",
+          "sentence": "The dog attacked the cat."
+        },
+        {
+          "en": "August",
+          "ch": "八月",
+          "sentence": "It is very hot in August."
+        },
+        {
+          "en": "aunt",
+          "ch": "阿姨；姑姑",
+          "sentence": "My aunt is a nurse."
+        },
+        {
+          "en": "autumn",
+          "ch": "秋天",
+          "sentence": "Leaves fall in autumn."
+        },
+        {
+          "en": "away",
+          "ch": "遠離",
+          "sentence": "Go away!"
+        }
+      ]
+    }
+  }
 };
