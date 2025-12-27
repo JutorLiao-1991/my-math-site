@@ -229,6 +229,88 @@ var jutorDB = {
           "ch": "喊叫",
           "sentence": "Don't cry out in the class."
         }
+      ],
+      "Book 1 Unit 6": [
+        {
+          "en": "lion",
+          "ch": "獅子",
+          "sentence": "The lion is a big animal."
+        },
+        {
+          "en": "king",
+          "ch": "國王",
+          "sentence": "The king lives in a big castle."
+        },
+        {
+          "en": "elephant",
+          "ch": "大象",
+          "sentence": "An elephant has a long nose."
+        },
+        {
+          "en": "tiger",
+          "ch": "老虎",
+          "sentence": "Tigers have black stripes."
+        },
+        {
+          "en": "zebra",
+          "ch": "斑馬",
+          "sentence": "A zebra is a black and white horse."
+        },
+        {
+          "en": "back",
+          "ch": "背; 後面",
+          "sentence": "My back hurts after playing sports."
+        },
+        {
+          "en": "help",
+          "ch": "幫助; 幫忙",
+          "sentence": "Can you help me with my homework?"
+        },
+        {
+          "en": "monkey",
+          "ch": "猴子",
+          "sentence": "Monkeys love to eat bananas."
+        },
+        {
+          "en": "fox",
+          "ch": "狐狸",
+          "sentence": "The fox ran into the forest."
+        },
+        {
+          "en": "horse",
+          "ch": "馬",
+          "sentence": "I want to ride a horse."
+        },
+        {
+          "en": "rat",
+          "ch": "老鼠",
+          "sentence": "A rat is a small animal."
+        },
+        {
+          "en": "bear",
+          "ch": "熊",
+          "sentence": "Bears like to eat honey."
+        },
+        {
+          "en": "world",
+          "ch": "世界",
+          "sentence": "The world is a big place."
+        },
+        {
+          "en": "example",
+          "ch": "實例",
+          "sentence": "Can you give me an example?"
+        },
+        {
+          "en": "bug",
+          "ch": "蟲子",
+          "sentence": "There is a small bug on the leaf."
+        },
+        {
+          "en": "food",
+          "ch": "食物",
+          "sentence": "We need food to live and grow."
+        }
       ]
     }
   },
