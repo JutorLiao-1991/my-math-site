@@ -2,97 +2,107 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>鳩特數理 - 出題後台 (Admin)</title>
+    <title>鳩特數理 - 雲端出題後台</title>
     <script src="database.js"></script>
     <style>
-        body { font-family: sans-serif; padding: 20px; background: #333; color: white; }
-        .panel { background: #444; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        textarea { width: 100%; height: 150px; background: #222; color: #0f0; border: 1px solid #555; padding: 10px; font-family: monospace; }
-        input, select { padding: 8px; border-radius: 4px; border: none; }
-        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
+        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #2c3e50; color: #ecf0f1; max-width: 800px; margin: 0 auto; }
+        h1 { text-align: center; color: #f1c40f; }
+        .panel { background: #34495e; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .panel h3 { margin-top: 0; color: #3498db; border-bottom: 1px solid #555; padding-bottom: 10px; }
+        textarea { width: 100%; height: 150px; background: #2c3e50; color: #2ecc71; border: 1px solid #7f8c8d; padding: 10px; font-family: monospace; border-radius: 5px; box-sizing: border-box;}
+        input, select { padding: 10px; border-radius: 5px; border: none; margin-right: 5px; margin-bottom: 5px; }
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; transition: 0.3s; }
         button:hover { background: #2980b9; }
-        button.save { background: #27ae60; width: 100%; font-size: 1.5rem; margin-top: 20px; }
-        .tag { background: #e67e22; padding: 2px 5px; border-radius: 3px; font-size: 0.8em; margin-right: 5px; }
+        
+        /* 雲端設定區塊 */
+        .config-area input { width: 45%; background: #ecf0f1; color: #333; }
+        .save-btn { background: #e74c3c; width: 100%; font-size: 1.2rem; font-weight: bold; margin-top: 10px; }
+        .save-btn:hover { background: #c0392b; }
+        .status-msg { margin-top: 10px; text-align: center; font-weight: bold; min-height: 1.5em; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-<h1>鳩特數理單字系統 - 出題後台</h1>
+<h1>鳩特數理單字系統 - 雲端後台</h1>
 
 <div class="panel">
-    <h3>1. 設定範圍</h3>
-    <label>年級：</label>
-    <select id="grade">
-        <option value="國一">國一</option>
-        <option value="國二">國二</option>
-        <option value="國三">國三</option>
-    </select>
-    &nbsp;
-    <label>版本：</label>
-    <select id="version">
-        <option value="翰林版">翰林版</option>
-        <option value="康軒版">康軒版</option>
-        <option value="南一版">南一版</option>
-    </select>
-    &nbsp;
-    <label>範圍名稱 (如 Book 1 Unit 2)：</label>
-    <input type="text" id="rangeName" placeholder="輸入範圍名稱">
+    <h3>⚙️ 系統連線設定 (首次使用請填寫)</h3>
+    <div class="config-area">
+        <input type="text" id="repoOwner" placeholder="GitHub 帳號 (例如: jutor-teacher)">
+        <input type="text" id="repoName" placeholder="倉庫名稱 (例如: my-math-site)">
+        <input type="text" id="filePath" placeholder="檔案路徑" value="junior/english/database.js">
+        <input type="password" id="githubToken" placeholder="GitHub Token (請向老闆索取)">
+        <button onclick="saveConfig()">儲存設定 (記住我)</button>
+    </div>
+    <p style="font-size: 0.8rem; color: #95a5a6;">* 設定會儲存在此瀏覽器中，下次無需重新輸入。</p>
 </div>
 
 <div class="panel">
-    <h3>2. 匯入資料 (使用 AI 輔助)</h3>
-    <p style="color: #bbb;">
-        請員工拍照，將照片傳給 ChatGPT，並輸入以下指令：<br>
-        <code style="background:#000; padding:2px; color:yellow;">
-        請幫我將這張圖片的單字與例句整理成 JSON 格式，格式如下：
-        [ { "en": "英文單字", "ch": "中文意思", "sentence": "英文例句" } ]
-        不要其他文字，只要 JSON 代碼。
-        </code>
-    </p>
-    <p>將 AI 產生的 JSON 貼在下面：</p>
-    <textarea id="jsonInput" placeholder='[
-  { "en": "apple", "ch": "蘋果", "sentence": "I eat an apple." }
-]'></textarea>
+    <h3>📝 匯入單字 (AI 輔助)</h3>
+    <div>
+        <select id="grade"><option value="國一">國一</option><option value="國二">國二</option><option value="國三">國三</option></select>
+        <select id="version"><option value="翰林版">翰林版</option><option value="康軒版">康軒版</option><option value="南一版">南一版</option></select>
+        <input type="text" id="rangeName" placeholder="輸入範圍 (如: Book 1 Unit 2)" style="width: 200px;">
+    </div>
+    <p style="color: #bdc3c7; font-size: 0.9rem;">請貼上 ChatGPT 產生的 JSON 代碼：</p>
+    <textarea id="jsonInput" placeholder='[ { "en": "apple", "ch": "蘋果", "sentence": "..." } ]'></textarea>
     <br><br>
-    <button onclick="previewData()">預覽並加入暫存</button>
+    <button onclick="addToPreview()">⬇️ 加入暫存區</button>
 </div>
 
 <div class="panel">
-    <h3>3. 確認目前系統內的資料架構</h3>
-    <pre id="previewArea" style="background:#222; padding:10px; overflow:auto; max-height:300px;"></pre>
+    <h3>☁️ 確認並上傳</h3>
+    <p>目前的資料結構預覽：</p>
+    <pre id="previewArea" style="background:#222; padding:10px; overflow:auto; max-height:200px; border-radius:5px; font-size: 0.8rem;"></pre>
     
-    <button class="save" onclick="downloadDB()">下載更新後的 database.js</button>
-    <p style="text-align: center; color: #bbb;">下載後，請將檔案覆蓋原本資料夾中的 database.js</p>
+    <button class="save-btn" onclick="uploadToGitHub()">🚀 一鍵更新到網站</button>
+    <div id="status" class="status-msg"></div>
 </div>
 
 <script>
-    // 初始化全域變數，若讀取失敗則建立空物件
+    // 讀取本地暫存的資料庫 (如果有的話)，否則讀取 database.js 的
     let db = (typeof jutorDB !== 'undefined') ? jutorDB : {};
 
-    function previewData() {
+    // 頁面載入時，自動填入 localStorage 的設定
+    window.onload = function() {
+        if(localStorage.getItem('gh_owner')) document.getElementById('repoOwner').value = localStorage.getItem('gh_owner');
+        if(localStorage.getItem('gh_repo')) document.getElementById('repoName').value = localStorage.getItem('gh_repo');
+        if(localStorage.getItem('gh_token')) document.getElementById('githubToken').value = localStorage.getItem('gh_token');
+        if(localStorage.getItem('gh_path')) document.getElementById('filePath').value = localStorage.getItem('gh_path');
+        renderPreview();
+    }
+
+    function saveConfig() {
+        localStorage.setItem('gh_owner', document.getElementById('repoOwner').value.trim());
+        localStorage.setItem('gh_repo', document.getElementById('repoName').value.trim());
+        localStorage.setItem('gh_token', document.getElementById('githubToken').value.trim());
+        localStorage.setItem('gh_path', document.getElementById('filePath').value.trim());
+        alert("設定已儲存！");
+    }
+
+    function addToPreview() {
         const grade = document.getElementById('grade').value;
         const version = document.getElementById('version').value;
         const range = document.getElementById('rangeName').value.trim();
         const jsonText = document.getElementById('jsonInput').value.trim();
 
-        if (!range) return alert("請輸入範圍名稱！");
-        if (!jsonText) return alert("請輸入 JSON 資料！");
+        if (!range || !jsonText) return alert("請完整填寫範圍與 JSON 資料！");
 
         try {
             const newData = JSON.parse(jsonText);
-            
-            // 建構路徑
             if (!db[grade]) db[grade] = {};
             if (!db[grade][version]) db[grade][version] = {};
             
-            // 存入資料
+            // 覆蓋或新增
             db[grade][version][range] = newData;
-
-            alert(`成功加入 ${newData.length} 筆單字到 [${grade} / ${version} / ${range}]`);
+            
+            document.getElementById('jsonInput').value = ''; // 清空輸入框
             renderPreview();
-
+            alert(`已加入 [${range}]，請記得按下方紅色按鈕上傳。`);
         } catch (e) {
-            alert("JSON 格式錯誤！請檢查是否有多餘的符號。");
+            alert("JSON 格式錯誤！請檢查代碼。");
         }
     }
 
@@ -100,17 +110,69 @@
         document.getElementById('previewArea').textContent = JSON.stringify(db, null, 2);
     }
 
-    function downloadDB() {
-        const content = "var jutorDB = " + JSON.stringify(db, null, 2) + ";";
-        const blob = new Blob([content], { type: "text/javascript" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = "database.js";
-        link.click();
-    }
+    // 核心功能：上傳到 GitHub
+    async function uploadToGitHub() {
+        const owner = document.getElementById('repoOwner').value.trim();
+        const repo = document.getElementById('repoName').value.trim();
+        const token = document.getElementById('githubToken').value.trim();
+        const path = document.getElementById('filePath').value.trim();
+        const statusDiv = document.getElementById('status');
 
-    // 初始顯示
-    renderPreview();
+        if (!owner || !repo || !token || !path) return alert("請先完成上方的系統連線設定！");
+
+        statusDiv.textContent = "正在連線到 GitHub...";
+        statusDiv.style.color = "#f39c12";
+
+        const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+        const newContent = "var jutorDB = " + JSON.stringify(db, null, 2) + ";";
+        
+        // 解決中文編碼問題
+        const base64Content = btoa(unescape(encodeURIComponent(newContent)));
+
+        try {
+            // 1. 先取得目前的檔案 SHA (Update 需要這個)
+            const getRes = await fetch(apiUrl, {
+                headers: { 
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            let sha = null;
+            if (getRes.ok) {
+                const getData = await getRes.json();
+                sha = getData.sha;
+            }
+
+            // 2. 發送 PUT 請求進行更新
+            const putRes = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: "Update database via Jutor Admin", // Commit message
+                    content: base64Content,
+                    sha: sha // 如果是新檔案，sha 為 null (GitHub API 會自動處理嗎? 通常需要處理 404，但這裡假設檔案已存在)
+                })
+            });
+
+            if (putRes.ok) {
+                statusDiv.textContent = "✅ 上傳成功！約 1-2 分鐘後網站會更新。";
+                statusDiv.style.color = "#2ecc71";
+            } else {
+                const errData = await putRes.json();
+                throw new Error(errData.message);
+            }
+
+        } catch (error) {
+            console.error(error);
+            statusDiv.textContent = "❌ 上傳失敗：" + error.message;
+            statusDiv.style.color = "#e74c3c";
+            alert("上傳失敗，請檢查設定區的 Token 或路徑是否正確。");
+        }
+    }
 </script>
 
 </body>
