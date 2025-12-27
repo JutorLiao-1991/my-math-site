@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>英語單字聽力測驗 (盲聽版) - 鳩特數理</title>
+    <title>英語單字聽寫測驗 (克漏字版) - 鳩特數理</title>
     <script src="database.js"></script> 
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --error: #e74c3c; }
@@ -14,26 +14,35 @@
         button:hover { filter: brightness(0.9); }
         .hidden { display: none; }
         
-        /* 聽力區塊特效 */
+        /* 聽力與題目區塊 */
         .listening-icon {
-            font-size: 4rem;
+            font-size: 3rem;
             cursor: pointer;
             display: inline-block;
-            transition: transform 0.2s;
-            margin: 20px 0;
             color: var(--accent);
-            animation: pulse 2s infinite;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
         }
         .listening-icon:active { transform: scale(0.9); }
+
+        /* 克漏字句子的樣式 */
+        .cloze-sentence {
+            font-size: 1.4rem;
+            color: #2c3e50;
+            font-weight: bold;
+            margin: 20px 0;
+            line-height: 1.6;
+            min-height: 3rem;
+        }
         
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
+        /* 挖空的底線樣式 */
+        .blank-space {
+            color: var(--accent);
+            border-bottom: 3px solid var(--accent);
+            padding: 0 10px;
+            display: inline-block;
         }
 
-        .hint-text { font-size: 1rem; color: #7f8c8d; margin-bottom: 20px; }
-        
         .feedback { margin-top: 15px; font-weight: bold; min-height: 1.5em; font-size: 1.2rem; }
         .text-correct { color: var(--success); } .text-wrong { color: var(--error); }
         
@@ -46,7 +55,7 @@
 
 <div class="container">
     <div id="setup-screen">
-        <h1 style="color: var(--primary);">英語單字聽力測驗</h1>
+        <h1 style="color: var(--primary);">英語單字聽寫測驗</h1>
         <p>請設定考試內容</p>
         
         <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 1. 選擇年級 --</option></select>
@@ -71,15 +80,17 @@
         
         <div id="step-spelling">
             <div class="listening-icon" onclick="playAudio()" title="點擊重聽">🔊</div>
-            <div class="hint-text" id="listenHint">請仔細聽音檔，輸入聽到的單字...</div>
+            <p style="color:#999; font-size:0.9rem; margin-top:-10px;">(點擊喇叭可重聽)</p>
+            
+            <div id="questionDisplay" class="cloze-sentence"></div>
 
-            <input type="text" id="spellingInput" placeholder="在此輸入英文" autocomplete="off" style="text-align:center; font-size:1.5rem; letter-spacing: 2px;">
+            <input type="text" id="spellingInput" placeholder="輸入缺空的單字" autocomplete="off" style="text-align:center; font-size:1.5rem; letter-spacing: 1px;">
             <button onclick="checkSpelling()">送出 (Enter)</button>
         </div>
 
         <div id="step-meaning" class="hidden">
             <h2 style="color:var(--accent);">拚對了！請選中文意思</h2>
-            <h1 id="targetWordDisplay" style="color: var(--primary); font-size: 2.5rem; margin: 10px 0;"></h1>
+            <h3 id="fullSentenceDisplay" style="color: var(--primary); font-weight:normal; margin-bottom:20px;"></h3>
             <div id="options-container"></div>
         </div>
 
@@ -112,45 +123,34 @@
     let correctCount = 0;
     let currentWordObj = null;
     
-    // === 音效核心 (升級版) ===
+    // 音效
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
     function playSound(type) {
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain);
         gain.connect(audioCtx.destination);
-        
         const now = audioCtx.currentTime;
 
         if (type === 'correct') {
-            // 清脆的「叮咚」 (Sine wave, C6 -> E6)
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(1046.5, now); // C6
-            osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.1); // E6
-            
+            osc.frequency.setValueAtTime(1046.5, now); 
+            osc.frequency.exponentialRampToValueAtTime(1318.5, now + 0.1); 
             gain.gain.setValueAtTime(0, now);
             gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-            
-            osc.start(now);
-            osc.stop(now + 0.6);
+            osc.start(now); osc.stop(now + 0.6);
         } else {
-            // 答錯「嗡...」 (Sawtooth, Low pitch)
             osc.type = 'triangle';
             osc.frequency.setValueAtTime(150, now);
             osc.frequency.linearRampToValueAtTime(100, now + 0.3);
-            
             gain.gain.setValueAtTime(0.2, now);
             gain.gain.linearRampToValueAtTime(0.001, now + 0.3);
-            
-            osc.start(now);
-            osc.stop(now + 0.3);
+            osc.start(now); osc.stop(now + 0.3);
         }
     }
 
-    // 選單初始化
     window.onload = function() {
         if (typeof jutorDB === 'undefined') return;
         const gradeSelect = document.getElementById('gradeSelect');
@@ -187,11 +187,8 @@
             [fullList[i], fullList[j]] = [fullList[j], fullList[i]];
         }
 
-        if (qCount !== 'all') {
-            currentList = fullList.slice(0, parseInt(qCount));
-        } else {
-            currentList = fullList;
-        }
+        if (qCount !== 'all') currentList = fullList.slice(0, parseInt(qCount));
+        else currentList = fullList;
 
         if (currentList.length === 0) return alert("此範圍尚無資料！");
         
@@ -204,31 +201,37 @@
     function loadQuestion() {
         currentWordObj = currentList[currentIndex];
         
-        // 切換回聽力介面
         document.getElementById('step-spelling').classList.remove('hidden');
         document.getElementById('step-meaning').classList.add('hidden');
         document.getElementById('step-next').classList.add('hidden');
         document.getElementById('feedback').textContent = '';
         document.getElementById('spellingInput').value = '';
         
-        // 更新進度
         document.getElementById('progressText').textContent = `${currentIndex + 1} / ${currentList.length}`;
         document.getElementById('progressBar').style.width = ((currentIndex / currentList.length) * 100) + '%';
 
-        // ★★★ 盲聽模式：這裡不顯示任何中文提示 ★★★
-        document.getElementById('listenHint').textContent = "請仔細聽音檔，輸入聽到的單字...";
+        // ★ 核心修改：生成挖空句子 ★
+        const displayArea = document.getElementById('questionDisplay');
+        
+        if (currentWordObj.sentence) {
+            // 用 Regex 不分大小寫找到單字，替換成底線
+            const regex = new RegExp(currentWordObj.en, "gi");
+            // 產生 7 個底線來代表空格
+            const cloze = currentWordObj.sentence.replace(regex, '<span class="blank-space">_______</span>');
+            displayArea.innerHTML = cloze;
+        } else {
+            // 如果沒有例句，就只顯示一條線
+            displayArea.innerHTML = '<span class="blank-space">_______</span>';
+        }
 
         document.getElementById('spellingInput').focus();
         setTimeout(playAudio, 500);
     }
 
     function playAudio() {
-        // 如果有例句就念例句，沒有就念單字
-        // 這邊很關鍵，即使是例句，學生也看不到字，只能聽
         const textToRead = currentWordObj.sentence || currentWordObj.en;
         const u = new SpeechSynthesisUtterance(textToRead);
-        u.lang = 'en-US'; 
-        u.rate = 0.8;
+        u.lang = 'en-US'; u.rate = 0.8;
         window.speechSynthesis.speak(u);
         document.getElementById('spellingInput').focus();
     }
@@ -237,31 +240,34 @@
         const input = document.getElementById('spellingInput').value.trim();
         const feedback = document.getElementById('feedback');
 
-        // 比對時忽略大小寫
         if (input.toLowerCase() === currentWordObj.en.toLowerCase()) {
-            // 1. 答對音效
             playSound('correct');
-            
-            // 2. 顯示 Bingo 字樣
             feedback.textContent = "Bingo! 答對了！";
             feedback.className = "feedback text-correct";
 
-            // 3. 延遲跳轉到第二階段 (選中文)
             setTimeout(() => {
                 document.getElementById('step-spelling').classList.add('hidden');
                 document.getElementById('step-meaning').classList.remove('hidden');
                 
-                // 這裡才把英文單字秀出來
-                document.getElementById('targetWordDisplay').textContent = currentWordObj.en;
+                // 顯示完整句子給學生看 (填入正確答案)
+                if (currentWordObj.sentence) {
+                    // 把單字標示出來
+                    const regex = new RegExp(currentWordObj.en, "gi");
+                    // 這裡顯示原本的大小寫
+                    const fullSentence = currentWordObj.sentence.replace(regex, `<u style="color:var(--accent);">${currentWordObj.en}</u>`);
+                    document.getElementById('fullSentenceDisplay').innerHTML = fullSentence;
+                } else {
+                    document.getElementById('fullSentenceDisplay').textContent = currentWordObj.en;
+                }
+
                 generateOptions();
-                
                 feedback.textContent = ""; 
-            }, 800);
+            }, 600);
         } else {
             playSound('wrong'); 
-            feedback.textContent = "聽不清楚嗎？再試一次！";
+            feedback.textContent = "拼錯囉，再聽一次！";
             feedback.className = "feedback text-wrong";
-            playAudio(); // 自動重播
+            playAudio();
             document.getElementById('spellingInput').value = '';
             document.getElementById('spellingInput').focus();
         }
@@ -280,7 +286,7 @@
         options.forEach(opt => {
             let btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.textContent = opt.ch; // 顯示中文選項
+            btn.textContent = opt.ch; 
             btn.onclick = () => checkMeaning(btn, opt);
             container.appendChild(btn);
         });
@@ -288,19 +294,18 @@
 
     function checkMeaning(btn, opt) {
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
-        
         if (opt.en === currentWordObj.en) {
             btn.classList.add('correct-ans');
             document.getElementById('feedback').textContent = "完全正確！";
             document.getElementById('feedback').className = "feedback text-correct";
             correctCount++;
-            playSound('correct'); // 選中文對了也給個鼓勵聲
+            playSound('correct');
         } else {
             btn.classList.add('wrong-ans');
             document.querySelectorAll('.option-btn').forEach(b => {
                 if (b.textContent === currentWordObj.ch) b.classList.add('correct-ans');
             });
-            document.getElementById('feedback').textContent = "意思選錯囉...";
+            document.getElementById('feedback').textContent = "選錯了...";
             document.getElementById('feedback').className = "feedback text-wrong";
             playSound('wrong');
         }
@@ -324,9 +329,9 @@
         document.getElementById('finalScore').textContent = score + "分";
         
         let msg = "";
-        if(score === 100) msg = "🎉 太強了！聽力滿分！";
-        else if(score >= 80) msg = "👏 很棒喔！耳朵很利！";
-        else msg = "💪 多聽幾次會更好！";
+        if(score === 100) msg = "🎉 Perfect! 滿分！";
+        else if(score >= 80) msg = "👏 很棒！";
+        else msg = "💪 加油！多練習幾次！";
         document.getElementById('scoreMsg').textContent = msg;
     }
 
