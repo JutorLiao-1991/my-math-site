@@ -3,42 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v47</title>
+    <title>鳩特的元素大戰 JUNO! v40 (Minimal Fix)</title>
     <style>
-        /* --- 基礎設定 --- */
+        /* --- 基礎設定 (與 v39 相同) --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
         .screen.active { display: flex; }
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
-        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.1s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .big-btn:active { transform: scale(0.90) !important; filter: brightness(0.9); }
+        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.1s; touch-action: manipulation; }
+        .big-btn:active { transform: scale(0.95); }
         .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         
         /* JUNO 按鈕區 */
-        .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 100; position: relative; pointer-events: auto; }
+        .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 100; position: relative; }
         .btn-juno { background: #f1c40f; color: #333; font-weight: bold; border: 2px solid #fff; }
         .btn-catch { background: #e74c3c; font-weight: bold; border: 2px solid #fff; }
-        .btn-juno.active { background: #fff !important; color: #f1c40f !important; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); border-color: #f1c40f; }
+        .btn-juno.active { background: #fff; color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.1); }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes flash-red { 0% { background-color: #2c0a0a; } 50% { background-color: #500000; } 100% { background-color: #2c0a0a; } }
         @keyframes ooze-green { 0% { background-color: #0a2c0a; } 50% { background-color: #0f3d0f; } 100% { background-color: #0a2c0a; } }
         
-        /* --- Toast 浮動提示 (新增) --- */
-        #toast-box {
-            visibility: hidden; min-width: 250px; margin-left: -125px; background-color: rgba(0,0,0,0.85);
-            color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed;
-            z-index: 2000; left: 50%; bottom: 40%; font-size: 1.1rem; border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.3s; pointer-events: none;
-        }
-        #toast-box.show { visibility: visible; opacity: 1; bottom: 45%; }
-
         /* --- 彈出視窗 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
         .modal.show { display: flex; }
-        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 900px; max-height: 90%; overflow: hidden; border: 2px solid #555; text-align: center; transition: 0.3s; }
+        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 320px; max-height: 90%; overflow: hidden; border: 2px solid #555; text-align: center; transition: 0.3s; }
         .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
         
         .modal-nuke { border-color: #f1c40f; animation: flash-red 0.5s infinite; }
@@ -57,16 +48,14 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- 週期表小抄 (Scrollable & Centered) --- */
+        /* --- 週期表小抄 (v39 樣式 + 置中修正) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
         .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin: 0 auto; }
         
         .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
         .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
-        
         .pg-header { background: transparent; color: #aaa; border: none; align-items: flex-end; padding-bottom: 2px; font-size: 0.7rem; }
         .pg-period { background: #333; color: #f1c40f; border: none; font-size: 0.9rem; width: 30px; }
-        
         .pg-pink { background: #ffeef0; color: #c2185b; border-color: #e91e63; }
         .pg-orange { background: #fff3e0; color: #e65100; border-color: #e67e22; }
         .pg-blue { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
@@ -93,15 +82,14 @@
         .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
         .opp-count { font-size: 1.2rem; color: #e74c3c; }
         .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
-        /* JUNO 標記 */
-        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; font-weight:bold; }
+        /* JUNO Badge */
+        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; font-weight:bold;}
         .opp-card.has-said-juno .juno-badge { display: inline-block; }
 
         #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; z-index: 10; }
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
         #btn-draw { z-index: 5; position: relative; }
 
-        /* --- 浮水印 --- */
         .table-watermark {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
             font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
@@ -109,28 +97,19 @@
         }
         @media (max-width: 768px) {
             .table-watermark {
-                font-size: 35vw;
-                color: rgba(255, 255, 255, 0.15); 
-                opacity: 1; 
-                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                font-size: 35vw; color: rgba(255, 255, 255, 0.15); opacity: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
             }
         }
-
         .jutor-watermark {
-            position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3);
-            font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
+            position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3); font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
         }
-        
         .slot-indicator { 
             position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
             background: #333; padding: 5px 15px; border-radius: 20px; 
             font-size: 0.8rem; font-weight: bold; white-space: nowrap; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
-            z-index: 20; color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none; z-index: 20; color: #fff;
         }
-
         #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; z-index: 5; position: relative; }
-        
         .card { width: 90px; height: 130px; background: white; border-radius: 8px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.3); color: #333; user-select: none; transition: transform 0.2s; border: 3px solid #ccc;}
         .card:active { transform: scale(0.95); }
         .card.pink { background: #ffeef0; border-color: #e91e63; }
@@ -138,14 +117,12 @@
         .card.green { background: #e8f5e9; border-color: #4caf50; }
         .card.purple { background: #f3e5f5; border-color: #9c27b0; }
         .card.blue { background: #e3f2fd; border-color: #2196f3; }
-        
         .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
         .symbol { font-size: 36px; font-weight: 800; }
         .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
         .action-badge { position: absolute; bottom: 5px; right: 5px; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;}
         .helper-btn { padding: 5px 10px; font-size: 0.8rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; margin-left: 10px; position: relative; z-index: 5;}
         .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
-
         .confetti { position: fixed; width: 10px; height: 10px; background-color: #f2d74e; animation: fall linear forwards; z-index: 9999; pointer-events: none;}
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
@@ -194,8 +171,6 @@
 
         <div id="hand-area"></div>
     </div>
-
-    <div id="toast-box"></div>
 
     <div id="screen-gameover" class="screen" style="background: rgba(0,0,0,0.85); z-index: 101;">
         <h1>🎉 遊戲結束 🎉</h1>
@@ -356,30 +331,15 @@
         let pendingPenaltyCount = 0;
         let isSinglePlayerMode = false; 
         
+        // V40: 加入 JUNO 變數
         let hasSaidJuno = false; 
 
         let botHands = {}; 
         let roomListenerOff = null;
         let botTimer = null; 
 
-        // V42: 惰性載入 AudioContext
-        let audioCtx = null;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
-
-        function wakeUpAudio() {
-            if (!audioCtx) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    createNoiseBuffer();
-                } catch(e) { console.log('Audio init failed', e); }
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume().catch(e => console.log('Audio resume failed', e));
-            }
-        }
-
-        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
-        document.addEventListener('click', wakeUpAudio);
 
         function createNoiseBuffer() {
             if (!audioCtx) return;
@@ -396,107 +356,89 @@
             cardNoiseBuffer = buffer;
         }
 
+        function wakeUpAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.001);
+                });
+            }
+            if(!cardNoiseBuffer) createNoiseBuffer();
+        }
+
+        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
+        document.addEventListener('click', wakeUpAudio);
+
         function playSound(type) {
-            if(!audioCtx) return;
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
-            
-            // ... (聲音代碼省略，與之前相同) ...
+
             if(type === 'pop') {
                 if(cardNoiseBuffer) {
-                    const src = audioCtx.createBufferSource(); src.buffer = cardNoiseBuffer;
-                    const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1200, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                    const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); src.start(); src.stop(now + 0.15);
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = cardNoiseBuffer;
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1200, now);
+                    filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                    const gain = audioCtx.createGain();
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    src.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    src.start();
+                    src.stop(now + 0.15);
                 }
             } else if (type === 'alert') {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(80, now + 0.4);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 0.4);
-            }
-        }
-
-        function showToast(msg) {
-            const box = document.getElementById('toast-box');
-            if(box) {
-                box.innerText = msg;
-                box.className = 'show';
-                setTimeout(() => { box.className = box.className.replace('show', ''); }, 2500);
-            }
-        }
-
-        // ★ 關鍵修復：手動將函式綁定到 window (全域)，否則 HTML onclick 找不到它們
-        window.toggleJunoShout = function() {
-            hasSaidJuno = !hasSaidJuno;
-            const btn = document.getElementById('btn-juno-shout');
-            if(hasSaidJuno) {
-                btn.classList.add('active');
-                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-                showToast("🗣️ 你大喊了一聲 JUNO!");
-                playSound('pop');
-            } else {
-                btn.classList.remove('active');
-                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
-                showToast("🤐 收回喊叫");
-            }
-        };
-
-        window.catchJuno = function() {
-            playSound('alert');
-            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
-                const players = snapshot.val();
-                let caughtAnyone = false;
-                
-                Object.keys(players).forEach(pid => {
-                    const p = players[pid];
-                    if (p.handCount === 1 && !p.hasSaidJuno) {
-                        caughtAnyone = true;
-                        const penalty = 2;
-                        
-                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
-                        
-                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
-                            if (!botHands[pid]) botHands[pid] = [];
-                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
-                        } else if (pid === myId) {
-                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
-                            renderHand();
-                        }
-
-                        const name = p.name || "某人";
-                        showToast(`🚨 抓到了！${name} 沒喊 JUNO`);
-                        
-                        if (pid === myId) {
-                            pendingPenaltyCount = 2;
-                            document.getElementById('penalty-count-display').innerText = 2;
-                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
-                            document.getElementById('modal-penalty').classList.add('show');
-                        }
-                    }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.4);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, now + i*0.1);
+                    gain.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + i*0.1);
+                    osc.stop(now + i*0.1 + 0.6);
                 });
+            } else if (type === 'lose') {
+                [0, 0.4, 0.8].forEach((delay, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    const startFreq = 300 - (i*30);
+                    osc.frequency.setValueAtTime(startFreq, now + delay);
+                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3);
+                    gain.gain.setValueAtTime(0.2, now + delay);
+                    gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.35);
+                });
+            }
+        }
 
-                if (!caughtAnyone) {
-                    showToast("👀 沒人違規！大家都很守規矩");
-                }
-            });
-        };
-
-        // 綁定其他全域函式 (確保外部可呼叫)
-        window.joinGame = joinGame;
-        window.startGame = startGame;
-        window.drawCardAction = drawCardAction;
-        window.tryPlayCard = tryPlayCard;
-        window.finishWildPlay = finishWildPlay;
-        window.toggleCheatSheet = toggleCheatSheet;
-        window.backToLobby = backToLobby;
-        window.confirmPenalty = confirmPenalty;
-
-        // ... (以下為與 v39 完全相同的遊戲邏輯，為節省篇幅，邏輯內包含上述所有變數與狀態處理) ...
-        // ... (請將 v39 的函式複製回來，但記得上面的 window.bind) ...
-        
-        // 為了確保這份代碼能直接複製執行，我將完整的邏輯再寫一次：
-        
         function createConfetti() {
             for(let i=0; i<50; i++) {
                 const c = document.createElement('div');
@@ -520,9 +462,82 @@
              { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" }, { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
         ];
 
-        // --- 核心遊戲邏輯 (Join, Start, UpdateUI...) ---
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            toggleCheatSheet(false);
+        }
 
-        function joinGame(mode) {
+        window.toggleCheatSheet = function(show) {
+            const modal = document.getElementById('modal-cheatsheet');
+            if(show) modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
+
+        window.finishWildPlay = function(selectedColor) {
+            document.getElementById('modal-color-picker').classList.remove('show');
+            if (pendingWildCard) {
+                submitCardPlay(pendingWildCard, selectedColor);
+                pendingWildCard = null;
+            }
+        }
+
+        // V40: 加入 JUNO 喊叫與抓包邏輯 (掛載到 window)
+        window.toggleJunoShout = function() {
+            hasSaidJuno = !hasSaidJuno;
+            const btn = document.getElementById('btn-juno-shout');
+            if(hasSaidJuno) {
+                btn.classList.add('active');
+                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
+                playSound('pop');
+            } else {
+                btn.classList.remove('active');
+                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
+            }
+        }
+
+        window.catchJuno = function() {
+            playSound('alert');
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
+                const players = snapshot.val();
+                let caughtAnyone = false;
+                
+                Object.keys(players).forEach(pid => {
+                    const p = players[pid];
+                    // 抓包條件：手牌剩 1 張且 hasSaidJuno 為 false
+                    if (p.handCount === 1 && !p.hasSaidJuno) {
+                        caughtAnyone = true;
+                        const penalty = 2;
+                        
+                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
+                        
+                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
+                            if (!botHands[pid]) botHands[pid] = [];
+                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                        } else if (pid === myId) {
+                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+                            renderHand();
+                        }
+
+                        const name = p.name || "某人";
+                        update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
+                        
+                        if (pid === myId) {
+                            pendingPenaltyCount = 2;
+                            document.getElementById('penalty-count-display').innerText = 2;
+                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
+                            document.getElementById('modal-penalty').classList.add('show');
+                        }
+                    }
+                });
+
+                if (!caughtAnyone) {
+                    alert("👀 沒人違規！大家都很守規矩");
+                }
+            });
+        }
+
+        window.joinGame = function(mode) {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
@@ -599,7 +614,7 @@
                     switchScreen('screen-lobby');
                 });
             }
-        }
+        };
 
         function setupRoomListener() {
             const currentRoomRef = ref(db, 'rooms/' + ROOM_ID);
@@ -694,6 +709,7 @@
                         document.getElementById('btn-draw').style.display = 'block';
                     }
 
+                    // V40: 修正核爆特效顯示
                     if (amIInGame && data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                         isHandlingPenalty = true;
                         pendingPenaltyCount = data.drawPenalty.count;
@@ -712,8 +728,7 @@
                             modalTitle.style.color = '#f1c40f';
                             visualArea.innerHTML = `
                                 <svg class="nuke-icon" viewBox="0 0 512 512">
-                                    <path d="M440.5 355.7C466.7 325 480 286.2 480 248.6c0-10.3-2-20.5-5.9-30.2l-91.6 40.5c3.2 7.7 4.9 16 4.9 24.7c0 37.9-30.7 68.6-68.6 68.6c-13.6 0-26.3-3.9-37.1-10.8L229.8 450c26 18.2 57.3 27.9 90.1 27.9c47.9 0 92.2-20.9 120.6-54.3l0 0zM193.4 341.4c-10.7 6.8-23.4 10.8-37.1 10.8c-37.9 0-68.6-30.7-68.6-68.6c0-8.7 1.7-17 4.9-24.7L.9 218.4C-3 228.1-5 238.3-5 248.6c0 88.4 71.6 160 160 160c32.8 0 64.1-9.7 90.1-27.9L193.4 341.4zM248.6 183.4c13.6 0 26.3 3.9 37.1 10.8l51.8-108.6C311.5 67.4 280.2 57.7 247.4 57.7c-88.4 0-160 71.6-160 160c0 10.3 2 20.5 5.9 30.2l91.6-40.5c-3.2-7.7-4.9-16-4.9-24.7c0-37.9 30.7-68.6 68.6-68.6z"/>
-                                    <circle cx="248" cy="248" r="40"/>
+                                    <path d="M224 160c-25.2 0-47.3 13.9-58.8 34.6L52.8 194.6C59.9 87.7 148.4 8 256 8s196.1 79.7 203.2 186.6l-112.4 0C335.3 173.9 313.2 160 288 160h-64zm-94.6 98.4c-9.5 12.7-13.4 27.3-13.4 43.4c0 84.1 68.2 152.5 152.4 152.5h22.4c0 16.6-6.3 32.2-17.4 43.8L161.4 485.9c-13.9 7-30.7 3.3-40.2-9.4c-9.5-12.7-13.4-27.3-13.4-43.4c0-16.1 3.9-30.8 13.4-43.4l8.2-10.9zm251.2 0l8.2 10.9c9.5 12.7 13.4 27.3 13.4 43.4c0 16.1-3.9 30.8-13.4 43.4c-9.5 12.7-26.3 16.4-40.2 9.4L237.6 498.1c-11.1-11.6-17.4-27.2-17.4-43.8h22.4c84.2 0 152.4-68.4 152.4-152.5c0-16.1-3.9-30.8-13.4-43.4zM256 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
                                 </svg>
                                 <div style="font-size: 2rem; color: #f1c40f; font-weight: bold; margin-top:10px;">+4</div>
                             `;
@@ -767,7 +782,7 @@
                    }
                    let myRealHand = botHands[botId];
 
-                   // V38: 機器人抓包邏輯
+                   // V38: 機器人抓包邏輯 (僅檢查其他人)
                    const allPlayers = botData.players || {};
                    let bName = botData.players[botId].name || "機器人";
                    
@@ -783,7 +798,7 @@
                                    for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
                                } 
                                
-                               // 發送抓包訊息
+                               // 發送抓包訊息 & 懲罰標記 (針對人類)
                                update(roomRef, { 
                                    drawPenalty: { targetId: pid, count: 2, attackerName: bName + " (抓包)" },
                                    msg: `🚨 ${bName} 抓包了 ${allPlayers[pid].name}！` 
@@ -792,7 +807,7 @@
                        }
                    });
 
-                   // 機器人自己喊 JUNO
+                   // 機器人自己喊 JUNO (2張變1張前，或者已經變1張後？ 簡單處理：當手牌數==2，準備出牌前喊)
                    if (myRealHand.length === 2) {
                        if (Math.random() > 0.5) {
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
@@ -806,6 +821,7 @@
                        const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
+                       // 機器人真的抽牌進手牌
                        for(let k=0; k<count; k++) {
                            myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                        }
@@ -826,6 +842,7 @@
                    const canPlay = true; 
                    
                    if (canPlay) {
+                       // V35: 只檢查自己手上的牌
                        let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
@@ -925,13 +942,11 @@
             document.getElementById('btn-juno-shout').classList.remove('active');
             update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
 
-            // V41: 如果是 "被抓包" (attackerName 包含 '抓包')，則不需要換下一家
             get(ref(db, 'rooms/' + ROOM_ID)).then(snap => {
                 const data = snap.val();
                 if (data.drawPenalty && data.drawPenalty.attackerName && data.drawPenalty.attackerName.includes('抓包')) {
                      update(roomRef, { drawPenalty: null }); 
                 } else {
-                    // 正常攻擊，換下一家
                     let direction = data.direction || 1;
                     let nextIndex = (data.currentTurnIndex + direction) % data.order.length;
                     if (nextIndex < 0) nextIndex += data.order.length;
