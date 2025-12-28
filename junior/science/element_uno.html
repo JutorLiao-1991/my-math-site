@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v34 - 觀戰轉正修復版</title>
+    <title>鳩特的元素大戰 JUNO! v37</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -15,6 +15,12 @@
         .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         
+        /* JUNO 按鈕區 */
+        .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 20; position: relative; }
+        .btn-juno { background: #f1c40f; color: #333; font-weight: bold; border: 2px solid #fff; }
+        .btn-catch { background: #e74c3c; font-weight: bold; border: 2px solid #fff; }
+        .btn-juno.active { background: #fff; color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.1); }
+
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes flash-red { 0% { background-color: #2c0a0a; } 50% { background-color: #500000; } 100% { background-color: #2c0a0a; } }
@@ -23,7 +29,7 @@
         /* --- 彈出視窗 --- */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; flex-direction: column; }
         .modal.show { display: flex; }
-        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 320px; max-height: 90%; overflow: hidden; border: 2px solid #555; text-align: center; transition: 0.3s; }
+        .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 900px; max-height: 90%; overflow: hidden; border: 2px solid #555; text-align: center; transition: 0.3s; }
         .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
         
         .modal-nuke { border-color: #f1c40f; animation: flash-red 0.5s infinite; }
@@ -42,21 +48,27 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- 小抄樣式 --- */
-        .periodic-grid { display: grid; grid-template-columns: 25px repeat(8, 1fr); gap: 4px; margin-top: 20px; width: 100%; min-width: 320px; }
-        .pg-cell { aspect-ratio: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #fff; position: relative; font-size: 0.9rem; }
-        .pg-header-row { font-size: 0.7rem; color: #aaa; background: transparent; height: 20px; align-items: end; padding-bottom: 2px; }
-        .pg-period-num { font-size: 0.9rem; color: #f1c40f; background: transparent; font-weight: bold; }
-        .pg-pink { background: #ffeef0; color: #c2185b; border: 2px solid #e91e63; }
-        .pg-orange { background: #fff3e0; color: #e65100; border: 2px solid #e67e22; }
-        .pg-blue { background: #e3f2fd; color: #1565c0; border: 2px solid #2196f3; }
-        .pg-green { background: #e8f5e9; color: #2e7d32; border: 2px solid #4caf50; }
-        .pg-purple { background: #f3e5f5; color: #7b1fa2; border: 2px solid #9c27b0; }
-        .pg-gold { background: linear-gradient(135deg, #fff9c4, #ffd54f); color: #8d6e63; border: 2px solid #ffca28; box-shadow: 0 0 5px #ffca28; }
-        .pg-black { background: #2c3e50; color: #f1c40f; border: 2px solid #000; box-shadow: 0 0 5px red; }
+        /* --- V37: 週期表小抄 (Scrollable) --- */
+        .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
+        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; }
+        
+        .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
+        .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
+        
+        .pg-header { background: transparent; color: #aaa; border: none; align-items: flex-end; padding-bottom: 2px; font-size: 0.7rem; }
+        .pg-period { background: #333; color: #f1c40f; border: none; font-size: 0.9rem; width: 30px; }
+        
+        .pg-pink { background: #ffeef0; color: #c2185b; border-color: #e91e63; }
+        .pg-orange { background: #fff3e0; color: #e65100; border-color: #e67e22; }
+        .pg-blue { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
+        .pg-green { background: #e8f5e9; color: #2e7d32; border-color: #4caf50; }
+        .pg-purple { background: #f3e5f5; color: #7b1fa2; border-color: #9c27b0; }
+        .pg-gold { background: linear-gradient(135deg, #fff9c4, #ffd54f); color: #8d6e63; border-color: #ffca28; box-shadow: 0 0 5px #ffca28; }
+        .pg-black { background: #2c3e50; color: #f1c40f; border-color: #000; box-shadow: 0 0 5px red; }
         .pg-empty { background: transparent; border: none; }
-        .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 15px; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px;}
+
+        .legend-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; justify-content: center; width: 100%; padding: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.8rem; color: #ddd; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; white-space: nowrap;}
         .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 
         /* --- 遊戲介面 --- */
@@ -72,6 +84,8 @@
         .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
         .opp-count { font-size: 1.2rem; color: #e74c3c; }
         .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
+        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; }
+        .opp-card.has-said-juno .juno-badge { display: inline-block; }
 
         #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; }
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
@@ -129,7 +143,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>鳩特元素大戰  JUNO!</h1>
+        <h1>鳩特的元素大戰<br>JUNO!</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -159,6 +173,12 @@
         <div id="game-board">
             <div class="table-watermark">JUNO!</div>
             <div id="table-slot" class="table-slot"></div>
+            
+            <div class="juno-controls">
+                <button id="btn-juno-shout" class="big-btn btn-juno" onclick="toggleJunoShout()">🗣️ JUNO!</button>
+                <button id="btn-catch" class="big-btn btn-catch" onclick="catchJuno()">🚨 抓包!</button>
+            </div>
+
             <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
         </div>
 
@@ -202,25 +222,84 @@
     </div>
 
     <div id="modal-cheatsheet" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 95%; width:95%; text-align: left;">
             <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
-            <h3 style="margin:5px 0 10px 0; color:white; font-size:1.1rem;">元素功能對照表</h3>
-            <div class="periodic-grid">
-                <div class="pg-cell pg-header-row">週</div> <div class="pg-cell pg-header-row">1A</div> <div class="pg-cell pg-header-row">2A</div> <div class="pg-cell pg-header-row">B族</div> <div class="pg-cell pg-header-row">4A</div> <div class="pg-cell pg-header-row">5A</div> <div class="pg-cell pg-header-row">6A</div> <div class="pg-cell pg-header-row">7A</div> <div class="pg-cell pg-header-row">8A</div>
-                
-                <div class="pg-cell pg-period-num">1</div> <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
-                <div class="pg-cell pg-period-num">2</div> <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-orange">Be</div> <div class="pg-cell pg-green">B</div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div> <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
-                <div class="pg-cell pg-period-num">3</div> <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-orange">Mg</div> <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div> <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
-                <div class="pg-cell pg-period-num">4</div> <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-orange">Ca</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ti-Zn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
-                <div class="pg-cell pg-period-num">5</div> <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-orange">Sr</div> <div class="pg-cell pg-blue" style="font-size:0.6rem">Ag,Sn</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
-                <div class="pg-cell pg-period-num">6</div> <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-orange">Ba</div> <div class="pg-cell pg-gold" style="font-size:0.6rem">Au,Pt</div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">At</div> <div class="pg-cell pg-purple">Rn</div>
-                <div class="pg-cell pg-period-num">7</div> <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-orange">Ra</div> <div class="pg-cell pg-black" style="font-size:0.6rem">U,Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
+            <h3 style="margin:5px 0 10px 0; color:white; font-size:1.2rem; text-align:center;">元素功能與週期對照表</h3>
+            <p style="text-align:center; font-size:0.8rem; color:#aaa; margin:0 0 10px 0;">← 左右滑動查看完整週期表 →</p>
+            
+            <div class="periodic-wrapper">
+                <div class="periodic-grid">
+                    <div class="pg-cell pg-header">週</div> 
+                    <div class="pg-cell pg-header">1A</div> <div class="pg-cell pg-header">2A</div> <div class="pg-cell pg-header">3B</div> 
+                    <div class="pg-cell pg-header">4B</div> <div class="pg-cell pg-header">5B</div> <div class="pg-cell pg-header">6B</div> 
+                    <div class="pg-cell pg-header">7B</div> <div class="pg-cell pg-header">8B</div> <div class="pg-cell pg-header">8B</div> 
+                    <div class="pg-cell pg-header">8B</div> <div class="pg-cell pg-header">1B</div> <div class="pg-cell pg-header">2B</div> 
+                    <div class="pg-cell pg-header">3A</div> <div class="pg-cell pg-header">4A</div> <div class="pg-cell pg-header">5A</div> 
+                    <div class="pg-cell pg-header">6A</div> <div class="pg-cell pg-header">7A</div> <div class="pg-cell pg-header">8A</div>
+
+                    <div class="pg-cell pg-period">1</div> 
+                    <div class="pg-cell pg-pink">H</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">He</div>
+
+                    <div class="pg-cell pg-period">2</div> 
+                    <div class="pg-cell pg-pink">Li</div> <div class="pg-cell pg-orange">Be</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-green">B</div> <div class="pg-cell pg-green">C</div> <div class="pg-cell pg-green">N</div>
+                    <div class="pg-cell pg-green">O</div> <div class="pg-cell pg-green">F</div> <div class="pg-cell pg-purple">Ne</div>
+
+                    <div class="pg-cell pg-period">3</div> 
+                    <div class="pg-cell pg-pink">Na</div> <div class="pg-cell pg-orange">Mg</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-blue">Al</div> <div class="pg-cell pg-green">Si</div> <div class="pg-cell pg-green">P</div>
+                    <div class="pg-cell pg-green">S</div> <div class="pg-cell pg-green">Cl</div> <div class="pg-cell pg-purple">Ar</div>
+
+                    <div class="pg-cell pg-period">4</div> 
+                    <div class="pg-cell pg-pink">K</div> <div class="pg-cell pg-orange">Ca</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-blue">Ti</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Cr</div>
+                    <div class="pg-cell pg-blue">Mn</div> <div class="pg-cell pg-blue">Fe</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-blue">Ni</div> <div class="pg-cell pg-blue">Cu</div> <div class="pg-cell pg-blue">Zn</div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">Br</div> <div class="pg-cell pg-purple">Kr</div>
+
+                    <div class="pg-cell pg-period">5</div> 
+                    <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-orange">Sr</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-gold">Ag</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Sn</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
+
+                    <div class="pg-cell pg-period">6</div> 
+                    <div class="pg-cell pg-pink">Cs</div> <div class="pg-cell pg-orange">Ba</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">W</div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-gold">Pt</div> <div class="pg-cell pg-gold">Au</div> <div class="pg-cell pg-blue">Hg</div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Pb</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">At</div> <div class="pg-cell pg-purple">Rn</div>
+
+                    <div class="pg-cell pg-period">7</div> 
+                    <div class="pg-cell pg-pink">Fr</div> <div class="pg-cell pg-orange">Ra</div> <div class="pg-cell pg-black">U</div>
+                    <div class="pg-cell pg-black">Pu</div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-purple">Og</div>
+                </div>
             </div>
+
             <div class="legend-row">
                 <div class="legend-item"><span class="dot" style="background:#e91e63"></span> 1A (粉)</div>
                 <div class="legend-item"><span class="dot" style="background:#e67e22"></span> 2A (橘)</div>
                 <div class="legend-item"><span class="dot" style="background:#2196f3"></span> 金屬 (藍)</div>
-                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 生命 (綠)</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 非金屬 (綠)</div>
             </div>
             <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
                 <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫=Skip</div>
@@ -230,7 +309,6 @@
                 <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Al/Zn=Rev</div>
             </div>
         </div>
-        
     </div>
 
     <script type="module">
@@ -265,7 +343,10 @@
         let isHandlingPenalty = false;
         let pendingPenaltyCount = 0;
         let isSinglePlayerMode = false; 
+        
+        let hasSaidJuno = false; 
 
+        let botHands = {}; 
         let roomListenerOff = null;
         let botTimer = null; 
 
@@ -456,6 +537,66 @@
             }
         }
 
+        // V36: JUNO 控制功能
+        window.toggleJunoShout = function() {
+            hasSaidJuno = !hasSaidJuno;
+            const btn = document.getElementById('btn-juno-shout');
+            if(hasSaidJuno) {
+                btn.classList.add('active');
+                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
+            } else {
+                btn.classList.remove('active');
+                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
+            }
+        }
+
+        window.catchJuno = function() {
+            playSound('alert');
+            // 檢查誰剩 1 張牌且 hasSaidJuno 為 false
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
+                const players = snapshot.val();
+                let caughtAnyone = false;
+                
+                Object.keys(players).forEach(pid => {
+                    const p = players[pid];
+                    if (p.handCount === 1 && !p.hasSaidJuno) {
+                        // 抓到了！
+                        caughtAnyone = true;
+                        const penalty = 2;
+                        
+                        // 懲罰邏輯：增加手牌
+                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
+                        
+                        // 如果是機器人，要加到它的真實手牌
+                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
+                            if (!botHands[pid]) botHands[pid] = [];
+                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                        } else if (pid === myId) {
+                            // 如果是自己被抓
+                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+                            renderHand();
+                        }
+
+                        // 公告
+                        const name = p.name || "某人";
+                        update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
+                        
+                        // 顯示懲罰視窗 (如果是自己)
+                        if (pid === myId) {
+                            pendingPenaltyCount = 2;
+                            document.getElementById('penalty-count-display').innerText = 2;
+                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
+                            document.getElementById('modal-penalty').classList.add('show');
+                        }
+                    }
+                });
+
+                if (!caughtAnyone) {
+                    alert("沒有人違規喔！(或是對方已經喊了)");
+                }
+            });
+        }
+
         window.joinGame = function(mode) {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
@@ -488,16 +629,23 @@
                         update(roomRef, { hostId: myId });
                     }
 
-                    update(myRef, { name: myName, handCount: 0 });
+                    update(myRef, { name: myName, handCount: 0, hasSaidJuno: false });
                     document.getElementById('my-name-display').innerText = `我: ${myName}`;
                     switchScreen('screen-lobby');
 
                     setTimeout(() => {
                         const botNames = ["🤖 氫寶", "🤖 氦寶", "🤖 鋰寶", "🤖 鈹寶", "🤖 硼寶", "🤖 碳寶", "🤖 氮寶"];
+                        botHands = {}; 
                         for(let i=1; i<=botCount; i++) {
                             const botId = 'bot_' + Date.now() + '_' + i;
                             const name = botNames[i-1] || `🤖 機器人${i}`;
-                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { name: name, handCount: 7 });
+                            
+                            botHands[botId] = [];
+                            for(let j=0; j<7; j++) {
+                                botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                            }
+                            
+                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { name: name, handCount: 7, hasSaidJuno: false });
                         }
                         setTimeout(startGame, 1000); 
                     }, 500);
@@ -521,7 +669,7 @@
                         onDisconnect(myRef).remove();
                     }
 
-                    update(myRef, { name: myName, handCount: 0 });
+                    update(myRef, { name: myName, handCount: 0, hasSaidJuno: false });
                     document.getElementById('my-name-display').innerText = `我: ${myName}`;
                     switchScreen('screen-lobby');
                 });
@@ -599,7 +747,6 @@
                 }
 
                 if (data.status === 'playing') {
-                    // ★ V33: 觀戰模式判斷
                     const amIInGame = data.order && data.order.includes(myId);
 
                     if(!document.getElementById('screen-game').classList.contains('active')){
@@ -608,7 +755,6 @@
                         if(amIInGame && myHand.length === 0) {
                             dealCardsToSelf(7);
                         } else if (!amIInGame) {
-                            // 觀戰者
                             myHand = []; 
                             document.getElementById('hand-area').innerHTML = 
                                 '<div style="width:100%; text-align:center; color:#aaa; margin-top:20px;">🍿 遊戲進行中，您目前為觀戰模式 (下一局自動加入)</div>';
@@ -619,12 +765,10 @@
                     
                     updateGameUI(data, playerList); 
 
-                    // ★ V34 修正：如果在玩家名單內，強制顯示抽牌按鈕
                     if (amIInGame) {
                         document.getElementById('btn-draw').style.display = 'block';
                     }
 
-                    // 只有在名單內的人才處理懲罰
                     if (amIInGame && data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                         isHandlingPenalty = true;
                         pendingPenaltyCount = data.drawPenalty.count;
@@ -690,12 +834,26 @@
                    if (!botData || botData.status !== 'playing') return;
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
+                   const myRealHand = botHands[botId] || [];
+                   if (myRealHand.length === 2) {
+                       if (Math.random() > 0.5) {
+                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
+                       } else {
+                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: false });
+                       }
+                   }
+
                    if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
                        const count = botData.drawPenalty.count;
                        const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
-                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (botData.players[botId].handCount || 0) + count });
+                       for(let k=0; k<count; k++) {
+                           if (!botHands[botId]) botHands[botId] = [];
+                           botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                       }
+                       
+                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
                        
                        let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                        if (nextIndex < 0) nextIndex += botData.order.length;
@@ -708,10 +866,10 @@
                        return; 
                    }
 
-                   const canPlay = Math.random() > 0.2; 
+                   const canPlay = true; 
                    
                    if (canPlay) {
-                       let validCards = allCards.filter(c => {
+                       let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
                            return c.c === botData.topCard.c || c.p === botData.topCard.p;
@@ -721,6 +879,9 @@
                            validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
                            const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
                            
+                           const cardIndex = myRealHand.findIndex(c => c.id === cardToPlay.id);
+                           if (cardIndex > -1) myRealHand.splice(cardIndex, 1);
+
                            playSound('pop');
                            
                            let currentIndex = botData.currentTurnIndex;
@@ -766,10 +927,9 @@
                                direction: direction
                            });
                            
-                           let currentCount = botData.players[botId].handCount || 0;
-                           if (currentCount > 0) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: currentCount - 1 });
+                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                            
-                           if (currentCount - 1 <= 0) {
+                           if (myRealHand.length === 0) {
                                 update(roomRef, { status: 'finished', winnerName: bName, msg: `${bName} 統治了世界！` });
                            }
                            return;
@@ -781,11 +941,15 @@
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
                    const bName = botData.players[botId].name || "機器人";
+                   
+                   if (!botHands[botId]) botHands[botId] = [];
+                   botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
+
                    update(roomRef, {
                        currentTurnIndex: nextIndex,
                        msg: `${bName} 抽了一張牌`
                    });
-                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: (botData.players[botId].handCount || 0) + 1 });
+                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
                 });
 
             }, 1000); 
@@ -801,6 +965,10 @@
             renderHand();
             document.getElementById('modal-penalty').classList.remove('show');
             
+            hasSaidJuno = false;
+            document.getElementById('btn-juno-shout').classList.remove('active');
+            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
+
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const data = snap.val();
                 let direction = data.direction || 1;
@@ -855,6 +1023,7 @@
                 
                 Object.keys(pMap).forEach(key => {
                     updates['rooms/' + ROOM_ID + '/players/' + key + '/handCount'] = 7;
+                    updates['rooms/' + ROOM_ID + '/players/' + key + '/hasSaidJuno'] = false;
                 });
 
                 let pIds = Object.keys(pMap);
@@ -941,10 +1110,13 @@
                 if (!p) return '';
                 const isActive = (pid === currentPlayerId);
                 const isMe = (pid === myId);
+                const junoClass = p.hasSaidJuno ? 'has-said-juno' : '';
+                
                 return `
-                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''}">
+                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''} ${junoClass}">
                     <div class="opp-name">${isMe ? '你' : p.name}</div>
                     <div class="opp-count">${p.handCount || 0}</div>
+                    <div class="juno-badge">JUNO!</div>
                 </div>`;
             }).join('');
         }
@@ -985,6 +1157,12 @@
                 updateHandCount();
                 renderHand();
                 playSound('pop'); 
+            }
+
+            if (myHand.length !== 1) {
+                hasSaidJuno = false;
+                document.getElementById('btn-juno-shout').classList.remove('active');
+                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
             }
 
             if (myHand.length === 0) {
@@ -1060,6 +1238,10 @@
             renderHand();
             playSound('pop');
             
+            hasSaidJuno = false;
+            document.getElementById('btn-juno-shout').classList.remove('active');
+            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
+
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const roomData = snap.val();
                 let currentIndex = roomData.currentTurnIndex || 0;
@@ -1093,7 +1275,7 @@
              if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
              else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
              else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
-             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; // V29
+             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; 
              
              let classColor = (bgStyle === '') ? card.c : '';
              let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
