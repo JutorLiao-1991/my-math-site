@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v44</title>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <title>鳩特的元素大戰 JUNO! v45</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -13,7 +11,7 @@
         .screen.active { display: flex; }
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
         .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.1s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .big-btn:active { transform: scale(0.90); filter: brightness(0.9); }
+        .big-btn:active { transform: scale(0.90) !important; filter: brightness(0.9); }
         .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         
@@ -21,7 +19,6 @@
         .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 100; position: relative; pointer-events: auto; }
         .btn-juno { background: #f1c40f; color: #333; font-weight: bold; border: 2px solid #fff; }
         .btn-catch { background: #e74c3c; font-weight: bold; border: 2px solid #fff; }
-        /* JUNO 激活狀態 */
         .btn-juno.active { background: #fff !important; color: #f1c40f !important; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); border-color: #f1c40f; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -29,7 +26,7 @@
         @keyframes flash-red { 0% { background-color: #2c0a0a; } 50% { background-color: #500000; } 100% { background-color: #2c0a0a; } }
         @keyframes ooze-green { 0% { background-color: #0a2c0a; } 50% { background-color: #0f3d0f; } 100% { background-color: #0a2c0a; } }
         
-        /* --- Toast 浮動提示 (V44 新增) --- */
+        /* --- Toast 浮動提示 --- */
         #toast-box {
             visibility: hidden; min-width: 250px; margin-left: -125px; background-color: rgba(0,0,0,0.85);
             color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed;
@@ -60,7 +57,7 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- 週期表小抄 --- */
+        /* --- 週期表小抄 (PC置中, 手機滑動) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
         .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin: 0 auto; }
         
@@ -94,7 +91,9 @@
         .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
         .opp-count { font-size: 1.2rem; color: #e74c3c; }
         .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
-        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; }
+        
+        /* 玩家列表中的黃色 JUNO 標記 */
+        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; font-weight:bold; }
         .opp-card.has-said-juno .juno-badge { display: inline-block; }
 
         #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; z-index: 10; }
@@ -323,13 +322,15 @@
         </div>
     </div>
 
-    <script>
-        // V44: 全局錯誤攔截
+    <script type="module">
+        // V45: 全局錯誤攔截
         window.onerror = function(msg, url, line) {
-            alert("遊戲錯誤 (V44):\n" + msg + "\n請嘗試重新整理");
+            alert("遊戲錯誤 (V45):\n" + msg + "\n請嘗試重新整理");
         };
 
-        // Firebase 設定
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
             authDomain: "element-uno.firebaseapp.com",
@@ -340,32 +341,8 @@
             appId: "1:665324599764:web:d151cd9014e600fcd53e41"
         };
 
-        // 初始化
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // 兼容函數
-        function ref(db, path) { return db.ref(path); }
-        function set(ref, value) { return ref.set(value); }
-        function update(ref, value) { return ref.update(value); }
-        function remove(ref) { return ref.remove(); }
-        function get(ref) { return ref.get(); }
-        function onDisconnect(ref) { return ref.onDisconnect(); }
-        
-        function onValue(ref, callback) {
-            ref.on('value', callback);
-            return function() { ref.off('value', callback); };
-        }
-
-        // --- V44: Toast 提示功能 ---
-        function showToast(msg) {
-            const box = document.getElementById('toast-box');
-            box.innerText = msg;
-            box.className = 'show';
-            setTimeout(() => { box.className = box.className.replace('show', ''); }, 2500);
-        }
-
-        // --- 遊戲邏輯 ---
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
         
         let ROOM_ID = "class_room_101"; 
         let roomRef = ref(db, 'rooms/' + ROOM_ID);
@@ -389,7 +366,7 @@
         let roomListenerOff = null;
         let botTimer = null; 
 
-        // 音效
+        // 音效系統 lazy load
         let audioCtx = null;
         let cardNoiseBuffer = null;
 
@@ -489,6 +466,73 @@
             }
         }
 
+        // V45: 新增 Toast 顯示函式
+        function showToast(msg) {
+            const box = document.getElementById('toast-box');
+            if(box) {
+                box.innerText = msg;
+                box.className = 'show';
+                setTimeout(() => { box.className = box.className.replace('show', ''); }, 2500);
+            }
+        }
+
+        // V45: 優先掛載按鈕功能到 Global Window
+        window.toggleJunoShout = function() {
+            hasSaidJuno = !hasSaidJuno;
+            const btn = document.getElementById('btn-juno-shout');
+            if(hasSaidJuno) {
+                btn.classList.add('active');
+                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
+                showToast("🗣️ 你大喊了一聲 JUNO!");
+                playSound('pop');
+            } else {
+                btn.classList.remove('active');
+                if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
+                showToast("🤐 收回喊叫");
+            }
+        };
+
+        window.catchJuno = function() {
+            playSound('alert');
+            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
+                const players = snapshot.val();
+                let caughtAnyone = false;
+                
+                Object.keys(players).forEach(pid => {
+                    const p = players[pid];
+                    if (p.handCount === 1 && !p.hasSaidJuno) {
+                        caughtAnyone = true;
+                        const penalty = 2;
+                        
+                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
+                        
+                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
+                            if (!botHands[pid]) botHands[pid] = [];
+                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                        } else if (pid === myId) {
+                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+                            renderHand();
+                        }
+
+                        const name = p.name || "某人";
+                        showToast(`🚨 抓到了！${name} 沒喊 JUNO`);
+                        
+                        if (pid === myId) {
+                            pendingPenaltyCount = 2;
+                            document.getElementById('penalty-count-display').innerText = 2;
+                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
+                            document.getElementById('modal-penalty').classList.add('show');
+                        }
+                    }
+                });
+
+                if (!caughtAnyone) {
+                    showToast("👀 沒人違規！大家都很守規矩");
+                }
+            });
+        };
+
+        // --- 其他輔助函式 ---
         function createConfetti() {
             for(let i=0; i<50; i++) {
                 const c = document.createElement('div');
@@ -573,62 +617,6 @@
                 submitCardPlay(pendingWildCard, selectedColor);
                 pendingWildCard = null;
             }
-        }
-
-        // V44: JUNO 控制 (含 Toast)
-        window.toggleJunoShout = function() {
-            hasSaidJuno = !hasSaidJuno;
-            const btn = document.getElementById('btn-juno-shout');
-            if(hasSaidJuno) {
-                btn.classList.add('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-                showToast("🗣️ 你大喊了一聲 JUNO!");
-                playSound('pop');
-            } else {
-                btn.classList.remove('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
-                showToast("🤐 收回喊叫");
-            }
-        }
-
-        window.catchJuno = function() {
-            playSound('alert');
-            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
-                const players = snapshot.val();
-                let caughtAnyone = false;
-                
-                Object.keys(players).forEach(pid => {
-                    const p = players[pid];
-                    if (p.handCount === 1 && !p.hasSaidJuno) {
-                        caughtAnyone = true;
-                        const penalty = 2;
-                        
-                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
-                        
-                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
-                            if (!botHands[pid]) botHands[pid] = [];
-                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
-                        } else if (pid === myId) {
-                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
-                            renderHand();
-                        }
-
-                        const name = p.name || "某人";
-                        showToast(`🚨 抓到了！${name} 沒喊 JUNO`);
-                        
-                        if (pid === myId) {
-                            pendingPenaltyCount = 2;
-                            document.getElementById('penalty-count-display').innerText = 2;
-                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
-                            document.getElementById('modal-penalty').classList.add('show');
-                        }
-                    }
-                });
-
-                if (!caughtAnyone) {
-                    showToast("👀 沒人違規！大家都很守規矩");
-                }
-            });
         }
 
         window.joinGame = function(mode) {
