@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v42</title>
+    <title>鳩特的元素大戰 JUNO! v43</title>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -309,15 +311,13 @@
         </div>
     </div>
 
-    <script type="module">
-        // V42: 增加錯誤攔截，防止手機上 JS 掛掉無反應
+    <script>
+        // V43: 全局錯誤攔截
         window.onerror = function(msg, url, line) {
-            alert("遊戲發生錯誤 (V42)：\n" + msg + "\n請截圖給開發者");
+            alert("遊戲錯誤 (V43):\n" + msg + "\n請嘗試重新整理");
         };
 
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
+        // Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
             authDomain: "element-uno.firebaseapp.com",
@@ -328,8 +328,25 @@
             appId: "1:665324599764:web:d151cd9014e600fcd53e41"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        // V43: 初始化 (使用 Compat 語法)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // V43: 相容性映射函數 (Shim) - 讓原本的模組化語法繼續運作
+        function ref(db, path) { return db.ref(path); }
+        function set(ref, value) { return ref.set(value); }
+        function update(ref, value) { return ref.update(value); }
+        function remove(ref) { return ref.remove(); }
+        function get(ref) { return ref.get(); }
+        function onDisconnect(ref) { return ref.onDisconnect(); }
+        
+        // onValue 特殊處理：因為原版 onValue 回傳的是 unsubscribe 函式
+        function onValue(ref, callback) {
+            ref.on('value', callback);
+            return function() { ref.off('value', callback); };
+        }
+
+        // --- 以下為遊戲邏輯 (與 v41/42 相同，但環境更安全) ---
         
         let ROOM_ID = "class_room_101"; 
         let roomRef = ref(db, 'rooms/' + ROOM_ID);
@@ -353,7 +370,7 @@
         let roomListenerOff = null;
         let botTimer = null; 
 
-        // V42: 惰性載入 AudioContext，避免被瀏覽器擋下
+        // V43: 音效系統懶載入 (防止自動播放錯誤)
         let audioCtx = null;
         let cardNoiseBuffer = null;
 
@@ -361,22 +378,11 @@
             if (!audioCtx) {
                 try {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    createNoiseBuffer(); // 建立後再生成 buffer
-                } catch(e) {
-                    console.error("Audio init failed", e);
-                }
+                    createNoiseBuffer();
+                } catch(e) { console.log('Audio init failed', e); }
             }
             if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume().then(() => {
-                    // Silent ping to unlock audio
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    gain.gain.value = 0;
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.001);
-                });
+                audioCtx.resume().catch(e => console.log('Audio resume failed', e));
             }
         }
 
@@ -399,7 +405,7 @@
         }
 
         function playSound(type) {
-            if(!audioCtx) return; // V42: 沒聲音就算了，不要報錯
+            if(!audioCtx) return;
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
 
@@ -556,7 +562,7 @@
             if(hasSaidJuno) {
                 btn.classList.add('active');
                 update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-                update(roomRef, { msg: `🗣️ ${myName} 大喊了一聲 JUNO!` }); // V41 feature
+                update(roomRef, { msg: `🗣️ ${myName} 大喊了一聲 JUNO!` });
                 playSound('pop');
             } else {
                 btn.classList.remove('active');
@@ -842,21 +848,17 @@
                    if (!botData || botData.status !== 'playing') return;
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
-                   // V35 修正：機器人手牌實體化
-                   // 確保機器人手牌存在（防止中途加入或其他錯誤）
                    if (!botHands[botId]) {
                        botHands[botId] = [];
                        for(let i=0; i<7; i++) botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
                    }
                    let myRealHand = botHands[botId];
 
-                   // V38: 機器人抓包邏輯
                    const allPlayers = botData.players || {};
                    let bName = botData.players[botId].name || "機器人";
                    
                    Object.keys(allPlayers).forEach(pid => {
                        if (pid !== botId && allPlayers[pid].handCount === 1 && !allPlayers[pid].hasSaidJuno) {
-                           // 40% 機率抓包
                            if (Math.random() > 0.6) {
                                const penalty = 2;
                                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: allPlayers[pid].handCount + penalty });
@@ -866,7 +868,6 @@
                                    for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
                                } 
                                
-                               // 發送抓包訊息 & 懲罰標記 (針對人類)
                                update(roomRef, { 
                                    drawPenalty: { targetId: pid, count: 2, attackerName: bName + " (抓包)" },
                                    msg: `🚨 ${bName} 抓包了 ${allPlayers[pid].name}！` 
@@ -875,7 +876,6 @@
                        }
                    });
 
-                   // 機器人自己喊 JUNO
                    if (myRealHand.length === 2) {
                        if (Math.random() > 0.5) {
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
@@ -889,7 +889,6 @@
                        const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
-                       // 機器人真的抽牌進手牌
                        for(let k=0; k<count; k++) {
                            myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                        }
@@ -907,10 +906,9 @@
                        return; 
                    }
 
-                   const canPlay = true; // 總是嘗試出牌
+                   const canPlay = true; 
                    
                    if (canPlay) {
-                       // V35: 只檢查自己手上的牌
                        let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
@@ -919,10 +917,8 @@
 
                        if (validCards.length > 0) {
                            validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
-                           // 從手上打出這張牌
                            const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
                            
-                           // 從手牌移除
                            const cardIndex = myRealHand.findIndex(c => c.id === cardToPlay.id);
                            if (cardIndex > -1) myRealHand.splice(cardIndex, 1);
 
@@ -934,7 +930,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)]; // V39 Fix
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)];
                            const bName = botData.players[botId].name || "機器人";
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
@@ -971,7 +967,6 @@
                                direction: direction
                            });
                            
-                           // 更新手牌數
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                            
                            if (myRealHand.length === 0) {
@@ -981,14 +976,12 @@
                        }
                    }
 
-                   // 沒牌出，只好抽牌
                    playSound('pop');
                    let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
                    const bName = botData.players[botId].name || "機器人";
                    
-                   // 真的抽一張
                    myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
 
                    update(roomRef, {
@@ -1015,13 +1008,11 @@
             document.getElementById('btn-juno-shout').classList.remove('active');
             update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
 
-            // V41: 如果是 "被抓包" (attackerName 包含 '抓包')，則不需要換下一家
             get(ref(db, 'rooms/' + ROOM_ID)).then(snap => {
                 const data = snap.val();
                 if (data.drawPenalty && data.drawPenalty.attackerName && data.drawPenalty.attackerName.includes('抓包')) {
-                     update(roomRef, { drawPenalty: null }); // 只清除懲罰，不動回合
+                     update(roomRef, { drawPenalty: null }); 
                 } else {
-                    // 正常攻擊，換下一家
                     let direction = data.direction || 1;
                     let nextIndex = (data.currentTurnIndex + direction) % data.order.length;
                     if (nextIndex < 0) nextIndex += data.order.length;
@@ -1161,10 +1152,13 @@
                 if (!p) return '';
                 const isActive = (pid === currentPlayerId);
                 const isMe = (pid === myId);
+                const junoClass = p.hasSaidJuno ? 'has-said-juno' : '';
+                
                 return `
-                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''}">
+                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''} ${junoClass}">
                     <div class="opp-name">${isMe ? '你' : p.name}</div>
                     <div class="opp-count">${p.handCount || 0}</div>
+                    <div class="juno-badge">JUNO!</div>
                 </div>`;
             }).join('');
         }
@@ -1205,6 +1199,12 @@
                 updateHandCount();
                 renderHand();
                 playSound('pop'); 
+            }
+
+            if (myHand.length !== 1) {
+                hasSaidJuno = false;
+                document.getElementById('btn-juno-shout').classList.remove('active');
+                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
             }
 
             if (myHand.length === 0) {
