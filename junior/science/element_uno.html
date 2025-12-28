@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v33 - 觀戰系統完整版</title>
+    <title>鳩特元素 UNO v34 - 觀戰轉正修復版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -618,6 +618,11 @@
                     }
                     
                     updateGameUI(data, playerList); 
+
+                    // ★ V34 修正：如果在玩家名單內，強制顯示抽牌按鈕
+                    if (amIInGame) {
+                        document.getElementById('btn-draw').style.display = 'block';
+                    }
 
                     // 只有在名單內的人才處理懲罰
                     if (amIInGame && data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
