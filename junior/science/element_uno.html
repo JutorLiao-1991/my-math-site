@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v37</title>
+    <title>鳩特的元素大戰 JUNO! v39</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -48,9 +48,10 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- V37: 週期表小抄 (Scrollable) --- */
+        /* --- 週期表小抄 (Scrollable & Centered) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; }
+        /* V39: margin: 0 auto 讓它在PC上置中 */
+        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin: 0 auto; }
         
         .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
         .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
@@ -273,7 +274,7 @@
                     <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-orange">Sr</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
-                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-gold">Ag</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Ag</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Sn</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
 
@@ -537,66 +538,6 @@
             }
         }
 
-        // V36: JUNO 控制功能
-        window.toggleJunoShout = function() {
-            hasSaidJuno = !hasSaidJuno;
-            const btn = document.getElementById('btn-juno-shout');
-            if(hasSaidJuno) {
-                btn.classList.add('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-            } else {
-                btn.classList.remove('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
-            }
-        }
-
-        window.catchJuno = function() {
-            playSound('alert');
-            // 檢查誰剩 1 張牌且 hasSaidJuno 為 false
-            get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
-                const players = snapshot.val();
-                let caughtAnyone = false;
-                
-                Object.keys(players).forEach(pid => {
-                    const p = players[pid];
-                    if (p.handCount === 1 && !p.hasSaidJuno) {
-                        // 抓到了！
-                        caughtAnyone = true;
-                        const penalty = 2;
-                        
-                        // 懲罰邏輯：增加手牌
-                        update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
-                        
-                        // 如果是機器人，要加到它的真實手牌
-                        if (pid.startsWith('bot_') && isSinglePlayerMode) {
-                            if (!botHands[pid]) botHands[pid] = [];
-                            for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
-                        } else if (pid === myId) {
-                            // 如果是自己被抓
-                            for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
-                            renderHand();
-                        }
-
-                        // 公告
-                        const name = p.name || "某人";
-                        update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
-                        
-                        // 顯示懲罰視窗 (如果是自己)
-                        if (pid === myId) {
-                            pendingPenaltyCount = 2;
-                            document.getElementById('penalty-count-display').innerText = 2;
-                            document.getElementById('attacker-display').innerText = "被抓包沒喊 JUNO！";
-                            document.getElementById('modal-penalty').classList.add('show');
-                        }
-                    }
-                });
-
-                if (!caughtAnyone) {
-                    alert("沒有人違規喔！(或是對方已經喊了)");
-                }
-            });
-        }
-
         window.joinGame = function(mode) {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
@@ -834,26 +775,25 @@
                    if (!botData || botData.status !== 'playing') return;
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
-                   const myRealHand = botHands[botId] || [];
-                   if (myRealHand.length === 2) {
-                       if (Math.random() > 0.5) {
-                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
-                       } else {
-                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: false });
-                       }
+                   // V35 修正：機器人手牌實體化
+                   // 確保機器人手牌存在（防止中途加入或其他錯誤）
+                   if (!botHands[botId]) {
+                       botHands[botId] = [];
+                       for(let i=0; i<7; i++) botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
                    }
+                   let myRealHand = botHands[botId];
 
                    if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
                        const count = botData.drawPenalty.count;
                        const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
+                       // 機器人真的抽牌進手牌
                        for(let k=0; k<count; k++) {
-                           if (!botHands[botId]) botHands[botId] = [];
-                           botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                           myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                        }
                        
-                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
+                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                        
                        let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                        if (nextIndex < 0) nextIndex += botData.order.length;
@@ -866,9 +806,10 @@
                        return; 
                    }
 
-                   const canPlay = true; 
+                   const canPlay = true; // 總是嘗試出牌
                    
                    if (canPlay) {
+                       // V35: 只檢查自己手上的牌
                        let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
@@ -877,8 +818,10 @@
 
                        if (validCards.length > 0) {
                            validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
+                           // 從手上打出這張牌
                            const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
                            
+                           // 從手牌移除
                            const cardIndex = myRealHand.findIndex(c => c.id === cardToPlay.id);
                            if (cardIndex > -1) myRealHand.splice(cardIndex, 1);
 
@@ -890,7 +833,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)]; // V39 Fix
                            const bName = botData.players[botId].name || "機器人";
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
@@ -927,6 +870,7 @@
                                direction: direction
                            });
                            
+                           // 更新手牌數
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                            
                            if (myRealHand.length === 0) {
@@ -936,20 +880,21 @@
                        }
                    }
 
+                   // 沒牌出，只好抽牌
                    playSound('pop');
                    let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
                    const bName = botData.players[botId].name || "機器人";
                    
-                   if (!botHands[botId]) botHands[botId] = [];
-                   botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                   // 真的抽一張
+                   myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
 
                    update(roomRef, {
                        currentTurnIndex: nextIndex,
                        msg: `${bName} 抽了一張牌`
                    });
-                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
+                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                 });
 
             }, 1000); 
@@ -965,10 +910,6 @@
             renderHand();
             document.getElementById('modal-penalty').classList.remove('show');
             
-            hasSaidJuno = false;
-            document.getElementById('btn-juno-shout').classList.remove('active');
-            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
-
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const data = snap.val();
                 let direction = data.direction || 1;
@@ -1023,7 +964,6 @@
                 
                 Object.keys(pMap).forEach(key => {
                     updates['rooms/' + ROOM_ID + '/players/' + key + '/handCount'] = 7;
-                    updates['rooms/' + ROOM_ID + '/players/' + key + '/hasSaidJuno'] = false;
                 });
 
                 let pIds = Object.keys(pMap);
@@ -1110,13 +1050,10 @@
                 if (!p) return '';
                 const isActive = (pid === currentPlayerId);
                 const isMe = (pid === myId);
-                const junoClass = p.hasSaidJuno ? 'has-said-juno' : '';
-                
                 return `
-                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''} ${junoClass}">
+                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''}">
                     <div class="opp-name">${isMe ? '你' : p.name}</div>
                     <div class="opp-count">${p.handCount || 0}</div>
-                    <div class="juno-badge">JUNO!</div>
                 </div>`;
             }).join('');
         }
@@ -1157,12 +1094,6 @@
                 updateHandCount();
                 renderHand();
                 playSound('pop'); 
-            }
-
-            if (myHand.length !== 1) {
-                hasSaidJuno = false;
-                document.getElementById('btn-juno-shout').classList.remove('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
             }
 
             if (myHand.length === 0) {
@@ -1238,10 +1169,6 @@
             renderHand();
             playSound('pop');
             
-            hasSaidJuno = false;
-            document.getElementById('btn-juno-shout').classList.remove('active');
-            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
-
             onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
                 const roomData = snap.val();
                 let currentIndex = roomData.currentTurnIndex || 0;
@@ -1275,7 +1202,7 @@
              if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
              else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
              else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
-             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; 
+             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; // V29
              
              let classColor = (bgStyle === '') ? card.c : '';
              let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
