@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v41</title>
+    <title>鳩特的元素大戰 JUNO! v42</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -307,10 +307,14 @@
                 <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Al/Zn=Rev</div>
             </div>
         </div>
-        
     </div>
 
     <script type="module">
+        // V42: 增加錯誤攔截，防止手機上 JS 掛掉無反應
+        window.onerror = function(msg, url, line) {
+            alert("遊戲發生錯誤 (V42)：\n" + msg + "\n請截圖給開發者");
+        };
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -349,8 +353,35 @@
         let roomListenerOff = null;
         let botTimer = null; 
 
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        // V42: 惰性載入 AudioContext，避免被瀏覽器擋下
+        let audioCtx = null;
         let cardNoiseBuffer = null;
+
+        function wakeUpAudio() {
+            if (!audioCtx) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    createNoiseBuffer(); // 建立後再生成 buffer
+                } catch(e) {
+                    console.error("Audio init failed", e);
+                }
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    // Silent ping to unlock audio
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.001);
+                });
+            }
+        }
+
+        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
+        document.addEventListener('click', wakeUpAudio);
 
         function createNoiseBuffer() {
             if (!audioCtx) return;
@@ -367,25 +398,8 @@
             cardNoiseBuffer = buffer;
         }
 
-        function wakeUpAudio() {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume().then(() => {
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
-                    gain.gain.value = 0;
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 0.001);
-                });
-            }
-            if(!cardNoiseBuffer) createNoiseBuffer();
-        }
-
-        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
-        document.addEventListener('click', wakeUpAudio);
-
         function playSound(type) {
+            if(!audioCtx) return; // V42: 沒聲音就算了，不要報錯
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
 
@@ -536,14 +550,13 @@
             }
         }
 
-        // V36->V41: JUNO 控制功能 (修復: 改為 update msg 顯示回饋)
         window.toggleJunoShout = function() {
             hasSaidJuno = !hasSaidJuno;
             const btn = document.getElementById('btn-juno-shout');
             if(hasSaidJuno) {
                 btn.classList.add('active');
                 update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-                update(roomRef, { msg: `🗣️ ${myName} 大喊了一聲 JUNO!` });
+                update(roomRef, { msg: `🗣️ ${myName} 大喊了一聲 JUNO!` }); // V41 feature
                 playSound('pop');
             } else {
                 btn.classList.remove('active');
@@ -553,7 +566,6 @@
 
         window.catchJuno = function() {
             playSound('alert');
-            // 檢查誰剩 1 張牌且 hasSaidJuno 為 false
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
                 const players = snapshot.val();
                 let caughtAnyone = false;
@@ -561,28 +573,22 @@
                 Object.keys(players).forEach(pid => {
                     const p = players[pid];
                     if (p.handCount === 1 && !p.hasSaidJuno) {
-                        // 抓到了！
                         caughtAnyone = true;
                         const penalty = 2;
                         
-                        // 懲罰邏輯：增加手牌
                         update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
                         
-                        // 如果是機器人，要加到它的真實手牌
                         if (pid.startsWith('bot_') && isSinglePlayerMode) {
                             if (!botHands[pid]) botHands[pid] = [];
                             for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
                         } else if (pid === myId) {
-                            // 如果是自己被抓
                             for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                             renderHand();
                         }
 
-                        // 公告
                         const name = p.name || "某人";
                         update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
                         
-                        // 顯示懲罰視窗 (如果是自己)
                         if (pid === myId) {
                             pendingPenaltyCount = 2;
                             document.getElementById('penalty-count-display').innerText = 2;
@@ -593,8 +599,7 @@
                 });
 
                 if (!caughtAnyone) {
-                    // V41 修正: 使用 update msg 代替 alert
-                    update(roomRef, { msg: "👀 沒人違規！大家都很守規矩 (或是已經喊過了)" });
+                    update(roomRef, { msg: "👀 沒人違規！大家都很守規矩" });
                 }
             });
         }
@@ -789,9 +794,10 @@
                             modalTitle.style.color = '#f1c40f';
                             visualArea.innerHTML = `
                                 <svg class="nuke-icon" viewBox="0 0 512 512">
-                                    <path d="M224 160c-25.2 0-47.3 13.9-58.8 34.6L52.8 194.6C59.9 87.7 148.4 8 256 8s196.1 79.7 203.2 186.6l-112.4 0C335.3 173.9 313.2 160 288 160h-64zm-94.6 98.4c-9.5 12.7-13.4 27.3-13.4 43.4c0 84.1 68.2 152.5 152.4 152.5h22.4c0 16.6-6.3 32.2-17.4 43.8L161.4 485.9c-13.9 7-30.7 3.3-40.2-9.4c-9.5-12.7-13.4-27.3-13.4-43.4c0-16.1 3.9-30.8 13.4-43.4l8.2-10.9zm251.2 0l8.2 10.9c9.5 12.7 13.4 27.3 13.4 43.4c0 16.1-3.9 30.8-13.4 43.4c-9.5 12.7-26.3 16.4-40.2 9.4L237.6 498.1c-11.1-11.6-17.4-27.2-17.4-43.8h22.4c84.2 0 152.4-68.4 152.4-152.5c0-16.1-3.9-30.8-13.4-43.4zM256 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
+                                    <path d="M440.5 355.7C466.7 325 480 286.2 480 248.6c0-10.3-2-20.5-5.9-30.2l-91.6 40.5c3.2 7.7 4.9 16 4.9 24.7c0 37.9-30.7 68.6-68.6 68.6c-13.6 0-26.3-3.9-37.1-10.8L229.8 450c26 18.2 57.3 27.9 90.1 27.9c47.9 0 92.2-20.9 120.6-54.3l0 0zM193.4 341.4c-10.7 6.8-23.4 10.8-37.1 10.8c-37.9 0-68.6-30.7-68.6-68.6c0-8.7 1.7-17 4.9-24.7L.9 218.4C-3 228.1-5 238.3-5 248.6c0 88.4 71.6 160 160 160c32.8 0 64.1-9.7 90.1-27.9L193.4 341.4zM248.6 183.4c13.6 0 26.3 3.9 37.1 10.8l51.8-108.6C311.5 67.4 280.2 57.7 247.4 57.7c-88.4 0-160 71.6-160 160c0 10.3 2 20.5 5.9 30.2l91.6-40.5c-3.2-7.7-4.9-16-4.9-24.7c0-37.9 30.7-68.6 68.6-68.6z"/>
+                                    <circle cx="248" cy="248" r="40"/>
                                 </svg>
-                                <div style="font-size: 2rem; color: #f1c40f; font-weight: bold;">+4</div>
+                                <div style="font-size: 2rem; color: #f1c40f; font-weight: bold; margin-top:10px;">+4</div>
                             `;
                         } else {
                             modalContent.classList.add('modal-gas');
@@ -928,7 +934,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)]; // V39 Fix
                            const bName = botData.players[botId].name || "機器人";
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
@@ -1155,13 +1161,10 @@
                 if (!p) return '';
                 const isActive = (pid === currentPlayerId);
                 const isMe = (pid === myId);
-                const junoClass = p.hasSaidJuno ? 'has-said-juno' : '';
-                
                 return `
-                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''} ${junoClass}">
+                <div class="opp-card ${isActive ? 'active-turn' : ''} ${isMe ? 'is-me' : ''}">
                     <div class="opp-name">${isMe ? '你' : p.name}</div>
                     <div class="opp-count">${p.handCount || 0}</div>
-                    <div class="juno-badge">JUNO!</div>
                 </div>`;
             }).join('');
         }
@@ -1202,12 +1205,6 @@
                 updateHandCount();
                 renderHand();
                 playSound('pop'); 
-            }
-
-            if (myHand.length !== 1) {
-                hasSaidJuno = false;
-                document.getElementById('btn-juno-shout').classList.remove('active');
-                update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
             }
 
             if (myHand.length === 0) {
