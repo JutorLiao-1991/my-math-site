@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特元素 UNO v32 - 終極核爆與毒氣版</title>
+    <title>鳩特元素 UNO v33 - 觀戰系統完整版</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -26,7 +26,6 @@
         .modal-content { background: #222; padding: 15px; border-radius: 15px; position: relative; width: 95%; max-width: 320px; max-height: 90%; overflow: hidden; border: 2px solid #555; text-align: center; transition: 0.3s; }
         .close-btn { position: absolute; top: 5px; right: 10px; font-size: 24px; cursor: pointer; color: #fff; z-index: 10; }
         
-        /* V31/V32: 特殊懲罰樣式 */
         .modal-nuke { border-color: #f1c40f; animation: flash-red 0.5s infinite; }
         .modal-gas { border-color: #2ecc71; animation: ooze-green 2s infinite; }
 
@@ -130,7 +129,7 @@
 <body>
 
     <div id="screen-login" class="screen active">
-        <h1>元素 UNO v32</h1>
+        <h1>元素 UNO v33</h1>
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
@@ -600,15 +599,28 @@
                 }
 
                 if (data.status === 'playing') {
+                    // ★ V33: 觀戰模式判斷
+                    const amIInGame = data.order && data.order.includes(myId);
+
                     if(!document.getElementById('screen-game').classList.contains('active')){
                         switchScreen('screen-game');
-                        if(myHand.length === 0) dealCardsToSelf(7);
+                        
+                        if(amIInGame && myHand.length === 0) {
+                            dealCardsToSelf(7);
+                        } else if (!amIInGame) {
+                            // 觀戰者
+                            myHand = []; 
+                            document.getElementById('hand-area').innerHTML = 
+                                '<div style="width:100%; text-align:center; color:#aaa; margin-top:20px;">🍿 遊戲進行中，您目前為觀戰模式 (下一局自動加入)</div>';
+                            document.getElementById('btn-draw').style.display = 'none'; 
+                            document.getElementById('my-name-display').innerText = `我: ${myName} (觀戰)`;
+                        }
                     }
                     
                     updateGameUI(data, playerList); 
 
-                    // V32: 更新的懲罰顯示邏輯 (含 SVG 和 毒氣)
-                    if (data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
+                    // 只有在名單內的人才處理懲罰
+                    if (amIInGame && data.drawPenalty && data.drawPenalty.targetId === myId && !isHandlingPenalty) {
                         isHandlingPenalty = true;
                         pendingPenaltyCount = data.drawPenalty.count;
                         const attacker = data.drawPenalty.attackerName || "未知";
@@ -616,17 +628,14 @@
                         const modalContent = document.getElementById('penalty-content');
                         const modalTitle = document.getElementById('penalty-title');
 
-                        // 重置樣式
                         modalContent.className = 'modal-content';
                         modalTitle.innerHTML = '⚠️ 遭到攻擊 ⚠️';
                         modalTitle.style.color = '#e74c3c';
 
                         if (pendingPenaltyCount === 4) {
-                            // 核爆特效
                             modalContent.classList.add('modal-nuke');
                             modalTitle.innerHTML = '☢️ 核能引爆 ☢️';
                             modalTitle.style.color = '#f1c40f';
-                            // 使用標準三葉輻射圖示
                             visualArea.innerHTML = `
                                 <svg class="nuke-icon" viewBox="0 0 512 512">
                                     <path d="M224 160c-25.2 0-47.3 13.9-58.8 34.6L52.8 194.6C59.9 87.7 148.4 8 256 8s196.1 79.7 203.2 186.6l-112.4 0C335.3 173.9 313.2 160 288 160h-64zm-94.6 98.4c-9.5 12.7-13.4 27.3-13.4 43.4c0 84.1 68.2 152.5 152.4 152.5h22.4c0 16.6-6.3 32.2-17.4 43.8L161.4 485.9c-13.9 7-30.7 3.3-40.2-9.4c-9.5-12.7-13.4-27.3-13.4-43.4c0-16.1 3.9-30.8 13.4-43.4l8.2-10.9zm251.2 0l8.2 10.9c9.5 12.7 13.4 27.3 13.4 43.4c0 16.1-3.9 30.8-13.4 43.4c-9.5 12.7-26.3 16.4-40.2 9.4L237.6 498.1c-11.1-11.6-17.4-27.2-17.4-43.8h22.4c84.2 0 152.4-68.4 152.4-152.5c0-16.1-3.9-30.8-13.4-43.4zM256 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
@@ -634,7 +643,6 @@
                                 <div style="font-size: 2rem; color: #f1c40f; font-weight: bold;">+4</div>
                             `;
                         } else {
-                            // 毒氣攻擊 (V32)
                             modalContent.classList.add('modal-gas');
                             modalTitle.innerHTML = '🧪 鹵素毒氣 🧪';
                             modalTitle.style.color = '#2ecc71';
