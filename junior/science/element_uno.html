@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v46</title>
-    
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
+    <title>鳩特的元素大戰 JUNO! v47</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -15,14 +11,15 @@
         .screen.active { display: flex; }
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
         .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.1s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-        .big-btn:active { transform: scale(0.90); filter: brightness(0.9); }
+        .big-btn:active { transform: scale(0.90) !important; filter: brightness(0.9); }
         .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         
-        /* JUNO 按鈕區 */
+        /* JUNO 按鈕區 (提高層級防止被擋) */
         .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 100; position: relative; pointer-events: auto; }
         .btn-juno { background: #f1c40f; color: #333; font-weight: bold; border: 2px solid #fff; }
         .btn-catch { background: #e74c3c; font-weight: bold; border: 2px solid #fff; }
+        /* JUNO 激活狀態 */
         .btn-juno.active { background: #fff !important; color: #f1c40f !important; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); border-color: #f1c40f; }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -30,7 +27,7 @@
         @keyframes flash-red { 0% { background-color: #2c0a0a; } 50% { background-color: #500000; } 100% { background-color: #2c0a0a; } }
         @keyframes ooze-green { 0% { background-color: #0a2c0a; } 50% { background-color: #0f3d0f; } 100% { background-color: #0a2c0a; } }
         
-        /* --- Toast 浮動提示 --- */
+        /* --- Toast 浮動提示 (新增) --- */
         #toast-box {
             visibility: hidden; min-width: 250px; margin-left: -125px; background-color: rgba(0,0,0,0.85);
             color: #fff; text-align: center; border-radius: 50px; padding: 16px; position: fixed;
@@ -61,16 +58,14 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- 週期表小抄 (Scrollable & Centered) --- */
+        /* --- 週期表小抄 (PC置中, 手機滑動) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
         .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin: 0 auto; }
         
         .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
         .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
-        
         .pg-header { background: transparent; color: #aaa; border: none; align-items: flex-end; padding-bottom: 2px; font-size: 0.7rem; }
         .pg-period { background: #333; color: #f1c40f; border: none; font-size: 0.9rem; width: 30px; }
-        
         .pg-pink { background: #ffeef0; color: #c2185b; border-color: #e91e63; }
         .pg-orange { background: #fff3e0; color: #e65100; border-color: #e67e22; }
         .pg-blue { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
@@ -328,8 +323,10 @@
         </div>
     </div>
 
-    <script>
-        // 初始化 Firebase (Global Scope)
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, remove, onDisconnect, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",
             authDomain: "element-uno.firebaseapp.com",
@@ -339,65 +336,34 @@
             messagingSenderId: "665324599764",
             appId: "1:665324599764:web:d151cd9014e600fcd53e41"
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        // 輔助函式
-        function ref(db, path) { return db.ref(path); }
-        function set(ref, value) { return ref.set(value); }
-        function update(ref, value) { return ref.update(value); }
-        function remove(ref) { return ref.remove(); }
-        function get(ref) { return ref.get(); }
-        function onDisconnect(ref) { return ref.onDisconnect(); }
-        function onValue(ref, callback) {
-            ref.on('value', callback);
-            return function() { ref.off('value', callback); };
-        }
-
-        // --- V46: 全域變數定義 ---
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
         let ROOM_ID = "class_room_101"; 
         let roomRef = ref(db, 'rooms/' + ROOM_ID);
+
         let myId = 'user_' + Date.now(); 
         let myName = "";
         let myHand = [];
         let playerOrder = [];
         let currentTopCard = null;
         let isMyTurn = false;
+        
         let pendingWildCard = null; 
         let currentAuditColor = null; 
         let isHandlingPenalty = false;
         let pendingPenaltyCount = 0;
         let isSinglePlayerMode = false; 
+        
         let hasSaidJuno = false; 
+
         let botHands = {}; 
         let roomListenerOff = null;
         let botTimer = null; 
-        let audioCtx = null;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let cardNoiseBuffer = null;
-
-        // V46: 新增 Toast
-        function showToast(msg) {
-            const box = document.getElementById('toast-box');
-            if(box) {
-                box.innerText = msg;
-                box.className = 'show';
-                setTimeout(() => { box.className = box.className.replace('show', ''); }, 2500);
-            }
-        }
-
-        function wakeUpAudio() {
-            if (!audioCtx) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    createNoiseBuffer();
-                } catch(e) { console.log(e); }
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-        }
-        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
-        document.addEventListener('click', wakeUpAudio);
 
         function createNoiseBuffer() {
             if (!audioCtx) return;
@@ -414,38 +380,164 @@
             cardNoiseBuffer = buffer;
         }
 
+        function wakeUpAudio() {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume().then(() => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    gain.gain.value = 0;
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.001);
+                });
+            }
+            if(!cardNoiseBuffer) createNoiseBuffer();
+        }
+
+        document.addEventListener('touchstart', wakeUpAudio, {passive: true});
+        document.addEventListener('click', wakeUpAudio);
+
         function playSound(type) {
-            if(!audioCtx) return;
             if(audioCtx.state === 'suspended') audioCtx.resume();
             const now = audioCtx.currentTime;
-            // ... (同前版 playSound 邏輯，為節省篇幅略過，請直接複製前面的 playSound 內容) ...
+
             if(type === 'pop') {
                 if(cardNoiseBuffer) {
-                    const src = audioCtx.createBufferSource(); src.buffer = cardNoiseBuffer;
-                    const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(1200, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
-                    const gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    src.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); src.start(); src.stop(now + 0.15);
+                    const src = audioCtx.createBufferSource();
+                    src.buffer = cardNoiseBuffer;
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1200, now);
+                    filter.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+                    const gain = audioCtx.createGain();
+                    gain.gain.setValueAtTime(0.5, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    src.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    src.start();
+                    src.stop(now + 0.15);
                 }
             } else if (type === 'alert') {
-                const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(80, now + 0.4);
-                gain.gain.setValueAtTime(0.3, now); gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(now + 0.4);
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(80, now + 0.4);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(now + 0.4);
+            } else if (type === 'win') {
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0, now + i*0.1);
+                    gain.gain.linearRampToValueAtTime(0.2, now + i*0.1 + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + i*0.1 + 0.6);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + i*0.1);
+                    osc.stop(now + i*0.1 + 0.6);
+                });
+            } else if (type === 'lose') {
+                [0, 0.4, 0.8].forEach((delay, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    const startFreq = 300 - (i*30);
+                    osc.frequency.setValueAtTime(startFreq, now + delay);
+                    osc.frequency.linearRampToValueAtTime(startFreq - 20, now + delay + 0.3);
+                    gain.gain.setValueAtTime(0.2, now + delay);
+                    gain.gain.linearRampToValueAtTime(0.01, now + delay + 0.3);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.35);
+                });
+            }
+        }
+
+        // V45: 新增 Toast 顯示函式
+        function showToast(msg) {
+            const box = document.getElementById('toast-box');
+            if(box) {
+                box.innerText = msg;
+                box.className = 'show';
+                setTimeout(() => { box.className = box.className.replace('show', ''); }, 2500);
+            }
+        }
+
+        function createConfetti() {
+            for(let i=0; i<50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#e91e63', '#2196f3', '#ffc107', '#4caf50'][Math.floor(Math.random()*4)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
             }
         }
 
         const allCards = [
-            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" }, { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" }, { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" }, { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" }, { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" }, { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" }, { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
-            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "orange", group: "2A" }, { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "orange", group: "2A" }, { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "orange", group: "2A" }, { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "orange", group: "2A" }, { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "orange", group: "2A" }, { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "orange", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" }, { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" }, { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" }, { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" }, { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" }, { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" }, { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans", action: "reverse" }, { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" }, { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" }, { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" }, { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
-            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" }, { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" }, { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" }, { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" }, { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" }, { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" }, { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
-            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" }, { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" }, { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" }, { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" }, { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" },
-            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" }, { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" }, { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" }, { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" }, { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" }, { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" }, { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" },
-            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" },
-            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" }, { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
+            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
+            { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
+            { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
+            { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
+            { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
+            { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
+            { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
+            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "orange", group: "2A" }, 
+            { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "orange", group: "2A" }, 
+            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "orange", group: "2A" }, 
+            { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "orange", group: "2A" }, 
+            { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "orange", group: "2A" }, 
+            { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "orange", group: "2A" }, 
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
+            { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
+            { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
+            { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
+            { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
+            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" }, 
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" }, 
+            { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
+            { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
+            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
+            { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
+            { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
+            { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" },
+            { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
+            { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
+            { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
+            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
+            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
+            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
+            { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, 
+            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
+            { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
+            { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
+            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
+            { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
+            { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
+            { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, 
+            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
+            { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
         ];
-
-        // --- 功能函式 (全部定義在全域) ---
 
         function switchScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -453,13 +545,13 @@
             toggleCheatSheet(false);
         }
 
-        function toggleCheatSheet(show) {
+        window.toggleCheatSheet = function(show) {
             const modal = document.getElementById('modal-cheatsheet');
             if(show) modal.classList.add('show');
             else modal.classList.remove('show');
         }
 
-        function finishWildPlay(selectedColor) {
+        window.finishWildPlay = function(selectedColor) {
             document.getElementById('modal-color-picker').classList.remove('show');
             if (pendingWildCard) {
                 submitCardPlay(pendingWildCard, selectedColor);
@@ -467,8 +559,8 @@
             }
         }
 
-        // V46: JUNO 按鈕功能 (全域)
-        function toggleJunoShout() {
+        // V45: 優先掛載按鈕功能到 Global Window
+        window.toggleJunoShout = function() {
             hasSaidJuno = !hasSaidJuno;
             const btn = document.getElementById('btn-juno-shout');
             if(hasSaidJuno) {
@@ -481,9 +573,9 @@
                 if(myId) update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
                 showToast("🤐 收回喊叫");
             }
-        }
+        };
 
-        function catchJuno() {
+        window.catchJuno = function() {
             playSound('alert');
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
                 const players = snapshot.val();
@@ -521,9 +613,9 @@
                     showToast("👀 沒人違規！大家都很守規矩");
                 }
             });
-        }
+        };
 
-        function joinGame(mode) {
+        window.joinGame = function(mode) {
             myName = document.getElementById('username').value;
             if(!myName) return alert("請輸入名字！");
 
@@ -600,7 +692,7 @@
                     switchScreen('screen-lobby');
                 });
             }
-        }
+        };
 
         function setupRoomListener() {
             const currentRoomRef = ref(db, 'rooms/' + ROOM_ID);
@@ -762,6 +854,7 @@
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
                    // V35 修正：機器人手牌實體化
+                   // 確保機器人手牌存在（防止中途加入或其他錯誤）
                    if (!botHands[botId]) {
                        botHands[botId] = [];
                        for(let i=0; i<7; i++) botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
@@ -807,6 +900,7 @@
                        const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
+                       // 機器人真的抽牌進手牌
                        for(let k=0; k<count; k++) {
                            myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                        }
@@ -824,9 +918,10 @@
                        return; 
                    }
 
-                   const canPlay = true; 
+                   const canPlay = true; // 總是嘗試出牌
                    
                    if (canPlay) {
+                       // V35: 只檢查自己手上的牌
                        let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
@@ -835,8 +930,10 @@
 
                        if (validCards.length > 0) {
                            validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
+                           // 從手上打出這張牌
                            const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
                            
+                           // 從手牌移除
                            const cardIndex = myRealHand.findIndex(c => c.id === cardToPlay.id);
                            if (cardIndex > -1) myRealHand.splice(cardIndex, 1);
 
@@ -848,7 +945,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)];
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)]; // V39 Fix
                            const bName = botData.players[botId].name || "機器人";
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
@@ -885,6 +982,7 @@
                                direction: direction
                            });
                            
+                           // 更新手牌數
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                            
                            if (myRealHand.length === 0) {
@@ -894,12 +992,14 @@
                        }
                    }
 
+                   // 沒牌出，只好抽牌
                    playSound('pop');
                    let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
                    const bName = botData.players[botId].name || "機器人";
                    
+                   // 真的抽一張
                    myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
 
                    update(roomRef, {
@@ -930,7 +1030,7 @@
             get(ref(db, 'rooms/' + ROOM_ID)).then(snap => {
                 const data = snap.val();
                 if (data.drawPenalty && data.drawPenalty.attackerName && data.drawPenalty.attackerName.includes('抓包')) {
-                     update(roomRef, { drawPenalty: null }); 
+                     update(roomRef, { drawPenalty: null }); // 只清除懲罰，不動回合
                 } else {
                     // 正常攻擊，換下一家
                     let direction = data.direction || 1;
