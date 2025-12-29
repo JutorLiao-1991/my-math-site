@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v52</title>
+    <title>鳩特的元素大戰 JUNO! v38</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
         .screen { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; justify-content: center; }
         .screen.active { display: flex; }
         input { padding: 10px; font-size: 1.2rem; border-radius: 5px; border: none; margin: 10px; text-align: center; width: 200px; }
-        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.1s; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .big-btn { padding: 15px 30px; font-size: 1.2rem; background: #27ae60; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: 0.2s;}
         .big-btn:active { transform: scale(0.95); }
         .btn-blue { background: #2980b9; } 
         .btn-red { background: #e74c3c; box-shadow: 0 0 15px #c0392b; animation: pulse 1s infinite; }
         
         /* JUNO 按鈕區 */
-        .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 100; position: relative; pointer-events: auto; }
+        .juno-controls { display: flex; gap: 10px; margin-bottom: 10px; z-index: 20; position: relative; }
         .btn-juno { background: #f1c40f; color: #333; font-weight: bold; border: 2px solid #fff; }
         .btn-catch { background: #e74c3c; font-weight: bold; border: 2px solid #fff; }
-        .btn-juno.active { background: #fff !important; color: #f1c40f !important; box-shadow: 0 0 15px #f1c40f; transform: scale(1.05); border-color: #f1c40f; }
+        .btn-juno.active { background: #fff; color: #f1c40f; box-shadow: 0 0 15px #f1c40f; transform: scale(1.1); }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
         @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -48,14 +48,16 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- 週期表小抄 (v39: Scrollable & Centered) --- */
+        /* --- 週期表小抄 (Scrollable) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin: 0 auto; }
+        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; margin:0 auto; }
         
         .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
         .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
+        
         .pg-header { background: transparent; color: #aaa; border: none; align-items: flex-end; padding-bottom: 2px; font-size: 0.7rem; }
         .pg-period { background: #333; color: #f1c40f; border: none; font-size: 0.9rem; width: 30px; }
+        
         .pg-pink { background: #ffeef0; color: #c2185b; border-color: #e91e63; }
         .pg-orange { background: #fff3e0; color: #e65100; border-color: #e67e22; }
         .pg-blue { background: #e3f2fd; color: #1565c0; border-color: #2196f3; }
@@ -82,13 +84,14 @@
         .opp-name { font-size: 0.9rem; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
         .opp-count { font-size: 1.2rem; color: #e74c3c; }
         .opp-count::after { content: ' 🎴'; font-size: 0.8rem; }
-        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; font-weight:bold; }
+        .juno-badge { font-size: 0.7rem; background: #f1c40f; color: #000; padding: 2px 4px; border-radius: 4px; display: none; margin-top: 2px; }
         .opp-card.has-said-juno .juno-badge { display: inline-block; }
 
-        #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; z-index: 10; }
+        #game-board { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; position: relative; }
         .table-slot { width: 120px; height: 160px; border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; transition: background 0.5s; position: relative; z-index: 5;}
         #btn-draw { z-index: 5; position: relative; }
 
+        /* --- 浮水印 --- */
         .table-watermark {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg);
             font-size: 12vw; font-weight: 900; color: rgba(255, 255, 255, 0.05);
@@ -96,12 +99,18 @@
         }
         @media (max-width: 768px) {
             .table-watermark {
-                font-size: 35vw; color: rgba(255, 255, 255, 0.15); opacity: 1; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                font-size: 35vw;
+                color: rgba(255, 255, 255, 0.15); 
+                opacity: 1; 
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
             }
         }
+
         .jutor-watermark {
-            position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3); font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
+            position: fixed; bottom: 10px; right: 15px; color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem; pointer-events: none; z-index: 99; font-style: italic;
         }
+        
         .slot-indicator { 
             position: absolute; top: -35px; left: 50%; transform: translateX(-50%); 
             background: #333; padding: 5px 15px; border-radius: 20px; 
@@ -109,7 +118,9 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: none;
             z-index: 20; color: #fff;
         }
+
         #hand-area { background: rgba(0,0,0,0.3); width: 100%; height: 160px; padding: 10px; overflow-x: auto; white-space: nowrap; display: flex; align-items: center; gap: 10px; z-index: 5; position: relative; }
+        
         .card { width: 90px; height: 130px; background: white; border-radius: 8px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.3); color: #333; user-select: none; transition: transform 0.2s; border: 3px solid #ccc;}
         .card:active { transform: scale(0.95); }
         .card.pink { background: #ffeef0; border-color: #e91e63; }
@@ -117,12 +128,14 @@
         .card.green { background: #e8f5e9; border-color: #4caf50; }
         .card.purple { background: #f3e5f5; border-color: #9c27b0; }
         .card.blue { background: #e3f2fd; border-color: #2196f3; }
+        
         .atomic { position: absolute; top: 4px; left: 6px; font-size: 10px; }
         .symbol { font-size: 36px; font-weight: 800; }
         .name { font-size: 14px; margin-top: 2px; font-weight: 600; }
         .action-badge { position: absolute; bottom: 5px; right: 5px; color: white; padding: 2px 6px; border-radius: 10px; font-size: 10px; font-weight: bold;}
         .helper-btn { padding: 5px 10px; font-size: 0.8rem; background: #34495e; color: white; border: 1px solid rgba(255,255,255,0.3); border-radius: 20px; cursor: pointer; margin-left: 10px; position: relative; z-index: 5;}
         .winner-text { font-size: 2em; color: #f1c40f; margin: 20px; text-shadow: 0 0 10px #f39c12; }
+
         .confetti { position: fixed; width: 10px; height: 10px; background-color: #f2d74e; animation: fall linear forwards; z-index: 9999; pointer-events: none;}
         @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
     </style>
@@ -134,8 +147,8 @@
         <p>請輸入暱稱加入房間</p>
         <input type="text" id="username" placeholder="你的名字" maxlength="8">
         <div style="display:flex; gap:10px; justify-content:center;">
-            <button class="big-btn" onclick="window.joinGame('multi')">多人連線</button>
-            <button class="big-btn btn-blue" onclick="window.joinGame('single')">🤖 單機挑戰</button>
+            <button class="big-btn" onclick="joinGame('multi')">多人連線</button>
+            <button class="big-btn btn-blue" onclick="joinGame('single')">🤖 單機挑戰</button>
         </div>
     </div>
 
@@ -144,7 +157,7 @@
         <div id="room-code-display">房號: Class 101</div>
         <div id="player-list"></div>
         <p id="lobby-msg">等待房主開始...</p>
-        <button id="btn-start" class="big-btn" style="display:none;" onclick="window.startGame()">開始遊戲</button>
+        <button id="btn-start" class="big-btn" style="display:none;" onclick="startGame()">開始遊戲</button>
     </div>
 
     <div id="screen-game" class="screen">
@@ -152,7 +165,7 @@
 
         <div id="top-info" style="justify-content: flex-end; position: relative; z-index: 5;">
              <div id="my-name-display" style="font-weight:bold; color:#f1c40f;">我: ???</div>
-             <button class="helper-btn" onclick="window.toggleCheatSheet(true)">📊 小抄</button>
+             <button class="helper-btn" onclick="toggleCheatSheet(true)">📊 小抄</button>
         </div>
         
         <div id="turn-msg" style="position: relative; z-index: 5;">等待出牌...</div>
@@ -162,11 +175,11 @@
             <div id="table-slot" class="table-slot"></div>
             
             <div class="juno-controls">
-                <button id="btn-juno-shout" class="big-btn btn-juno" onclick="window.toggleJunoShout()">🗣️ JUNO!</button>
-                <button id="btn-catch" class="big-btn btn-catch" onclick="window.catchJuno()">🚨 抓包!</button>
+                <button id="btn-juno-shout" class="big-btn btn-juno" onclick="toggleJunoShout()">🗣️ JUNO!</button>
+                <button id="btn-catch" class="big-btn btn-catch" onclick="catchJuno()">🚨 抓包!</button>
             </div>
 
-            <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="window.drawCardAction()">抽牌 (跳過)</button>
+            <button id="btn-draw" class="big-btn" style="padding: 10px 20px; font-size: 1rem; background: #e67e22; opacity: 0.5; pointer-events: none;" onclick="drawCardAction()">抽牌 (跳過)</button>
         </div>
 
         <div id="hand-area"></div>
@@ -176,7 +189,7 @@
         <h1>🎉 遊戲結束 🎉</h1>
         <div class="winner-text" id="winner-name">---</div>
         <p>獲得勝利！</p>
-        <button class="big-btn" onclick="window.backToLobby()">重置房間並回到大廳</button>
+        <button class="big-btn" onclick="backToLobby()">重置房間並回到大廳</button>
     </div>
 
     <div class="jutor-watermark">Presented by Jutor</div>
@@ -192,7 +205,7 @@
             </div>
 
             <p style="font-size: 1.2rem; margin: 10px 0;">張牌並暫停一回合</p>
-            <button class="big-btn btn-red" onclick="window.confirmPenalty()">😡 認命接受</button>
+            <button class="big-btn btn-red" onclick="confirmPenalty()">😡 認命接受</button>
         </div>
     </div>
 
@@ -200,17 +213,17 @@
         <div class="modal-content" style="max-width: 300px;">
             <h3 style="color:white; margin-top:0;">請選擇下一家要出的顏色</h3>
             <div class="color-grid">
-                <div class="color-btn btn-pink" onclick="window.finishWildPlay('pink')">粉紅<br>(1A)</div>
-                <div class="color-btn btn-orange" onclick="window.finishWildPlay('orange')">橘色<br>(2A)</div>
-                <div class="color-btn btn-c-blue" onclick="window.finishWildPlay('blue')">藍色<br>(金屬)</div>
-                <div class="color-btn btn-green" onclick="window.finishWildPlay('green')">綠色<br>(非金)</div>
+                <div class="color-btn btn-pink" onclick="finishWildPlay('pink')">粉紅<br>(1A)</div>
+                <div class="color-btn btn-orange" onclick="finishWildPlay('orange')">橘色<br>(2A)</div>
+                <div class="color-btn btn-c-blue" onclick="finishWildPlay('blue')">藍色<br>(金屬)</div>
+                <div class="color-btn btn-green" onclick="finishWildPlay('green')">綠色<br>(非金)</div>
             </div>
         </div>
     </div>
 
     <div id="modal-cheatsheet" class="modal">
         <div class="modal-content" style="max-width: 95%; width:95%; text-align: left;">
-            <span class="close-btn" onclick="window.toggleCheatSheet(false)">&times;</span>
+            <span class="close-btn" onclick="toggleCheatSheet(false)">&times;</span>
             <h3 style="margin:5px 0 10px 0; color:white; font-size:1.2rem; text-align:center;">元素功能與週期對照表</h3>
             <p style="text-align:center; font-size:0.8rem; color:#aaa; margin:0 0 10px 0;">← 左右滑動查看完整週期表 →</p>
             
@@ -438,14 +451,98 @@
             }
         }
 
-        // V52: 關鍵修復 - 變數全域綁定與語法修正
+        function createConfetti() {
+            for(let i=0; i<50; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#e91e63', '#2196f3', '#ffc107', '#4caf50'][Math.floor(Math.random()*4)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        const allCards = [
+            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" },
+            { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" },
+            { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" },
+            { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" },
+            { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" },
+            { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" },
+            { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
+            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "orange", group: "2A" }, 
+            { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "orange", group: "2A" }, 
+            { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "orange", group: "2A" }, 
+            { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "orange", group: "2A" }, 
+            { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "orange", group: "2A" }, 
+            { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "orange", group: "2A" }, 
+            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" },
+            { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" },
+            { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" },
+            { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" },
+            { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" },
+            { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" },
+            { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans", action: "reverse" }, 
+            { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" }, 
+            { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" }, 
+            { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" },
+            { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
+            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" },
+            { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" },
+            { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" },
+            { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" },
+            { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" },
+            { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" },
+            { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
+            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" },
+            { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" },
+            { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" },
+            { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" },
+            { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, 
+            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" },
+            { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" },
+            { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" },
+            { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" },
+            { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" },
+            { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" },
+            { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, 
+            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, 
+            { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" },
+            { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
+        ];
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            toggleCheatSheet(false);
+        }
+
+        window.toggleCheatSheet = function(show) {
+            const modal = document.getElementById('modal-cheatsheet');
+            if(show) modal.classList.add('show');
+            else modal.classList.remove('show');
+        }
+
+        window.finishWildPlay = function(selectedColor) {
+            document.getElementById('modal-color-picker').classList.remove('show');
+            if (pendingWildCard) {
+                submitCardPlay(pendingWildCard, selectedColor);
+                pendingWildCard = null;
+            }
+        }
+
         window.toggleJunoShout = function() {
             hasSaidJuno = !hasSaidJuno;
             const btn = document.getElementById('btn-juno-shout');
             if(hasSaidJuno) {
                 btn.classList.add('active');
                 update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: true });
-                playSound('pop');
             } else {
                 btn.classList.remove('active');
                 update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
@@ -476,7 +573,6 @@
 
                         const name = p.name || "某人";
                         update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
-                        alert(`🚨 抓包成功！${name} 忘記喊 JUNO，罰抽 2 張！`); // V52: 恢復 alert
                         
                         if (pid === myId) {
                             pendingPenaltyCount = 2;
@@ -488,62 +584,9 @@
                 });
 
                 if (!caughtAnyone) {
-                    alert("👀 沒人違規！大家都很守規矩"); // V52: 恢復 alert
+                    alert("沒有人違規喔！(或是對方已經喊了)");
                 }
             });
-        }
-
-        // 綁定其他全域函式
-        window.joinGame = joinGame;
-        window.startGame = startGame;
-        window.drawCardAction = drawCardAction;
-        window.tryPlayCard = tryPlayCard;
-        window.finishWildPlay = finishWildPlay;
-        window.toggleCheatSheet = toggleCheatSheet;
-        window.backToLobby = backToLobby;
-        window.confirmPenalty = confirmPenalty;
-
-        function createConfetti() {
-            for(let i=0; i<50; i++) {
-                const c = document.createElement('div');
-                c.className = 'confetti';
-                c.style.left = Math.random() * 100 + 'vw';
-                c.style.backgroundColor = ['#e91e63', '#2196f3', '#ffc107', '#4caf50'][Math.floor(Math.random()*4)];
-                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
-                document.body.appendChild(c);
-                setTimeout(() => c.remove(), 4000);
-            }
-        }
-
-        const allCards = [
-            { id: "H", s: "H", n: "氫", at: 1, p: 1, c: "pink", group: "1A" }, { id: "Li", s: "Li", n: "鋰", at: 3, p: 2, c: "pink", group: "1A" }, { id: "Na", s: "Na", n: "鈉", at: 11, p: 3, c: "pink", group: "1A" }, { id: "K", s: "K", n: "鉀", at: 19, p: 4, c: "pink", group: "1A" }, { id: "Rb", s: "Rb", n: "銣", at: 37, p: 5, c: "pink", group: "1A" }, { id: "Cs", s: "Cs", n: "銫", at: 55, p: 6, c: "pink", group: "1A" }, { id: "Fr", s: "Fr", n: "鍅", at: 87, p: 7, c: "pink", group: "1A" },
-            { id: "Be", s: "Be", n: "鈹", at: 4, p: 2, c: "orange", group: "2A" }, { id: "Mg", s: "Mg", n: "鎂", at: 12, p: 3, c: "orange", group: "2A" }, { id: "Ca", s: "Ca", n: "鈣", at: 20, p: 4, c: "orange", group: "2A" }, { id: "Sr", s: "Sr", n: "鍶", at: 38, p: 5, c: "orange", group: "2A" }, { id: "Ba", s: "Ba", n: "鋇", at: 56, p: 6, c: "orange", group: "2A" }, { id: "Ra", s: "Ra", n: "鐳", at: 88, p: 7, c: "orange", group: "2A" },
-            { id: "Al", s: "Al", n: "鋁", at: 13, p: 3, c: "blue", group: "Trans", action: "reverse" }, { id: "Ti", s: "Ti", n: "鈦", at: 22, p: 4, c: "blue", group: "Trans" }, { id: "Cr", s: "Cr", n: "鉻", at: 24, p: 4, c: "blue", group: "Trans" }, { id: "Mn", s: "Mn", n: "錳", at: 25, p: 4, c: "blue", group: "Trans" }, { id: "Fe", s: "Fe", n: "鐵", at: 26, p: 4, c: "blue", group: "Trans" }, { id: "Ni", s: "Ni", n: "鎳", at: 28, p: 4, c: "blue", group: "Trans" }, { id: "Cu", s: "Cu", n: "銅", at: 29, p: 4, c: "blue", group: "Trans" }, { id: "Zn", s: "Zn", n: "鋅", at: 30, p: 4, c: "blue", group: "Trans", action: "reverse" }, { id: "Ag", s: "Ag", n: "銀", at: 47, p: 5, c: "blue", group: "Trans" }, { id: "Sn", s: "Sn", n: "錫", at: 50, p: 5, c: "blue", group: "Trans" }, { id: "W", s: "W", n: "鎢", at: 74, p: 6, c: "blue", group: "Trans" }, { id: "Pb", s: "Pb", n: "鉛", at: 82, p: 6, c: "blue", group: "Trans" },
-            { id: "B", s: "B", n: "硼", at: 5, p: 2, c: "green", group: "Other" }, { id: "C", s: "C", n: "碳", at: 6, p: 2, c: "green", group: "Other" }, { id: "N", s: "N", n: "氮", at: 7, p: 2, c: "green", group: "Other" }, { id: "O", s: "O", n: "氧", at: 8, p: 2, c: "green", group: "Other" }, { id: "Si", s: "Si", n: "矽", at: 14, p: 3, c: "green", group: "Other" }, { id: "P", s: "P", n: "磷", at: 15, p: 3, c: "green", group: "Other" }, { id: "S", s: "S", n: "硫", at: 16, p: 3, c: "green", group: "Other" },
-            { id: "F", s: "F", n: "氟", at: 9, p: 2, c: "green", group: "7A", action: "draw2" }, { id: "Cl", s: "Cl", n: "氯", at: 17, p: 3, c: "green", group: "7A", action: "draw2" }, { id: "Br", s: "Br", n: "溴", at: 35, p: 4, c: "green", group: "7A", action: "draw2" }, { id: "I", s: "I", n: "碘", at: 53, p: 5, c: "green", group: "7A", action: "draw2" }, { id: "At", s: "At", n: "砈", at: 85, p: 6, c: "green", group: "7A", action: "draw2" }, 
-            { id: "He", s: "He", n: "氦", at: 2, p: 1, c: "purple", group: "8A", action: "skip" }, { id: "Ne", s: "Ne", n: "氖", at: 10, p: 2, c: "purple", group: "8A", action: "skip" }, { id: "Ar", s: "Ar", n: "氬", at: 18, p: 3, c: "purple", group: "8A", action: "skip" }, { id: "Kr", s: "Kr", n: "氪", at: 36, p: 4, c: "purple", group: "8A", action: "skip" }, { id: "Xe", s: "Xe", n: "氙", at: 54, p: 5, c: "purple", group: "8A", action: "skip" }, { id: "Rn", s: "Rn", n: "氡", at: 86, p: 6, c: "purple", group: "8A", action: "skip" }, { id: "Og", s: "Og", n: "氣奧", at: 118, p: 7, c: "purple", group: "8A", action: "skip" }, 
-            { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Au", s: "Au", n: "金", at: 79, p: 6, c: "gold", group: "Wild", action: "wild" }, { id: "Pt", s: "Pt", n: "鉑", at: 78, p: 6, c: "gold", group: "Wild", action: "wild" }, 
-            { id: "Hg", s: "Hg", n: "汞", at: 80, p: 6, c: "blue", group: "Trans" }, { id: "U", s: "U", n: "鈾", at: 92, p: 7, c: "black", group: "Radio", action: "wild4" }, { id: "Pu", s: "Pu", n: "鈽", at: 94, p: 7, c: "black", group: "Radio", action: "wild4" }
-        ];
-
-        function switchScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            toggleCheatSheet(false);
-        }
-
-        window.toggleCheatSheet = function(show) {
-            const modal = document.getElementById('modal-cheatsheet');
-            if(show) modal.classList.add('show');
-            else modal.classList.remove('show');
-        }
-
-        window.finishWildPlay = function(selectedColor) {
-            document.getElementById('modal-color-picker').classList.remove('show');
-            if (pendingWildCard) {
-                submitCardPlay(pendingWildCard, selectedColor);
-                pendingWildCard = null;
-            }
         }
 
         window.joinGame = function(mode) {
@@ -736,10 +779,9 @@
                             modalTitle.style.color = '#f1c40f';
                             visualArea.innerHTML = `
                                 <svg class="nuke-icon" viewBox="0 0 512 512">
-                                    <path d="M440.5 355.7C466.7 325 480 286.2 480 248.6c0-10.3-2-20.5-5.9-30.2l-91.6 40.5c3.2 7.7 4.9 16 4.9 24.7c0 37.9-30.7 68.6-68.6 68.6c-13.6 0-26.3-3.9-37.1-10.8L229.8 450c26 18.2 57.3 27.9 90.1 27.9c47.9 0 92.2-20.9 120.6-54.3l0 0zM193.4 341.4c-10.7 6.8-23.4 10.8-37.1 10.8c-37.9 0-68.6-30.7-68.6-68.6c0-8.7 1.7-17 4.9-24.7L.9 218.4C-3 228.1-5 238.3-5 248.6c0 88.4 71.6 160 160 160c32.8 0 64.1-9.7 90.1-27.9L193.4 341.4zM248.6 183.4c13.6 0 26.3 3.9 37.1 10.8l51.8-108.6C311.5 67.4 280.2 57.7 247.4 57.7c-88.4 0-160 71.6-160 160c0 10.3 2 20.5 5.9 30.2l91.6-40.5c-3.2-7.7-4.9-16-4.9-24.7c0-37.9 30.7-68.6 68.6-68.6z"/>
-                                    <circle cx="248" cy="248" r="40"/>
+                                    <path d="M224 160c-25.2 0-47.3 13.9-58.8 34.6L52.8 194.6C59.9 87.7 148.4 8 256 8s196.1 79.7 203.2 186.6l-112.4 0C335.3 173.9 313.2 160 288 160h-64zm-94.6 98.4c-9.5 12.7-13.4 27.3-13.4 43.4c0 84.1 68.2 152.5 152.4 152.5h22.4c0 16.6-6.3 32.2-17.4 43.8L161.4 485.9c-13.9 7-30.7 3.3-40.2-9.4c-9.5-12.7-13.4-27.3-13.4-43.4c0-16.1 3.9-30.8 13.4-43.4l8.2-10.9zm251.2 0l8.2 10.9c9.5 12.7 13.4 27.3 13.4 43.4c0 16.1-3.9 30.8-13.4 43.4c-9.5 12.7-26.3 16.4-40.2 9.4L237.6 498.1c-11.1-11.6-17.4-27.2-17.4-43.8h22.4c84.2 0 152.4-68.4 152.4-152.5c0-16.1-3.9-30.8-13.4-43.4zM256 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
                                 </svg>
-                                <div style="font-size: 2rem; color: #f1c40f; font-weight: bold; margin-top:10px;">+4</div>
+                                <div style="font-size: 2rem; color: #f1c40f; font-weight: bold;">+4</div>
                             `;
                         } else {
                             modalContent.classList.add('modal-gas');
@@ -784,28 +826,68 @@
                    if (!botData || botData.status !== 'playing') return;
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
-                   // V35 修正：機器人手牌實體化
-                   // 確保機器人手牌存在（防止中途加入或其他錯誤）
-                   if (!botHands[botId]) {
-                       botHands[botId] = [];
-                       for(let i=0; i<7; i++) botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
-                   }
-                   let myRealHand = botHands[botId];
+                   // V38: 機器人抓包邏輯
+                   const allPlayers = botData.players || {};
+                   let bName = botData.players[botId].name || "機器人";
+                   
+                   // 檢查有沒有人沒喊 JUNO
+                   Object.keys(allPlayers).forEach(pid => {
+                       if (pid !== botId && allPlayers[pid].handCount === 1 && !allPlayers[pid].hasSaidJuno) {
+                           // 40% 機率抓包
+                           if (Math.random() > 0.6) {
+                               const penalty = 2;
+                               update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: allPlayers[pid].handCount + penalty });
+                               
+                               // 如果抓到的是其他機器人
+                               if (pid.startsWith('bot_')) {
+                                   if (!botHands[pid]) botHands[pid] = [];
+                                   for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                               } 
+                               // 如果抓到的是玩家 (需要透過 DB 通知玩家自己抽牌嗎？不，這裡直接更新 handCount，玩家端需要一個監聽來處理被抓包的視覺)
+                               // 為了簡單起見，我們這裡只更新 handCount 和 msg，玩家端自己手牌不會增加 visually 除非重整，
+                               // 所以我們需要在玩家端加一個監聽 "msg" 或 handCount 的變化。
+                               // 但為了不大幅改動架構，我們用一個簡單的 trick: 
+                               // 如果玩家被抓，我們在這裡發一個 drawPenalty 給玩家，但他不需要點確認，直接執行？
+                               // 或者我們讓玩家的 onValue 監聽器去處理 "被抓包" 的事件。
+                               
+                               // 最佳解：我們發送一個特殊的 drawPenalty 給受害者
+                               update(roomRef, { 
+                                   drawPenalty: { targetId: pid, count: 2, attackerName: bName + " (抓包)" },
+                                   msg: `🚨 ${bName} 抓包了 ${allPlayers[pid].name}！` 
+                               });
+                               // 注意：這裡發送 penalty 後，機器人這一回合不能結束，它只是執行了抓包動作。
+                               // 但為了簡化，我們讓機器人抓包完繼續出牌，或者就當作一個插曲。
+                               // 這裡簡單處理：發送公告即可，懲罰邏輯由上面的 update handCount 處理。
+                               // 對於人類玩家，我們需要強制他抽牌。
+                               if (pid === myId) {
+                                   // 這裡有點棘手，因為我們不能直接操作玩家瀏覽器變數。
+                                   // 我們發送一個 drawPenalty，讓玩家端自己去處理 "認命接受"
+                                   // 但這樣會打斷機器人的出牌流程嗎？
+                                   // 其實抓包是隨時發生的，不影響出牌權。
+                               }
+                           }
+                       }
+                   });
 
-                   // V52: 這裡修復了變數 bName 重複宣告的語法錯誤
-                   // 將變數宣告移到最上方
-                   const bName = botData.players[botId].name || "機器人";
+                   const myRealHand = botHands[botId] || [];
+                   if (myRealHand.length === 2) {
+                       if (Math.random() > 0.5) {
+                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
+                       } else {
+                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: false });
+                       }
+                   }
 
                    if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
                        const count = botData.drawPenalty.count;
                        playSound('pop');
                        
-                       // 機器人真的抽牌進手牌
                        for(let k=0; k<count; k++) {
-                           myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+                           if (!botHands[botId]) botHands[botId] = [];
+                           botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
                        }
                        
-                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
+                       update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
                        
                        let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                        if (nextIndex < 0) nextIndex += botData.order.length;
@@ -818,43 +900,9 @@
                        return; 
                    }
 
-                   // V38: 機器人抓包邏輯
-                   const allPlayers = botData.players || {};
-                   
-                   Object.keys(allPlayers).forEach(pid => {
-                       if (pid !== botId && allPlayers[pid].handCount === 1 && !allPlayers[pid].hasSaidJuno) {
-                           // 40% 機率抓包
-                           if (Math.random() > 0.6) {
-                               const penalty = 2;
-                               update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: allPlayers[pid].handCount + penalty });
-                               
-                               if (pid.startsWith('bot_')) {
-                                   if (!botHands[pid]) botHands[pid] = [];
-                                   for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
-                               } 
-                               
-                               // 發送抓包訊息 & 懲罰標記 (針對人類)
-                               update(roomRef, { 
-                                   drawPenalty: { targetId: pid, count: 2, attackerName: bName + " (抓包)" },
-                                   msg: `🚨 ${bName} 抓包了 ${allPlayers[pid].name}！` 
-                               });
-                           }
-                       }
-                   });
-
-                   // 機器人自己喊 JUNO
-                   if (myRealHand.length === 2) {
-                       if (Math.random() > 0.5) {
-                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: true });
-                       } else {
-                           update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { hasSaidJuno: false });
-                       }
-                   }
-
-                   const canPlay = true; // 總是嘗試出牌
+                   const canPlay = true; 
                    
                    if (canPlay) {
-                       // V35: 只檢查自己手上的牌
                        let validCards = myRealHand.filter(c => {
                            if (c.action === 'wild' || c.action === 'wild4') return true;
                            if (botData.currentAuditColor) return c.c === botData.currentAuditColor;
@@ -863,10 +911,8 @@
 
                        if (validCards.length > 0) {
                            validCards.sort((a, b) => (b.action ? 1 : 0) - (a.action ? 1 : 0));
-                           // 從手上打出這張牌
                            const cardToPlay = validCards[Math.floor(Math.random() * Math.min(3, validCards.length))];
                            
-                           // 從手牌移除
                            const cardIndex = myRealHand.findIndex(c => c.id === cardToPlay.id);
                            if (cardIndex > -1) myRealHand.splice(cardIndex, 1);
 
@@ -878,7 +924,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)]; // V39 Fix
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)];
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
                            else if (cardToPlay.action === 'draw2') { 
@@ -914,7 +960,6 @@
                                direction: direction
                            });
                            
-                           // 更新手牌數
                            update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
                            
                            if (myRealHand.length === 0) {
@@ -924,19 +969,19 @@
                        }
                    }
 
-                   // 沒牌出，只好抽牌
                    playSound('pop');
                    let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
-                   // 真的抽一張
-                   myRealHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
+                   
+                   if (!botHands[botId]) botHands[botId] = [];
+                   botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
 
                    update(roomRef, {
                        currentTurnIndex: nextIndex,
                        msg: `${bName} 抽了一張牌`
                    });
-                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: myRealHand.length });
+                   update(ref(db, 'rooms/' + ROOM_ID + '/players/' + botId), { handCount: botHands[botId].length, hasSaidJuno: false });
                 });
 
             }, 1000); 
@@ -956,7 +1001,15 @@
             document.getElementById('btn-juno-shout').classList.remove('active');
             update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
 
-            // V41: 如果是 "被抓包" (attackerName 包含 '抓包')，則不需要換下一家
+            // 如果是 "被抓包" (attackerName 包含 '抓包')，則不需要換下一家
+            // 但如果是 "被攻擊" (+2/+4)，則需要換下一家
+            // 為了簡化，我們統一都換下一家嗎？不，抓包隨時發生。
+            // 但這裡觸發 confirmPenalty 通常是因為 data.drawPenalty 存在。
+            // 在 v38 機器人抓包邏輯中，我們並沒有寫入 drawPenalty 給受害者，而是直接更新了 handCount (對機器人)
+            // 但對人類，我們確實需要寫入 drawPenalty 來觸發這個視窗。
+            // 如果是被抓包，通常不影響回合順序，所以我們需要檢查一下是誰的回合。
+            
+            // 修正：如果 penalty 是來自抓包，不要動 currentTurnIndex
             get(ref(db, 'rooms/' + ROOM_ID)).then(snap => {
                 const data = snap.val();
                 if (data.drawPenalty && data.drawPenalty.attackerName && data.drawPenalty.attackerName.includes('抓包')) {
@@ -1267,7 +1320,7 @@
              if (card.c === 'blue') bgStyle = 'background: #e3f2fd; border-color: #2196f3;';
              else if (card.c === 'gold') bgStyle = 'background: #fffbe6; border-color: #f1c40f;';
              else if (card.c === 'black') bgStyle = 'background: #2c3e50; border-color: #000; color: white;';
-             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; // V29
+             else if (card.c === 'orange') bgStyle = 'background: #fff3e0; border-color: #e67e22;'; 
              
              let classColor = (bgStyle === '') ? card.c : '';
              let textColor = (card.id === 'U' || card.id === 'Pu') ? 'color: #f1c40f;' : '';
