@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v38</title>
+    <title>鳩特的元素大戰 JUNO! v38.5</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -50,7 +50,7 @@
 
         /* --- 週期表小抄 (Scrollable) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
-        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; }
+        .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; 0 auto; }
         
         .pg-cell { width: 42px; height: 42px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-radius: 4px; font-weight: bold; color: #333; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2); }
         .pg-cell span { font-size: 0.6rem; opacity: 0.8; }
@@ -273,7 +273,7 @@
                     <div class="pg-cell pg-pink">Rb</div> <div class="pg-cell pg-orange">Sr</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-empty"></div>
-                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-gold">Ag</div> <div class="pg-cell pg-empty"></div>
+                    <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Ag</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-blue">Sn</div> <div class="pg-cell pg-empty"></div>
                     <div class="pg-cell pg-empty"></div> <div class="pg-cell pg-green">I</div> <div class="pg-cell pg-purple">Xe</div>
 
@@ -303,7 +303,7 @@
             </div>
             <div class="legend-row" style="margin-top:5px; border-top:1px dashed #555; padding-top:5px;">
                 <div class="legend-item"><span class="dot" style="background:#9c27b0"></span> 紫=Skip</div>
-                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A=攻+2</div>
+                <div class="legend-item"><span class="dot" style="background:#4caf50"></span> 7A=+2</div>
                 <div class="legend-item"><span class="dot" style="background:gold"></span> Au/Pt=Wild</div>
                 <div class="legend-item"><span class="dot" style="background:black; border:1px solid white"></span> U/Pu=+4</div>
                 <div class="legend-item"><span class="dot" style="background:#2196f3; border:2px solid white"></span> Al/Zn=Rev</div>
@@ -924,7 +924,7 @@
                            let msgAction = "";
                            let penalty = null;
                            let nextAuditColor = null;
-                           let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
+                           let chosenColor = ['pink', 'orange', 'blue', 'green'][Math.floor(Math.random()*4)];
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
                            else if (cardToPlay.action === 'draw2') { 
