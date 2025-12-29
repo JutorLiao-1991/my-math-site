@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鳩特的元素大戰 JUNO! v37</title>
+    <title>鳩特的元素大戰 JUNO! v38</title>
     <style>
         /* --- 基礎設定 --- */
         body { font-family: 'Segoe UI', sans-serif; background: #2c3e50; color: white; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; height: 100vh; overflow: hidden; }
@@ -48,7 +48,7 @@
         .btn-c-blue { background: #2196f3; }
         .btn-green { background: #27ae60; }
 
-        /* --- V37: 週期表小抄 (Scrollable) --- */
+        /* --- 週期表小抄 (Scrollable) --- */
         .periodic-wrapper { overflow-x: auto; width: 100%; margin-top: 20px; padding-bottom: 10px; -webkit-overflow-scrolling: touch; }
         .periodic-grid { display: grid; grid-template-columns: 30px repeat(18, 42px); gap: 2px; width: max-content; }
         
@@ -537,7 +537,6 @@
             }
         }
 
-        // V36: JUNO 控制功能
         window.toggleJunoShout = function() {
             hasSaidJuno = !hasSaidJuno;
             const btn = document.getElementById('btn-juno-shout');
@@ -552,7 +551,6 @@
 
         window.catchJuno = function() {
             playSound('alert');
-            // 檢查誰剩 1 張牌且 hasSaidJuno 為 false
             get(ref(db, 'rooms/' + ROOM_ID + '/players')).then(snapshot => {
                 const players = snapshot.val();
                 let caughtAnyone = false;
@@ -560,28 +558,22 @@
                 Object.keys(players).forEach(pid => {
                     const p = players[pid];
                     if (p.handCount === 1 && !p.hasSaidJuno) {
-                        // 抓到了！
                         caughtAnyone = true;
                         const penalty = 2;
                         
-                        // 懲罰邏輯：增加手牌
                         update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: p.handCount + penalty });
                         
-                        // 如果是機器人，要加到它的真實手牌
                         if (pid.startsWith('bot_') && isSinglePlayerMode) {
                             if (!botHands[pid]) botHands[pid] = [];
                             for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
                         } else if (pid === myId) {
-                            // 如果是自己被抓
                             for(let k=0; k<penalty; k++) myHand.push(allCards[Math.floor(Math.random() * allCards.length)]);
                             renderHand();
                         }
 
-                        // 公告
                         const name = p.name || "某人";
                         update(roomRef, { msg: `🚨 ${name} 沒喊 JUNO 被抓包！罰抽 2 張` });
                         
-                        // 顯示懲罰視窗 (如果是自己)
                         if (pid === myId) {
                             pendingPenaltyCount = 2;
                             document.getElementById('penalty-count-display').innerText = 2;
@@ -834,6 +826,49 @@
                    if (!botData || botData.status !== 'playing') return;
                    if (botData.order[botData.currentTurnIndex] !== botId) return;
 
+                   // V38: 機器人抓包邏輯
+                   const allPlayers = botData.players || {};
+                   let bName = botData.players[botId].name || "機器人";
+                   
+                   // 檢查有沒有人沒喊 JUNO
+                   Object.keys(allPlayers).forEach(pid => {
+                       if (pid !== botId && allPlayers[pid].handCount === 1 && !allPlayers[pid].hasSaidJuno) {
+                           // 40% 機率抓包
+                           if (Math.random() > 0.6) {
+                               const penalty = 2;
+                               update(ref(db, 'rooms/' + ROOM_ID + '/players/' + pid), { handCount: allPlayers[pid].handCount + penalty });
+                               
+                               // 如果抓到的是其他機器人
+                               if (pid.startsWith('bot_')) {
+                                   if (!botHands[pid]) botHands[pid] = [];
+                                   for(let k=0; k<penalty; k++) botHands[pid].push(allCards[Math.floor(Math.random() * allCards.length)]);
+                               } 
+                               // 如果抓到的是玩家 (需要透過 DB 通知玩家自己抽牌嗎？不，這裡直接更新 handCount，玩家端需要一個監聽來處理被抓包的視覺)
+                               // 為了簡單起見，我們這裡只更新 handCount 和 msg，玩家端自己手牌不會增加 visually 除非重整，
+                               // 所以我們需要在玩家端加一個監聽 "msg" 或 handCount 的變化。
+                               // 但為了不大幅改動架構，我們用一個簡單的 trick: 
+                               // 如果玩家被抓，我們在這裡發一個 drawPenalty 給玩家，但他不需要點確認，直接執行？
+                               // 或者我們讓玩家的 onValue 監聽器去處理 "被抓包" 的事件。
+                               
+                               // 最佳解：我們發送一個特殊的 drawPenalty 給受害者
+                               update(roomRef, { 
+                                   drawPenalty: { targetId: pid, count: 2, attackerName: bName + " (抓包)" },
+                                   msg: `🚨 ${bName} 抓包了 ${allPlayers[pid].name}！` 
+                               });
+                               // 注意：這裡發送 penalty 後，機器人這一回合不能結束，它只是執行了抓包動作。
+                               // 但為了簡化，我們讓機器人抓包完繼續出牌，或者就當作一個插曲。
+                               // 這裡簡單處理：發送公告即可，懲罰邏輯由上面的 update handCount 處理。
+                               // 對於人類玩家，我們需要強制他抽牌。
+                               if (pid === myId) {
+                                   // 這裡有點棘手，因為我們不能直接操作玩家瀏覽器變數。
+                                   // 我們發送一個 drawPenalty，讓玩家端自己去處理 "認命接受"
+                                   // 但這樣會打斷機器人的出牌流程嗎？
+                                   // 其實抓包是隨時發生的，不影響出牌權。
+                               }
+                           }
+                       }
+                   });
+
                    const myRealHand = botHands[botId] || [];
                    if (myRealHand.length === 2) {
                        if (Math.random() > 0.5) {
@@ -845,7 +880,6 @@
 
                    if (botData.drawPenalty && botData.drawPenalty.targetId === botId) {
                        const count = botData.drawPenalty.count;
-                       const bName = botData.players[botId].name || "機器人";
                        playSound('pop');
                        
                        for(let k=0; k<count; k++) {
@@ -891,7 +925,6 @@
                            let penalty = null;
                            let nextAuditColor = null;
                            let chosenColor = ['pink', 'yellow', 'blue', 'green'][Math.floor(Math.random()*4)];
-                           const bName = botData.players[botId].name || "機器人";
 
                            if (cardToPlay.action === 'skip') { jump = 2; msgAction = "(跳過!)"; }
                            else if (cardToPlay.action === 'draw2') { 
@@ -940,7 +973,6 @@
                    let nextIndex = (botData.currentTurnIndex + (1 * (botData.direction||1))) % botData.order.length;
                    if (nextIndex < 0) nextIndex += botData.order.length;
                    
-                   const bName = botData.players[botId].name || "機器人";
                    
                    if (!botHands[botId]) botHands[botId] = [];
                    botHands[botId].push(allCards[Math.floor(Math.random() * allCards.length)]);
@@ -969,18 +1001,31 @@
             document.getElementById('btn-juno-shout').classList.remove('active');
             update(ref(db, 'rooms/' + ROOM_ID + '/players/' + myId), { hasSaidJuno: false });
 
-            onValue(ref(db, 'rooms/' + ROOM_ID), (snap) => {
+            // 如果是 "被抓包" (attackerName 包含 '抓包')，則不需要換下一家
+            // 但如果是 "被攻擊" (+2/+4)，則需要換下一家
+            // 為了簡化，我們統一都換下一家嗎？不，抓包隨時發生。
+            // 但這裡觸發 confirmPenalty 通常是因為 data.drawPenalty 存在。
+            // 在 v38 機器人抓包邏輯中，我們並沒有寫入 drawPenalty 給受害者，而是直接更新了 handCount (對機器人)
+            // 但對人類，我們確實需要寫入 drawPenalty 來觸發這個視窗。
+            // 如果是被抓包，通常不影響回合順序，所以我們需要檢查一下是誰的回合。
+            
+            // 修正：如果 penalty 是來自抓包，不要動 currentTurnIndex
+            get(ref(db, 'rooms/' + ROOM_ID)).then(snap => {
                 const data = snap.val();
-                let direction = data.direction || 1;
-                let nextIndex = (data.currentTurnIndex + direction) % data.order.length;
-                if (nextIndex < 0) nextIndex += data.order.length;
-
-                update(roomRef, { 
-                    drawPenalty: null,
-                    currentTurnIndex: nextIndex,
-                    msg: `${myName} 慘叫並抽了 ${count} 張牌`
-                });
-            }, {onlyOnce: true});
+                if (data.drawPenalty && data.drawPenalty.attackerName && data.drawPenalty.attackerName.includes('抓包')) {
+                     update(roomRef, { drawPenalty: null }); // 只清除懲罰，不動回合
+                } else {
+                    // 正常攻擊，換下一家
+                    let direction = data.direction || 1;
+                    let nextIndex = (data.currentTurnIndex + direction) % data.order.length;
+                    if (nextIndex < 0) nextIndex += data.order.length;
+                    update(roomRef, { 
+                        drawPenalty: null,
+                        currentTurnIndex: nextIndex,
+                        msg: `${myName} 慘叫並抽了 ${count} 張牌`
+                    });
+                }
+            });
         }
 
         function updateHandCount() {
