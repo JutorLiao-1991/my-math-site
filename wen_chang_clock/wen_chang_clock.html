@@ -23,16 +23,12 @@
             height: 100vh;
             overflow: hidden;
             
-            /* --- 背景設定 --- */
-            /* 預設使用 Unsplash 線上圖片 (深色寺廟氛圍) */
-            background-image: url('https://images.unsplash.com/photo-1600609842388-3e422114d693?q=80&w=2070&auto=format&fit=crop');
-            /* 如果你下載了圖片，請改成: url('assets/temple.jpg'); */
-            
+            /* --- 修正：改讀取本地 assets 資料夾 --- */
+            background-image: url('assets/temple.jpg');
             background-size: cover;
             background-position: center;
         }
 
-        /* 黑色半透明遮罩，讓文字跟神像更清楚 */
         .overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -40,10 +36,8 @@
             z-index: -1;
         }
 
-        /* 隱藏元素用的 class */
         .hidden { display: none !important; }
 
-        /* --- 文昌帝君頭像區 --- */
         .god-container {
             position: relative;
             width: 260px;
@@ -57,10 +51,8 @@
             border-radius: 50%;
             border: 4px solid var(--gold);
             
-            /* --- 文昌帝君圖片設定 --- */
-            /* 預設使用 Wikimedia 線上圖片 (宜蘭傳藝文昌) */
-            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Wenchang_Wang_Statue_in_Wenchang_Temple_of_Yilan.jpg/600px-Wenchang_Wang_Statue_in_Wenchang_Temple_of_Yilan.jpg');
-            /* 如果你下載了圖片，請改成: url('assets/wenchang.jpg'); */
+            /* --- 修正：改讀取本地 assets 資料夾 --- */
+            background-image: url('assets/wenchang.jpg');
             
             background-size: cover;
             background-position: center 20%;
@@ -69,7 +61,6 @@
             z-index: 2;
         }
 
-        /* 神像背後的光暈呼吸燈 */
         .god-halo {
             position: absolute;
             top: -10px; left: -10px; right: -10px; bottom: -10px;
@@ -85,7 +76,6 @@
             100% { transform: scale(1); opacity: 0.5; }
         }
 
-        /* --- UI 區塊 --- */
         #setup-screen, #study-screen {
             text-align: center;
             z-index: 10;
@@ -110,7 +100,6 @@
         }
         button:hover { transform: scale(1.05); background: #f1c40f; }
 
-        /* --- 香與煙霧動畫 --- */
         .incense-wrapper {
             position: relative; width: 10px; height: 200px;
             background: #444; margin: 30px auto;
@@ -132,7 +121,6 @@
             100% { top: -80px; opacity: 0; transform: translateX(-20%) scale(3); }
         }
 
-        /* --- 文字顯示 --- */
         .timer-text { font-size: 2.5rem; font-weight: bold; margin-top: 10px; font-family: monospace; }
         .message { margin-top: 15px; font-size: 1.2rem; min-height: 1.5em; color: #ccc; }
         
@@ -185,8 +173,8 @@
     </div>
 
     <audio id="bgm" loop>
-        <source src="https://cdn.pixabay.com/download/audio/2022/03/09/audio_c8c8a73467.mp3?filename=singing-bowl-14341.mp3" type="audio/mpeg">
-        </audio>
+        <source src="assets/bowl.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
         let timerInterval;
@@ -199,7 +187,6 @@
         const godMessage = document.getElementById('god-message');
         const bgm = document.getElementById('bgm');
 
-        // 隨機罵人語錄
         const scoldQuotes = [
             "香熄了，你的未來也快熄了。",
             "你去哪裡了？帝君很不高興。",
@@ -220,9 +207,9 @@
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('study-screen').classList.remove('hidden');
             
-            // 播放頌缽音樂
-            bgm.volume = 0.6; // 音量 60%
-            bgm.play().catch(e => console.log("瀏覽器阻擋自動播放，需使用者互動"));
+            // 播放本地音樂
+            bgm.volume = 0.6;
+            bgm.play().catch(e => console.log("需使用者互動才能播放"));
 
             updateUI();
             startTimer();
@@ -265,24 +252,20 @@
             alert("功德圓滿！這炷香燒完了，休息一下吧。");
         }
 
-        // --- 切換視窗偵測 ---
         document.addEventListener("visibilitychange", () => {
             if (!isStudying) return;
 
             if (document.hidden) {
-                // 切換出去：暫停、靜音、變灰
                 pauseTimer();
                 bgm.pause();
                 stick.style.filter = "grayscale(100%)";
                 document.title = "⚠️ 香熄了！帝君在瞪你...";
             } else {
-                // 切換回來：繼續、播放、恢復
                 startTimer();
                 bgm.play();
                 stick.style.filter = "grayscale(0%)";
                 document.title = "文昌帝君陪讀中...";
                 
-                // 顯示罵人特效
                 godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
                 godMessage.classList.add('scold');
                 setTimeout(() => {
