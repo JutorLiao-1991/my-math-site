@@ -777,12 +777,15 @@
                             modalContent.classList.add('modal-nuke');
                             modalTitle.innerHTML = '☢️ 核能引爆 ☢️';
                             modalTitle.style.color = '#f1c40f';
+                            // 👇 修改這裡：把原本的 <svg>...</svg> 刪掉，換成 <img>
+                            // 我先幫你找了一個維基百科的高清輻射標誌 (黃色黑底剛好很搭)
                             visualArea.innerHTML = `
-                                <svg class="nuke-icon" viewBox="0 0 512 512">
-                                    <path d="M224 160c-25.2 0-47.3 13.9-58.8 34.6L52.8 194.6C59.9 87.7 148.4 8 256 8s196.1 79.7 203.2 186.6l-112.4 0C335.3 173.9 313.2 160 288 160h-64zm-94.6 98.4c-9.5 12.7-13.4 27.3-13.4 43.4c0 84.1 68.2 152.5 152.4 152.5h22.4c0 16.6-6.3 32.2-17.4 43.8L161.4 485.9c-13.9 7-30.7 3.3-40.2-9.4c-9.5-12.7-13.4-27.3-13.4-43.4c0-16.1 3.9-30.8 13.4-43.4l8.2-10.9zm251.2 0l8.2 10.9c9.5 12.7 13.4 27.3 13.4 43.4c0 16.1-3.9 30.8-13.4 43.4c-9.5 12.7-26.3 16.4-40.2 9.4L237.6 498.1c-11.1-11.6-17.4-27.2-17.4-43.8h22.4c84.2 0 152.4-68.4 152.4-152.5c0-16.1-3.9-30.8-13.4-43.4zM256 224a32 32 0 1 0 0 64 32 32 0 1 0 0-64z"/>
-                                </svg>
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Radiation_warning_symbol.svg/480px-Radiation_warning_symbol.svg.png" 
+                                     class="nuke-icon" 
+                                     style="filter: drop-shadow(0 0 5px #f1c40f);">
                                 <div style="font-size: 2rem; color: #f1c40f; font-weight: bold;">+4</div>
                             `;
+                            
                         } else {
                             modalContent.classList.add('modal-gas');
                             modalTitle.innerHTML = '🧪 鹵素毒氣 🧪';
