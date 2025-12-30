@@ -177,103 +177,144 @@
     </audio>
 
     <script>
-        let timerInterval;
-        let totalSeconds = 0;
-        let remainingSeconds = 0;
-        let isStudying = false;
+    let timerInterval;
+    let totalSeconds = 0;
+    let remainingSeconds = 0;
+    let isStudying = false;
+    let wakeLock = null; // 新增：用來控制螢幕喚醒鎖
 
-        const stick = document.getElementById('stick');
-        const timerDisplay = document.getElementById('timer-display');
-        const godMessage = document.getElementById('god-message');
-        const bgm = document.getElementById('bgm');
+    const stick = document.getElementById('stick');
+    const timerDisplay = document.getElementById('timer-display');
+    const godMessage = document.getElementById('god-message');
+    const bgm = document.getElementById('bgm');
 
-        const scoldQuotes = [
-            "香熄了，你的未來也快熄了。",
-            "你去哪裡了？帝君很不高興。",
-            "這點時間都坐不住，怎麼坐考場？",
-            "別人的孩子還在讀，你切視窗？",
-            "回來就好，把心收回來。",
-            "剛才那段時間，不予計算功德。"
-        ];
+    const scoldQuotes = [
+        "香熄了，你的未來也快熄了。",
+        "你去哪裡了？帝君很不高興。",
+        "這點時間都坐不住，怎麼坐考場？",
+        "別人的孩子還在讀，你切視窗？",
+        "回來就好，把心收回來。",
+        "剛才那段時間，不予計算功德。"
+    ];
 
-        function startStudy() {
-            const mins = document.getElementById('minutes-input').value;
-            if(!mins || mins <= 0) return alert("請輸入正確時間");
-
-            totalSeconds = mins * 60;
-            remainingSeconds = totalSeconds;
-            isStudying = true;
-
-            document.getElementById('setup-screen').classList.add('hidden');
-            document.getElementById('study-screen').classList.remove('hidden');
-            
-            // 播放本地音樂
-            bgm.volume = 0.6;
-            bgm.play().catch(e => console.log("需使用者互動才能播放"));
-
-            updateUI();
-            startTimer();
-        }
-
-        function startTimer() {
-            if(timerInterval) clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                remainingSeconds--;
-                updateUI();
-                if (remainingSeconds <= 0) finishStudy();
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            clearInterval(timerInterval);
-        }
-
-        function updateUI() {
-            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-            const s = (remainingSeconds % 60).toString().padStart(2, '0');
-            timerDisplay.innerText = `${m}:${s}`;
-            
-            const percentage = (remainingSeconds / totalSeconds) * 100;
-            stick.style.height = `${percentage}%`;
-        }
-
-        function stopStudy() {
-            pauseTimer();
-            isStudying = false;
-            bgm.pause();
-            bgm.currentTime = 0;
-            document.getElementById('setup-screen').classList.remove('hidden');
-            document.getElementById('study-screen').classList.add('hidden');
-            document.title = "鳩特數理 - 文昌帝君陪讀席";
-        }
-
-        function finishStudy() {
-            stopStudy();
-            alert("功德圓滿！這炷香燒完了，休息一下吧。");
-        }
-
-        document.addEventListener("visibilitychange", () => {
-            if (!isStudying) return;
-
-            if (document.hidden) {
-                pauseTimer();
-                bgm.pause();
-                stick.style.filter = "grayscale(100%)";
-                document.title = "⚠️ 香熄了！帝君在瞪你...";
-            } else {
-                startTimer();
-                bgm.play();
-                stick.style.filter = "grayscale(0%)";
-                document.title = "文昌帝君陪讀中...";
-                
-                godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
-                godMessage.classList.add('scold');
-                setTimeout(() => {
-                    godMessage.classList.remove('scold');
-                    godMessage.innerText = "帝君看著你... 心無旁騖";
-                }, 3000);
+    // --- 新增：請求螢幕保持恆亮 ---
+    async function requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                wakeLock = await navigator.wakeLock.request('screen');
+                console.log('螢幕喚醒鎖定已啟動');
             }
-        });
+        } catch (err) {
+            console.log(`無法鎖定螢幕: ${err.name}, ${err.message}`);
+        }
+    }
+
+    // --- 新增：釋放螢幕鎖定 ---
+    function releaseWakeLock() {
+        if (wakeLock !== null) {
+            wakeLock.release().then(() => {
+                wakeLock = null;
+                console.log('螢幕喚醒鎖定已解除');
+            });
+        }
+    }
+
+    function startStudy() {
+        const mins = document.getElementById('minutes-input').value;
+        if(!mins || mins <= 0) return alert("請輸入正確時間");
+
+        totalSeconds = mins * 60;
+        remainingSeconds = totalSeconds;
+        isStudying = true;
+
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('study-screen').classList.remove('hidden');
+        
+        // 播放本地音樂
+        bgm.volume = 0.6;
+        bgm.play().catch(e => console.log("需使用者互動才能播放"));
+
+        // ★ 啟動螢幕恆亮
+        requestWakeLock();
+
+        updateUI();
+        startTimer();
+    }
+
+    function startTimer() {
+        if(timerInterval) clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            remainingSeconds--;
+            updateUI();
+            if (remainingSeconds <= 0) finishStudy();
+        }, 1000);
+    }
+
+    function pauseTimer() {
+        clearInterval(timerInterval);
+    }
+
+    function updateUI() {
+        const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+        const s = (remainingSeconds % 60).toString().padStart(2, '0');
+        timerDisplay.innerText = `${m}:${s}`;
+        
+        const percentage = (remainingSeconds / totalSeconds) * 100;
+        stick.style.height = `${percentage}%`;
+    }
+
+    function stopStudy() {
+        pauseTimer();
+        isStudying = false;
+        bgm.pause();
+        bgm.currentTime = 0;
+        
+        // ★ 解除螢幕恆亮
+        releaseWakeLock();
+
+        document.getElementById('setup-screen').classList.remove('hidden');
+        document.getElementById('study-screen').classList.add('hidden');
+        document.title = "鳩特數理 - 文昌帝君陪讀席";
+    }
+
+    function finishStudy() {
+        stopStudy(); // 這邊會自動呼叫 releaseWakeLock，所以不用擔心
+        alert("功德圓滿！這炷香燒完了，休息一下吧。");
+    }
+
+    // --- 切換視窗偵測 ---
+    document.addEventListener("visibilitychange", async () => {
+        if (!isStudying) return;
+
+        if (document.hidden) {
+            // 切換出去：暫停、靜音、變灰
+            pauseTimer();
+            bgm.pause();
+            stick.style.filter = "grayscale(100%)";
+            document.title = "⚠️ 香熄了！帝君在瞪你...";
+            
+            // 視窗都縮小了，通常鎖定會自動失效，保險起見釋放它
+            releaseWakeLock(); 
+
+        } else {
+            // 切換回來：繼續、播放、恢復
+            startTimer();
+            bgm.play();
+            stick.style.filter = "grayscale(0%)";
+            document.title = "文昌帝君陪讀中...";
+            
+            // ★ 回來時，再次請求螢幕恆亮 (因為切換視窗時鎖定可能會斷掉)
+            requestWakeLock();
+
+            // 顯示罵人特效
+            godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
+            godMessage.classList.add('scold');
+            setTimeout(() => {
+                godMessage.classList.remove('scold');
+                godMessage.innerText = "帝君看著你... 心無旁騖";
+            }, 3000);
+        }
+    });
     </script>
 </body>
 </html>
