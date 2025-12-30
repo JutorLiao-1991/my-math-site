@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理 - 文昌帝君陪讀席</title>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-wood: #2c1e1e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            color: #f0e68c;
+            font-family: "Microsoft JhengHei", "KaiTi", serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            
+            /* --- 背景設定 --- */
+            /* 預設使用 Unsplash 線上圖片 (深色寺廟氛圍) */
+            background-image: url('https://images.unsplash.com/photo-1600609842388-3e422114d693?q=80&w=2070&auto=format&fit=crop');
+            /* 如果你下載了圖片，請改成: url('assets/temple.jpg'); */
+            
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* 黑色半透明遮罩，讓文字跟神像更清楚 */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: -1;
+        }
+
+        /* 隱藏元素用的 class */
+        .hidden { display: none !important; }
+
+        /* --- 文昌帝君頭像區 --- */
+        .god-container {
+            position: relative;
+            width: 260px;
+            height: 260px;
+            margin: 0 auto 20px;
+        }
+
+        .god-image {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            
+            /* --- 文昌帝君圖片設定 --- */
+            /* 預設使用 Wikimedia 線上圖片 (宜蘭傳藝文昌) */
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Wenchang_Wang_Statue_in_Wenchang_Temple_of_Yilan.jpg/600px-Wenchang_Wang_Statue_in_Wenchang_Temple_of_Yilan.jpg');
+            /* 如果你下載了圖片，請改成: url('assets/wenchang.jpg'); */
+            
+            background-size: cover;
+            background-position: center 20%;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* 神像背後的光暈呼吸燈 */
+        .god-halo {
+            position: absolute;
+            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,55,0.6) 0%, rgba(0,0,0,0) 70%);
+            z-index: 1;
+            animation: pulse 4s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0.5; }
+        }
+
+        /* --- UI 區塊 --- */
+        #setup-screen, #study-screen {
+            text-align: center;
+            z-index: 10;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        h1 { margin: 0; font-size: 2.2rem; text-shadow: 0 0 10px #d4af37; letter-spacing: 5px; }
+        
+        input {
+            padding: 10px; font-size: 1.5rem; width: 100px; text-align: center;
+            background: rgba(255,255,255,0.1); border: 2px solid var(--gold);
+            color: #fff; border-radius: 8px; outline: none; margin: 10px;
+        }
+        
+        button {
+            display: block; margin: 30px auto; padding: 12px 50px;
+            font-size: 1.3rem; background: linear-gradient(to bottom, #d4af37, #b8860b);
+            color: #000; border: none; cursor: pointer; font-weight: bold;
+            border-radius: 50px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+            transition: transform 0.2s;
+        }
+        button:hover { transform: scale(1.05); background: #f1c40f; }
+
+        /* --- 香與煙霧動畫 --- */
+        .incense-wrapper {
+            position: relative; width: 10px; height: 200px;
+            background: #444; margin: 30px auto;
+            border-radius: 6px; box-shadow: 0 0 10px #000;
+        }
+        .incense-stick {
+            position: absolute; bottom: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #500000, #ff4500);
+            border-radius: 6px; transition: height 0.5s linear;
+        }
+        .smoke {
+            position: absolute; top: -30px; left: 50%; width: 8px; height: 8px;
+            background: rgba(200,200,200,0.5); border-radius: 50%;
+            filter: blur(3px); animation: smokeRise 2.5s infinite ease-out; opacity: 0;
+        }
+        @keyframes smokeRise {
+            0% { top: -5px; opacity: 0; transform: translateX(-50%) scale(1); }
+            30% { opacity: 0.6; }
+            100% { top: -80px; opacity: 0; transform: translateX(-20%) scale(3); }
+        }
+
+        /* --- 文字顯示 --- */
+        .timer-text { font-size: 2.5rem; font-weight: bold; margin-top: 10px; font-family: monospace; }
+        .message { margin-top: 15px; font-size: 1.2rem; min-height: 1.5em; color: #ccc; }
+        
+        .scold { color: #ff5555; font-weight: bold; animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="overlay"></div>
+
+    <div id="setup-screen">
+        <div class="god-container">
+            <div class="god-halo"></div>
+            <div class="god-image"></div>
+        </div>
+        <h1>文昌陪讀</h1>
+        <p style="color:#aaa; letter-spacing: 2px;">誠心正意 ‧ 金榜題名</p>
+        
+        <div style="margin-top: 40px;">
+            <label style="font-size: 1.2rem;">弟子願專注</label><br>
+            <input type="number" id="minutes-input" value="30" min="1" max="180">
+            <span style="font-size: 1.2rem;">分鐘</span>
+        </div>
+        
+        <button onclick="startStudy()">點香開始</button>
+    </div>
+
+    <div id="study-screen" class="hidden">
+        <div class="god-container" style="width: 120px; height: 120px; margin-bottom: 10px;">
+            <div class="god-halo"></div>
+            <div class="god-image"></div>
+        </div>
+
+        <div class="incense-wrapper">
+            <div class="smoke"></div>
+            <div class="incense-stick" id="stick"></div>
+        </div>
+
+        <div class="timer-text" id="timer-display">00:00</div>
+        <div class="message" id="god-message">帝君看著你...</div>
+
+        <button onclick="stopStudy()" style="background:#444; padding:8px 30px; font-size:1rem; margin-top:30px; box-shadow:none; color:#ccc;">
+            弟子知錯（提早結束）
+        </button>
+    </div>
+
+    <audio id="bgm" loop>
+        <source src="https://cdn.pixabay.com/download/audio/2022/03/09/audio_c8c8a73467.mp3?filename=singing-bowl-14341.mp3" type="audio/mpeg">
+        </audio>
+
+    <script>
+        let timerInterval;
+        let totalSeconds = 0;
+        let remainingSeconds = 0;
+        let isStudying = false;
+
+        const stick = document.getElementById('stick');
+        const timerDisplay = document.getElementById('timer-display');
+        const godMessage = document.getElementById('god-message');
+        const bgm = document.getElementById('bgm');
+
+        // 隨機罵人語錄
+        const scoldQuotes = [
+            "香熄了，你的未來也快熄了。",
+            "你去哪裡了？帝君很不高興。",
+            "這點時間都坐不住，怎麼坐考場？",
+            "別人的孩子還在讀，你切視窗？",
+            "回來就好，把心收回來。",
+            "剛才那段時間，不予計算功德。"
+        ];
+
+        function startStudy() {
+            const mins = document.getElementById('minutes-input').value;
+            if(!mins || mins <= 0) return alert("請輸入正確時間");
+
+            totalSeconds = mins * 60;
+            remainingSeconds = totalSeconds;
+            isStudying = true;
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('study-screen').classList.remove('hidden');
+            
+            // 播放頌缽音樂
+            bgm.volume = 0.6; // 音量 60%
+            bgm.play().catch(e => console.log("瀏覽器阻擋自動播放，需使用者互動"));
+
+            updateUI();
+            startTimer();
+        }
+
+        function startTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                updateUI();
+                if (remainingSeconds <= 0) finishStudy();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateUI() {
+            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (remainingSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${m}:${s}`;
+            
+            const percentage = (remainingSeconds / totalSeconds) * 100;
+            stick.style.height = `${percentage}%`;
+        }
+
+        function stopStudy() {
+            pauseTimer();
+            isStudying = false;
+            bgm.pause();
+            bgm.currentTime = 0;
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('study-screen').classList.add('hidden');
+            document.title = "鳩特數理 - 文昌帝君陪讀席";
+        }
+
+        function finishStudy() {
+            stopStudy();
+            alert("功德圓滿！這炷香燒完了，休息一下吧。");
+        }
+
+        // --- 切換視窗偵測 ---
+        document.addEventListener("visibilitychange", () => {
+            if (!isStudying) return;
+
+            if (document.hidden) {
+                // 切換出去：暫停、靜音、變灰
+                pauseTimer();
+                bgm.pause();
+                stick.style.filter = "grayscale(100%)";
+                document.title = "⚠️ 香熄了！帝君在瞪你...";
+            } else {
+                // 切換回來：繼續、播放、恢復
+                startTimer();
+                bgm.play();
+                stick.style.filter = "grayscale(0%)";
+                document.title = "文昌帝君陪讀中...";
+                
+                // 顯示罵人特效
+                godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
+                godMessage.classList.add('scold');
+                setTimeout(() => {
+                    godMessage.classList.remove('scold');
+                    godMessage.innerText = "帝君看著你... 心無旁騖";
+                }, 3000);
+            }
+        });
+    </script>
+</body>
+</html>
