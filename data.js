@@ -13,6 +13,7 @@ const lessonData = [
         tagName: "日文學習",
         desc: "文昌帝君顯靈中。"
     },
+    {
         title: "日文假名特訓",
         category: "language",
         url: "language/japanese/jp_menu.html",
