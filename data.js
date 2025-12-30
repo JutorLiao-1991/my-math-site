@@ -6,6 +6,13 @@ const siteConfig = {
 // --- 課程資料區 ---
 const lessonData = [
     {
+        title: "文昌鐘",
+        category: "language",
+        url: "wen_chang_clock/wen_chang_clock.html",
+        tagClass: "lang",
+        tagName: "日文學習",
+        desc: "文昌帝君顯靈中。"
+    },
         title: "日文假名特訓",
         category: "language",
         url: "language/japanese/jp_menu.html",
