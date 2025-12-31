@@ -157,7 +157,7 @@
             <div class="god-halo"></div>
             <div class="god-image"></div>
         </div>
-        <h1>鳩特數理。文昌陪讀</h1>
+        <h1>文昌陪讀</h1>
         <span class="subtitle">誠心正意 ‧ 金榜題名</span>
         
         <div class="input-group">
@@ -173,7 +173,7 @@
         <button onclick="startStudy()">點香開始</button>
 
         <div class="leaderboard-container">
-            <div class="lb-title">🏆 累計功德榜 (本週)</div>
+            <div class="lb-title">🏆 本週功德榜 (週一重置)</div>
             <ul class="lb-list" id="leaderboard-list">
                 <li class="lb-item" style="justify-content:center; color:#888;">載入中...</li>
             </ul>
@@ -205,7 +205,7 @@
 
     <script>
         // ==========================================
-        // 1. Firebase 設定區 (已填入你的設定)
+        // 1. Firebase 設定區
         // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyDgv0eKdB1qAX-8QkhLy-CPQXbgg2pFOfQ",
@@ -217,12 +217,11 @@
           appId: "1:679908561242:web:bddce69c9e0b0eafaca363"
         };
 
-        // 初始化 Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // ==========================================
-        // 2. 核心邏輯
+        // 2. 核心變數
         // ==========================================
         let timerInterval;
         let totalSeconds = 0;
@@ -244,38 +243,63 @@
             "這點時間都坐不住，怎麼坐考場？",
             "別人的孩子還在讀，你切視窗？",
             "回來就好，把心收回來。",
-            "剛才那段時間，不予計算功德。",
-            "你就這點能耐嗎？",
-            "連自己的期待都做不到，別指望有人對你有所期待。",
-            "這點時間都堅持不了，我看你這輩子就這樣了。",
-            "你把時間花在哪，你的成就就在哪！"
+            "剛才那段時間，不予計算功德。"
         ];
 
-        // --- 載入時讀取排行榜 ---
+        // ==========================================
+        // 3. 週次計算 (鎖定 UTC+8 台灣時間)
+        // ==========================================
+        function getCurrentWeekID() {
+            // 1. 取得 UTC 時間
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            
+            // 2. 加上 8 小時，強制轉為台灣時間
+            const twTime = new Date(utc + (3600000 * 8));
+
+            // 3. 計算 ISO 週次 (以台灣時間判定)
+            const d = new Date(twTime);
+            const dayNum = d.getDay() || 7;
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 4 - dayNum);
+            const year = d.getFullYear();
+            const weekNo = Math.ceil((((d - new Date(year, 0, 1)) / 86400000) + 1) / 7);
+            
+            return `${year}_W${weekNo}`;
+        }
+
+        // 動態取得本週的路徑
+        const currentWeekPath = 'weekly_merits_' + getCurrentWeekID();
+
+        // ==========================================
+        // 4. 程式邏輯與 Firebase 操作
+        // ==========================================
         window.onload = function() {
             loadLeaderboard();
             const savedName = localStorage.getItem('wenchang_username');
             if(savedName) document.getElementById('username-input').value = savedName;
         };
 
-        // --- 讀取排行榜資料 ---
+        // 讀取排行榜 (只監聽本週資料)
         function loadLeaderboard() {
-            const meritRef = db.ref('merits');
+            const meritRef = db.ref(currentWeekPath);
             meritRef.orderByChild('totalMinutes').limitToLast(10).on('value', (snapshot) => {
                 lbList.innerHTML = "";
                 let data = [];
-                snapshot.forEach((childSnapshot) => {
-                    data.push({
-                        name: childSnapshot.key,
-                        minutes: childSnapshot.val().totalMinutes
+                
+                if (snapshot.exists()) {
+                    snapshot.forEach((childSnapshot) => {
+                        data.push({
+                            name: childSnapshot.key,
+                            minutes: childSnapshot.val().totalMinutes
+                        });
                     });
-                });
+                }
 
-                // 反轉 (讓分數高的在最上面)
-                data.reverse();
+                data.reverse(); // 分數高的排上面
 
                 if(data.length === 0) {
-                    lbList.innerHTML = `<li class="lb-item" style="justify-content:center; color:#888;">尚無功德紀錄</li>`;
+                    lbList.innerHTML = `<li class="lb-item" style="justify-content:center; color:#888;">本週尚無紀錄，快來搶頭香！</li>`;
                     return;
                 }
 
@@ -298,22 +322,18 @@
             });
         }
 
-        // --- 更新功德 ---
+        // 更新功德 (寫入本週資料)
         function updateMerit(name, minutesToAdd) {
-            const userRef = db.ref('merits/' + name);
+            const userRef = db.ref(currentWeekPath + '/' + name);
             userRef.child('totalMinutes').transaction((currentMinutes) => {
                 return (currentMinutes || 0) + parseInt(minutesToAdd);
-            }, (error, committed, snapshot) => {
-                if (error) {
-                    console.log('Transaction failed abnormally!', error);
-                } else {
-                    console.log('功德已登錄！');
-                }
+            }, (error) => {
+                if (error) console.log('Transaction failed', error);
             });
             userRef.child('lastStudy').set(new Date().toISOString());
         }
 
-        // --- 螢幕恆亮控制 ---
+        // 螢幕喚醒鎖 (Wake Lock)
         async function requestWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
@@ -328,7 +348,7 @@
             }
         }
 
-        // --- 開始與結束流程 ---
+        // 開始讀書
         function startStudy() {
             const nameInput = document.getElementById('username-input');
             const minsInput = document.getElementById('minutes-input');
@@ -339,7 +359,6 @@
             if(!currentUser) return alert("請輸入弟子暱稱，帝君才知道功德要算誰的。");
             if(!studyMinutes || studyMinutes <= 0) return alert("請輸入正確時間");
 
-            // 儲存名字
             localStorage.setItem('wenchang_username', currentUser);
 
             totalSeconds = studyMinutes * 60;
@@ -394,7 +413,7 @@
             updateMerit(currentUser, studyMinutes);
         }
 
-        // --- 防偷懶偵測 ---
+        // 防偷懶機制
         document.addEventListener("visibilitychange", async () => {
             if (!isStudying) return;
 
