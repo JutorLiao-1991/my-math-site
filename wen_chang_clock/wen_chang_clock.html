@@ -4,93 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鳩特數理 - 文昌帝君陪讀席</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
     <style>
         :root {
             --gold: #d4af37;
             --dark-wood: #2c1e1e;
+            --overlay-bg: rgba(0, 0, 0, 0.85);
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: #000;
             color: #f0e68c;
             font-family: "Microsoft JhengHei", "KaiTi", serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
             
-            /* --- 修正：改讀取本地 assets 資料夾 --- */
+            /* 背景圖：本地素材 */
             background-image: url('assets/temple.jpg');
-            background-size: cover;
-            background-position: center;
+            background-size: cover; background-position: center;
         }
 
         .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            z-index: -1;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--overlay-bg); z-index: -1;
         }
 
         .hidden { display: none !important; }
 
+        /* --- 文昌帝君頭像 --- */
         .god-container {
-            position: relative;
-            width: 260px;
-            height: 260px;
-            margin: 0 auto 20px;
+            position: relative; width: 200px; height: 200px; margin: 0 auto 20px;
+            transition: all 0.5s ease;
         }
-
         .god-image {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
+            width: 100%; height: 100%; border-radius: 50%;
             border: 4px solid var(--gold);
-            
-            /* --- 修正：改讀取本地 assets 資料夾 --- */
             background-image: url('assets/wenchang.jpg');
-            
-            background-size: cover;
-            background-position: center 20%;
+            background-size: cover; background-position: center 20%;
             box-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
-            position: relative;
-            z-index: 2;
+            position: relative; z-index: 2;
         }
-
         .god-halo {
-            position: absolute;
-            top: -10px; left: -10px; right: -10px; bottom: -10px;
+            position: absolute; top: -10px; left: -10px; right: -10px; bottom: -10px;
             border-radius: 50%;
             background: radial-gradient(circle, rgba(212,175,55,0.6) 0%, rgba(0,0,0,0) 70%);
-            z-index: 1;
-            animation: pulse 4s infinite ease-in-out;
+            z-index: 1; animation: pulse 4s infinite ease-in-out;
         }
-
         @keyframes pulse {
             0% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 0.8; }
             100% { transform: scale(1); opacity: 0.5; }
         }
 
+        /* --- 輸入與設定區 --- */
         #setup-screen, #study-screen {
-            text-align: center;
-            z-index: 10;
-            width: 90%;
-            max-width: 500px;
+            text-align: center; z-index: 10; width: 90%; max-width: 500px;
+            padding: 20px 0;
         }
 
-        h1 { margin: 0; font-size: 2.2rem; text-shadow: 0 0 10px #d4af37; letter-spacing: 5px; }
+        h1 { margin: 0; font-size: 2rem; text-shadow: 0 0 10px var(--gold); letter-spacing: 5px; color: var(--gold); }
+        .subtitle { color: #aaa; letter-spacing: 2px; margin-bottom: 30px; display: block; }
         
-        input {
-            padding: 10px; font-size: 1.5rem; width: 100px; text-align: center;
+        .input-group { margin: 15px 0; }
+        .input-label { font-size: 1.1rem; color: #ddd; display: block; margin-bottom: 5px; }
+        
+        input[type="text"], input[type="number"] {
+            padding: 10px; font-size: 1.2rem; text-align: center;
             background: rgba(255,255,255,0.1); border: 2px solid var(--gold);
-            color: #fff; border-radius: 8px; outline: none; margin: 10px;
+            color: #fff; border-radius: 8px; outline: none;
+            font-family: inherit; width: 60%;
         }
-        
+        input[type="number"] { width: 30%; }
+
         button {
             display: block; margin: 30px auto; padding: 12px 50px;
             font-size: 1.3rem; background: linear-gradient(to bottom, #d4af37, #b8860b);
@@ -100,6 +91,31 @@
         }
         button:hover { transform: scale(1.05); background: #f1c40f; }
 
+        /* --- 功德榜樣式 --- */
+        .leaderboard-container {
+            margin-top: 40px;
+            background: rgba(44, 30, 30, 0.8);
+            border: 2px solid #5d4037;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .lb-title {
+            color: var(--gold); font-size: 1.2rem; font-weight: bold;
+            border-bottom: 1px solid #5d4037; padding-bottom: 10px; margin-bottom: 10px;
+        }
+        .lb-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
+        .lb-item {
+            display: flex; justify-content: space-between; padding: 8px 0;
+            border-bottom: 1px dashed #555; font-size: 1rem;
+        }
+        .lb-item:last-child { border-bottom: none; }
+        .lb-rank { margin-right: 10px; color: #aaa; width: 25px; text-align:center;}
+        .lb-name { flex-grow: 1; text-align: left; color: #fff; }
+        .lb-time { color: var(--gold); font-weight: bold; }
+
+        /* --- 讀書畫面樣式 --- */
         .incense-wrapper {
             position: relative; width: 10px; height: 200px;
             background: #444; margin: 30px auto;
@@ -121,10 +137,10 @@
             100% { top: -80px; opacity: 0; transform: translateX(-20%) scale(3); }
         }
 
-        .timer-text { font-size: 2.5rem; font-weight: bold; margin-top: 10px; font-family: monospace; }
+        .timer-text { font-size: 3rem; font-weight: bold; margin-top: 10px; font-family: monospace; }
         .message { margin-top: 15px; font-size: 1.2rem; min-height: 1.5em; color: #ccc; }
-        
         .scold { color: #ff5555; font-weight: bold; animation: shake 0.5s; }
+        
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-10px); }
@@ -141,16 +157,27 @@
             <div class="god-halo"></div>
             <div class="god-image"></div>
         </div>
-        <h1>鳩特數理。文昌陪讀</h1>
-        <p style="color:#aaa; letter-spacing: 2px;">誠心正意 ‧ 金榜題名</p>
+        <h1>文昌陪讀</h1>
+        <span class="subtitle">誠心正意 ‧ 金榜題名</span>
         
-        <div style="margin-top: 40px;">
-            <label style="font-size: 1.2rem;">弟子願專注</label><br>
+        <div class="input-group">
+            <label class="input-label">弟子暱稱</label>
+            <input type="text" id="username-input" placeholder="請輸入名字" maxlength="10">
+        </div>
+
+        <div class="input-group">
+            <label class="input-label">願專注 (分鐘)</label>
             <input type="number" id="minutes-input" value="30" min="1" max="180">
-            <span style="font-size: 1.2rem;">分鐘</span>
         </div>
         
         <button onclick="startStudy()">點香開始</button>
+
+        <div class="leaderboard-container">
+            <div class="lb-title">🏆 累計功德榜 (本週)</div>
+            <ul class="lb-list" id="leaderboard-list">
+                <li class="lb-item" style="justify-content:center; color:#888;">載入中...</li>
+            </ul>
+        </div>
     </div>
 
     <div id="study-screen" class="hidden">
@@ -177,148 +204,221 @@
     </audio>
 
     <script>
-    let timerInterval;
-    let totalSeconds = 0;
-    let remainingSeconds = 0;
-    let isStudying = false;
-    let wakeLock = null; // 新增：用來控制螢幕喚醒鎖
+        // ==========================================
+        // 1. Firebase 設定區 (已填入你的設定)
+        // ==========================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyDgv0eKdB1qAX-8QkhLy-CPQXbgg2pFOfQ",
+          authDomain: "wen-chang-clock.firebaseapp.com",
+          databaseURL: "https://wen-chang-clock-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "wen-chang-clock",
+          storageBucket: "wen-chang-clock.firebasestorage.app",
+          messagingSenderId: "679908561242",
+          appId: "1:679908561242:web:bddce69c9e0b0eafaca363"
+        };
 
-    const stick = document.getElementById('stick');
-    const timerDisplay = document.getElementById('timer-display');
-    const godMessage = document.getElementById('god-message');
-    const bgm = document.getElementById('bgm');
+        // 初始化 Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    const scoldQuotes = [
-        "香熄了，你的未來也快熄了。",
-        "你去哪裡了？帝君很不高興。",
-        "這點時間都坐不住，怎麼坐考場？",
-        "別人的孩子還在讀，你切視窗？",
-        "回來就好，把心收回來。",
-        "剛才那段時間，不予計算功德。",
-        "你不希望人生就這樣而已吧？",
-        "連自己期待自己的時間都做不到，你還能被誰期待？",
-        "再撐一下就能翻過山頭看見日出了！",
-        "你把時間花在哪，你的成就就在哪。"
-    ];
+        // ==========================================
+        // 2. 核心邏輯
+        // ==========================================
+        let timerInterval;
+        let totalSeconds = 0;
+        let remainingSeconds = 0;
+        let isStudying = false;
+        let wakeLock = null;
+        let currentUser = "";
+        let studyMinutes = 0;
 
-    // --- 新增：請求螢幕保持恆亮 ---
-    async function requestWakeLock() {
-        try {
-            if ('wakeLock' in navigator) {
-                wakeLock = await navigator.wakeLock.request('screen');
-                console.log('螢幕喚醒鎖定已啟動');
-            }
-        } catch (err) {
-            console.log(`無法鎖定螢幕: ${err.name}, ${err.message}`);
-        }
-    }
+        const stick = document.getElementById('stick');
+        const timerDisplay = document.getElementById('timer-display');
+        const godMessage = document.getElementById('god-message');
+        const bgm = document.getElementById('bgm');
+        const lbList = document.getElementById('leaderboard-list');
 
-    // --- 新增：釋放螢幕鎖定 ---
-    function releaseWakeLock() {
-        if (wakeLock !== null) {
-            wakeLock.release().then(() => {
-                wakeLock = null;
-                console.log('螢幕喚醒鎖定已解除');
+        const scoldQuotes = [
+            "香熄了，你的未來也快熄了。",
+            "你去哪裡了？帝君很不高興。",
+            "這點時間都坐不住，怎麼坐考場？",
+            "別人的孩子還在讀，你切視窗？",
+            "回來就好，把心收回來。",
+            "剛才那段時間，不予計算功德。",
+            "你就這點能耐嗎？",
+            "連自己的期待都做不到，別指望有人對你有所期待。",
+            "這點時間都堅持不了，我看你這輩子就這樣了。",
+            "你把時間花在哪，你的成就就在哪！"
+        ];
+
+        // --- 載入時讀取排行榜 ---
+        window.onload = function() {
+            loadLeaderboard();
+            const savedName = localStorage.getItem('wenchang_username');
+            if(savedName) document.getElementById('username-input').value = savedName;
+        };
+
+        // --- 讀取排行榜資料 ---
+        function loadLeaderboard() {
+            const meritRef = db.ref('merits');
+            meritRef.orderByChild('totalMinutes').limitToLast(10).on('value', (snapshot) => {
+                lbList.innerHTML = "";
+                let data = [];
+                snapshot.forEach((childSnapshot) => {
+                    data.push({
+                        name: childSnapshot.key,
+                        minutes: childSnapshot.val().totalMinutes
+                    });
+                });
+
+                // 反轉 (讓分數高的在最上面)
+                data.reverse();
+
+                if(data.length === 0) {
+                    lbList.innerHTML = `<li class="lb-item" style="justify-content:center; color:#888;">尚無功德紀錄</li>`;
+                    return;
+                }
+
+                data.forEach((item, index) => {
+                    const li = document.createElement('li');
+                    li.className = 'lb-item';
+                    
+                    let rankIcon = `${index + 1}`;
+                    if(index === 0) rankIcon = '🥇';
+                    if(index === 1) rankIcon = '🥈';
+                    if(index === 2) rankIcon = '🥉';
+
+                    li.innerHTML = `
+                        <span class="lb-rank">${rankIcon}</span>
+                        <span class="lb-name">${item.name}</span>
+                        <span class="lb-time">${item.minutes} min</span>
+                    `;
+                    lbList.appendChild(li);
+                });
             });
         }
-    }
 
-    function startStudy() {
-        const mins = document.getElementById('minutes-input').value;
-        if(!mins || mins <= 0) return alert("請輸入正確時間");
-
-        totalSeconds = mins * 60;
-        remainingSeconds = totalSeconds;
-        isStudying = true;
-
-        document.getElementById('setup-screen').classList.add('hidden');
-        document.getElementById('study-screen').classList.remove('hidden');
-        
-        // 播放本地音樂
-        bgm.volume = 0.6;
-        bgm.play().catch(e => console.log("需使用者互動才能播放"));
-
-        // ★ 啟動螢幕恆亮
-        requestWakeLock();
-
-        updateUI();
-        startTimer();
-    }
-
-    function startTimer() {
-        if(timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
-            remainingSeconds--;
-            updateUI();
-            if (remainingSeconds <= 0) finishStudy();
-        }, 1000);
-    }
-
-    function pauseTimer() {
-        clearInterval(timerInterval);
-    }
-
-    function updateUI() {
-        const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-        const s = (remainingSeconds % 60).toString().padStart(2, '0');
-        timerDisplay.innerText = `${m}:${s}`;
-        
-        const percentage = (remainingSeconds / totalSeconds) * 100;
-        stick.style.height = `${percentage}%`;
-    }
-
-    function stopStudy() {
-        pauseTimer();
-        isStudying = false;
-        bgm.pause();
-        bgm.currentTime = 0;
-        
-        // ★ 解除螢幕恆亮
-        releaseWakeLock();
-
-        document.getElementById('setup-screen').classList.remove('hidden');
-        document.getElementById('study-screen').classList.add('hidden');
-        document.title = "鳩特數理 - 文昌帝君陪讀席";
-    }
-
-    function finishStudy() {
-        stopStudy(); // 這邊會自動呼叫 releaseWakeLock，所以不用擔心
-        alert("功德圓滿！這炷香燒完了，休息一下吧。");
-    }
-
-    // --- 切換視窗偵測 ---
-    document.addEventListener("visibilitychange", async () => {
-        if (!isStudying) return;
-
-        if (document.hidden) {
-            // 切換出去：暫停、靜音、變灰
-            pauseTimer();
-            bgm.pause();
-            stick.style.filter = "grayscale(100%)";
-            document.title = "⚠️ 香熄了！帝君在瞪你...";
-            
-            // 視窗都縮小了，通常鎖定會自動失效，保險起見釋放它
-            releaseWakeLock(); 
-
-        } else {
-            // 切換回來：繼續、播放、恢復
-            startTimer();
-            bgm.play();
-            stick.style.filter = "grayscale(0%)";
-            document.title = "文昌帝君陪讀中...";
-            
-            // ★ 回來時，再次請求螢幕恆亮 (因為切換視窗時鎖定可能會斷掉)
-            requestWakeLock();
-
-            // 顯示罵人特效
-            godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
-            godMessage.classList.add('scold');
-            setTimeout(() => {
-                godMessage.classList.remove('scold');
-                godMessage.innerText = "帝君看著你... 心無旁騖";
-            }, 3000);
+        // --- 更新功德 ---
+        function updateMerit(name, minutesToAdd) {
+            const userRef = db.ref('merits/' + name);
+            userRef.child('totalMinutes').transaction((currentMinutes) => {
+                return (currentMinutes || 0) + parseInt(minutesToAdd);
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    console.log('Transaction failed abnormally!', error);
+                } else {
+                    console.log('功德已登錄！');
+                }
+            });
+            userRef.child('lastStudy').set(new Date().toISOString());
         }
-    });
+
+        // --- 螢幕恆亮控制 ---
+        async function requestWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch (err) { console.log(err); }
+        }
+
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => { wakeLock = null; });
+            }
+        }
+
+        // --- 開始與結束流程 ---
+        function startStudy() {
+            const nameInput = document.getElementById('username-input');
+            const minsInput = document.getElementById('minutes-input');
+            
+            currentUser = nameInput.value.trim();
+            studyMinutes = parseInt(minsInput.value);
+
+            if(!currentUser) return alert("請輸入弟子暱稱，帝君才知道功德要算誰的。");
+            if(!studyMinutes || studyMinutes <= 0) return alert("請輸入正確時間");
+
+            // 儲存名字
+            localStorage.setItem('wenchang_username', currentUser);
+
+            totalSeconds = studyMinutes * 60;
+            remainingSeconds = totalSeconds;
+            isStudying = true;
+
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('study-screen').classList.remove('hidden');
+            
+            bgm.volume = 0.6;
+            bgm.play().catch(e => console.log("需使用者互動"));
+            requestWakeLock();
+            updateUI();
+            startTimer();
+        }
+
+        function startTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                updateUI();
+                if (remainingSeconds <= 0) finishStudy();
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+        }
+
+        function updateUI() {
+            const m = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
+            const s = (remainingSeconds % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${m}:${s}`;
+            const percentage = (remainingSeconds / totalSeconds) * 100;
+            stick.style.height = `${percentage}%`;
+        }
+
+        function stopStudy() {
+            pauseTimer();
+            isStudying = false;
+            bgm.pause();
+            bgm.currentTime = 0;
+            releaseWakeLock();
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('study-screen').classList.add('hidden');
+            document.title = "鳩特數理 - 文昌帝君陪讀席";
+        }
+
+        function finishStudy() {
+            stopStudy();
+            alert(`功德圓滿！${currentUser} 獲得 ${studyMinutes} 分鐘讀書功德。`);
+            updateMerit(currentUser, studyMinutes);
+        }
+
+        // --- 防偷懶偵測 ---
+        document.addEventListener("visibilitychange", async () => {
+            if (!isStudying) return;
+
+            if (document.hidden) {
+                pauseTimer();
+                bgm.pause();
+                stick.style.filter = "grayscale(100%)";
+                document.title = "⚠️ 香熄了！帝君在瞪你...";
+                releaseWakeLock(); 
+            } else {
+                startTimer();
+                bgm.play();
+                stick.style.filter = "grayscale(0%)";
+                document.title = "文昌帝君陪讀中...";
+                requestWakeLock();
+                
+                godMessage.innerText = scoldQuotes[Math.floor(Math.random() * scoldQuotes.length)];
+                godMessage.classList.add('scold');
+                setTimeout(() => {
+                    godMessage.classList.remove('scold');
+                    godMessage.innerText = "帝君看著你... 心無旁騖";
+                }, 3000);
+            }
+        });
     </script>
 </body>
 </html>
