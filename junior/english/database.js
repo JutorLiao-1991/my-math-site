@@ -404,7 +404,217 @@ var jutorDB = {
       ]
     }
   },
-  "國二": {},
+  "國二": {
+    "康軒版": {
+      "Book 3 Unit 5": [
+        {
+          "en": "temple",
+          "ch": "寺廟",
+          "sentence": "We visited an ancient temple during our trip."
+        },
+        {
+          "en": "supermarket",
+          "ch": "超級市場",
+          "sentence": "I need to buy groceries at the supermarket."
+        },
+        {
+          "en": "restaurant",
+          "ch": "餐廳",
+          "sentence": "Let's have dinner at that new restaurant."
+        },
+        {
+          "en": "bank",
+          "ch": "銀行",
+          "sentence": "I need to go to the bank to withdraw some money."
+        },
+        {
+          "en": "church",
+          "ch": "教堂",
+          "sentence": "The old church has a beautiful stained glass window."
+        },
+        {
+          "en": "bakery",
+          "ch": "麵包店",
+          "sentence": "The bakery sells fresh bread and pastries."
+        },
+        {
+          "en": "bridge",
+          "ch": "橋",
+          "sentence": "We walked across the old stone bridge."
+        },
+        {
+          "en": "hotel",
+          "ch": "飯店",
+          "sentence": "We booked a hotel room for our vacation."
+        },
+        {
+          "en": "department store",
+          "ch": "百貨公司",
+          "sentence": "My mom loves shopping at the department store."
+        },
+        {
+          "en": "metro station",
+          "ch": "捷運站",
+          "sentence": "The metro station is just around the corner."
+        },
+        {
+          "en": "bookstore",
+          "ch": "書店",
+          "sentence": "I spent an hour browsing in the bookstore."
+        },
+        {
+          "en": "post office",
+          "ch": "郵局",
+          "sentence": "I need to mail this letter at the post office."
+        },
+        {
+          "en": "flower shop",
+          "ch": "花店",
+          "sentence": "He bought a bouquet from the flower shop."
+        },
+        {
+          "en": "trip",
+          "ch": "旅行",
+          "sentence": "We are planning a trip to Japan next year."
+        },
+        {
+          "en": "during",
+          "ch": "在…期間",
+          "sentence": "She fell asleep during the movie."
+        },
+        {
+          "en": "vacation",
+          "ch": "假期",
+          "sentence": "We're going on vacation next month."
+        },
+        {
+          "en": "will / would",
+          "ch": "將",
+          "sentence": "I will go to the party tomorrow. / He would help if he could."
+        },
+        {
+          "en": "own",
+          "ch": "自己的; 擁有",
+          "sentence": "I own my own car. / This is my own idea."
+        },
+        {
+          "en": "local",
+          "ch": "當地的",
+          "sentence": "We tried some local food specialties."
+        },
+        {
+          "en": "tour",
+          "ch": "旅遊行程",
+          "sentence": "We took a guided tour of the city."
+        },
+        {
+          "en": "spend / spent",
+          "ch": "花費 (金錢; 時間)",
+          "sentence": "I spend too much money on clothes. / He spent an hour waiting for the bus."
+        },
+        {
+          "en": "thousand",
+          "ch": "千",
+          "sentence": "There are a thousand pages in this book."
+        },
+        {
+          "en": "each",
+          "ch": "每個(的)",
+          "sentence": "Each student received a prize."
+        },
+        {
+          "en": "pay / paid",
+          "ch": "付錢",
+          "sentence": "I need to pay the bill. / He paid for dinner last night."
+        },
+        {
+          "en": "tomorrow",
+          "ch": "明天",
+          "sentence": "I will see you tomorrow."
+        },
+        {
+          "en": "almost",
+          "ch": "幾乎",
+          "sentence": "I'm almost finished with my homework."
+        },
+        {
+          "en": "decide",
+          "ch": "決定",
+          "sentence": "I can't decide what to eat for lunch."
+        },
+        {
+          "en": "cost / cost",
+          "ch": "花費 (金錢)",
+          "sentence": "How much does this jacket cost?"
+        },
+        {
+          "en": "fan",
+          "ch": "…迷; 電扇",
+          "sentence": "He is a big fan of that band. / It's hot, turn on the fan."
+        },
+        {
+          "en": "leave for",
+          "ch": "前往 (leave / left 表「離開; 留下」)",
+          "sentence": "They will leave for Paris tomorrow morning."
+        },
+        {
+          "en": "vendor",
+          "ch": "攤販",
+          "sentence": "A street vendor was selling hot dogs."
+        },
+        {
+          "en": "quick",
+          "ch": "迅速的",
+          "sentence": "He made a quick decision."
+        },
+        {
+          "en": "stall",
+          "ch": "攤位",
+          "sentence": "She bought vegetables at the market stall."
+        },
+        {
+          "en": "careful",
+          "ch": "小心的",
+          "sentence": "Be careful when you cross the street."
+        },
+        {
+          "en": "boat",
+          "ch": "小船",
+          "sentence": "We rented a small boat to go fishing."
+        },
+        {
+          "en": "sell / sold",
+          "ch": "賣; 出售",
+          "sentence": "He wants to sell his old car. / They sold out of tickets quickly."
+        },
+        {
+          "en": "low",
+          "ch": "低的; 矮的",
+          "sentence": "The price of the shirt is very low."
+        },
+        {
+          "en": "price",
+          "ch": "價格; 代價",
+          "sentence": "What is the price of this item?"
+        },
+        {
+          "en": "remember",
+          "ch": "記得",
+          "sentence": "I can't remember his name."
+        },
+        {
+          "en": "cash",
+          "ch": "現金",
+          "sentence": "Do you have any cash on you?"
+        },
+        {
+          "en": "wonderful",
+          "ch": "美好的",
+          "sentence": "We had a wonderful time at the party."
+        }
+      ]
+    }
+  },
   "國三": {},
   "會考複習": {
     "全廠商": {
