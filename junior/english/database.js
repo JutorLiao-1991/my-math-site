@@ -612,6 +612,185 @@ var jutorDB = {
           "ch": "美好的",
           "sentence": "We had a wonderful time at the party."
         }
+      ],
+      "Book 3 Unit 6": [
+        {
+          "en": "airplane (plane)",
+          "ch": "飛機",
+          "sentence": "The airplane will take off soon."
+        },
+        {
+          "en": "bicycle (bike)",
+          "ch": "腳踏車",
+          "sentence": "I ride my bicycle to work every day."
+        },
+        {
+          "en": "truck",
+          "ch": "卡車",
+          "sentence": "The truck is carrying a heavy load."
+        },
+        {
+          "en": "scooter",
+          "ch": "輕型機車",
+          "sentence": "He uses a scooter to get around the city."
+        },
+        {
+          "en": "motorcycle",
+          "ch": "重型機車",
+          "sentence": "Riding a motorcycle can be exciting."
+        },
+        {
+          "en": "taxi",
+          "ch": "計程車",
+          "sentence": "Let's take a taxi to the airport."
+        },
+        {
+          "en": "ship",
+          "ch": "船；艦",
+          "sentence": "A large ship is sailing across the ocean."
+        },
+        {
+          "en": "north",
+          "ch": "北方(的)；朝北",
+          "sentence": "The compass points north."
+        },
+        {
+          "en": "west",
+          "ch": "西方(的)；朝西",
+          "sentence": "The sun sets in the west."
+        },
+        {
+          "en": "south",
+          "ch": "南方(的)；朝南",
+          "sentence": "Birds fly south for the winter."
+        },
+        {
+          "en": "east",
+          "ch": "東方(的)；朝東",
+          "sentence": "The sun rises in the east."
+        },
+        {
+          "en": "drive / drove",
+          "ch": "駕駛(車)",
+          "sentence": "He can drive a car very well."
+        },
+        {
+          "en": "ride / rode",
+          "ch": "騎(車；馬)；搭乘",
+          "sentence": "Do you want to ride a horse?"
+        },
+        {
+          "en": "row",
+          "ch": "划(船)",
+          "sentence": "They like to row a boat on the lake."
+        },
+        {
+          "en": "sir",
+          "ch": "先生",
+          "sentence": "Excuse me, sir, can you help me?"
+        },
+        {
+          "en": "turn left",
+          "ch": "左轉",
+          "sentence": "At the next intersection, please turn left."
+        },
+        {
+          "en": "corner",
+          "ch": "轉角",
+          "sentence": "There's a cafe on the corner of the street."
+        },
+        {
+          "en": "straight",
+          "ch": "直地；直的",
+          "sentence": "Go straight down this road."
+        },
+        {
+          "en": "block",
+          "ch": "街區",
+          "sentence": "The library is two blocks away."
+        },
+        {
+          "en": "across from",
+          "ch": "在……對面",
+          "sentence": "The park is across from the school."
+        },
+        {
+          "en": "bottom",
+          "ch": "底部(的)",
+          "sentence": "Please look at the bottom of the page."
+        },
+        {
+          "en": "rule",
+          "ch": "規定",
+          "sentence": "It's a strict rule in this school."
+        },
+        {
+          "en": "broken",
+          "ch": "破損的",
+          "sentence": "My phone screen is broken."
+        },
+        {
+          "en": "shake / shook hands",
+          "ch": "握手",
+          "sentence": "They shook hands to seal the deal."
+        },
+        {
+          "en": "favorite",
+          "ch": "最喜愛的",
+          "sentence": "What is your favorite color?"
+        },
+        {
+          "en": "pocket",
+          "ch": "口袋",
+          "sentence": "I keep my keys in my pocket."
+        },
+        {
+          "en": "monster",
+          "ch": "怪獸",
+          "sentence": "Children often imagine monsters under their beds."
+        },
+        {
+          "en": "clerk",
+          "ch": "店員",
+          "sentence": "The clerk helped me find the right size."
+        },
+        {
+          "en": "convenient",
+          "ch": "方便的",
+          "sentence": "It's very convenient to live near the subway station."
+        },
+        {
+          "en": "mistake",
+          "ch": "錯誤",
+          "sentence": "I made a mistake on my test."
+        },
+        {
+          "en": "parking space",
+          "ch": "停車位",
+          "sentence": "I'm looking for a parking space."
+        },
+        {
+          "en": "visitor",
+          "ch": "訪客",
+          "sentence": "We had a visitor come to our office today."
+        },
+        {
+          "en": "cheap",
+          "ch": "便宜的",
+          "sentence": "This shirt was very cheap."
+        },
+        {
+          "en": "beef",
+          "ch": "牛肉",
+          "sentence": "Do you prefer chicken or beef?"
+        }
+      ],
+      "Book 3 Unit 6 (句型)": [
+        {
+          "en": "Excuse me.",
+          "ch": "不好意思。",
+          "sentence": "Excuse me. Could you tell me the way to the station?"
+        }
       ]
     }
   },
