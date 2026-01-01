@@ -13,6 +13,7 @@
             --gold: #d4af37;
             --dark-wood: #2c1e1e;
             --overlay-bg: rgba(0, 0, 0, 0.85);
+            --active-green: #4caf50; /* 新增：線上狀態燈號顏色 */
         }
 
         body {
@@ -68,6 +69,7 @@
             padding: 20px 0;
         }
 
+        /* 你的標題樣式 */
         h1 { margin: 0; font-size: 2rem; text-shadow: 0 0 10px var(--gold); letter-spacing: 5px; color: var(--gold); }
         .subtitle { color: #aaa; letter-spacing: 2px; margin-bottom: 30px; display: block; }
         
@@ -91,29 +93,47 @@
         }
         button:hover { transform: scale(1.05); background: #f1c40f; }
 
-        /* --- 功德榜樣式 --- */
-        .leaderboard-container {
+        /* --- 資訊面板 (排行榜 + 線上同修) --- */
+        /* 修改：原本的 leaderboard-container 改為更通用的 info-panel */
+        .info-panel {
             margin-top: 40px;
-            background: rgba(44, 30, 30, 0.8);
+            background: rgba(44, 30, 30, 0.9);
             border: 2px solid #5d4037;
             border-radius: 10px;
-            padding: 20px;
+            padding: 15px;
             width: 100%;
             box-sizing: border-box;
+            max-height: 300px;
+            overflow-y: auto;
         }
-        .lb-title {
-            color: var(--gold); font-size: 1.2rem; font-weight: bold;
-            border-bottom: 1px solid #5d4037; padding-bottom: 10px; margin-bottom: 10px;
+        
+        /* 分頁切換按鈕 */
+        .tabs { display: flex; justify-content: center; margin-bottom: 15px; border-bottom: 1px solid #555; }
+        .tab { 
+            padding: 10px 15px; cursor: pointer; color: #888; font-weight: bold; 
+            border-bottom: 3px solid transparent; flex: 1; transition: all 0.3s;
         }
-        .lb-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
-        .lb-item {
-            display: flex; justify-content: space-between; padding: 8px 0;
+        .tab.active { color: var(--gold); border-bottom: 3px solid var(--gold); background: rgba(212, 175, 55, 0.1); }
+        
+        .list-container ul { list-style: none; padding: 0; margin: 0; }
+        .list-item {
+            display: flex; justify-content: space-between; padding: 10px 0;
             border-bottom: 1px dashed #555; font-size: 1rem;
         }
-        .lb-item:last-child { border-bottom: none; }
-        .lb-rank { margin-right: 10px; color: #aaa; width: 25px; text-align:center;}
-        .lb-name { flex-grow: 1; text-align: left; color: #fff; }
-        .lb-time { color: var(--gold); font-weight: bold; }
+        .list-item:last-child { border-bottom: none; }
+        
+        .rank-icon { margin-right: 10px; width: 25px; text-align: center; display:inline-block;}
+        .user-name { flex-grow: 1; text-align: left; color: #fff; }
+        .user-stat { color: var(--gold); font-weight: bold; font-family: monospace; }
+
+        /* 線上狀態的綠燈動畫 */
+        .live-dot {
+            display: inline-block; width: 10px; height: 10px; 
+            background-color: var(--active-green); border-radius: 50%; 
+            margin-right: 8px; box-shadow: 0 0 8px var(--active-green);
+            animation: blink 2s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         /* --- 讀書畫面樣式 --- */
         .incense-wrapper {
@@ -139,6 +159,10 @@
 
         .timer-text { font-size: 3rem; font-weight: bold; margin-top: 10px; font-family: monospace; }
         .message { margin-top: 15px; font-size: 1.2rem; min-height: 1.5em; color: #ccc; }
+        
+        /* 讀書時下方顯示人數的樣式 */
+        .live-status { font-size: 1rem; color: #aaa; margin-top: 25px; border-top: 1px solid #333; padding-top: 15px;}
+        
         .scold { color: #ff5555; font-weight: bold; animation: shake 0.5s; }
         
         @keyframes shake {
@@ -172,11 +196,20 @@
         
         <button onclick="startStudy()">點香開始</button>
 
-        <div class="leaderboard-container">
-            <div class="lb-title">🏆 本週功德榜 (週一重置)</div>
-            <ul class="lb-list" id="leaderboard-list">
-                <li class="lb-item" style="justify-content:center; color:#888;">載入中...</li>
-            </ul>
+        <div class="info-panel">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('online')">🔥 現正同修</div>
+                <div class="tab" onclick="switchTab('leaderboard')">🏆 本週功德</div>
+            </div>
+            
+            <div class="list-container">
+                <ul id="online-list">
+                    <li class="list-item" style="justify-content:center; color:#888;">載入中...</li>
+                </ul>
+                <ul id="leaderboard-list" class="hidden">
+                    <li class="list-item" style="justify-content:center; color:#888;">載入中...</li>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -193,6 +226,10 @@
 
         <div class="timer-text" id="timer-display">00:00</div>
         <div class="message" id="god-message">帝君看著你...</div>
+
+        <div class="live-status">
+            <span class="live-dot"></span> 目前共有 <span id="live-count" style="color:var(--gold); font-weight:bold;">0</span> 位道友一同用功中
+        </div>
 
         <button onclick="stopStudy()" style="background:#444; padding:8px 30px; font-size:1rem; margin-top:30px; box-shadow:none; color:#ccc;">
             弟子知錯（提早結束）
@@ -224,6 +261,7 @@
         // 2. 核心變數
         // ==========================================
         let timerInterval;
+        let onlineUpdateInterval; // 用來更新線上清單的計時器
         let totalSeconds = 0;
         let remainingSeconds = 0;
         let isStudying = false;
@@ -236,7 +274,10 @@
         const godMessage = document.getElementById('god-message');
         const bgm = document.getElementById('bgm');
         const lbList = document.getElementById('leaderboard-list');
+        const onlineList = document.getElementById('online-list');
+        const liveCount = document.getElementById('live-count');
 
+        // 你的罵人語錄 (已保留逗號修正)
         const scoldQuotes = [
             "香熄了，你的未來也快熄了。",
             "你去哪裡了？帝君很不高興。",
@@ -247,7 +288,7 @@
             "你把時間花在哪，你的成就就在哪。",
             "這點時間都撐不住，你這輩子就這樣了啦！",
             "連自己的期待的做不到，你未來還能被誰期待？",
-            "剛剛那次我就當作你誤觸，請好好加油！",
+            "剛剛那次我就當作你誤觸，請好好加油！", 
             "要怎麼收穫，先那麼栽"
         ];
 
@@ -275,17 +316,35 @@
 
         // 動態取得本週的路徑
         const currentWeekPath = 'weekly_merits_' + getCurrentWeekID();
+        const onlinePath = 'online_users'; // 線上使用者路徑
 
         // ==========================================
         // 4. 程式邏輯與 Firebase 操作
         // ==========================================
         window.onload = function() {
             loadLeaderboard();
+            loadOnlineUsers(); // 載入線上同修
             const savedName = localStorage.getItem('wenchang_username');
             if(savedName) document.getElementById('username-input').value = savedName;
         };
 
-        // 讀取排行榜 (只監聽本週資料)
+        // 切換分頁功能
+        window.switchTab = function(tabName) {
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if(tabName === 'online') {
+                tabs[0].classList.add('active');
+                onlineList.classList.remove('hidden');
+                lbList.classList.add('hidden');
+            } else {
+                tabs[1].classList.add('active');
+                onlineList.classList.add('hidden');
+                lbList.classList.remove('hidden');
+            }
+        }
+
+        // 讀取排行榜 (本週功德)
         function loadLeaderboard() {
             const meritRef = db.ref(currentWeekPath);
             meritRef.orderByChild('totalMinutes').limitToLast(10).on('value', (snapshot) => {
@@ -304,13 +363,13 @@
                 data.reverse(); // 分數高的排上面
 
                 if(data.length === 0) {
-                    lbList.innerHTML = `<li class="lb-item" style="justify-content:center; color:#888;">本週尚無紀錄，快來搶頭香！</li>`;
+                    lbList.innerHTML = `<li class="list-item" style="justify-content:center; color:#888;">本週尚無紀錄，快來搶頭香！</li>`;
                     return;
                 }
 
                 data.forEach((item, index) => {
                     const li = document.createElement('li');
-                    li.className = 'lb-item';
+                    li.className = 'list-item';
                     
                     let rankIcon = `${index + 1}`;
                     if(index === 0) rankIcon = '🥇';
@@ -318,13 +377,71 @@
                     if(index === 2) rankIcon = '🥉';
 
                     li.innerHTML = `
-                        <span class="lb-rank">${rankIcon}</span>
-                        <span class="lb-name">${item.name}</span>
-                        <span class="lb-time">${item.minutes} min</span>
+                        <div><span class="rank-icon">${rankIcon}</span> <span class="user-name">${item.name}</span></div>
+                        <span class="user-stat">${item.minutes} min</span>
                     `;
                     lbList.appendChild(li);
                 });
             });
+        }
+
+        // 讀取線上同修 (即時名單)
+        function loadOnlineUsers() {
+            const onlineRef = db.ref(onlinePath);
+            
+            onlineRef.on('value', (snapshot) => {
+                onlineList.innerHTML = "";
+                let count = 0;
+                
+                if (snapshot.exists()) {
+                    const users = snapshot.val();
+                    const now = Date.now();
+                    
+                    Object.keys(users).forEach(key => {
+                        count++;
+                        const user = users[key];
+                        // 計算已經讀了多久
+                        const elapsedSeconds = Math.floor((now - user.startTime) / 1000);
+                        const elapsedMins = Math.floor(elapsedSeconds / 60);
+                        const elapsedSecsDisplay = (elapsedSeconds % 60).toString().padStart(2, '0');
+                        
+                        const li = document.createElement('li');
+                        li.className = 'list-item';
+                        // 存時間戳記，讓 JS 可以動態更新秒數
+                        li.dataset.startTime = user.startTime; 
+                        
+                        li.innerHTML = `
+                            <div>
+                                <span class="live-dot"></span>
+                                <span class="user-name">${key}</span>
+                            </div>
+                            <span class="user-stat time-display">${elapsedMins}:${elapsedSecsDisplay}</span>
+                        `;
+                        onlineList.appendChild(li);
+                    });
+                } else {
+                    onlineList.innerHTML = `<li class="list-item" style="justify-content:center; color:#888;">目前無人，快搶沙發！</li>`;
+                }
+                
+                // 更新讀書畫面的總人數
+                liveCount.innerText = count;
+            });
+
+            // 前端計時器：每秒更新「已讀時間」顯示
+            if (onlineUpdateInterval) clearInterval(onlineUpdateInterval);
+            onlineUpdateInterval = setInterval(() => {
+                const now = Date.now();
+                document.querySelectorAll('#online-list .time-display').forEach(el => {
+                    const parentLi = el.closest('li');
+                    const start = parseInt(parentLi.dataset.startTime);
+                    if(start) {
+                        const diff = Math.floor((now - start) / 1000);
+                        const m = Math.floor(diff / 60);
+                        const s = (diff % 60).toString().padStart(2, '0');
+                        el.innerText = `${m}:${s}`;
+                    }
+                });
+            }, 1000);
         }
 
         // 更新功德 (寫入本週資料)
@@ -370,6 +487,14 @@
             remainingSeconds = totalSeconds;
             isStudying = true;
 
+            // --- ★ 寫入線上名單 ---
+            const myOnlineRef = db.ref(onlinePath + '/' + currentUser);
+            myOnlineRef.set({
+                startTime: firebase.database.ServerValue.TIMESTAMP
+            });
+            // 設定斷線自動移除
+            myOnlineRef.onDisconnect().remove();
+
             document.getElementById('setup-screen').classList.add('hidden');
             document.getElementById('study-screen').classList.remove('hidden');
             
@@ -401,19 +526,30 @@
             stick.style.height = `${percentage}%`;
         }
 
-        function stopStudy() {
+        // 停止/結束時的共用清理邏輯
+        function cleanupStudy() {
             pauseTimer();
             isStudying = false;
             bgm.pause();
             bgm.currentTime = 0;
             releaseWakeLock();
+
+            // --- ★ 從線上名單移除 ---
+            if(currentUser) {
+                db.ref(onlinePath + '/' + currentUser).remove();
+            }
+
             document.getElementById('setup-screen').classList.remove('hidden');
             document.getElementById('study-screen').classList.add('hidden');
             document.title = "鳩特數理 - 文昌帝君陪讀席";
         }
 
+        function stopStudy() {
+            cleanupStudy();
+        }
+
         function finishStudy() {
-            stopStudy();
+            cleanupStudy();
             alert(`功德圓滿！${currentUser} 獲得 ${studyMinutes} 分鐘讀書功德。`);
             updateMerit(currentUser, studyMinutes);
         }
