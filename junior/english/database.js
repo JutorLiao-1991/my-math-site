@@ -401,6 +401,95 @@ var jutorDB = {
           "ch": "提供",
           "sentence": "The hotel provides free Wi-Fi."
         }
+      ],
+      "Book 2 Unit 1": [
+        {
+          "en": "like",
+          "ch": "喜歡; 像...",
+          "sentence": "I am like my dad."
+        },
+        {
+          "en": "sport",
+          "ch": "運動",
+          "sentence": "My favorite sport is basketball."
+        },
+        {
+          "en": "much",
+          "ch": "多(的)",
+          "sentence": "How much water do you drink?"
+        },
+        {
+          "en": "team",
+          "ch": "隊; 組",
+          "sentence": "He wants to join the basketball team."
+        },
+        {
+          "en": "practice",
+          "ch": "練習",
+          "sentence": "I practice playing the piano every day."
+        },
+        {
+          "en": "every",
+          "ch": "每一",
+          "sentence": "Every student must finish their homework."
+        },
+        {
+          "en": "then",
+          "ch": "那麼; 那時",
+          "sentence": "We went to the park, and then we had ice cream."
+        },
+        {
+          "en": "swim",
+          "ch": "游泳",
+          "sentence": "He learned to swim last summer."
+        },
+        {
+          "en": "join",
+          "ch": "參加",
+          "sentence": "Would you like to join our study group?"
+        },
+        {
+          "en": "eye",
+          "ch": "眼睛",
+          "sentence": "She has big brown eyes."
+        },
+        {
+          "en": "hair",
+          "ch": "頭髮",
+          "sentence": "Her hair is long and black."
+        },
+        {
+          "en": "know",
+          "ch": "知道; 認識",
+          "sentence": "Do you know the answer?"
+        },
+        {
+          "en": "hundred",
+          "ch": "百",
+          "sentence": "There are a hundred students in the hall."
+        },
+        {
+          "en": "centimeter",
+          "ch": "公分",
+          "sentence": "The book is twenty centimeters long."
+        }
+      ],
+      "Book 2 Unit 1 (句型)": [
+        {
+          "en": "How tall are you?",
+          "ch": "你多高？",
+          "sentence": "How tall are you?"
+        },
+        {
+          "en": "I am 175 centimeters tall.",
+          "ch": "我175公分高。",
+          "sentence": "I am 175 centimeters tall."
+        },
+        {
+          "en": "You can say that again!",
+          "ch": "一點也沒錯！",
+          "sentence": "You can say that again!"
+        }
       ]
     }
   },
