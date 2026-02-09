@@ -472,6 +472,166 @@ var jutorDB = {
           "en": "centimeter",
           "ch": "公分",
           "sentence": "The book is twenty centimeters long."
+        },
+        {
+          "en": "guitar",
+          "ch": "吉他",
+          "sentence": "He plays the guitar very well."
+        },
+        {
+          "en": "piano",
+          "ch": "鋼琴",
+          "sentence": "She enjoys playing the piano."
+        },
+        {
+          "en": "fly a kite",
+          "ch": "放風箏",
+          "sentence": "Let's go to the park and fly a kite."
+        },
+        {
+          "en": "paint",
+          "ch": "畫圖；顏料；油漆",
+          "sentence": "I love to paint landscapes."
+        },
+        {
+          "en": "make a cake",
+          "ch": "做蛋糕",
+          "sentence": "We will make a cake for her birthday."
+        },
+        {
+          "en": "nose",
+          "ch": "鼻子",
+          "sentence": "My nose is a little red."
+        },
+        {
+          "en": "leg",
+          "ch": "腿",
+          "sentence": "He hurt his leg playing football."
+        },
+        {
+          "en": "large",
+          "ch": "大的",
+          "sentence": "They live in a large house."
+        },
+        {
+          "en": "ear",
+          "ch": "耳朵",
+          "sentence": "He whispered something in her ear."
+        },
+        {
+          "en": "mouth",
+          "ch": "嘴巴",
+          "sentence": "Close your mouth when you chew."
+        },
+        {
+          "en": "thick",
+          "ch": "厚的",
+          "sentence": "She wore a thick sweater."
+        },
+        {
+          "en": "lip",
+          "ch": "嘴唇",
+          "sentence": "Her lips are naturally pink."
+        },
+        {
+          "en": "strong",
+          "ch": "強壯的",
+          "sentence": "He is very strong for his age."
+        },
+        {
+          "en": "arm",
+          "ch": "手臂",
+          "sentence": "She carried the basket in her arm."
+        },
+        {
+          "en": "height",
+          "ch": "身高；高度",
+          "sentence": "What is your height?"
+        },
+        {
+          "en": "player",
+          "ch": "選手；球員",
+          "sentence": "He is a good basketball player."
+        },
+        {
+          "en": "the USA",
+          "ch": "美國",
+          "sentence": "They are traveling to the USA next month."
+        },
+        {
+          "en": "body",
+          "ch": "身體",
+          "sentence": "A healthy mind in a healthy body."
+        },
+        {
+          "en": "put one's all",
+          "ch": "盡全力",
+          "sentence": "You should put your all into this project."
+        },
+        {
+          "en": "into",
+          "ch": "到...裡面",
+          "sentence": "He walked into the room."
+        },
+        {
+          "en": "a lot of",
+          "ch": "很多的",
+          "sentence": "She has a lot of books."
+        },
+        {
+          "en": "stand out",
+          "ch": "突出",
+          "sentence": "Her talent made her stand out from the rest."
+        },
+        {
+          "en": "different",
+          "ch": "不同的",
+          "sentence": "We have different opinions."
+        },
+        {
+          "en": "top",
+          "ch": "頂尖的",
+          "sentence": "He is at the top of his class."
+        },
+        {
+          "en": "on the other hand",
+          "ch": "另一方面",
+          "sentence": "On the one hand, I want to go; on the other hand, I'm too busy."
+        },
+        {
+          "en": "make up for",
+          "ch": "彌補",
+          "sentence": "He tried to make up for his mistake."
+        },
+        {
+          "en": "born",
+          "ch": "天生的",
+          "sentence": "She was born in a small town."
+        },
+        {
+          "en": "perfect",
+          "ch": "完美的",
+          "sentence": "The weather was perfect for a picnic."
+        },
+        {
+          "en": "three-pointer",
+          "ch": "三分球",
+          "sentence": "He scored a three-pointer at the buzzer."
+        },
+        {
+          "en": "hard work",
+          "ch": "勤奮努力",
+          "sentence": "Success often comes with hard work."
+        },
+        {
+          "en": "both",
+          "ch": "兩者 (都)",
+          "sentence": "Both of my parents are teachers."
+        },
+        {
+          "en": "on the top of",
+          "ch": "在...頂部",
+          "sentence": "The book is on the top of the shelf."
         }
       ],
       "Book 2 Unit 1 (句型)": [
@@ -489,6 +649,11 @@ var jutorDB = {
           "en": "You can say that again!",
           "ch": "一點也沒錯！",
           "sentence": "You can say that again!"
+        },
+        {
+          "en": "A is different from B.",
+          "ch": "A與B不同。",
+          "sentence": "A is different from B."
         }
       ]
     }
