@@ -656,6 +656,175 @@ var jutorDB = {
           "sentence": "A is different from B."
         }
       ]
+    },
+    "南一版": {
+      "Book 2 Unit 1": [
+        {
+          "en": "Wednesday",
+          "ch": "星期三",
+          "sentence": "I have an English class on Wednesdays."
+        },
+        {
+          "en": "Thursday",
+          "ch": "星期四",
+          "sentence": "Let's meet on Thursday morning."
+        },
+        {
+          "en": "Friday",
+          "ch": "星期五",
+          "sentence": "The party is at Kenny's house at 6 p.m. on Friday."
+        },
+        {
+          "en": "weekend",
+          "ch": "週末",
+          "sentence": "We don't go to school on weekends."
+        },
+        {
+          "en": "Saturday",
+          "ch": "星期六",
+          "sentence": "My father doesn't go to work on Saturdays."
+        },
+        {
+          "en": "Sunday",
+          "ch": "星期日",
+          "sentence": "Mother's Day is on Sunday."
+        },
+        {
+          "en": "Taiwan",
+          "ch": "臺灣",
+          "sentence": "Taiwan is a beautiful island."
+        },
+        {
+          "en": "thousand",
+          "ch": "千",
+          "sentence": "There are about one thousand people in the museum."
+        },
+        {
+          "en": "same",
+          "ch": "相同的",
+          "sentence": "My brother and I are in the same class."
+        },
+        {
+          "en": "hundred",
+          "ch": "百",
+          "sentence": "There are five hundred students in my school."
+        },
+        {
+          "en": "million",
+          "ch": "百萬",
+          "sentence": "There are one million people in this country."
+        },
+        {
+          "en": "hungry",
+          "ch": "餓的",
+          "sentence": "I'm so hungry. Can I have something to eat?"
+        },
+        {
+          "en": "fight",
+          "ch": "對抗；打擊",
+          "sentence": "Captain Brave is fighting the bad guys in the TV show."
+        },
+        {
+          "en": "hour",
+          "ch": "小時",
+          "sentence": "They play basketball for an hour every Friday night."
+        },
+        {
+          "en": "only",
+          "ch": "只有",
+          "sentence": "Mr. and Mrs. Wang only have a daughter."
+        },
+        {
+          "en": "give",
+          "ch": "給予",
+          "sentence": "Please give me a pen."
+        },
+        {
+          "en": "money",
+          "ch": "錢",
+          "sentence": "I don't have any money with me."
+        },
+        {
+          "en": "or",
+          "ch": "或者",
+          "sentence": "Don't eat or drink in the museum."
+        },
+        {
+          "en": "Tuesday",
+          "ch": "星期二",
+          "sentence": "We don't have English class on Tuesdays."
+        },
+        {
+          "en": "meat-free",
+          "ch": "無肉的；素食的",
+          "sentence": "Today is a meat-free day at my school."
+        },
+        {
+          "en": "Monday",
+          "ch": "星期一",
+          "sentence": "Let's go out for dinner on Monday night."
+        },
+        {
+          "en": "vegetable",
+          "ch": "蔬菜",
+          "sentence": "Jerry and his brother don't like vegetables."
+        },
+        {
+          "en": "throw away",
+          "ch": "丟掉",
+          "sentence": "Let's throw away those old boxes."
+        },
+        {
+          "en": "almost",
+          "ch": "幾乎",
+          "sentence": "It is almost 11 o'clock. Time for bed."
+        },
+        {
+          "en": "every",
+          "ch": "每",
+          "sentence": "They dance at the park every evening."
+        },
+        {
+          "en": "a lot of",
+          "ch": "很多的",
+          "sentence": "There are a lot of people in the park."
+        },
+        {
+          "en": "enough",
+          "ch": "足夠的",
+          "sentence": "We have enough food and water."
+        },
+        {
+          "en": "know",
+          "ch": "知道",
+          "sentence": "Amy: Where is Micky? Rita: I don't know."
+        },
+        {
+          "en": "letter",
+          "ch": "信件",
+          "sentence": "Let's write a letter to Santa."
+        },
+        {
+          "en": "waste",
+          "ch": "浪費",
+          "sentence": "Don't waste water. We don't have enough water now."
+        },
+        {
+          "en": "principal",
+          "ch": "校長",
+          "sentence": "Our principal is very hard-working."
+        },
+        {
+          "en": "time",
+          "ch": "次數",
+          "sentence": "I throw away my vegetables almost every time."
+        },
+        {
+          "en": "week",
+          "ch": "星期；週",
+          "sentence": "There are seven days in a week."
+        }
+      ]
     }
   },
   "國二": {
