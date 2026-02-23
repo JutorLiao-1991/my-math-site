@@ -823,6 +823,36 @@ var jutorDB = {
           "en": "week",
           "ch": "星期；週",
           "sentence": "There are seven days in a week."
+        },
+        {
+          "en": "ton",
+          "ch": "噸",
+          "sentence": "We have tons of food for this big party."
+        },
+        {
+          "en": "hunger",
+          "ch": "飢餓",
+          "sentence": "Let's join \"Fight Hunger!\" this weekend."
+        },
+        {
+          "en": "charity",
+          "ch": "慈善機構",
+          "sentence": "She donates a lot of money to a large charity."
+        },
+        {
+          "en": "event",
+          "ch": "活動; 事件",
+          "sentence": "\"Save the Ocean\" is a great event for everyone."
+        },
+        {
+          "en": "over",
+          "ch": "超過",
+          "sentence": "Over eight hundred million people around the world are hungry."
+        },
+        {
+          "en": "Once in a blue moon",
+          "ch": "少有地; 極難得地",
+          "sentence": "He visits his family once in a blue moon."
         }
       ]
     }
