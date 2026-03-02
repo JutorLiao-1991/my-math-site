@@ -1244,6 +1244,335 @@ var jutorDB = {
           "ch": "不好意思。",
           "sentence": "Excuse me. Could you tell me the way to the station?"
         }
+      ],
+      "Book 4 Unit 1": [
+        {
+          "en": "price",
+          "ch": "價格;代價",
+          "sentence": "The price of this book is reasonable."
+        },
+        {
+          "en": "cap",
+          "ch": "(有帽舌的)帽子",
+          "sentence": "He wears a baseball cap."
+        },
+        {
+          "en": "skirt",
+          "ch": "裙子",
+          "sentence": "She bought a new skirt."
+        },
+        {
+          "en": "jacket",
+          "ch": "夾克",
+          "sentence": "It's cold outside, so wear a jacket."
+        },
+        {
+          "en": "dress",
+          "ch": "洋裝",
+          "sentence": "My sister is wearing a beautiful dress."
+        },
+        {
+          "en": "shirt",
+          "ch": "襯衫",
+          "sentence": "He needs a clean shirt for the meeting."
+        },
+        {
+          "en": "sweater",
+          "ch": "毛衣",
+          "sentence": "I always wear a warm sweater in winter."
+        },
+        {
+          "en": "jeans",
+          "ch": "牛仔褲",
+          "sentence": "She prefers wearing jeans over skirts."
+        },
+        {
+          "en": "shorts",
+          "ch": "短褲",
+          "sentence": "He likes to wear shorts in summer."
+        },
+        {
+          "en": "pants",
+          "ch": "長褲",
+          "sentence": "These pants are too long for me."
+        },
+        {
+          "en": "style",
+          "ch": "風格;款式",
+          "sentence": "I really like her sense of style."
+        },
+        {
+          "en": "fashion",
+          "ch": "流行;時尚",
+          "sentence": "Fashion trends change very quickly."
+        },
+        {
+          "en": "fan",
+          "ch": "狂熱愛好者;迷",
+          "sentence": "He is a big fan of this band."
+        },
+        {
+          "en": "small",
+          "ch": "小的",
+          "sentence": "I have a small dog."
+        },
+        {
+          "en": "medium",
+          "ch": "中等的",
+          "sentence": "He ordered a medium pizza."
+        },
+        {
+          "en": "large",
+          "ch": "大的",
+          "sentence": "They live in a large house."
+        },
+        {
+          "en": "laundry",
+          "ch": "洗衣店",
+          "sentence": "I need to do my laundry this weekend."
+        },
+        {
+          "en": "customer",
+          "ch": "顧客",
+          "sentence": "The customer is always right."
+        },
+        {
+          "en": "item",
+          "ch": "項目",
+          "sentence": "Please check each item on the list."
+        },
+        {
+          "en": "page",
+          "ch": "網頁;頁",
+          "sentence": "Please turn to page 50."
+        },
+        {
+          "en": "pair",
+          "ch": "一對;一雙",
+          "sentence": "I bought a new pair of shoes."
+        },
+        {
+          "en": "Earth",
+          "ch": "地球",
+          "sentence": "The Earth revolves around the sun."
+        },
+        {
+          "en": "planet",
+          "ch": "星球",
+          "sentence": "Mars is a planet in our solar system."
+        },
+        {
+          "en": "fitting room",
+          "ch": "試衣間",
+          "sentence": "You can try on clothes in the fitting room."
+        },
+        {
+          "en": "clothes",
+          "ch": "衣服",
+          "sentence": "She bought some new clothes."
+        },
+        {
+          "en": "size",
+          "ch": "尺寸",
+          "sentence": "What size do you wear?"
+        },
+        {
+          "en": "light",
+          "ch": "輕薄的",
+          "sentence": "This jacket is very light."
+        },
+        {
+          "en": "fast",
+          "ch": "很快地",
+          "sentence": "He can run very fast."
+        },
+        {
+          "en": "old",
+          "ch": "舊的",
+          "sentence": "This is a very old building."
+        },
+        {
+          "en": "fashionable",
+          "ch": "流行的;時尚的",
+          "sentence": "She always wears fashionable clothes."
+        },
+        {
+          "en": "expensive",
+          "ch": "貴的",
+          "sentence": "This car is too expensive for me."
+        },
+        {
+          "en": "comfortable",
+          "ch": "舒服的",
+          "sentence": "These shoes are very comfortable."
+        },
+        {
+          "en": "little",
+          "ch": "少的",
+          "sentence": "I have a little money left."
+        },
+        {
+          "en": "brown",
+          "ch": "咖啡色的",
+          "sentence": "My dog has brown fur."
+        },
+        {
+          "en": "blue",
+          "ch": "藍色的",
+          "sentence": "The sky is blue today."
+        },
+        {
+          "en": "try",
+          "ch": "嘗試",
+          "sentence": "I will try to finish my homework."
+        },
+        {
+          "en": "agree",
+          "ch": "同意",
+          "sentence": "I agree with your opinion."
+        },
+        {
+          "en": "fix",
+          "ch": "修理;解決問題",
+          "sentence": "Can you fix my computer?"
+        },
+        {
+          "en": "sell",
+          "ch": "販售",
+          "sentence": "They sell fresh vegetables at the market."
+        },
+        {
+          "en": "wear",
+          "ch": "穿",
+          "sentence": "What are you going to wear to the party?"
+        },
+        {
+          "en": "throw",
+          "ch": "丟;投",
+          "sentence": "Don't throw trash on the floor."
+        },
+        {
+          "en": "grow",
+          "ch": "增加;成長",
+          "sentence": "Plants grow well in sunlight."
+        },
+        {
+          "en": "save",
+          "ch": "省下;拯救",
+          "sentence": "I want to save money for a new car."
+        },
+        {
+          "en": "take",
+          "ch": "拿;取走",
+          "sentence": "Please take your books with you."
+        },
+        {
+          "en": "change",
+          "ch": "改變",
+          "sentence": "The weather can change quickly."
+        },
+        {
+          "en": "upload",
+          "ch": "上傳",
+          "sentence": "I need to upload this file to the cloud."
+        },
+        {
+          "en": "keep",
+          "ch": "持續",
+          "sentence": "Keep practicing, and you will get better."
+        },
+        {
+          "en": "learn",
+          "ch": "學習",
+          "sentence": "We learn English every day."
+        },
+        {
+          "en": "than",
+          "ch": "比;比較",
+          "sentence": "My brother is taller than me."
+        },
+        {
+          "en": "by",
+          "ch": "藉由",
+          "sentence": "The book was written by a famous author."
+        },
+        {
+          "en": "nothing",
+          "ch": "沒有東西;沒有事情",
+          "sentence": "There is nothing to worry about."
+        },
+        {
+          "en": "already",
+          "ch": "已經",
+          "sentence": "I have already finished my dinner."
+        },
+        {
+          "en": "on sale",
+          "ch": "特價",
+          "sentence": "These shoes are on sale today."
+        },
+        {
+          "en": "in fashion",
+          "ch": "正在流行",
+          "sentence": "Long skirts are back in fashion."
+        },
+        {
+          "en": "hundreds of",
+          "ch": "數以百計的",
+          "sentence": "There were hundreds of people at the concert."
+        },
+        {
+          "en": "as ... as",
+          "ch": "如同...一樣地...",
+          "sentence": "She is as tall as her mother."
+        },
+        {
+          "en": "a pair of",
+          "ch": "一件(褲子);一雙(鞋)",
+          "sentence": "I need a new pair of glasses."
+        },
+        {
+          "en": "circular fashion",
+          "ch": "循環時尚",
+          "sentence": "Circular fashion aims to reduce waste."
+        },
+        {
+          "en": "try on",
+          "ch": "試穿",
+          "sentence": "I want to try on this dress."
+        },
+        {
+          "en": "put on",
+          "ch": "穿上",
+          "sentence": "Please put on your coat before you go out."
+        },
+        {
+          "en": "take off",
+          "ch": "脫下",
+          "sentence": "Remember to take off your shoes before entering the house."
+        },
+        {
+          "en": "be full of",
+          "ch": "充滿",
+          "sentence": "The box is full of old toys."
+        },
+        {
+          "en": "throw away",
+          "ch": "扔掉",
+          "sentence": "Don't throw away food."
+        },
+        {
+          "en": "take a look at",
+          "ch": "看看...",
+          "sentence": "Could you take a look at my report?"
+        }
+      ],
+      "Book 4 Unit 1 (句型)": [
+        {
+          "en": "You can say that again.",
+          "ch": "妳說的沒錯。",
+          "sentence": "You can say that again."
+        }
       ]
     },
     "翰林版": {
