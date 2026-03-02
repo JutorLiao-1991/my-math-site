@@ -1251,7 +1251,7 @@ var jutorDB = {
         {
           "en": "foreign",
           "ch": "外國的",
-          "sentence": "He lived in a foreign country for many years."
+          "sentence": "Learning a foreign language can be challenging but rewarding."
         },
         {
           "en": "than",
@@ -1327,6 +1327,156 @@ var jutorDB = {
           "en": "smell",
           "ch": "聞起來; 氣味",
           "sentence": "The flowers smell wonderful."
+        },
+        {
+          "en": "taste",
+          "ch": "嚐起來; 味道",
+          "sentence": "This soup tastes delicious."
+        },
+        {
+          "en": "as... as...",
+          "ch": "如同…一樣…",
+          "sentence": "She is as smart as her brother."
+        },
+        {
+          "en": "get around",
+          "ch": "各處旅行",
+          "sentence": "It's easy to get around the city by subway."
+        },
+        {
+          "en": "dish",
+          "ch": "菜餚",
+          "sentence": "This is a traditional local dish."
+        },
+        {
+          "en": "more",
+          "ch": "更…",
+          "sentence": "Could you please give me more water?"
+        },
+        {
+          "en": "get",
+          "ch": "變成",
+          "sentence": "It's getting colder outside."
+        },
+        {
+          "en": "sound",
+          "ch": "聽起來",
+          "sentence": "That sounds like a great plan."
+        },
+        {
+          "en": "top",
+          "ch": "頂部(的)",
+          "sentence": "The book is on top of the table."
+        },
+        {
+          "en": "fries",
+          "ch": "薯條",
+          "sentence": "I ordered a burger with fries."
+        },
+        {
+          "en": "knife",
+          "ch": "刀子",
+          "sentence": "Be careful when using a sharp knife."
+        },
+        {
+          "en": "fork",
+          "ch": "叉子",
+          "sentence": "Please pass me a fork."
+        },
+        {
+          "en": "noodle",
+          "ch": "麵",
+          "sentence": "I like to eat beef noodles."
+        },
+        {
+          "en": "chopsticks",
+          "ch": "筷子",
+          "sentence": "Many people in Asia use chopsticks to eat."
+        },
+        {
+          "en": "spoon",
+          "ch": "湯匙",
+          "sentence": "He ate the soup with a spoon."
+        },
+        {
+          "en": "fried chicken",
+          "ch": "炸雞",
+          "sentence": "Let's have some fried chicken for dinner."
+        },
+        {
+          "en": "waiter",
+          "ch": "男服務生",
+          "sentence": "The waiter took our order politely."
+        },
+        {
+          "en": "strawberry",
+          "ch": "草莓",
+          "sentence": "Strawberries are my favorite fruit."
+        },
+        {
+          "en": "bun",
+          "ch": "小圓麵包",
+          "sentence": "I had a hot dog bun for lunch."
+        },
+        {
+          "en": "earth",
+          "ch": "地球",
+          "sentence": "The Earth is the third planet from the sun."
+        },
+        {
+          "en": "bring",
+          "ch": "帶來; 攜帶",
+          "sentence": "Please bring your umbrella, it might rain."
+        },
+        {
+          "en": "smile",
+          "ch": "微笑",
+          "sentence": "She always greets me with a warm smile."
+        },
+        {
+          "en": "land",
+          "ch": "陸地; 落地",
+          "sentence": "The plane will land in ten minutes."
+        },
+        {
+          "en": "rock",
+          "ch": "岩石",
+          "sentence": "There are many rocks on the beach."
+        },
+        {
+          "en": "shape",
+          "ch": "形狀",
+          "sentence": "The cloud has the shape of a dog."
+        },
+        {
+          "en": "clear",
+          "ch": "晴朗的; 清楚的",
+          "sentence": "The instructions were clear and easy to follow."
+        },
+        {
+          "en": "comfortable",
+          "ch": "舒適的; 自在的",
+          "sentence": "I feel very comfortable in this new chair."
+        },
+        {
+          "en": "fill",
+          "ch": "充滿; 裝滿",
+          "sentence": "Please fill the glass with water."
+        },
+        {
+          "en": "pack",
+          "ch": "打包; 塞進",
+          "sentence": "I need to pack my bag for the trip."
+        },
+        {
+          "en": "hot-air balloon",
+          "ch": "熱氣球",
+          "sentence": "We saw a beautiful hot-air balloon in the sky."
+        },
+        {
+          "en": "view",
+          "ch": "景色",
+          "sentence": "The hotel room has a great view of the ocean."
         }
       ],
       "Book 4 Unit 1 (句型)": [
