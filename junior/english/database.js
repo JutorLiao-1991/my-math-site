@@ -1245,6 +1245,97 @@ var jutorDB = {
           "sentence": "Excuse me. Could you tell me the way to the station?"
         }
       ]
+    },
+    "翰林版": {
+      "Book 4 Unit 1": [
+        {
+          "en": "foreign",
+          "ch": "外國的",
+          "sentence": "He lived in a foreign country for many years."
+        },
+        {
+          "en": "than",
+          "ch": "比",
+          "sentence": "She is taller than her brother."
+        },
+        {
+          "en": "friendly",
+          "ch": "友善的",
+          "sentence": "Our neighbors are very friendly."
+        },
+        {
+          "en": "convenient",
+          "ch": "便利的",
+          "sentence": "The new store is very convenient for me."
+        },
+        {
+          "en": "pork",
+          "ch": "豬肉",
+          "sentence": "I like to eat pork dumplings."
+        },
+        {
+          "en": "beef",
+          "ch": "牛肉",
+          "sentence": "Do you prefer beef or chicken?"
+        },
+        {
+          "en": "delicious",
+          "ch": "美味的",
+          "sentence": "This cake is really delicious."
+        },
+        {
+          "en": "feel",
+          "ch": "感到",
+          "sentence": "I feel happy today."
+        },
+        {
+          "en": "steak",
+          "ch": "牛排; 肉排",
+          "sentence": "I ordered a T-bone steak."
+        },
+        {
+          "en": "menu",
+          "ch": "菜單",
+          "sentence": "Could I see the menu, please?"
+        },
+        {
+          "en": "waitress",
+          "ch": "女服務生",
+          "sentence": "The waitress brought us our drinks."
+        },
+        {
+          "en": "ham",
+          "ch": "火腿",
+          "sentence": "We had ham and eggs for breakfast."
+        },
+        {
+          "en": "butter",
+          "ch": "奶油",
+          "sentence": "Pass me the butter, please."
+        },
+        {
+          "en": "medium",
+          "ch": "五分熟; 中等的",
+          "sentence": "I'd like my steak cooked medium."
+        },
+        {
+          "en": "meat",
+          "ch": "肉",
+          "sentence": "Vegetarians don't eat meat."
+        },
+        {
+          "en": "smell",
+          "ch": "聞起來; 氣味",
+          "sentence": "The flowers smell wonderful."
+        }
+      ],
+      "Book 4 Unit 1 (句型)": [
+        {
+          "en": "Henry is as tall as his brother.",
+          "ch": "亨利和他的兄弟一樣高。",
+          "sentence": "Henry is as tall as his brother."
+        }
+      ]
     }
   },
   "國三": {},
