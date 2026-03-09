@@ -46,6 +46,14 @@ const lessonData = [
     desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
     },
     {
+    title: "平面族示意動畫",
+    category: "senior",
+    url: "senior/math/Family_of_planes.html",
+    tagClass: "math", // 藍色標籤
+    tagName: "高中數學",
+    desc: "透過調整k，觀察平面族是什麼概念。"
+    },
+    {
     title: "光電效應實驗室",
     category: "senior",
     url: "senior/physics/photoelectric_effect.html",
