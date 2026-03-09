@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：平面族探究</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                packages: {'[+]': ['color', 'array']}
+            },
+            svg: { fontCache: 'global' },
+            startup: {
+                typeset: false 
+            }
+        };
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            /* 介面主色調 */
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --panel-bg: #ffffff;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8;
+            --border-color: #e1e4e8;
+            
+            /* 特殊點/線顏色定義 */
+            --col-vertex: #e74c3c;   /* 紅 (交線) */
+            --col-int: #f39c12;      /* 橘 (E1) */
+            --col-tip: #27ae60;      /* 綠 (E2) */
+            --col-blue: #2980b9;     /* 藍 (Ek) */
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg);
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #334155; color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--accent); font-weight: bold;
+            border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        .main-wrapper {
+            flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative;
+        }
+
+        .panel {
+            background: var(--panel-bg); border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        #graph-panel { flex: 2; position: relative; }
+        #plot-div { width: 100%; height: 100%; }
+
+        #controls-panel {
+            flex: 1; min-width: 380px; max-width: 550px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; }
+
+        .equation-box {
+            background: #eef6fc; border-left: 5px solid var(--primary-color);
+            border-radius: 4px; padding: 15px; margin-bottom: 20px; text-align: center;
+        }
+        .math-block { min-height: 1.5em; margin: 5px 0; }
+        .math-display { font-size: 1.2rem; }
+        
+        /* 運算過程表格 */
+        .process-box {
+            margin-top: 15px; padding: 10px;
+            border-top: 1px dashed #ccc;
+            text-align: left; font-size: 0.95rem; color: #555;
+            background: rgba(250,250,250,0.8);
+            border-radius: 4px;
+        }
+        .process-step { margin-bottom: 10px; }
+
+        .control-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .control-group h3 {
+            margin: 0 0 15px 0; font-size: 1rem; color: var(--primary-color);
+            border-left: 4px solid var(--secondary-color); padding-left: 8px;
+        }
+
+        .slider-wrapper { margin-bottom: 12px; }
+        .slider-row { display: flex; align-items: center; }
+        .slider-label { width: 25px; font-family: serif; font-style: italic; font-weight: bold; font-size: 1.1rem; }
+        input[type="range"] { flex: 1; margin: 0 10px; cursor: pointer; accent-color: var(--primary-color); }
+        .slider-val { width: 55px; text-align: right; font-weight: bold; color: var(--primary-color); }
+        
+        /* 鳩特觀察重點 */
+        .tip-text {
+            font-size: 0.85rem; color: var(--col-tip); margin-left: 35px; margin-top: 2px;
+            display: none; animation: fadeIn 0.5s; font-weight: bold;
+        }
+
+        .toggle-row {
+            display: flex; align-items: center; margin-bottom: 10px; cursor: pointer; user-select: none;
+            flex-wrap: wrap; line-height: 1.5;
+        }
+        .toggle-row input { margin-right: 10px; transform: scale(1.2); accent-color: var(--secondary-color); flex-shrink: 0; }
+        .sub-option { margin-left: 28px; font-size: 0.9rem; color: #666; width: 100%; margin-top: 2px; margin-bottom: 10px;}
+
+        /* 結果文字對應 */
+        .res-e1 { color: var(--col-int); font-weight: bold; }
+        .res-e2 { color: var(--col-tip); font-weight: bold; }
+        .res-ek { color: var(--primary-color); font-weight: bold; }
+        .res-line { color: var(--col-vertex); font-weight: bold; }
+        
+        .watermark {
+            position: absolute; bottom: 20px; right: 25px;
+            font-family: serif; font-style: italic; color: rgba(0,0,0,0.15); font-size: 1.2rem;
+            pointer-events: none; user-select: none; z-index: 50;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 450px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回首頁</a>
+        <h2 class="page-title">鳩特數理：空間平面族探究</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="panel" id="graph-panel">
+            <div id="plot-div"></div>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                
+                <div class="equation-box">
+                    <div id="eq-main" class="math-block math-display"></div>
+                    <div id="eq-std" class="math-block math-display" style="display:none; color:var(--col-blue);"></div>
+                    <div id="proc-box" class="process-box" style="display:none;"></div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>參數調整</h3>
+                    <label class="toggle-row" style="background:#f9f9f9; padding:5px; border-radius:5px; margin-bottom:15px;">
+                        <input type="checkbox" id="show-tips" onchange="toggleTips()"> 
+                        <span style="color:var(--col-tip); font-weight:bold;">顯示鳩特觀察重點</span>
+                    </label>
+                    
+                    <div class="slider-wrapper">
+                        <div class="slider-row"><span class="slider-label">k</span><input type="range" id="val-k" min="-5" max="5" step="0.5" value="1" oninput="updateAll()"><span class="slider-val" id="disp-k"></span></div>
+                        <div class="tip-text" id="tip-k">觀察當 <b>k 值變動</b>時，<span class="res-ek">藍色平面</span>如何繞著<span class="res-line">交線 L</span> 旋轉。</div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>視覺與代數輔助</h3>
+                    <label class="toggle-row" style="margin-bottom:0;">
+                        <input type="checkbox" id="show-std" onchange="toggleSubOption('proc-opt'); updateAll()"> 
+                        顯示代數展開式 (整理 x, y, z)
+                    </label>
+                    <label class="toggle-row sub-option" id="proc-opt" style="display:none;">
+                        <input type="checkbox" id="show-proc" onchange="updateAll()"> 顯示代數推導過程
+                    </label>
+
+                    <hr style="border:0; border-top:1px dashed #ddd; margin: 15px 0;">
+
+                    <label class="toggle-row">
+                        <input type="checkbox" id="show-line" checked onchange="updateAll()"> 
+                        顯示交線 L <span class="res-line" style="margin-left:8px;">(x = y = z)</span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" id="show-e1" checked onchange="updateAll()"> 
+                        顯示基準平面 E₁ <span class="res-e1" style="margin-left:8px;">(x - y = 0)</span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" id="show-e2" onchange="updateAll()"> 
+                        顯示目標平面 E₂ <span class="res-e2" style="margin-left:8px;">(x - z = 0)</span>
+                    </label>
+                    <div class="tip-text" id="tip-e2" style="margin-left:28px; margin-bottom:10px;">
+                        💡 試著把 k 想像成無限大 (∞)，平面族會無限逼近這個綠色的目標平面 E₂！
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const COLORS = {
+            line: '#e74c3c',
+            e1: '#f39c12',
+            e2: '#27ae60',
+            ek: '#4a90e2'
+        };
+
+        const plotDiv = document.getElementById('plot-div');
+
+        window.onload = function() {
+            updateAll();
+            window.addEventListener('resize', () => Plotly.Plots.resize(plotDiv));
+        };
+
+        function toggleSubOption(id) {
+            let el = document.getElementById(id);
+            el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        function toggleTips() {
+            const isChecked = document.getElementById('show-tips').checked;
+            document.getElementById('tip-k').style.display = isChecked ? 'block' : 'none';
+            document.getElementById('tip-e2').style.display = isChecked ? 'block' : 'none';
+        }
+
+        async function setMath(id, latex) {
+            let el = document.getElementById(id);
+            if(!el) return;
+            el.innerHTML = latex;
+            if(window.MathJax && window.MathJax.typesetPromise) {
+                try { await window.MathJax.typesetPromise([el]); } catch(e){}
+            }
+        }
+
+        /* --- 數學工具 --- */
+        function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+        function toFracObj(val) {
+            if (Math.abs(val) < 1e-9) return {n: 0, d: 1};
+            let bestNum = 0, bestDen = 1, minError = Infinity;
+            for (let d = 1; d <= 2000; d++) {
+                let n = Math.round(val * d);
+                let error = Math.abs(val - n / d);
+                if (error < minError) { minError = error; bestNum = n; bestDen = d; }
+                if (error < 1e-11) break;
+            }
+            let common = gcd(Math.abs(bestNum), bestDen);
+            return { n: bestNum / common, d: bestDen / common };
+        }
+
+        function toFrac(val, forceSign = false) {
+            let obj = toFracObj(val);
+            if (obj.d === 1) return (forceSign && obj.n >= 0 ? "+" : "") + obj.n.toString();
+            let sign = obj.n < 0 ? "-" : (forceSign ? "+" : "");
+            return `${sign}\\frac{${Math.abs(obj.n)}}{${obj.d}}`;
+        }
+
+        function formatTerm(coef, variable, isFirst) {
+            if (Math.abs(coef) < 1e-9) return "";
+            let obj = toFracObj(coef);
+            let sign = obj.n < 0 ? (isFirst ? "-" : " - ") : (isFirst ? "" : " + ");
+            let absN = Math.abs(obj.n);
+            let valStr = "";
+            if (absN === 1 && obj.d === 1 && variable !== "") valStr = "";
+            else valStr = obj.d === 1 ? absN : `\\frac{${absN}}{${obj.d}}`;
+            return `${sign}${valStr}${variable}`;
+        }
+
+        /* --- 3D 向量運算工具 --- */
+        function cross(a, b) {
+            return [
+                a[1]*b[2] - a[2]*b[1],
+                a[2]*b[0] - a[0]*b[2],
+                a[0]*b[1] - a[1]*b[0]
+            ];
+        }
+
+        function normalize(v) {
+            let len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+            return [v[0]/len, v[1]/len, v[2]/len];
+        }
+
+        // 建立平面網格點 (使用中心點與兩組正交方向向量展開)
+        function createPlaneMesh(normal, color, opacity) {
+            // 交線向量 v = (1, 1, 1)
+            let v = [1, 1, 1];
+            let v_unit = normalize(v);
+            let P0 = [0, 0, 0]; // 交線通過原點
+            
+            // 找出平面上與交線垂直的向量 u
+            let u = cross(normal, v_unit);
+            let u_unit = normalize(u);
+            
+            // 展開大小
+            let L = 10; 
+            
+            let c1 = [P0[0] + L*v_unit[0] + L*u_unit[0], P0[1] + L*v_unit[1] + L*u_unit[1], P0[2] + L*v_unit[2] + L*u_unit[2]];
+            let c2 = [P0[0] - L*v_unit[0] + L*u_unit[0], P0[1] - L*v_unit[1] + L*u_unit[1], P0[2] - L*v_unit[2] + L*u_unit[2]];
+            let c3 = [P0[0] - L*v_unit[0] - L*u_unit[0], P0[1] - L*v_unit[1] - L*u_unit[1], P0[2] - L*v_unit[2] - L*u_unit[2]];
+            let c4 = [P0[0] + L*v_unit[0] - L*u_unit[0], P0[1] + L*v_unit[1] - L*u_unit[0], P0[2] + L*v_unit[2] - L*u_unit[2]];
+
+            return {
+                x: [c1[0], c2[0], c3[0], c4[0]],
+                y: [c1[1], c2[1], c3[1], c4[1]],
+                z: [c1[2], c2[2], c3[2], c4[2]],
+                i: [0, 0], j: [1, 2], k: [2, 3], // 組合兩個三角形
+                type: 'mesh3d',
+                color: color,
+                opacity: opacity,
+                flatshading: true,
+                lighting: {facenormals: true},
+                hoverinfo: 'skip'
+            };
+        }
+
+        function genProcess(k) {
+            let kStr = toFrac(k);
+            let step1 = `(x - y) + ${k < 0 ? `(${kStr})` : kStr}(x - z) = 0`;
+            let step2 = `x - y ${k < 0 ? '-' : '+'} ${toFrac(Math.abs(k))}x ${k < 0 ? '+' : '-'} ${toFrac(Math.abs(k))}z = 0`;
+            let step3 = `${formatTerm(1+k, 'x', true)}${formatTerm(-1, 'y', false)}${formatTerm(-k, 'z', false)} = 0`;
+
+            return `
+                <div class="process-step"><strong>Step 1:</strong> 展開平面族公式 $E_1 + kE_2 = 0$<br>$$${step1}$$</div>
+                <div class="process-step"><strong>Step 2:</strong> 分配律展開<br>$$${step2}$$</div>
+                <div class="process-step"><strong>Step 3:</strong> 整理同類項得標準式<br>$$${step3}$$</div>
+            `;
+        }
+
+        function updateAll() {
+            let k = parseFloat(document.getElementById('val-k').value);
+            setMath('disp-k', `\\(${toFrac(k)}\\)`);
+
+            // 1. 更新方程式顯示
+            let kStr = toFrac(k);
+            setMath('eq-main', `$$E_k: (x - y) + ${k < 0 ? `(${kStr})` : kStr}(x - z) = 0$$`);
+
+            let stdDiv = document.getElementById('eq-std');
+            let procDiv = document.getElementById('proc-box');
+            
+            if(document.getElementById('show-std').checked) {
+                stdDiv.style.display = 'block';
+                setMath('eq-std', `$$${formatTerm(1+k, 'x', true)}${formatTerm(-1, 'y', false)}${formatTerm(-k, 'z', false)} = 0$$`);
+                
+                if(document.getElementById('show-proc').checked) {
+                    procDiv.style.display = 'block';
+                    procDiv.innerHTML = genProcess(k);
+                    if(window.MathJax) window.MathJax.typesetPromise([procDiv]);
+                } else {
+                    procDiv.style.display = 'none';
+                }
+            } else { 
+                stdDiv.style.display = 'none'; 
+                procDiv.style.display = 'none'; 
+            }
+
+            // 2. 更新 3D 圖形
+            let traces = [];
+
+            // 基準平面 E1: x - y = 0 -> 法向量 (1, -1, 0)
+            if(document.getElementById('show-e1').checked) {
+                traces.push(createPlaneMesh([1, -1, 0], COLORS.e1, 0.2));
+            }
+            // 目標平面 E2: x - z = 0 -> 法向量 (1, 0, -1)
+            if(document.getElementById('show-e2').checked) {
+                traces.push(createPlaneMesh([1, 0, -1], COLORS.e2, 0.3));
+            }
+
+            // 平面族 Ek: 法向量為 n1 + k*n2 = (1+k, -1, -k)
+            traces.push(createPlaneMesh([1+k, -1, -k], COLORS.ek, 0.8));
+
+            // 交線 L: 通過原點，方向向量 (1,1,1)
+            if(document.getElementById('show-line').checked) {
+                traces.push({
+                    x: [-10, 10], y: [-10, 10], z: [-10, 10],
+                    mode: 'lines',
+                    line: {color: COLORS.line, width: 6},
+                    type: 'scatter3d',
+                    hoverinfo: 'none'
+                });
+            }
+
+            let layout = {
+                margin: { t: 0, r: 0, b: 0, l: 0 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                scene: {
+                    xaxis: { range: [-8, 8], title: 'X 軸' },
+                    yaxis: { range: [-8, 8], title: 'Y 軸' },
+                    zaxis: { range: [-8, 8], title: 'Z 軸' },
+                    camera: { eye: {x: 1.5, y: -1.5, z: 1.0} },
+                    aspectmode: 'cube'
+                },
+                showlegend: false
+            };
+
+            // 使用 Plotly.react 進行高效重繪
+            Plotly.react(plotDiv, traces, layout, {displayModeBar: false});
+        }
+    </script>
+</body>
+</html>
