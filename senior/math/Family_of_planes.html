@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：平面族探究</title>
+    <title>鳩特數理：空間平面族探究</title>
     
     <script>
         window.MathJax = {
@@ -191,6 +191,10 @@
                     <hr style="border:0; border-top:1px dashed #ddd; margin: 15px 0;">
 
                     <label class="toggle-row">
+                        <input type="checkbox" id="show-ek" checked onchange="updateAll()"> 
+                        顯示平面族 Eₖ <span class="res-ek" style="margin-left:8px;">(藍色)</span>
+                    </label>
+                    <label class="toggle-row">
                         <input type="checkbox" id="show-line" checked onchange="updateAll()"> 
                         顯示交線 L <span class="res-line" style="margin-left:8px;">(x = y = z)</span>
                     </label>
@@ -199,7 +203,7 @@
                         顯示基準平面 E₁ <span class="res-e1" style="margin-left:8px;">(x - y = 0)</span>
                     </label>
                     <label class="toggle-row">
-                        <input type="checkbox" id="show-e2" onchange="updateAll()"> 
+                        <input type="checkbox" id="show-e2" checked onchange="updateAll()"> 
                         顯示目標平面 E₂ <span class="res-e2" style="margin-left:8px;">(x - z = 0)</span>
                     </label>
                     <div class="tip-text" id="tip-e2" style="margin-left:28px; margin-bottom:10px;">
@@ -380,7 +384,9 @@
             }
 
             // 平面族 Ek: 法向量為 n1 + k*n2 = (1+k, -1, -k)
-            traces.push(createPlaneMesh([1+k, -1, -k], COLORS.ek, 0.8));
+            if(document.getElementById('show-ek').checked) {
+                traces.push(createPlaneMesh([1+k, -1, -k], COLORS.ek, 0.8));
+            }
 
             // 交線 L: 通過原點，方向向量 (1,1,1)
             if(document.getElementById('show-line').checked) {
