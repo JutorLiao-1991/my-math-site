@@ -655,6 +655,125 @@ var jutorDB = {
           "ch": "A與B不同。",
           "sentence": "A is different from B."
         }
+      ],
+      "Book 2 Unit 2": [
+        {
+          "en": "early",
+          "ch": "早的 / 早",
+          "sentence": "I like to wake up early."
+        },
+        {
+          "en": "work",
+          "ch": "工作",
+          "sentence": "I have a lot of work to do."
+        },
+        {
+          "en": "often",
+          "ch": "經常",
+          "sentence": "She often reads books in the library."
+        },
+        {
+          "en": "get up",
+          "ch": "起床",
+          "sentence": "I usually get up at 7 AM."
+        },
+        {
+          "en": "usually",
+          "ch": "通常",
+          "sentence": "He usually eats breakfast at home."
+        },
+        {
+          "en": "seldom",
+          "ch": "很少",
+          "sentence": "We seldom go to the movies."
+        },
+        {
+          "en": "sometimes",
+          "ch": "有時候",
+          "sentence": "Sometimes I feel tired after school."
+        },
+        {
+          "en": "even",
+          "ch": "甚至",
+          "sentence": "He can't even speak English."
+        },
+        {
+          "en": "late",
+          "ch": "晚的 / 晚",
+          "sentence": "Don't be late for school."
+        },
+        {
+          "en": "do one's homework",
+          "ch": "做功課",
+          "sentence": "I need to do my homework tonight."
+        },
+        {
+          "en": "hour",
+          "ch": "小時",
+          "sentence": "We waited for an hour."
+        },
+        {
+          "en": "always",
+          "ch": "總是",
+          "sentence": "She always smiles at everyone."
+        },
+        {
+          "en": "tired",
+          "ch": "疲累的",
+          "sentence": "I feel very tired after running."
+        },
+        {
+          "en": "shower",
+          "ch": "淋浴",
+          "sentence": "I take a shower every morning."
+        },
+        {
+          "en": "never",
+          "ch": "從未",
+          "sentence": "I have never been to Japan."
+        },
+        {
+          "en": "by the way",
+          "ch": "順帶一提",
+          "sentence": "By the way, how was your trip?"
+        },
+        {
+          "en": "library",
+          "ch": "圖書館",
+          "sentence": "The library is open until 9 PM."
+        },
+        {
+          "en": "check out",
+          "ch": "借 (書)",
+          "sentence": "I want to check out this book."
+        },
+        {
+          "en": "once",
+          "ch": "一次",
+          "sentence": "I go to the gym once a week."
+        },
+        {
+          "en": "twice",
+          "ch": "兩次",
+          "sentence": "I brush my teeth twice a day."
+        },
+        {
+          "en": "walk",
+          "ch": "遛 (寵物)",
+          "sentence": "I walk my dog every evening."
+        },
+        {
+          "en": "then",
+          "ch": "然後",
+          "sentence": "First, finish your work, then you can play."
+        }
+      ],
+      "Book 2 Unit 2 (句型)": [
+        {
+          "en": "I can't help it.",
+          "ch": "我沒辦法。 / 我控制不了。",
+          "sentence": "I can't help it."
+        }
       ]
     },
     "南一版": {
