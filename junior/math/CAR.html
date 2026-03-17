@@ -202,65 +202,52 @@
         }
 
         // 【修正重點】符合物理原則的動態圓規繪製
+        // 【究極修正版】動態等腰圓規，保證筆尖精準落點
         function drawCompass(needleX, needleY, radius, pencilAngle, alpha = 1, flip = false) {
-            ctx.save(); ctx.globalAlpha = alpha;
+            ctx.save(); 
+            ctx.globalAlpha = alpha;
 
-            // 1. 防呆：半徑不能超過兩倍腳長 (物理無法張開)
-            let safeRadius = Math.min(radius, COMPASS_LEG_LEN * 2 * 0.99);
-            if(radius < 1) safeRadius = 1; // 避免除以 0
+            // 動態計算腳長：確保腳長至少比半徑的一半多一點，保證能構成等腰三角形
+            let legLen = Math.max(radius * 0.8, 150); 
+            let halfR = radius / 2;
+            let height = Math.sqrt(legLen * legLen - halfR * halfR);
 
-            // 2. 計算轉軸位置 (利用畢氏定理求等腰三角形高度)
-            // 高度 H = sqrt(腳長^2 - (半徑/2)^2)
-            let halfR = safeRadius / 2;
-            let height = Math.sqrt(COMPASS_LEG_LEN * COMPASS_LEG_LEN - halfR * halfR);
+            // 筆尖的「真實精準」落點
+            let pencilX = needleX + radius * Math.cos(pencilAngle);
+            let pencilY = needleY + radius * Math.sin(pencilAngle);
 
-            // 3. 確定圓規的基準向量 (從針尖到轉軸的向量)
-            // 我們假設圓規主體通常垂直向上，或者垂直於針尖-筆尖連線。
-            // 這裡採用「垂直於針尖-筆尖連線」並偏向鉛筆方向，看起來較自然。
-            let pencilVector = { 
-                x: safeRadius * Math.cos(pencilAngle), 
-                y: safeRadius * Math.sin(pencilAngle) 
-            };
+            // 計算針尖與筆尖的線段中點
+            let midX = (needleX + pencilX) / 2;
+            let midY = (needleY + pencilY) / 2;
+
+            // 計算垂直於中點的法向量 (決定轉軸位置)
+            let dx = pencilX - needleX;
+            let dy = pencilY - needleY;
+            let len = Math.sqrt(dx * dx + dy * dy);
             
-            let midPoint = { 
-                x: needleX + pencilVector.x / 2, 
-                y: needleY + pencilVector.y / 2 
-            };
+            // Canvas 中 Y 往上是負值，我們強制讓轉軸朝上 (視覺上方)
+            let nx = -dy / len;
+            let ny = dx / len;
+            if (ny > 0) { nx = -nx; ny = -ny; } 
 
-            // 計算單位法向量 (垂直於針尖-筆尖連線並向上)
-            let normalVector = { x: -pencilVector.y / safeRadius, y: pencilVector.x / safeRadius };
-            
-            // 轉軸座標 (基準角度為垂直向上)
-            let hinge = {
-                x: midPoint.x + height * normalVector.x,
-                y: midPoint.y + height * normalVector.y
-            };
+            let hingeX = midX + height * nx;
+            let hingeY = midY + height * ny;
 
-            // 真正的筆尖位置 (物理半徑可能與邏輯半徑有微小差異)
-            let realPencilTip = {
-                x: needleX + pencilVector.x,
-                y: needleY + pencilVector.y
-            };
-
-            // 4. 開始繪製
-            // 針尖腳 (黑色)
-            ctx.beginPath();
-            ctx.moveTo(needleX, needleY);
-            ctx.lineTo(hinge.x, hinge.y);
+            // 繪製針尖腳 (深灰)
+            ctx.beginPath(); ctx.moveTo(needleX, needleY); ctx.lineTo(hingeX, hingeY);
             ctx.lineWidth = 4; ctx.strokeStyle = '#555'; ctx.stroke(); 
             
-            // 筆尖腳 (淺灰/橘色)
-            ctx.beginPath();
-            ctx.moveTo(realPencilTip.x, realPencilTip.y);
-            ctx.lineTo(hinge.x, hinge.y);
+            // 繪製筆尖腳 (淺灰/橘)
+            ctx.beginPath(); ctx.moveTo(pencilX, pencilY); ctx.lineTo(hingeX, hingeY);
             ctx.lineWidth = 4; ctx.strokeStyle = flip ? '#aaa' : '#888'; ctx.stroke(); 
             
             // 頂部轉軸 (橘色)
-            ctx.beginPath(); ctx.arc(hinge.x, hinge.y, 6, 0, Math.PI*2);
+            ctx.beginPath(); ctx.arc(hingeX, hingeY, 6, 0, Math.PI*2);
             ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.stroke(); 
 
-            // 針尖細節
-            ctx.beginPath(); ctx.arc(needleX, needleY, 2, 0, Math.PI*2); ctx.fillStyle = '#333'; ctx.fill();
+            // 針尖釘在黑板的細節點
+            ctx.beginPath(); ctx.arc(needleX, needleY, 2, 0, Math.PI*2); 
+            ctx.fillStyle = '#333'; ctx.fill();
 
             ctx.restore();
         }
@@ -324,48 +311,53 @@
             if (currentTopic === 'copy_seg') {
                 
                 if (currentStep === 1) {
-                    // 【物理修正】圓規在 B 點撇紅弧量長度
-                    // 圓規淡入 -> 畫弧 -> 淡出
                     let toolAlpha = animProgress < 0.3 ? animProgress * 3.3 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
                     
-                    if (toolAlpha > 0) {
-                        // 筆尖設定在 B 點的角度 (0度)
-                        drawCompass(geo.A.x, geo.A.y, geo.radius1, 0, toolAlpha, false);
+                    // 設定量測弧的起始與結束角度
+                    let startAngle = -0.15;
+                    let endAngle = 0.15;
+                    let currentAngle = startAngle;
+
+                    if (animProgress > 0.3) {
+                        // 隨著動畫進度，推算目前畫到哪裡
+                        let arcP = Math.min(1, (animProgress - 0.3) / 0.5);
+                        currentAngle = startAngle + (endAngle - startAngle) * arcP;
+                        // 畫出紅弧軌跡
+                        drawArc(geo.A, geo.radius1, startAngle, currentAngle, '#e74c3c', 2);
                     }
                     
-                    if (animProgress > 0.3) {
-                        // 動態畫出醒目量取紅弧線 (從上方 -0.15 逆時針畫到 0.15)
-                        let arcP = Math.min(1, (animProgress - 0.3) / 0.5);
-                        let currentArcEnd = -0.15 + (0.3) * arcP; 
-                        drawArc(geo.A, geo.radius1, -0.15, currentArcEnd, '#e74c3c', 2);
+                    if (toolAlpha > 0) {
+                        // 【亮點】圓規直接代入 currentAngle，讓圓規「親自」撇下那道紅線
+                        drawCompass(geo.A.x, geo.A.y, geo.radius1, currentAngle, toolAlpha, false);
                     }
 
                 } else if (currentStep === 2) {
-                    // 【物理修正】圓規飛到 C 點畫橘弧
+                    // 圓規飛到 C 點
                     let moveP = Math.min(1, animProgress / 0.3);
                     let currentCx = geo.A.x + (geo.C.x - geo.A.x) * moveP; 
                     let currentCy = geo.A.y + (geo.C.y - geo.A.y) * moveP;
                     
-                    // 量取紅弧要留著 (StaticState已處理)
-
                     let toolAlpha = animProgress < 0.2 ? animProgress * 5 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
                     
-                    if (toolAlpha > 0) {
-                        // 筆尖在射線方向的角度 (0度)
-                        drawCompass(currentCx, currentCy, geo.radius1, 0, toolAlpha, false);
-                    }
-                    
+                    let startAngle = -0.15;
+                    let endAngle = 0.15;
+                    let currentAngle = startAngle;
+
                     if (animProgress > 0.5) {
-                        // 畫橘弧 (C點)
                         let arcP = Math.min(1, (animProgress - 0.5) / 0.3);
-                        let currentArcEnd = -0.15 + (0.3) * arcP;
-                        drawArc(geo.C, geo.radius1, -0.15, currentArcEnd, '#e67e22', 2);
+                        currentAngle = startAngle + (endAngle - startAngle) * arcP;
+                        drawArc(geo.C, geo.radius1, startAngle, currentAngle, '#e67e22', 2);
+                    }
+
+                    if (toolAlpha > 0) {
+                        // 圓規跟著橘弧一起動
+                        drawCompass(currentCx, currentCy, geo.radius1, currentAngle, toolAlpha, false);
                     }
                     
                     if (animProgress > 0.9) drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
 
                 } else if (currentStep === 3) {
-                    drawStaticState(3); // 瞬間畫出粗紅線
+                    drawStaticState(3); 
                 }
             }
 
