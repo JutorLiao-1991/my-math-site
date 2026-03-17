@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2025年12月22日 01:05" // 記得更新時間
+    lastUpdated: "2026年3月18日 04:23" // 記得更新時間
 };
 
 // --- 課程資料區 ---
@@ -44,6 +44,14 @@ const lessonData = [
     tagClass: "math", // 藍色標籤
     tagName: "高中數學",
     desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
+    },
+    {
+    title: "尺規作圖基本技巧",
+    category: "junior",
+    url: "junior/math/CAR.html",
+    tagClass: "math", // 藍色標籤
+    tagName: "國中數學",
+    desc: "透過鳩特精心設計的步驟，一步一步領悟尺規作圖方式"
     },
     {
     title: "平面族示意動畫",
