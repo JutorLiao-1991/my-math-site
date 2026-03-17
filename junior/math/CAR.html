@@ -201,17 +201,19 @@
             ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
         }
 
-        // 【修正重點】符合物理原則的動態圓規繪製
-        // 【究極修正版】動態等腰圓規，保證筆尖精準落點
+        // 【究極修正版】動態等腰圓規，保證筆尖精準落點 + 響應式大小
         function drawCompass(needleX, needleY, radius, pencilAngle, alpha = 1, flip = false) {
             ctx.save(); 
             ctx.globalAlpha = alpha;
 
-            // 動態計算腳長：確保腳長至少比半徑的一半多一點，保證能構成等腰三角形
-            let legLen = Math.max(radius * 0.8, 150); 
+            // 1. 響應式腳長計算：
+            // 抓取畫布目前的短邊，把圓規的「預設基本腳長」設定為畫布短邊的 35%
+            let baseLegLen = Math.min(canvas.width, canvas.height) * 0.35; 
+            
+            // 確保圓規腳夠長：如果今天半徑開得超大，腳長至少要是半徑的 0.85 倍才劈得下去
+            let legLen = Math.max(radius * 0.85, baseLegLen); 
             let halfR = radius / 2;
             let height = Math.sqrt(legLen * legLen - halfR * halfR);
-
             // 筆尖的「真實精準」落點
             let pencilX = needleX + radius * Math.cos(pencilAngle);
             let pencilY = needleY + radius * Math.sin(pencilAngle);
