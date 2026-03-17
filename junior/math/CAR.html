@@ -313,10 +313,30 @@
             ctx.clearRect(0, 0, width, height);
             
             if (currentTopic === 'copy_seg') {
-                drawLine(geo.A, geo.B, '#333', 3); drawPoint(geo.A.x, geo.A.y, 'A'); drawPoint(geo.B.x, geo.B.y, 'B');
-                drawLine(geo.C, geo.RayEnd, '#333', 2); drawPoint(geo.C.x, geo.C.y, 'C');
-                if (step >= 2) { drawArc(geo.C, geo.radius1, -Math.PI/6, Math.PI/6, '#e67e22', 2); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); }
-                if (step >= 3) drawLine(geo.C, geo.D, '#c0392b', 4);
+                // Step 0: 畫出基礎線段與射線
+                drawLine(geo.A, geo.B, '#333', 3); 
+                drawPoint(geo.A.x, geo.A.y, 'A'); 
+                drawPoint(geo.B.x, geo.B.y, 'B');
+                
+                drawLine(geo.C, geo.RayEnd, '#333', 2); 
+                drawPoint(geo.C.x, geo.C.y, 'C');
+
+                // Step 1: 在 B 點留下一小段弧線，證明已量取長度
+                if (step >= 1) { 
+                    // 角度 0 是正右方，畫從上方 (-0.15) 到下方 (0.15) 的短弧
+                    drawArc(geo.A, geo.radius1, -0.15, 0.15, '#e74c3c', 2); 
+                }
+
+                // Step 2: 在射線上畫出交點弧線
+                if (step >= 2) { 
+                    drawArc(geo.C, geo.radius1, -0.15, 0.15, '#e67e22', 2); 
+                    drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); 
+                }
+
+                // Step 3: 畫出最終完成的複製線段
+                if (step >= 3) {
+                    drawLine(geo.C, geo.D, '#c0392b', 4);
+                }
             } 
             else if (currentTopic === 'copy_ang') {
                 drawLine(geo.O, geo.A, '#333', 3); drawLine(geo.O, geo.B, '#333', 3); drawPoint(geo.O.x, geo.O.y, 'O');
@@ -371,15 +391,50 @@
             let toolAlpha = animProgress < 0.2 ? animProgress*5 : (animProgress > 0.8 ? (1-animProgress)*5 : 1);
 
             if (currentTopic === 'copy_seg') {
+                
                 if (currentStep === 1) {
-                    if(toolAlpha>0) drawCompass(geo.A.x, geo.A.y, geo.radius1, toolAlpha, false);
-                } else if (currentStep === 2) {
-                    let cX = geo.A.x + (geo.C.x-geo.A.x)*Math.min(1, animProgress/0.3); let cY = geo.A.y + (geo.C.y-geo.A.y)*Math.min(1, animProgress/0.3);
-                    if(toolAlpha>0) drawCompass(cX, cY, geo.radius1, toolAlpha, false);
-                    if(animProgress>0.5) drawArc(geo.C, geo.radius1, -Math.PI/6, -Math.PI/6 + (Math.PI/3)*Math.min(1,(animProgress-0.5)/0.3), '#e67e22', 2);
-                    if(animProgress>0.9) drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
-                } else if (currentStep === 3) { drawStaticState(3); }
+                    // 圓規淡入 -> 畫小弧線證明長度 -> 圓規淡出
+                    let toolAlpha = animProgress < 0.3 ? animProgress * 3.3 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
+                    
+                    if (toolAlpha > 0) {
+                        drawCompass(geo.A.x, geo.A.y, geo.radius1, toolAlpha, false);
+                    }
+                    
+                    if (animProgress > 0.3) {
+                        // 動態畫出 B 點的測量弧 (從上往下)
+                        let arcP = Math.min(1, (animProgress - 0.3) / 0.5);
+                        let currentArcEnd = -0.15 + (0.3) * arcP; 
+                        drawArc(geo.A, geo.radius1, -0.15, currentArcEnd, '#e74c3c', 2);
+                    }
 
+                } else if (currentStep === 2) {
+                    // 圓規從 A 飛到 C -> 畫交點弧 -> 圓規淡出
+                    let moveP = Math.min(1, animProgress / 0.3);
+                    let currentCx = geo.A.x + (geo.C.x - geo.A.x) * moveP; 
+                    let currentCy = geo.A.y + (geo.C.y - geo.A.y) * moveP;
+                    
+                    let toolAlpha = animProgress < 0.2 ? animProgress * 5 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
+                    
+                    if (toolAlpha > 0) {
+                        drawCompass(currentCx, currentCy, geo.radius1, toolAlpha, false);
+                    }
+                    
+                    if (animProgress > 0.5) {
+                        // 動態畫出 D 點的交會弧 (從上往下)
+                        let arcP = Math.min(1, (animProgress - 0.5) / 0.3);
+                        let currentArcEnd = -0.15 + (0.3) * arcP;
+                        drawArc(geo.C, geo.radius1, -0.15, currentArcEnd, '#e67e22', 2);
+                    }
+                    
+                    if (animProgress > 0.9) {
+                        drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
+                    }
+
+                } else if (currentStep === 3) {
+                    // 這裡直接呼叫 drawStaticState(3) 瞬間畫出粗紅線，
+                    // 或由上方共用的 drawStaticState(currentStep) 處理即可
+                    drawStaticState(3);
+                }
             } else if (currentTopic === 'copy_ang') {
                 if (currentStep === 1) {
                     if(toolAlpha>0) { ctx.save(); ctx.translate(geo.O.x, geo.O.y); ctx.rotate(geo.angleA); drawCompass(0,0,geo.radius1,toolAlpha,false); ctx.restore(); }
