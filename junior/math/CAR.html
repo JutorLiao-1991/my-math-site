@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：幾何尺規作圖探究</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            },
+            svg: { fontCache: 'global' },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            /* 鳩特介面主色調 */
+            --primary-color: #4a90e2;
+            --secondary-color: #f5a623;
+            --bg-color: #f4f7f6;
+            --text-color: #333;
+            --panel-bg: #ffffff;
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8;
+            --border-color: #e1e4e8;
+            --highlight: #e74c3c; /* 紅色強調色 */
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg);
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #334155; color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--accent); font-weight: bold;
+            border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        .main-wrapper {
+            flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative;
+        }
+
+        .panel {
+            background: var(--panel-bg); border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        #graph-panel { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; background: #fff;}
+        canvas { width: 100%; height: 100%; object-fit: contain; }
+
+        #controls-panel {
+            flex: 1; min-width: 380px; max-width: 450px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
+
+        .menu-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+        }
+        .menu-btn {
+            padding: 12px 8px; background-color: #f1f1f1;
+            border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+            font-weight: bold; color: #666; transition: all 0.2s; font-size: 0.95rem;
+        }
+        .menu-btn:hover { background-color: #e2e8f0; }
+        .menu-btn.active {
+            background-color: var(--primary-color); color: white; border-color: var(--primary-color);
+        }
+
+        .step-container {
+            background: #eef6fc; border-left: 5px solid var(--primary-color);
+            border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1;
+        }
+        
+        .step-title { font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+        .step-desc { font-size: 1.05rem; line-height: 1.6; color: #444; min-height: 80px;}
+        .critical-text { color: var(--highlight); font-weight: 900; font-size: 1.1em; text-decoration: underline;}
+
+        .action-group {
+            display: flex; gap: 10px; margin-top: auto;
+        }
+        .action-btn {
+            flex: 1; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; border: none; color: white;
+        }
+        .btn-next { background-color: var(--primary-color); box-shadow: 0 4px 0 #3174c6; }
+        .btn-next:active { transform: translateY(4px); box-shadow: none; }
+        .btn-next:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+        
+        .btn-play { background-color: var(--secondary-color); box-shadow: 0 4px 0 #d68f1c; }
+        .btn-play:active { transform: translateY(4px); box-shadow: none; }
+        .btn-play:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+
+        .btn-reset { background-color: #7f8c8d; box-shadow: 0 4px 0 #636e72; flex: 0.5; }
+        .btn-reset:active { transform: translateY(4px); box-shadow: none; }
+
+        .watermark {
+            position: absolute; bottom: 20px; right: 25px;
+            font-family: serif; font-style: italic; color: rgba(0,0,0,0.1); font-size: 1.5rem;
+            pointer-events: none; user-select: none; z-index: 50;
+        }
+        
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 400px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div class="back-btn" onclick="alert('整合至 Jutor 平台時可連結至主選單')"><span>⬅</span>&nbsp;回主選單</div>
+        <h2 class="page-title">鳩特數理：幾何尺規作圖</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="panel" id="graph-panel">
+            <canvas id="geometryCanvas"></canvas>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                
+                <div class="menu-grid">
+                    <button class="menu-btn" onclick="selectTopic('copy_seg')">複製線段 (準備中)</button>
+                    <button class="menu-btn" onclick="selectTopic('copy_ang')">複製角度 (準備中)</button>
+                    <button class="menu-btn active" onclick="selectTopic('perp_bisect')">製作中垂線</button>
+                    <button class="menu-btn" onclick="selectTopic('ang_bisect')">製作角平分線 (準備中)</button>
+                    <button class="menu-btn" onclick="selectTopic('perp_on')">過線上一點作垂線 (準備中)</button>
+                    <button class="menu-btn" onclick="selectTopic('perp_off')">過線外一點作垂線 (準備中)</button>
+                </div>
+
+                <div class="step-container">
+                    <div class="step-title" id="step-title">歡迎來到尺規作圖探究</div>
+                    <div class="step-desc" id="step-desc">請點選上方按鈕開始進行作圖。</div>
+                </div>
+
+                <div class="action-group">
+                    <button class="action-btn btn-reset" onclick="resetAnimation()" id="btn-reset">重置</button>
+                    <button class="action-btn btn-play" onclick="toggleAutoPlay()" id="btn-play">連續播放</button>
+                    <button class="action-btn btn-next" onclick="nextStep()" id="btn-next">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('geometryCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        
+        // 動畫與步驟狀態
+        let currentTopic = 'perp_bisect';
+        let currentStep = 0;
+        let isAnimating = false;
+        let autoPlay = false;
+        let animProgress = 0; // 0 到 1
+        let animationFrameId;
+
+        // 幾何參數 (依照畫面大小動態計算)
+        const geo = {
+            A: {x: 0, y: 0},
+            B: {x: 0, y: 0},
+            C: {x: 0, y: 0}, // 交點上
+            D: {x: 0, y: 0}, // 交點下
+            radius: 0
+        };
+
+        // 步驟文案定義
+        const stepsData = {
+            'perp_bisect': [
+                { title: "步驟 0：給定線段", desc: "畫面上有一已知線段 $\\overline{AB}$。" },
+                { title: "步驟 1：以 A 為圓心畫弧", desc: "以 $A$ 點為圓心，取大於 $\\frac{1}{2}\\overline{AB}$ 的長度為半徑，畫出一道圓弧。" },
+                { title: "步驟 2：以 B 為圓心畫弧", desc: "接著以 $B$ 點為圓心，<span class='critical-text'>維持相同半徑</span>畫弧，使兩弧交於 $C, D$ 兩點。" },
+                { title: "步驟 3：連接交點", desc: "利用直尺對齊 $C$ 點與 $D$ 點，畫出直線 $\\overleftrightarrow{CD}$。" },
+                { title: "步驟 4：完成作圖", desc: "直線 $\\overleftrightarrow{CD}$ 即為 $\\overline{AB}$ 的垂直平分線（中垂線）。" }
+            ]
+        };
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            // 處理高解析度螢幕 (Retina)
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            width = rect.width;
+            height = rect.height;
+            
+            // 初始化作圖基準點 (置中)
+            let segmentLength = Math.min(width * 0.5, 400);
+            geo.A = { x: width/2 - segmentLength/2, y: height/2 + 50 };
+            geo.B = { x: width/2 + segmentLength/2, y: height/2 + 50 };
+            geo.radius = segmentLength * 0.65; // 大於一半
+            
+            // 計算交點 C, D (利用畢氏定理)
+            let midX = (geo.A.x + geo.B.x) / 2;
+            let hDist = Math.sqrt(geo.radius * geo.radius - (segmentLength/2)*(segmentLength/2));
+            geo.C = { x: midX, y: geo.A.y - hDist };
+            geo.D = { x: midX, y: geo.A.y + hDist };
+
+            if(!isAnimating) drawStaticState();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function selectTopic(topic) {
+            if(topic !== 'perp_bisect') {
+                alert('此單元正在 Jutor 開發中心建置中，請先體驗「製作中垂線」！');
+                return;
+            }
+            currentTopic = topic;
+            resetAnimation();
+        }
+
+        // --- 核心繪圖工具 ---
+        function drawPoint(x, y, label, color = '#333') {
+            ctx.beginPath();
+            ctx.arc(x, y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = color;
+            ctx.fill();
+            
+            ctx.font = "italic bold 18px 'Times New Roman', serif";
+            ctx.fillStyle = color;
+            // 微調標籤位置
+            let offsetX = label === 'A' || label === 'C' ? -20 : 10;
+            let offsetY = label === 'C' ? -10 : (label === 'D' ? 25 : -10);
+            ctx.fillText(label, x + offsetX, y + offsetY);
+        }
+
+        function drawLine(p1, p2, color = '#333', lineWidth = 2, dash = []) {
+            ctx.beginPath();
+            ctx.setLineDash(dash);
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawArc(center, radius, startAng, endAng, color = '#aaa', lineWidth = 2) {
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, startAng, endAng);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.stroke();
+        }
+
+        // 繪製極簡風格圓規
+        function drawCompass(cx, cy, radius, alpha = 1) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            // 針尖腳
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + 15, cy - 120);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#555';
+            ctx.stroke();
+            
+            // 筆尖腳 (指向弧線位置，假設目前畫在上方)
+            let tipX = cx + radius * Math.cos(-Math.PI/3);
+            let tipY = cy + radius * Math.sin(-Math.PI/3);
+            ctx.beginPath();
+            ctx.moveTo(tipX, tipY);
+            ctx.lineTo(cx + 15, cy - 120);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = '#888';
+            ctx.stroke();
+            
+            // 頂部轉軸
+            ctx.beginPath();
+            ctx.arc(cx + 15, cy - 120, 6, 0, Math.PI*2);
+            ctx.fillStyle = '#f39c12';
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // 繪製極簡風格直尺
+        function drawRuler(p1, p2, alpha = 1) {
+            ctx.save();
+            ctx.globalAlpha = alpha;
+            let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+            ctx.translate(p1.x, p1.y);
+            ctx.rotate(angle);
+            
+            ctx.fillStyle = 'rgba(173, 216, 230, 0.6)'; // 半透明淺藍色
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            
+            // 直尺主體 (向上偏移一點，讓邊緣對齊線段)
+            ctx.fillRect(-100, 0, 600, 40);
+            ctx.strokeRect(-100, 0, 600, 40);
+            
+            // 刻度
+            for(let i= -80; i < 500; i+=10) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, i%50===0 ? 15 : 8);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        // --- 動畫邏輯 ---
+        function renderMathJax() {
+            if(window.MathJax && window.MathJax.typesetPromise) {
+                window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(err => console.log(err));
+            }
+        }
+
+        function updateUI() {
+            let data = stepsData[currentTopic][currentStep];
+            document.getElementById('step-title').innerHTML = data.title;
+            document.getElementById('step-desc').innerHTML = data.desc;
+            renderMathJax();
+
+            let nextBtn = document.getElementById('btn-next');
+            if (currentStep >= stepsData[currentTopic].length - 1) {
+                nextBtn.innerText = "作圖完成";
+                nextBtn.disabled = true;
+                if(autoPlay) toggleAutoPlay(); // 結束自動播放
+            } else {
+                nextBtn.innerText = "下一步";
+                nextBtn.disabled = false;
+            }
+        }
+
+        function resetAnimation() {
+            cancelAnimationFrame(animationFrameId);
+            isAnimating = false;
+            autoPlay = false;
+            currentStep = 0;
+            animProgress = 0;
+            document.getElementById('btn-play').innerText = "連續播放";
+            updateUI();
+            drawStaticState();
+        }
+
+        function toggleAutoPlay() {
+            autoPlay = !autoPlay;
+            document.getElementById('btn-play').innerText = autoPlay ? "暫停" : "連續播放";
+            if (autoPlay && !isAnimating) {
+                if(currentStep >= stepsData[currentTopic].length - 1) resetAnimation();
+                nextStep();
+            }
+        }
+
+        function nextStep() {
+            if (isAnimating || currentStep >= stepsData[currentTopic].length - 1) return;
+            currentStep++;
+            animProgress = 0;
+            isAnimating = true;
+            updateUI();
+            animate();
+        }
+
+        function drawStaticState() {
+            ctx.clearRect(0, 0, width, height);
+            
+            // Step 0 基礎線段
+            drawLine(geo.A, geo.B, '#333', 3);
+            drawPoint(geo.A.x, geo.A.y, 'A');
+            drawPoint(geo.B.x, geo.B.y, 'B');
+
+            // Step 1 完成後的靜態圖：A 圓弧
+            if (currentStep >= 1 && (!isAnimating || currentStep > 1)) {
+                drawArc(geo.A, geo.radius, -Math.PI/2.5, Math.PI/2.5, '#3498db', 2);
+            }
+            
+            // Step 2 完成後的靜態圖：B 圓弧 與交點
+            if (currentStep >= 2 && (!isAnimating || currentStep > 2)) {
+                drawArc(geo.B, geo.radius, Math.PI - Math.PI/2.5, Math.PI + Math.PI/2.5, '#e67e22', 2);
+                drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad');
+                drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
+            }
+
+            // Step 3 完成後的靜態圖：中垂線
+            if (currentStep >= 3 && (!isAnimating || currentStep > 3)) {
+                // 延長 CD 線段
+                let extC = { x: geo.C.x, y: geo.C.y - 50 };
+                let extD = { x: geo.D.x, y: geo.D.y + 50 };
+                drawLine(extC, extD, '#2ecc71', 3);
+            }
+
+            // Step 4 完成後的靜態圖：直角與等長記號
+            if (currentStep >= 4 && !isAnimating) {
+                let midX = (geo.A.x + geo.B.x)/2;
+                let midY = geo.A.y;
+                // 直角記號
+                ctx.beginPath();
+                ctx.moveTo(midX, midY - 15);
+                ctx.lineTo(midX + 15, midY - 15);
+                ctx.lineTo(midX + 15, midY);
+                ctx.strokeStyle = '#c0392b';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                // 等長撇號
+                drawLine({x: geo.A.x + (midX-geo.A.x)/2 - 3, y: midY - 8}, {x: geo.A.x + (midX-geo.A.x)/2 + 3, y: midY + 8}, '#c0392b', 2);
+                drawLine({x: midX + (geo.B.x-midX)/2 - 3, y: midY - 8}, {x: midX + (geo.B.x-midX)/2 + 3, y: midY + 8}, '#c0392b', 2);
+            }
+        }
+
+        // 動畫循環
+        function animate() {
+            animProgress += 0.015; // 控制動畫速度
+            if (animProgress > 1) animProgress = 1;
+
+            ctx.clearRect(0, 0, width, height);
+            
+            // 繪製在此步驟之前的靜態物件
+            let tempStep = currentStep;
+            currentStep = tempStep - 1; 
+            drawStaticState();
+            currentStep = tempStep;
+
+            // 處理當前步驟的動態效果
+            if (currentStep === 1) {
+                // 畫弧 A: 圓規出現 -> 淡出 -> 弧線變長
+                let toolAlpha = animProgress < 0.3 ? 1 : Math.max(0, 1 - (animProgress-0.3)*3);
+                let arcEnd = -Math.PI/2.5 + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.2) / 0.8);
+                
+                if (toolAlpha > 0) drawCompass(geo.A.x, geo.A.y, geo.radius, toolAlpha);
+                if (animProgress > 0.2) drawArc(geo.A, geo.radius, -Math.PI/2.5, arcEnd, '#3498db', 2);
+
+            } else if (currentStep === 2) {
+                // 畫弧 B: 圓規從 A 飛到 B (展示相同半徑) -> 淡出 -> 畫弧
+                let moveP = Math.min(1, animProgress / 0.3);
+                let currentCx = geo.A.x + (geo.B.x - geo.A.x) * moveP;
+                let toolAlpha = animProgress < 0.5 ? 1 : Math.max(0, 1 - (animProgress-0.5)*4);
+                
+                let startAng = Math.PI - Math.PI/2.5;
+                let arcEnd = startAng + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.5) / 0.5);
+
+                if (toolAlpha > 0) drawCompass(currentCx, geo.A.y, geo.radius, toolAlpha);
+                if (animProgress > 0.5) {
+                    drawArc(geo.B, geo.radius, startAng, arcEnd, '#e67e22', 2);
+                }
+                if (animProgress > 0.9) { // 閃現交點
+                    drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad');
+                    drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
+                }
+
+            } else if (currentStep === 3) {
+                // 連接中垂線：直尺出現 -> 畫線 -> 淡出
+                let toolAlpha = animProgress < 0.2 ? animProgress*5 : (animProgress > 0.8 ? (1-animProgress)*5 : 1);
+                let extC = { x: geo.C.x, y: geo.C.y - 50 };
+                let extD = { x: geo.D.x, y: geo.D.y + 50 };
+                
+                let lineP = Math.min(1, Math.max(0, animProgress - 0.3) / 0.5);
+                let currentExtD = {
+                    x: extC.x + (extD.x - extC.x) * lineP,
+                    y: extC.y + (extD.y - extC.y) * lineP
+                };
+
+                if (toolAlpha > 0) drawRuler(extC, extD, toolAlpha);
+                if (animProgress > 0.3) drawLine(extC, currentExtD, '#2ecc71', 3);
+
+            } else if (currentStep === 4) {
+                // 標示記號 (淡入)
+                drawStaticState(); // 利用 state 繪製最後結果，這邊用透明度做漸變
+                ctx.globalAlpha = animProgress;
+                let midX = (geo.A.x + geo.B.x)/2; let midY = geo.A.y;
+                ctx.beginPath(); ctx.moveTo(midX, midY - 15); ctx.lineTo(midX + 15, midY - 15); ctx.lineTo(midX + 15, midY);
+                ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2; ctx.stroke();
+                drawLine({x: geo.A.x + (midX-geo.A.x)/2 - 3, y: midY - 8}, {x: geo.A.x + (midX-geo.A.x)/2 + 3, y: midY + 8}, '#c0392b', 2);
+                drawLine({x: midX + (geo.B.x-midX)/2 - 3, y: midY - 8}, {x: midX + (geo.B.x-midX)/2 + 3, y: midY + 8}, '#c0392b', 2);
+                ctx.globalAlpha = 1;
+            }
+
+            if (animProgress < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            } else {
+                isAnimating = false;
+                drawStaticState();
+                if (autoPlay) {
+                    setTimeout(() => nextStep(), 800); // 自動播放的停頓間隔
+                }
+            }
+        }
+
+        // 初始化啟動
+        setTimeout(() => {
+            resizeCanvas();
+            updateUI();
+        }, 100); // 確保字體載入後再算版面
+
+    </script>
+</body>
+</html>
