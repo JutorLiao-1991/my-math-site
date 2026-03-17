@@ -267,30 +267,38 @@
         }
 
         // 繪製極簡風格圓規
-        function drawCompass(cx, cy, radius, alpha = 1) {
+        function drawCompass(cx, cy, radius, alpha = 1, flip = false) {
             ctx.save();
             ctx.globalAlpha = alpha;
+            
+            // 決定鏡射方向：flip 為 true 時，轉軸與筆尖都會在針尖的左側
+            let dir = flip ? -1 : 1;
+            let hingeX = cx + 15 * dir;
+            let hingeY = cy - 120;
+
             // 針尖腳
             ctx.beginPath();
             ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + 15, cy - 120);
+            ctx.lineTo(hingeX, hingeY);
             ctx.lineWidth = 4;
             ctx.strokeStyle = '#555';
             ctx.stroke();
             
-            // 筆尖腳 (指向弧線位置，假設目前畫在上方)
-            let tipX = cx + radius * Math.cos(-Math.PI/3);
-            let tipY = cy + radius * Math.sin(-Math.PI/3);
+            // 筆尖腳 (依據 flip 決定筆尖是向右 -60度 還是向左 -120度)
+            let angle = flip ? -Math.PI * 2 / 3 : -Math.PI / 3;
+            let tipX = cx + radius * Math.cos(angle);
+            let tipY = cy + radius * Math.sin(angle);
+            
             ctx.beginPath();
             ctx.moveTo(tipX, tipY);
-            ctx.lineTo(cx + 15, cy - 120);
+            ctx.lineTo(hingeX, hingeY);
             ctx.lineWidth = 4;
             ctx.strokeStyle = '#888';
             ctx.stroke();
             
             // 頂部轉軸
             ctx.beginPath();
-            ctx.arc(cx + 15, cy - 120, 6, 0, Math.PI*2);
+            ctx.arc(hingeX, hingeY, 6, 0, Math.PI*2);
             ctx.fillStyle = '#f39c12';
             ctx.fill();
             ctx.stroke();
@@ -424,7 +432,8 @@
 
         // 動畫循環
         function animate() {
-            animProgress += 0.015; // 控制動畫速度
+            // 【修改重點 1】將動畫速度放慢到原本的 1/4 (0.015 -> 0.00375)
+            animProgress += 0.00375; 
             if (animProgress > 1) animProgress = 1;
 
             ctx.clearRect(0, 0, width, height);
@@ -441,11 +450,12 @@
                 let toolAlpha = animProgress < 0.3 ? 1 : Math.max(0, 1 - (animProgress-0.3)*3);
                 let arcEnd = -Math.PI/2.5 + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.2) / 0.8);
                 
-                if (toolAlpha > 0) drawCompass(geo.A.x, geo.A.y, geo.radius, toolAlpha);
+                // 傳入 false，圓規朝右
+                if (toolAlpha > 0) drawCompass(geo.A.x, geo.A.y, geo.radius, toolAlpha, false);
                 if (animProgress > 0.2) drawArc(geo.A, geo.radius, -Math.PI/2.5, arcEnd, '#3498db', 2);
 
             } else if (currentStep === 2) {
-                // 畫弧 B: 圓規從 A 飛到 B (展示相同半徑) -> 淡出 -> 畫弧
+                // 畫弧 B: 圓規從 A 飛到 B -> 淡出 -> 畫弧
                 let moveP = Math.min(1, animProgress / 0.3);
                 let currentCx = geo.A.x + (geo.B.x - geo.A.x) * moveP;
                 let toolAlpha = animProgress < 0.5 ? 1 : Math.max(0, 1 - (animProgress-0.5)*4);
@@ -453,11 +463,12 @@
                 let startAng = Math.PI - Math.PI/2.5;
                 let arcEnd = startAng + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.5) / 0.5);
 
-                if (toolAlpha > 0) drawCompass(currentCx, geo.A.y, geo.radius, toolAlpha);
+                // 【修改重點 2】傳入 true，圓規在飛過去的過程中以及畫弧時，都會鏡射朝左
+                if (toolAlpha > 0) drawCompass(currentCx, geo.A.y, geo.radius, toolAlpha, true);
                 if (animProgress > 0.5) {
                     drawArc(geo.B, geo.radius, startAng, arcEnd, '#e67e22', 2);
                 }
-                if (animProgress > 0.9) { // 閃現交點
+                if (animProgress > 0.9) { 
                     drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad');
                     drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
                 }
@@ -479,7 +490,7 @@
 
             } else if (currentStep === 4) {
                 // 標示記號 (淡入)
-                drawStaticState(); // 利用 state 繪製最後結果，這邊用透明度做漸變
+                drawStaticState(); 
                 ctx.globalAlpha = animProgress;
                 let midX = (geo.A.x + geo.B.x)/2; let midY = geo.A.y;
                 ctx.beginPath(); ctx.moveTo(midX, midY - 15); ctx.lineTo(midX + 15, midY - 15); ctx.lineTo(midX + 15, midY);
@@ -495,7 +506,7 @@
                 isAnimating = false;
                 drawStaticState();
                 if (autoPlay) {
-                    setTimeout(() => nextStep(), 800); // 自動播放的停頓間隔
+                    setTimeout(() => nextStep(), 800);
                 }
             }
         }
