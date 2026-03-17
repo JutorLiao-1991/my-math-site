@@ -94,11 +94,11 @@
         .critical-text { color: var(--highlight); font-weight: 900; font-size: 1.1em; text-decoration: underline;}
 
         .action-group {
-            display: flex; gap: 10px; margin-top: auto;
+            display: flex; gap: 8px; margin-top: auto; flex-wrap: wrap;
         }
         .action-btn {
-            flex: 1; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px;
-            cursor: pointer; transition: 0.2s; border: none; color: white;
+            flex: 1 1 30%; padding: 10px; font-size: 0.95rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; border: none; color: white; text-align: center;
         }
         .btn-next { background-color: var(--primary-color); box-shadow: 0 4px 0 #3174c6; }
         .btn-next:active { transform: translateY(4px); box-shadow: none; }
@@ -106,10 +106,17 @@
         
         .btn-play { background-color: var(--secondary-color); box-shadow: 0 4px 0 #d68f1c; }
         .btn-play:active { transform: translateY(4px); box-shadow: none; }
-        .btn-play:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
 
-        .btn-reset { background-color: #7f8c8d; box-shadow: 0 4px 0 #636e72; flex: 0.5; }
+        .btn-reset { background-color: #e74c3c; box-shadow: 0 4px 0 #c0392b; flex: 1 1 100%; margin-bottom: 5px;}
         .btn-reset:active { transform: translateY(4px); box-shadow: none; }
+
+        .btn-prev { background-color: #95a5a6; box-shadow: 0 4px 0 #7f8c8d; }
+        .btn-prev:active { transform: translateY(4px); box-shadow: none; }
+        .btn-prev:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+
+        .btn-replay { background-color: #16a085; box-shadow: 0 4px 0 #12876f; }
+        .btn-replay:active { transform: translateY(4px); box-shadow: none; }
+        .btn-replay:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
 
         .watermark {
             position: absolute; bottom: 20px; right: 25px;
@@ -155,7 +162,9 @@
                 </div>
 
                 <div class="action-group">
-                    <button class="action-btn btn-reset" onclick="resetAnimation()" id="btn-reset">重置</button>
+                    <button class="action-btn btn-reset" onclick="resetAnimation()" id="btn-reset">重新作圖</button>
+                    <button class="action-btn btn-prev" onclick="prevStep()" id="btn-prev">上一步</button>
+                    <button class="action-btn btn-replay" onclick="replayStep()" id="btn-replay">再看一次</button>
                     <button class="action-btn btn-play" onclick="toggleAutoPlay()" id="btn-play">連續播放</button>
                     <button class="action-btn btn-next" onclick="nextStep()" id="btn-next">下一步</button>
                 </div>
@@ -258,9 +267,9 @@
             ctx.setLineDash([]);
         }
 
-        function drawArc(center, radius, startAng, endAng, color = '#aaa', lineWidth = 2) {
+        function drawArc(center, radius, startAng, endAng, color = '#aaa', lineWidth = 2, ccw = false) {
             ctx.beginPath();
-            ctx.arc(center.x, center.y, radius, startAng, endAng);
+            ctx.arc(center.x, center.y, radius, startAng, endAng, ccw);
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
             ctx.stroke();
@@ -344,15 +353,31 @@
             document.getElementById('step-desc').innerHTML = data.desc;
             renderMathJax();
 
-            let nextBtn = document.getElementById('btn-next');
-            if (currentStep >= stepsData[currentTopic].length - 1) {
-                nextBtn.innerText = "作圖完成";
-                nextBtn.disabled = true;
-                if(autoPlay) toggleAutoPlay(); // 結束自動播放
-            } else {
-                nextBtn.innerText = "下一步";
-                nextBtn.disabled = false;
-            }
+            document.getElementById('btn-next').disabled = (currentStep >= stepsData[currentTopic].length - 1);
+            document.getElementById('btn-prev').disabled = (currentStep === 0);
+            document.getElementById('btn-replay').disabled = (currentStep === 0);
+        }
+
+        function prevStep() {
+            if (isAnimating) cancelAnimationFrame(animationFrameId);
+            isAnimating = false;
+            if (autoPlay) toggleAutoPlay();
+
+            if (currentStep > 0) currentStep--;
+            animProgress = 0;
+            updateUI();
+            drawStaticState(currentStep); // 畫出目標步驟的完整靜態圖
+        }
+
+        function replayStep() {
+            if (isAnimating) cancelAnimationFrame(animationFrameId);
+            if (autoPlay) toggleAutoPlay();
+            if (currentStep === 0) return;
+            
+            animProgress = 0;
+            isAnimating = true;
+            updateUI();
+            animate();
         }
 
         function resetAnimation() {
@@ -384,89 +409,72 @@
             animate();
         }
 
-        function drawStaticState() {
+        // 改寫為根據傳入的 step 決定要畫到哪個進度
+        function drawStaticState(step = currentStep) {
             ctx.clearRect(0, 0, width, height);
             
-            // Step 0 基礎線段
+            // Step 0
             drawLine(geo.A, geo.B, '#333', 3);
             drawPoint(geo.A.x, geo.A.y, 'A');
             drawPoint(geo.B.x, geo.B.y, 'B');
 
-            // Step 1 完成後的靜態圖：A 圓弧
-            if (currentStep >= 1 && (!isAnimating || currentStep > 1)) {
+            // Step 1
+            if (step >= 1) {
                 drawArc(geo.A, geo.radius, -Math.PI/2.5, Math.PI/2.5, '#3498db', 2);
             }
             
-            // Step 2 完成後的靜態圖：B 圓弧 與交點
-            if (currentStep >= 2 && (!isAnimating || currentStep > 2)) {
-                drawArc(geo.B, geo.radius, Math.PI - Math.PI/2.5, Math.PI + Math.PI/2.5, '#e67e22', 2);
+            // Step 2 (B點圓弧改為明確指定從上到下逆時針)
+            if (step >= 2) {
+                drawArc(geo.B, geo.radius, Math.PI + Math.PI/2.5, Math.PI - Math.PI/2.5, '#e67e22', 2, true);
                 drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad');
                 drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
             }
 
-            // Step 3 完成後的靜態圖：中垂線
-            if (currentStep >= 3 && (!isAnimating || currentStep > 3)) {
-                // 延長 CD 線段
+            // Step 3
+            if (step >= 3) {
                 let extC = { x: geo.C.x, y: geo.C.y - 50 };
                 let extD = { x: geo.D.x, y: geo.D.y + 50 };
                 drawLine(extC, extD, '#2ecc71', 3);
             }
 
-            // Step 4 完成後的靜態圖：直角與等長記號
-            if (currentStep >= 4 && !isAnimating) {
-                let midX = (geo.A.x + geo.B.x)/2;
-                let midY = geo.A.y;
-                // 直角記號
-                ctx.beginPath();
-                ctx.moveTo(midX, midY - 15);
-                ctx.lineTo(midX + 15, midY - 15);
-                ctx.lineTo(midX + 15, midY);
-                ctx.strokeStyle = '#c0392b';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                // 等長撇號
+            // Step 4
+            if (step >= 4) {
+                let midX = (geo.A.x + geo.B.x)/2; let midY = geo.A.y;
+                ctx.beginPath(); ctx.moveTo(midX, midY - 15); ctx.lineTo(midX + 15, midY - 15); ctx.lineTo(midX + 15, midY);
+                ctx.strokeStyle = '#c0392b'; ctx.lineWidth = 2; ctx.stroke();
                 drawLine({x: geo.A.x + (midX-geo.A.x)/2 - 3, y: midY - 8}, {x: geo.A.x + (midX-geo.A.x)/2 + 3, y: midY + 8}, '#c0392b', 2);
                 drawLine({x: midX + (geo.B.x-midX)/2 - 3, y: midY - 8}, {x: midX + (geo.B.x-midX)/2 + 3, y: midY + 8}, '#c0392b', 2);
             }
         }
 
-        // 動畫循環
         function animate() {
-            // 【修改重點 1】將動畫速度放慢到原本的 1/4 (0.015 -> 0.00375)
             animProgress += 0.00375; 
             if (animProgress > 1) animProgress = 1;
 
             ctx.clearRect(0, 0, width, height);
             
-            // 繪製在此步驟之前的靜態物件
-            let tempStep = currentStep;
-            currentStep = tempStep - 1; 
-            drawStaticState();
-            currentStep = tempStep;
+            // 直接呼叫上一個步驟的完整靜態圖 (修復消失 Bug)
+            drawStaticState(currentStep - 1);
 
-            // 處理當前步驟的動態效果
             if (currentStep === 1) {
-                // 畫弧 A: 圓規出現 -> 淡出 -> 弧線變長
                 let toolAlpha = animProgress < 0.3 ? 1 : Math.max(0, 1 - (animProgress-0.3)*3);
                 let arcEnd = -Math.PI/2.5 + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.2) / 0.8);
-                
-                // 傳入 false，圓規朝右
                 if (toolAlpha > 0) drawCompass(geo.A.x, geo.A.y, geo.radius, toolAlpha, false);
                 if (animProgress > 0.2) drawArc(geo.A, geo.radius, -Math.PI/2.5, arcEnd, '#3498db', 2);
 
             } else if (currentStep === 2) {
-                // 畫弧 B: 圓規從 A 飛到 B -> 淡出 -> 畫弧
                 let moveP = Math.min(1, animProgress / 0.3);
                 let currentCx = geo.A.x + (geo.B.x - geo.A.x) * moveP;
                 let toolAlpha = animProgress < 0.5 ? 1 : Math.max(0, 1 - (animProgress-0.5)*4);
                 
-                let startAng = Math.PI - Math.PI/2.5;
-                let arcEnd = startAng + (Math.PI/2.5 * 2) * Math.min(1, Math.max(0, animProgress - 0.5) / 0.5);
+                // 改由上方 (252度) 逆時針畫到下方 (108度)
+                let startAng = Math.PI + Math.PI/2.5; 
+                let totalAngle = Math.PI/2.5 * 2; 
+                let arcEnd = startAng - totalAngle * Math.min(1, Math.max(0, animProgress - 0.5) / 0.5);
 
-                // 【修改重點 2】傳入 true，圓規在飛過去的過程中以及畫弧時，都會鏡射朝左
                 if (toolAlpha > 0) drawCompass(currentCx, geo.A.y, geo.radius, toolAlpha, true);
                 if (animProgress > 0.5) {
-                    drawArc(geo.B, geo.radius, startAng, arcEnd, '#e67e22', 2);
+                    drawArc(geo.B, geo.radius, startAng, arcEnd, '#e67e22', 2, true); // 加上 true 表示逆時針
                 }
                 if (animProgress > 0.9) { 
                     drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad');
@@ -474,23 +482,16 @@
                 }
 
             } else if (currentStep === 3) {
-                // 連接中垂線：直尺出現 -> 畫線 -> 淡出
                 let toolAlpha = animProgress < 0.2 ? animProgress*5 : (animProgress > 0.8 ? (1-animProgress)*5 : 1);
-                let extC = { x: geo.C.x, y: geo.C.y - 50 };
-                let extD = { x: geo.D.x, y: geo.D.y + 50 };
-                
+                let extC = { x: geo.C.x, y: geo.C.y - 50 }; let extD = { x: geo.D.x, y: geo.D.y + 50 };
                 let lineP = Math.min(1, Math.max(0, animProgress - 0.3) / 0.5);
-                let currentExtD = {
-                    x: extC.x + (extD.x - extC.x) * lineP,
-                    y: extC.y + (extD.y - extC.y) * lineP
-                };
+                let currentExtD = { x: extC.x + (extD.x - extC.x) * lineP, y: extC.y + (extD.y - extC.y) * lineP };
 
                 if (toolAlpha > 0) drawRuler(extC, extD, toolAlpha);
                 if (animProgress > 0.3) drawLine(extC, currentExtD, '#2ecc71', 3);
 
             } else if (currentStep === 4) {
-                // 標示記號 (淡入)
-                drawStaticState(); 
+                drawStaticState(3);
                 ctx.globalAlpha = animProgress;
                 let midX = (geo.A.x + geo.B.x)/2; let midY = geo.A.y;
                 ctx.beginPath(); ctx.moveTo(midX, midY - 15); ctx.lineTo(midX + 15, midY - 15); ctx.lineTo(midX + 15, midY);
@@ -504,9 +505,12 @@
                 animationFrameId = requestAnimationFrame(animate);
             } else {
                 isAnimating = false;
-                drawStaticState();
-                if (autoPlay) {
+                drawStaticState(currentStep);
+                updateUI(); // 確保重新整理防呆按鈕
+                if (autoPlay && currentStep < stepsData[currentTopic].length - 1) {
                     setTimeout(() => nextStep(), 800);
+                } else if (autoPlay) {
+                    toggleAutoPlay(); // 播完自動關閉連續播放狀態
                 }
             }
         }
