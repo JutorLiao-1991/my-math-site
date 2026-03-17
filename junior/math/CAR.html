@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：幾何尺規作圖探究</title>
+    <title>鳩特數理：幾何尺規作圖探究 (物理修正版)</title>
     
     <script>
         window.MathJax = {
@@ -96,7 +96,7 @@
 
     <div class="nav-bar">
         <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回主選單</a>
-        <h2 class="page-title">鳩特數理：幾何尺規作圖全集</h2>
+        <h2 class="page-title">鳩特數理：幾何尺規作圖全集 (物理修正)</h2>
     </div>
 
     <div class="main-wrapper">
@@ -108,9 +108,9 @@
         <div class="panel" id="controls-panel">
             <div class="controls-content">
                 <div class="menu-grid">
-                    <button class="menu-btn" onclick="selectTopic('copy_seg')" id="btn-copy_seg">複製線段</button>
+                    <button class="menu-btn active" onclick="selectTopic('copy_seg')" id="btn-copy_seg">複製線段</button>
                     <button class="menu-btn" onclick="selectTopic('copy_ang')" id="btn-copy_ang">複製角度</button>
-                    <button class="menu-btn active" onclick="selectTopic('perp_bisect')" id="btn-perp_bisect">製作中垂線</button>
+                    <button class="menu-btn" onclick="selectTopic('perp_bisect')" id="btn-perp_bisect">製作中垂線</button>
                     <button class="menu-btn" onclick="selectTopic('ang_bisect')" id="btn-ang_bisect">製作角平分線</button>
                     <button class="menu-btn" onclick="selectTopic('perp_on')" id="btn-perp_on">過線上作垂線</button>
                     <button class="menu-btn" onclick="selectTopic('perp_off')" id="btn-perp_off">過線外作垂線</button>
@@ -135,54 +135,29 @@
         const ctx = canvas.getContext('2d');
         let width, height;
         
-        let currentTopic = 'perp_bisect';
+        let currentTopic = 'copy_seg'; // 預設開啟複製線段進行測試
         let currentStep = 0; let isAnimating = false; let autoPlay = false; let animProgress = 0; let animationFrameId;
+
+        // 【修正亮點】定義圓規腳的固定物理長度 (像素)
+        const COMPASS_LEG_LEN = 160;
 
         // 共用座標集
         const geo = {};
 
-        // 步驟文案定義 (六大單元完整版)
+        // 步驟文案定義
         const stepsData = {
             'copy_seg': [
                 { title: "步驟 0：給定線段與射線", desc: "給定一已知線段 $\\overline{AB}$，以及一條以 $C$ 為起點的射線 $L$。" },
-                { title: "步驟 1：量取長度", desc: "將圓規的針尖放在 $A$ 點，筆尖放在 $B$ 點，<span class='critical-text'>量取 $\\overline{AB}$ 的長度</span>。" },
+                { title: "步驟 1：量取長度", desc: "將圓規的針尖放在 $A$ 點，筆尖放在 $B$ 點，畫下一短弧記號以<span class='critical-text'>量取 $\\overline{AB}$ 的長度</span>。" },
                 { title: "步驟 2：複製長度", desc: "維持圓規半徑不變，將針尖移至射線起點 $C$ 點並畫弧，交射線於 $D$ 點。" },
                 { title: "步驟 3：完成作圖", desc: "線段 $\\overline{CD}$ 即為所求，且 $\\overline{CD} = \\overline{AB}$。" }
             ],
-            'copy_ang': [
-                { title: "步驟 0：給定角度與射線", desc: "給定一已知 $\\angle AOB$，以及一條以 $P$ 為端點的射線。" },
-                { title: "步驟 1：於原角畫弧", desc: "以 $O$ 為圓心，適當長為半徑畫弧，交 $\\angle AOB$ 的兩邊於 $C, D$ 兩點。" },
-                { title: "步驟 2：於射線畫弧", desc: "以 $P$ 為圓心，<span class='critical-text'>相同的半徑</span>畫弧，交射線於 $Q$ 點。" },
-                { title: "步驟 3：量取開口寬度", desc: "將圓規針尖放在 $C$ 點，筆尖放在 $D$ 點，<span class='critical-text'>量取 $\\overline{CD}$ 的距離</span>。" },
-                { title: "步驟 4：複製開口寬度", desc: "以 $Q$ 點為圓心，剛剛量取的 $\\overline{CD}$ 長度為半徑畫弧，與前一道弧交於 $R$ 點。" },
-                { title: "步驟 5：完成作圖", desc: "利用直尺畫出射線 $\\overrightarrow{PR}$，則 $\\angle RPQ$ 即為所求，與 $\\angle AOB$ 相等。" }
-            ],
-            'perp_bisect': [
-                { title: "步驟 0：給定線段", desc: "畫面上有一已知線段 $\\overline{AB}$。" },
-                { title: "步驟 1：以 A 為圓心畫弧", desc: "以 $A$ 點為圓心，取大於 $\\frac{1}{2}\\overline{AB}$ 的長度為半徑，畫出一道圓弧。" },
-                { title: "步驟 2：以 B 為圓心畫弧", desc: "接著以 $B$ 點為圓心，<span class='critical-text'>維持相同半徑</span>畫弧，使兩弧交於 $C, D$ 兩點。" },
-                { title: "步驟 3：連接交點", desc: "利用直尺對齊 $C$ 點與 $D$ 點，畫出直線 $\\overleftrightarrow{CD}$。" },
-                { title: "步驟 4：完成作圖", desc: "直線 $\\overleftrightarrow{CD}$ 即為 $\\overline{AB}$ 的垂直平分線（中垂線）。" }
-            ],
-            'ang_bisect': [
-                { title: "步驟 0：給定角度", desc: "畫面上有一已知角 $\\angle AOB$。" },
-                { title: "步驟 1：以 O 為圓心畫弧", desc: "以頂點 $O$ 為圓心，適當長為半徑畫弧，交角的兩邊於 $D$、$E$ 兩點。" },
-                { title: "步驟 2：以 D 為圓心畫弧", desc: "分別以 $D$、$E$ 為圓心，<span class='critical-text'>大於 $\\frac{1}{2}\\overline{DE}$ 且相同</span>的半徑畫出交會弧。" },
-                { title: "步驟 3：以 E 為圓心畫弧", desc: "兩弧交於角內一點 $F$。" },
-                { title: "步驟 4：完成作圖", desc: "利用直尺畫出射線 $\\overrightarrow{OF}$，即為 $\\angle AOB$ 的角平分線。" }
-            ],
-            'perp_on': [
-                { title: "步驟 0：給定直線與線上一點", desc: "給定一直線 $L$，以及線上一點 $P$。" },
-                { title: "步驟 1：以 P 為圓心畫弧", desc: "以 $P$ 為圓心，適當長度為半徑畫弧，交直線 $L$ 於 $A, B$ 兩點。" },
-                { title: "步驟 2：以 A, B 為圓心畫弧", desc: "分別以 $A, B$ 為圓心，取<span class='critical-text'>大於 $\\frac{1}{2}\\overline{AB}$ 且相同</span>的半徑，在直線同側畫弧交於 $C$ 點。" },
-                { title: "步驟 3：完成作圖", desc: "利用直尺連接 $P$ 與 $C$ 畫出直線，即為過線上一點 $P$ 的垂線。" }
-            ],
-            'perp_off': [
-                { title: "步驟 0：給定直線與線外一點", desc: "給定一直線 $L$，以及線外一點 $P$。" },
-                { title: "步驟 1：以 P 為圓心畫弧", desc: "以 $P$ 為圓心，適當長度為半徑畫弧，交直線 $L$ 於 $A, B$ 兩點。" },
-                { title: "步驟 2：以 A, B 為圓心畫弧", desc: "分別以 $A, B$ 為圓心，取<span class='critical-text'>大於 $\\frac{1}{2}\\overline{AB}$ 且相同</span>的半徑，在直線另一側畫弧交於 $C$ 點。" },
-                { title: "步驟 3：完成作圖", desc: "利用直尺連接 $P$ 與 $C$ 畫出直線，即為過線外一點 $P$ 的垂線。" }
-            ]
+            // 其他單元暫時保留框架
+            'copy_ang': [{ title: "準備中", desc: "此單元正在展開重構中..." }],
+            'perp_bisect': [{ title: "準備中", desc: "此單元正在展開重構中..." }],
+            'ang_bisect': [{ title: "準備中", desc: "此單元正在展開重構中..." }],
+            'perp_on': [{ title: "準備中", desc: "此單元正在展開重構中..." }],
+            'perp_off': [{ title: "準備中", desc: "此單元正在展開重構中..." }]
         };
 
         function resizeCanvas() {
@@ -191,61 +166,17 @@
             canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr); width = rect.width; height = rect.height;
             
-            // 座標初始化
             if (currentTopic === 'copy_seg') {
-                geo.A = {x: width*0.2, y: height*0.3}; geo.B = {x: width*0.5, y: height*0.3};
-                geo.C = {x: width*0.2, y: height*0.7}; geo.RayEnd = {x: width*0.8, y: height*0.7};
+                geo.A = {x: width*0.2, y: height*0.35}; geo.B = {x: width*0.55, y: height*0.35};
+                geo.C = {x: width*0.2, y: height*0.7}; geo.RayEnd = {x: width*0.85, y: height*0.7};
                 geo.radius1 = geo.B.x - geo.A.x; geo.D = {x: geo.C.x + geo.radius1, y: geo.C.y};
-            } else if (currentTopic === 'copy_ang') {
-                geo.O = {x: width*0.2, y: height*0.3}; geo.angleA = -Math.PI/6; geo.angleB = Math.PI/9;
-                geo.A = {x: geo.O.x + 200*Math.cos(geo.angleA), y: geo.O.y + 200*Math.sin(geo.angleA)};
-                geo.B = {x: geo.O.x + 200*Math.cos(geo.angleB), y: geo.O.y + 200*Math.sin(geo.angleB)};
-                geo.P = {x: width*0.2, y: height*0.7}; geo.RayEnd = {x: width*0.7, y: height*0.7};
-                geo.radius1 = 120;
-                geo.C = {x: geo.O.x + geo.radius1*Math.cos(geo.angleA), y: geo.O.y + geo.radius1*Math.sin(geo.angleA)};
-                geo.D = {x: geo.O.x + geo.radius1*Math.cos(geo.angleB), y: geo.O.y + geo.radius1*Math.sin(geo.angleB)};
-                geo.Q = {x: geo.P.x + geo.radius1, y: geo.P.y};
-                geo.radius2 = Math.sqrt(Math.pow(geo.C.x-geo.D.x,2) + Math.pow(geo.C.y-geo.D.y,2));
-                geo.targetAngle = geo.angleA - geo.angleB; // 旋轉差
-                geo.R = {x: geo.P.x + geo.radius1*Math.cos(geo.targetAngle), y: geo.P.y + geo.radius1*Math.sin(geo.targetAngle)};
-            } else if (currentTopic === 'perp_bisect') {
-                let seg = Math.min(width * 0.5, 400);
-                geo.A = { x: width/2 - seg/2, y: height/2 + 50 }; geo.B = { x: width/2 + seg/2, y: height/2 + 50 };
-                geo.radius1 = seg * 0.65; 
-                let midX = (geo.A.x + geo.B.x) / 2; let hDist = Math.sqrt(geo.radius1*geo.radius1 - (seg/2)*(seg/2));
-                geo.C = { x: midX, y: geo.A.y - hDist }; geo.D = { x: midX, y: geo.A.y + hDist };
-            } else if (currentTopic === 'ang_bisect') {
-                geo.O = { x: width * 0.35, y: height / 2 + 50 }; geo.angleA = -Math.PI / 6; geo.angleB = Math.PI / 6; 
-                let sideLength = Math.min(width * 0.4, 300);
-                geo.A = { x: geo.O.x + sideLength*Math.cos(geo.angleA), y: geo.O.y + sideLength*Math.sin(geo.angleA) };
-                geo.B = { x: geo.O.x + sideLength*Math.cos(geo.angleB), y: geo.O.y + sideLength*Math.sin(geo.angleB) };
-                geo.radius1 = sideLength * 0.6; 
-                geo.D = { x: geo.O.x + geo.radius1*Math.cos(geo.angleA), y: geo.O.y + geo.radius1*Math.sin(geo.angleA) };
-                geo.E = { x: geo.O.x + geo.radius1*Math.cos(geo.angleB), y: geo.O.y + geo.radius1*Math.sin(geo.angleB) };
-                geo.radius2 = geo.radius1 * 0.7; 
-                let DE_dist = Math.sqrt(Math.pow(geo.D.x-geo.E.x, 2) + Math.pow(geo.D.y-geo.E.y, 2));
-                let dx = Math.sqrt(geo.radius2*geo.radius2 - Math.pow(DE_dist/2, 2));
-                geo.F = { x: (geo.D.x + geo.E.x)/2 + dx, y: geo.O.y }; 
-            } else if (currentTopic === 'perp_on') {
-                geo.L1 = {x: width*0.1, y: height*0.6}; geo.L2 = {x: width*0.9, y: height*0.6};
-                geo.P = {x: width*0.5, y: height*0.6}; geo.radius1 = width*0.15;
-                geo.A = {x: geo.P.x - geo.radius1, y: geo.P.y}; geo.B = {x: geo.P.x + geo.radius1, y: geo.P.y};
-                geo.radius2 = geo.radius1 * 1.5;
-                geo.C = {x: geo.P.x, y: geo.P.y - Math.sqrt(geo.radius2*geo.radius2 - geo.radius1*geo.radius1)};
-            } else if (currentTopic === 'perp_off') {
-                geo.L1 = {x: width*0.1, y: height*0.6}; geo.L2 = {x: width*0.9, y: height*0.6};
-                geo.P = {x: width*0.5, y: height*0.25}; geo.radius1 = height*0.45;
-                let dx = Math.sqrt(geo.radius1*geo.radius1 - Math.pow(height*0.35, 2));
-                geo.A = {x: geo.P.x - dx, y: geo.L1.y}; geo.B = {x: geo.P.x + dx, y: geo.L1.y};
-                geo.radius2 = dx * 1.5;
-                geo.C = {x: geo.P.x, y: geo.L1.y + Math.sqrt(geo.radius2*geo.radius2 - dx*dx)};
             }
-
             if(!isAnimating) drawStaticState(currentStep);
         }
         window.addEventListener('resize', resizeCanvas);
 
         function selectTopic(topic) {
+            if(topic !== 'copy_seg') { alert('雕琢中，請先體驗「複製線段」的物理修正效果！'); return; }
             currentTopic = topic;
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${topic}`).classList.add('active');
@@ -258,32 +189,79 @@
             ctx.font = "italic bold 18px 'Times New Roman', serif"; ctx.fillStyle = color;
             let ox = 10, oy = -10;
             if(['A','O','P','C','L1','L2'].includes(label)) ox = -20;
-            if(label==='E' || (label==='D' && currentTopic==='perp_bisect') || label==='C' && currentTopic==='perp_off') oy = 25;
-            if(label !== 'L1' && label !== 'L2') ctx.fillText(label, x+ox, y+oy);
+            if(label==='E' || label==='D' || label==='C') oy = 25;
+            ctx.fillText(label, x+ox, y+oy);
         }
-        function drawLine(p1, p2, color = '#333', lw = 2, dash=[]) {
-            ctx.beginPath(); ctx.setLineDash(dash); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
-            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); ctx.setLineDash([]);
+        function drawLine(p1, p2, color = '#333', lw = 2) {
+            ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
         }
         function drawArc(center, radius, sAng, eAng, color = '#aaa', lw = 2, ccw = false) {
             ctx.beginPath(); ctx.arc(center.x, center.y, radius, sAng, eAng, ccw);
             ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
         }
-        function drawCompass(cx, cy, radius, alpha = 1, flip = false) {
+
+        // 【修正重點】符合物理原則的動態圓規繪製
+        function drawCompass(needleX, needleY, radius, pencilAngle, alpha = 1, flip = false) {
             ctx.save(); ctx.globalAlpha = alpha;
-            let dir = flip ? -1 : 1; let hX = cx + 15 * dir; let hY = cy - 120;
-            ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(hX, hY); ctx.lineWidth=4; ctx.strokeStyle='#555'; ctx.stroke(); 
-            let angle = flip ? -Math.PI*2/3 : -Math.PI/3; let tX = cx + radius*Math.cos(angle); let tY = cy + radius*Math.sin(angle);
-            ctx.beginPath(); ctx.moveTo(tX, tY); ctx.lineTo(hX, hY); ctx.lineWidth=4; ctx.strokeStyle='#888'; ctx.stroke(); 
-            ctx.beginPath(); ctx.arc(hX, hY, 6, 0, Math.PI*2); ctx.fillStyle='#f39c12'; ctx.fill(); ctx.stroke(); 
-            ctx.restore();
-        }
-        function drawRuler(p1, p2, alpha = 1) {
-            ctx.save(); ctx.globalAlpha = alpha; let angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-            ctx.translate(p1.x, p1.y); ctx.rotate(angle);
-            ctx.fillStyle = 'rgba(173, 216, 230, 0.6)'; ctx.strokeStyle = '#555'; ctx.lineWidth = 1;
-            ctx.fillRect(-100, 0, 800, 40); ctx.strokeRect(-100, 0, 800, 40);
-            for(let i= -80; i < 700; i+=10) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, i%50===0?15:8); ctx.stroke(); }
+
+            // 1. 防呆：半徑不能超過兩倍腳長 (物理無法張開)
+            let safeRadius = Math.min(radius, COMPASS_LEG_LEN * 2 * 0.99);
+            if(radius < 1) safeRadius = 1; // 避免除以 0
+
+            // 2. 計算轉軸位置 (利用畢氏定理求等腰三角形高度)
+            // 高度 H = sqrt(腳長^2 - (半徑/2)^2)
+            let halfR = safeRadius / 2;
+            let height = Math.sqrt(COMPASS_LEG_LEN * COMPASS_LEG_LEN - halfR * halfR);
+
+            // 3. 確定圓規的基準向量 (從針尖到轉軸的向量)
+            // 我們假設圓規主體通常垂直向上，或者垂直於針尖-筆尖連線。
+            // 這裡採用「垂直於針尖-筆尖連線」並偏向鉛筆方向，看起來較自然。
+            let pencilVector = { 
+                x: safeRadius * Math.cos(pencilAngle), 
+                y: safeRadius * Math.sin(pencilAngle) 
+            };
+            
+            let midPoint = { 
+                x: needleX + pencilVector.x / 2, 
+                y: needleY + pencilVector.y / 2 
+            };
+
+            // 計算單位法向量 (垂直於針尖-筆尖連線並向上)
+            let normalVector = { x: -pencilVector.y / safeRadius, y: pencilVector.x / safeRadius };
+            
+            // 轉軸座標 (基準角度為垂直向上)
+            let hinge = {
+                x: midPoint.x + height * normalVector.x,
+                y: midPoint.y + height * normalVector.y
+            };
+
+            // 真正的筆尖位置 (物理半徑可能與邏輯半徑有微小差異)
+            let realPencilTip = {
+                x: needleX + pencilVector.x,
+                y: needleY + pencilVector.y
+            };
+
+            // 4. 開始繪製
+            // 針尖腳 (黑色)
+            ctx.beginPath();
+            ctx.moveTo(needleX, needleY);
+            ctx.lineTo(hinge.x, hinge.y);
+            ctx.lineWidth = 4; ctx.strokeStyle = '#555'; ctx.stroke(); 
+            
+            // 筆尖腳 (淺灰/橘色)
+            ctx.beginPath();
+            ctx.moveTo(realPencilTip.x, realPencilTip.y);
+            ctx.lineTo(hinge.x, hinge.y);
+            ctx.lineWidth = 4; ctx.strokeStyle = flip ? '#aaa' : '#888'; ctx.stroke(); 
+            
+            // 頂部轉軸 (橘色)
+            ctx.beginPath(); ctx.arc(hinge.x, hinge.y, 6, 0, Math.PI*2);
+            ctx.fillStyle = '#f39c12'; ctx.fill(); ctx.stroke(); 
+
+            // 針尖細節
+            ctx.beginPath(); ctx.arc(needleX, needleY, 2, 0, Math.PI*2); ctx.fillStyle = '#333'; ctx.fill();
+
             ctx.restore();
         }
 
@@ -308,219 +286,86 @@
         function prevStep() { if (isAnimating) cancelAnimationFrame(animationFrameId); isAnimating = false; if (autoPlay) toggleAutoPlay(); if (currentStep > 0) currentStep--; animProgress = 0; updateUI(); drawStaticState(currentStep); }
         function replayStep() { if (isAnimating) cancelAnimationFrame(animationFrameId); if (autoPlay) toggleAutoPlay(); if (currentStep === 0) return; animProgress = 0; isAnimating = true; updateUI(); animate(); }
 
-        // --- 各單元靜態圖 ---
+        // --- 展開重構：複製線段 ---
         function drawStaticState(step) {
             ctx.clearRect(0, 0, width, height);
             
             if (currentTopic === 'copy_seg') {
-                // Step 0: 畫出基礎線段與射線
-                drawLine(geo.A, geo.B, '#333', 3); 
-                drawPoint(geo.A.x, geo.A.y, 'A'); 
-                drawPoint(geo.B.x, geo.B.y, 'B');
-                
-                drawLine(geo.C, geo.RayEnd, '#333', 2); 
-                drawPoint(geo.C.x, geo.C.y, 'C');
+                // Step 0: 給定圖形
+                drawLine(geo.A, geo.B, '#333', 3); drawPoint(geo.A.x, geo.A.y, 'A'); drawPoint(geo.B.x, geo.B.y, 'B');
+                drawLine(geo.C, geo.RayEnd, '#333', 2); drawPoint(geo.C.x, geo.C.y, 'C');
 
-                // Step 1: 在 B 點留下一小段弧線，證明已量取長度
+                // Step 1: 量取記號 (醒目紅弧線)
                 if (step >= 1) { 
-                    // 角度 0 是正右方，畫從上方 (-0.15) 到下方 (0.15) 的短弧
+                    // 在 B 點位置畫短紅弧 (-8.5度 ~ 8.5度)
                     drawArc(geo.A, geo.radius1, -0.15, 0.15, '#e74c3c', 2); 
                 }
-
-                // Step 2: 在射線上畫出交點弧線
+                
+                // Step 2: 複製弧線與交點
                 if (step >= 2) { 
                     drawArc(geo.C, geo.radius1, -0.15, 0.15, '#e67e22', 2); 
                     drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); 
                 }
 
-                // Step 3: 畫出最終完成的複製線段
+                // Step 3: 完成粗紅線段
                 if (step >= 3) {
                     drawLine(geo.C, geo.D, '#c0392b', 4);
                 }
             } 
-            else if (currentTopic === 'copy_ang') {
-                drawLine(geo.O, geo.A, '#333', 3); drawLine(geo.O, geo.B, '#333', 3); drawPoint(geo.O.x, geo.O.y, 'O');
-                drawLine(geo.P, geo.RayEnd, '#333', 2); drawPoint(geo.P.x, geo.P.y, 'P');
-                if (step >= 1) { drawArc(geo.O, geo.radius1, geo.angleA-0.2, geo.angleB+0.2, '#3498db', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad'); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); }
-                if (step >= 2) { drawArc(geo.P, geo.radius1, geo.targetAngle-0.2, 0.2, '#e67e22', 2); drawPoint(geo.Q.x, geo.Q.y, 'Q', '#8e44ad'); }
-                if (step >= 3) { drawLine(geo.C, geo.D, '#888', 1, [5,5]); } // 測量線
-                if (step >= 4) { drawArc(geo.Q, geo.radius2, Math.PI+geo.angleA-0.3, Math.PI+geo.angleA+0.3, '#2ecc71', 2); drawPoint(geo.R.x, geo.R.y, 'R', '#c0392b'); }
-                if (step >= 5) { let extR = {x: geo.P.x+(geo.R.x-geo.P.x)*1.3, y: geo.P.y+(geo.R.y-geo.P.y)*1.3}; drawLine(geo.P, extR, '#c0392b', 3); }
-            } 
-            else if (currentTopic === 'perp_bisect') {
-                drawLine(geo.A, geo.B, '#333', 3); drawPoint(geo.A.x, geo.A.y, 'A'); drawPoint(geo.B.x, geo.B.y, 'B');
-                if (step >= 1) drawArc(geo.A, geo.radius1, -Math.PI/2.5, Math.PI/2.5, '#3498db', 2);
-                if (step >= 2) { drawArc(geo.B, geo.radius1, Math.PI + Math.PI/2.5, Math.PI - Math.PI/2.5, '#e67e22', 2, true); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad'); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); }
-                if (step >= 3) { drawLine({ x: geo.C.x, y: geo.C.y - 50 }, { x: geo.D.x, y: geo.D.y + 50 }, '#2ecc71', 3); }
-                if (step >= 4) { let mX = (geo.A.x+geo.B.x)/2, mY = geo.A.y; ctx.beginPath(); ctx.moveTo(mX, mY-15); ctx.lineTo(mX+15, mY-15); ctx.lineTo(mX+15, mY); ctx.strokeStyle='#c0392b'; ctx.lineWidth=2; ctx.stroke(); }
-            } 
-            else if (currentTopic === 'ang_bisect') {
-                drawLine(geo.O, geo.A, '#333', 3); drawLine(geo.O, geo.B, '#333', 3); drawPoint(geo.O.x, geo.O.y, 'O'); 
-                if (step >= 1) { drawArc(geo.O, geo.radius1, geo.angleA, geo.angleB, '#3498db', 2); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); drawPoint(geo.E.x, geo.E.y, 'E', '#8e44ad'); }
-                if (step >= 2) { let aD = Math.atan2(geo.F.y-geo.D.y, geo.F.x-geo.D.x); drawArc(geo.D, geo.radius2, aD-Math.PI/6, aD+Math.PI/3, '#e67e22', 2); }
-                if (step >= 3) { let aE = Math.atan2(geo.F.y-geo.E.y, geo.F.x-geo.E.x); drawArc(geo.E, geo.radius2, aE+Math.PI/6, aE-Math.PI/3, '#e67e22', 2, true); drawPoint(geo.F.x, geo.F.y, 'F', '#c0392b'); }
-                if (step >= 4) { let extF = {x: geo.O.x+(geo.F.x-geo.O.x)*1.3, y: geo.O.y+(geo.F.y-geo.O.y)*1.3}; drawLine(geo.O, extF, '#2ecc71', 3); }
-            } 
-            else if (currentTopic === 'perp_on') {
-                drawLine(geo.L1, geo.L2, '#333', 3); drawPoint(geo.P.x, geo.P.y, 'P');
-                if (step >= 1) { drawArc(geo.P, geo.radius1, Math.PI, 0, '#3498db', 2); drawPoint(geo.A.x, geo.A.y, 'A', '#8e44ad'); drawPoint(geo.B.x, geo.B.y, 'B', '#8e44ad'); }
-                if (step >= 2) { 
-                    let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x); drawArc(geo.A, geo.radius2, aA-Math.PI/6, aA+Math.PI/6, '#e67e22', 2);
-                    let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x); drawArc(geo.B, geo.radius2, aB+Math.PI/6, aB-Math.PI/6, '#e67e22', 2, true);
-                    drawPoint(geo.C.x, geo.C.y, 'C', '#c0392b');
-                }
-                if (step >= 3) { drawLine({x:geo.C.x, y:geo.C.y-30}, {x:geo.P.x, y:geo.P.y+30}, '#2ecc71', 3); ctx.beginPath(); ctx.moveTo(geo.P.x, geo.P.y-15); ctx.lineTo(geo.P.x+15, geo.P.y-15); ctx.lineTo(geo.P.x+15, geo.P.y); ctx.strokeStyle='#c0392b'; ctx.stroke(); }
-            } 
-            else if (currentTopic === 'perp_off') {
-                drawLine(geo.L1, geo.L2, '#333', 3); drawPoint(geo.P.x, geo.P.y, 'P');
-                if (step >= 1) { drawArc(geo.P, geo.radius1, 0, Math.PI, '#3498db', 2); drawPoint(geo.A.x, geo.A.y, 'A', '#8e44ad'); drawPoint(geo.B.x, geo.B.y, 'B', '#8e44ad'); }
-                if (step >= 2) {
-                    let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x); drawArc(geo.A, geo.radius2, aA-Math.PI/6, aA+Math.PI/6, '#e67e22', 2);
-                    let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x); drawArc(geo.B, geo.radius2, aB+Math.PI/6, aB-Math.PI/6, '#e67e22', 2, true);
-                    drawPoint(geo.C.x, geo.C.y, 'C', '#c0392b');
-                }
-                if (step >= 3) { drawLine({x:geo.P.x, y:geo.P.y-30}, {x:geo.C.x, y:geo.C.y+30}, '#2ecc71', 3); ctx.beginPath(); ctx.moveTo(geo.P.x, geo.L1.y-15); ctx.lineTo(geo.P.x+15, geo.L1.y-15); ctx.lineTo(geo.P.x+15, geo.L1.y); ctx.strokeStyle='#c0392b'; ctx.stroke(); }
-            }
         }
 
-        // --- 各單元動畫 ---
         function animate() {
-            animProgress += 0.004; if (animProgress > 1) animProgress = 1; // 1/4倍速
-            ctx.clearRect(0, 0, width, height); drawStaticState(currentStep - 1);
-
-            let toolAlpha = animProgress < 0.2 ? animProgress*5 : (animProgress > 0.8 ? (1-animProgress)*5 : 1);
+            animProgress += 0.004; // 1/4倍速
+            if (animProgress > 1) animProgress = 1;
+            ctx.clearRect(0, 0, width, height);
+            
+            drawStaticState(currentStep - 1); // 畫出上一步的軌跡
 
             if (currentTopic === 'copy_seg') {
                 
                 if (currentStep === 1) {
-                    // 圓規淡入 -> 畫小弧線證明長度 -> 圓規淡出
+                    // 【物理修正】圓規在 B 點撇紅弧量長度
+                    // 圓規淡入 -> 畫弧 -> 淡出
                     let toolAlpha = animProgress < 0.3 ? animProgress * 3.3 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
                     
                     if (toolAlpha > 0) {
-                        drawCompass(geo.A.x, geo.A.y, geo.radius1, toolAlpha, false);
+                        // 筆尖設定在 B 點的角度 (0度)
+                        drawCompass(geo.A.x, geo.A.y, geo.radius1, 0, toolAlpha, false);
                     }
                     
                     if (animProgress > 0.3) {
-                        // 動態畫出 B 點的測量弧 (從上往下)
+                        // 動態畫出醒目量取紅弧線 (從上方 -0.15 逆時針畫到 0.15)
                         let arcP = Math.min(1, (animProgress - 0.3) / 0.5);
                         let currentArcEnd = -0.15 + (0.3) * arcP; 
                         drawArc(geo.A, geo.radius1, -0.15, currentArcEnd, '#e74c3c', 2);
                     }
 
                 } else if (currentStep === 2) {
-                    // 圓規從 A 飛到 C -> 畫交點弧 -> 圓規淡出
+                    // 【物理修正】圓規飛到 C 點畫橘弧
                     let moveP = Math.min(1, animProgress / 0.3);
                     let currentCx = geo.A.x + (geo.C.x - geo.A.x) * moveP; 
                     let currentCy = geo.A.y + (geo.C.y - geo.A.y) * moveP;
                     
+                    // 量取紅弧要留著 (StaticState已處理)
+
                     let toolAlpha = animProgress < 0.2 ? animProgress * 5 : (animProgress > 0.8 ? (1 - animProgress) * 5 : 1);
                     
                     if (toolAlpha > 0) {
-                        drawCompass(currentCx, currentCy, geo.radius1, toolAlpha, false);
+                        // 筆尖在射線方向的角度 (0度)
+                        drawCompass(currentCx, currentCy, geo.radius1, 0, toolAlpha, false);
                     }
                     
                     if (animProgress > 0.5) {
-                        // 動態畫出 D 點的交會弧 (從上往下)
+                        // 畫橘弧 (C點)
                         let arcP = Math.min(1, (animProgress - 0.5) / 0.3);
                         let currentArcEnd = -0.15 + (0.3) * arcP;
                         drawArc(geo.C, geo.radius1, -0.15, currentArcEnd, '#e67e22', 2);
                     }
                     
-                    if (animProgress > 0.9) {
-                        drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
-                    }
+                    if (animProgress > 0.9) drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad');
 
                 } else if (currentStep === 3) {
-                    // 這裡直接呼叫 drawStaticState(3) 瞬間畫出粗紅線，
-                    // 或由上方共用的 drawStaticState(currentStep) 處理即可
-                    drawStaticState(3);
-                }
-            } else if (currentTopic === 'copy_ang') {
-                if (currentStep === 1) {
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(geo.O.x, geo.O.y); ctx.rotate(geo.angleA); drawCompass(0,0,geo.radius1,toolAlpha,false); ctx.restore(); }
-                    if(animProgress>0.3) drawArc(geo.O, geo.radius1, geo.angleA, geo.angleA+(geo.angleB-geo.angleA)*Math.min(1,(animProgress-0.3)/0.5), '#3498db', 2);
-                    if(animProgress>0.9) { drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad'); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); }
-                } else if (currentStep === 2) {
-                    let cX = geo.O.x + (geo.P.x-geo.O.x)*Math.min(1, animProgress/0.3); let cY = geo.O.y + (geo.P.y-geo.O.y)*Math.min(1, animProgress/0.3);
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(cX, cY); ctx.rotate(geo.targetAngle); drawCompass(0,0,geo.radius1,toolAlpha,false); ctx.restore(); }
-                    if(animProgress>0.5) drawArc(geo.P, geo.radius1, geo.targetAngle, geo.targetAngle+(0-geo.targetAngle)*Math.min(1,(animProgress-0.5)/0.3), '#e67e22', 2);
-                    if(animProgress>0.9) drawPoint(geo.Q.x, geo.Q.y, 'Q', '#8e44ad');
-                } else if (currentStep === 3) {
-                    let a = Math.atan2(geo.D.y-geo.C.y, geo.D.x-geo.C.x);
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(geo.C.x, geo.C.y); ctx.rotate(a); drawCompass(0,0,geo.radius2,toolAlpha,false); ctx.restore(); }
-                } else if (currentStep === 4) {
-                    let a = Math.atan2(geo.D.y-geo.C.y, geo.D.x-geo.C.x);
-                    let cX = geo.C.x + (geo.Q.x-geo.C.x)*Math.min(1, animProgress/0.3); let cY = geo.C.y + (geo.Q.y-geo.C.y)*Math.min(1, animProgress/0.3);
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(cX, cY); ctx.rotate(a); drawCompass(0,0,geo.radius2,toolAlpha,false); ctx.restore(); }
-                    if(animProgress>0.5) drawArc(geo.Q, geo.radius2, Math.PI+geo.angleA-0.3, Math.PI+geo.angleA-0.3 + 0.6*Math.min(1,(animProgress-0.5)/0.3), '#2ecc71', 2);
-                    if(animProgress>0.9) drawPoint(geo.R.x, geo.R.y, 'R', '#c0392b');
-                } else if (currentStep === 5) {
-                    let extR = {x: geo.P.x+(geo.R.x-geo.P.x)*1.3, y: geo.P.y+(geo.R.y-geo.P.y)*1.3};
-                    if(toolAlpha>0) drawRuler(geo.P, extR, toolAlpha);
-                    if(animProgress>0.3) drawLine(geo.P, {x: geo.P.x+(extR.x-geo.P.x)*Math.min(1,(animProgress-0.3)/0.5), y: geo.P.y+(extR.y-geo.P.y)*Math.min(1,(animProgress-0.3)/0.5)}, '#c0392b', 3);
-                }
-
-            } else if (currentTopic === 'perp_bisect') {
-                if (currentStep===1) {
-                    if(toolAlpha>0) drawCompass(geo.A.x, geo.A.y, geo.radius1, toolAlpha, false);
-                    if(animProgress>0.2) drawArc(geo.A, geo.radius1, -Math.PI/2.5, -Math.PI/2.5+(Math.PI/2.5*2)*Math.min(1,(animProgress-0.2)/0.6), '#3498db', 2);
-                } else if (currentStep===2) {
-                    let cX = geo.A.x + (geo.B.x-geo.A.x)*Math.min(1, animProgress/0.3);
-                    if(toolAlpha>0) drawCompass(cX, geo.A.y, geo.radius1, toolAlpha, true);
-                    if(animProgress>0.5) drawArc(geo.B, geo.radius1, Math.PI+Math.PI/2.5, Math.PI+Math.PI/2.5-(Math.PI/2.5*2)*Math.min(1,(animProgress-0.5)/0.4), '#e67e22', 2, true);
-                    if(animProgress>0.9) { drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad'); drawPoint(geo.D.x, geo.D.y, 'D', '#8e44ad'); }
-                } else if (currentStep===3) {
-                    let eC = {x:geo.C.x, y:geo.C.y-50}, eD = {x:geo.D.x, y:geo.D.y+50};
-                    if(toolAlpha>0) drawRuler(eC, eD, toolAlpha);
-                    if(animProgress>0.3) drawLine(eC, {x:eC.x, y:eC.y+(eD.y-eC.y)*Math.min(1,(animProgress-0.3)/0.5)}, '#2ecc71', 3);
-                } else if (currentStep===4) { drawStaticState(4); }
-
-            } else if (currentTopic === 'ang_bisect') {
-                if(currentStep===1) {
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(geo.O.x, geo.O.y); ctx.rotate(geo.angleA); drawCompass(0,0,geo.radius1,toolAlpha,false); ctx.restore(); }
-                    if(animProgress>0.3) drawArc(geo.O, geo.radius1, geo.angleA, geo.angleA+(geo.angleB-geo.angleA)*Math.min(1,(animProgress-0.3)/0.5), '#3498db', 2);
-                    if(animProgress>0.9) { drawPoint(geo.D.x,geo.D.y,'D','#8e44ad'); drawPoint(geo.E.x,geo.E.y,'E','#8e44ad'); }
-                } else if (currentStep===2) {
-                    let cX=geo.O.x+(geo.D.x-geo.O.x)*Math.min(1,animProgress/0.3), cY=geo.O.y+(geo.D.y-geo.O.y)*Math.min(1,animProgress/0.3);
-                    let aD = Math.atan2(geo.F.y-geo.D.y, geo.F.x-geo.D.x);
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(cX, cY); ctx.rotate(aD-Math.PI/6); drawCompass(0,0,geo.radius2,toolAlpha,true); ctx.restore(); }
-                    if(animProgress>0.5) drawArc(geo.D, geo.radius2, aD-Math.PI/6, aD-Math.PI/6+(Math.PI/2)*Math.min(1,(animProgress-0.5)/0.4), '#e67e22', 2);
-                } else if (currentStep===3) {
-                    let cX=geo.D.x+(geo.E.x-geo.D.x)*Math.min(1,animProgress/0.3), cY=geo.D.y+(geo.E.y-geo.D.y)*Math.min(1,animProgress/0.3);
-                    let aE = Math.atan2(geo.F.y-geo.E.y, geo.F.x-geo.E.x);
-                    if(toolAlpha>0) { ctx.save(); ctx.translate(cX, cY); ctx.rotate(aE+Math.PI/6); drawCompass(0,0,geo.radius2,toolAlpha,true); ctx.restore(); }
-                    if(animProgress>0.5) drawArc(geo.E, geo.radius2, aE+Math.PI/6, aE+Math.PI/6-(Math.PI/2)*Math.min(1,(animProgress-0.5)/0.4), '#e67e22', 2, true);
-                    if(animProgress>0.9) drawPoint(geo.F.x, geo.F.y, 'F', '#c0392b');
-                } else if (currentStep===4) {
-                    let eF = {x:geo.O.x+(geo.F.x-geo.O.x)*1.3, y:geo.O.y+(geo.F.y-geo.O.y)*1.3};
-                    if(toolAlpha>0) drawRuler(geo.O, eF, toolAlpha);
-                    if(animProgress>0.3) drawLine(geo.O, {x:geo.O.x+(eF.x-geo.O.x)*Math.min(1,(animProgress-0.3)/0.5), y:geo.O.y+(eF.y-geo.O.y)*Math.min(1,(animProgress-0.3)/0.5)}, '#2ecc71', 3);
-                    if(animProgress>0.8) { drawArc(geo.O, 30, geo.angleA, 0, '#c0392b', 2); drawArc(geo.O, 35, 0, geo.angleB, '#c0392b', 2); }
-                }
-
-            } else if (currentTopic === 'perp_on' || currentTopic === 'perp_off') {
-                if (currentStep === 1) {
-                    if(toolAlpha>0) drawCompass(geo.P.x, geo.P.y, geo.radius1, toolAlpha, false);
-                    if(animProgress>0.3) drawArc(geo.P, geo.radius1, currentTopic==='perp_on'?Math.PI:0, currentTopic==='perp_on'?0:Math.PI, '#3498db', 2);
-                    if(animProgress>0.9) { drawPoint(geo.A.x,geo.A.y,'A','#8e44ad'); drawPoint(geo.B.x,geo.B.y,'B','#8e44ad'); }
-                } else if (currentStep === 2) {
-                    let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x); let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x);
-                    if(toolAlpha>0) {
-                        if(animProgress < 0.5) { ctx.save(); ctx.translate(geo.A.x, geo.A.y); ctx.rotate(aA-Math.PI/6); drawCompass(0,0,geo.radius2,toolAlpha,true); ctx.restore(); }
-                        else { ctx.save(); ctx.translate(geo.B.x, geo.B.y); ctx.rotate(aB+Math.PI/6); drawCompass(0,0,geo.radius2,toolAlpha,true); ctx.restore(); }
-                    }
-                    if(animProgress>0.2 && animProgress<0.5) drawArc(geo.A, geo.radius2, aA-Math.PI/6, aA-Math.PI/6+(Math.PI/3)*Math.min(1,(animProgress-0.2)/0.25), '#e67e22', 2);
-                    if(animProgress>=0.5) {
-                        drawArc(geo.A, geo.radius2, aA-Math.PI/6, aA+Math.PI/6, '#e67e22', 2); // 保持A弧
-                        if(animProgress>0.6) drawArc(geo.B, geo.radius2, aB+Math.PI/6, aB+Math.PI/6-(Math.PI/3)*Math.min(1,(animProgress-0.6)/0.25), '#e67e22', 2, true);
-                    }
-                    if(animProgress>0.9) drawPoint(geo.C.x, geo.C.y, 'C', '#c0392b');
-                } else if (currentStep === 3) {
-                    let p1 = currentTopic==='perp_on' ? {x:geo.C.x, y:geo.C.y-30} : {x:geo.P.x, y:geo.P.y-30};
-                    let p2 = currentTopic==='perp_on' ? {x:geo.P.x, y:geo.P.y+30} : {x:geo.C.x, y:geo.C.y+30};
-                    if(toolAlpha>0) drawRuler(p1, p2, toolAlpha);
-                    if(animProgress>0.3) drawLine(p1, {x:p1.x, y:p1.y+(p2.y-p1.y)*Math.min(1,(animProgress-0.3)/0.5)}, '#2ecc71', 3);
-                    if(animProgress>0.8) { ctx.beginPath(); ctx.moveTo(geo.P.x, geo.L1.y-15); ctx.lineTo(geo.P.x+15, geo.L1.y-15); ctx.lineTo(geo.P.x+15, geo.L1.y); ctx.strokeStyle='#c0392b'; ctx.stroke(); }
+                    drawStaticState(3); // 瞬間畫出粗紅線
                 }
             }
 
