@@ -973,6 +973,140 @@ var jutorDB = {
           "ch": "少有地; 極難得地",
           "sentence": "He visits his family once in a blue moon."
         }
+      ],
+      "Book 2 Unit 3": [
+        {
+          "en": "excuse me",
+          "ch": "抱歉；打擾",
+          "sentence": "Excuse me, could you tell me the way to the station?"
+        },
+        {
+          "en": "take...off",
+          "ch": "休假",
+          "sentence": "I need to take a few days off next month."
+        },
+        {
+          "en": "second",
+          "ch": "第二的",
+          "sentence": "This is the second time I've read this book."
+        },
+        {
+          "en": "third",
+          "ch": "第三的",
+          "sentence": "He lives on the third floor."
+        },
+        {
+          "en": "March",
+          "ch": "三月",
+          "sentence": "Her birthday is in March."
+        },
+        {
+          "en": "holiday",
+          "ch": "假期",
+          "sentence": "We're planning a holiday to the beach."
+        },
+        {
+          "en": "street",
+          "ch": "街道",
+          "sentence": "Our house is on a quiet street."
+        },
+        {
+          "en": "colorful",
+          "ch": "繽紛的",
+          "sentence": "The garden was full of colorful flowers."
+        },
+        {
+          "en": "powder",
+          "ch": "粉末",
+          "sentence": "She used face powder to finish her makeup."
+        },
+        {
+          "en": "call",
+          "ch": "稱...為",
+          "sentence": "They often call him 'professor' because he knows so much."
+        },
+        {
+          "en": "festival",
+          "ch": "節日；節慶",
+          "sentence": "The town holds a music festival every summer."
+        },
+        {
+          "en": "when",
+          "ch": "何時",
+          "sentence": "When will you arrive?"
+        },
+        {
+          "en": "full",
+          "ch": "完整的",
+          "sentence": "The bucket is full of water."
+        },
+        {
+          "en": "date",
+          "ch": "日期",
+          "sentence": "What is today's date?"
+        },
+        {
+          "en": "month",
+          "ch": "月",
+          "sentence": "There are twelve months in a year."
+        },
+        {
+          "en": "January",
+          "ch": "一月",
+          "sentence": "New Year's Day is in January."
+        },
+        {
+          "en": "February",
+          "ch": "二月",
+          "sentence": "February is the shortest month of the year."
+        },
+        {
+          "en": "April",
+          "ch": "四月",
+          "sentence": "April showers bring May flowers."
+        },
+        {
+          "en": "May",
+          "ch": "五月",
+          "sentence": "Her birthday is in May."
+        },
+        {
+          "en": "June",
+          "ch": "六月",
+          "sentence": "School finishes for summer vacation in June."
+        },
+        {
+          "en": "July",
+          "ch": "七月",
+          "sentence": "It's often very hot in July."
+        },
+        {
+          "en": "August",
+          "ch": "八月",
+          "sentence": "Many people go on vacation in August."
+        },
+        {
+          "en": "September",
+          "ch": "九月",
+          "sentence": "The new school year starts in September."
+        },
+        {
+          "en": "October",
+          "ch": "十月",
+          "sentence": "Halloween is celebrated in October."
+        },
+        {
+          "en": "November",
+          "ch": "十一月",
+          "sentence": "Thanksgiving is in November in the United States."
+        }
+      ],
+      "Book 2 Unit 3 (句型)": [
+        {
+          "en": "I get it.",
+          "ch": "我懂了。",
+          "sentence": "I get it."
+        }
       ]
     }
   },
