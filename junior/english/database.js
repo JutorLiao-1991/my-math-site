@@ -1099,6 +1099,91 @@ var jutorDB = {
           "en": "November",
           "ch": "十一月",
           "sentence": "Thanksgiving is in November in the United States."
+        },
+        {
+          "en": "December",
+          "ch": "十二月",
+          "sentence": "Christmas is in December."
+        },
+        {
+          "en": "celebrate",
+          "ch": "慶祝",
+          "sentence": "We will celebrate her birthday next week."
+        },
+        {
+          "en": "for example",
+          "ch": "例如",
+          "sentence": "There are many fruits, for example, apples, bananas, and oranges."
+        },
+        {
+          "en": "each other",
+          "ch": "彼此；互相",
+          "sentence": "They help each other with their homework."
+        },
+        {
+          "en": "other",
+          "ch": "其他的",
+          "sentence": "Do you have any other questions?"
+        },
+        {
+          "en": "large",
+          "ch": "大的",
+          "sentence": "We live in a large house."
+        },
+        {
+          "en": "costume",
+          "ch": "化裝服",
+          "sentence": "She wore a beautiful costume to the party."
+        },
+        {
+          "en": "luck",
+          "ch": "運氣",
+          "sentence": "Good luck with your exam!"
+        },
+        {
+          "en": "1st",
+          "ch": "第一的",
+          "sentence": "He finished first in the race."
+        },
+        {
+          "en": "knock",
+          "ch": "敲",
+          "sentence": "Please knock before you enter."
+        },
+        {
+          "en": "wish",
+          "ch": "祝；希望",
+          "sentence": "I wish you a happy birthday."
+        },
+        {
+          "en": "wash",
+          "ch": "清洗",
+          "sentence": "Don't forget to wash your hands."
+        },
+        {
+          "en": "celebration",
+          "ch": "慶祝活動",
+          "sentence": "We had a big celebration for their anniversary."
+        },
+        {
+          "en": "thing",
+          "ch": "事物；東西",
+          "sentence": "What is that thing on the table?"
+        },
+        {
+          "en": "in common",
+          "ch": "共同",
+          "sentence": "They have a lot in common."
+        },
+        {
+          "en": "mark",
+          "ch": "標示",
+          "sentence": "Please mark your answer on the sheet."
+        },
+        {
+          "en": "start",
+          "ch": "開始",
+          "sentence": "Let's start the meeting now."
         }
       ],
       "Book 2 Unit 3 (句型)": [
