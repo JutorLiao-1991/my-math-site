@@ -1,0 +1,14 @@
+# 忽略 Streamlit 的機密檔案
+.streamlit/secrets.toml
+.streamlit/
+
+# 忽略 Python 產生的暫存檔
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 忽略虛擬環境 (如果有用到的話)
+venv/
+env/
+.env
