@@ -1227,6 +1227,447 @@ var jutorDB = {
           "ch": "她餓了。",
           "sentence": "She's hungry."
         }
+      ],
+      "Book 2 Unit 5": [
+        {
+          "en": "yesterday",
+          "ch": "昨天",
+          "sentence": "I finished my homework yesterday."
+        },
+        {
+          "en": "beach",
+          "ch": "海灘",
+          "sentence": "We went to the beach last summer."
+        },
+        {
+          "en": "trash",
+          "ch": "垃圾",
+          "sentence": "Please take out the trash."
+        },
+        {
+          "en": "ago",
+          "ch": "前; 以前",
+          "sentence": "He left five minutes ago."
+        },
+        {
+          "en": "visit",
+          "ch": "拜訪",
+          "sentence": "I want to visit my grandparents."
+        },
+        {
+          "en": "island",
+          "ch": "島嶼",
+          "sentence": "They live on a beautiful island."
+        },
+        {
+          "en": "a few",
+          "ch": "幾個; 一些",
+          "sentence": "I have a few questions."
+        },
+        {
+          "en": "sea",
+          "ch": "海",
+          "sentence": "The sea is very blue today."
+        },
+        {
+          "en": "stop",
+          "ch": "停止",
+          "sentence": "Please stop talking."
+        },
+        {
+          "en": "happen",
+          "ch": "發生",
+          "sentence": "What happened to your car?"
+        },
+        {
+          "en": "dead",
+          "ch": "死亡的",
+          "sentence": "The plant is dead."
+        },
+        {
+          "en": "warm",
+          "ch": "溫暖的",
+          "sentence": "I like warm weather."
+        },
+        {
+          "en": "rainforest",
+          "ch": "雨林",
+          "sentence": "The Amazon is a large rainforest."
+        },
+        {
+          "en": "die",
+          "ch": "死亡",
+          "sentence": "Many animals die from pollution."
+        },
+        {
+          "en": "by",
+          "ch": "在...旁邊",
+          "sentence": "The book is by the window."
+        },
+        {
+          "en": "then",
+          "ch": "那時候",
+          "sentence": "I was younger then."
+        },
+        {
+          "en": "busy",
+          "ch": "忙碌的",
+          "sentence": "I'm very busy today."
+        },
+        {
+          "en": "river",
+          "ch": "河流",
+          "sentence": "The river flows quickly after the rain."
+        },
+        {
+          "en": "lake",
+          "ch": "湖泊",
+          "sentence": "We rented a boat to explore the lake."
+        },
+        {
+          "en": "hill",
+          "ch": "山丘",
+          "sentence": "The children rolled down the hill."
+        },
+        {
+          "en": "mountain",
+          "ch": "山",
+          "sentence": "They plan to climb a high mountain next summer."
+        },
+        {
+          "en": "camp",
+          "ch": "露營；紮營",
+          "sentence": "We will camp near the river this weekend."
+        },
+        {
+          "en": "climb",
+          "ch": "爬 (山)",
+          "sentence": "It's dangerous to climb this cliff without equipment."
+        },
+        {
+          "en": "row a boat",
+          "ch": "划船",
+          "sentence": "It's relaxing to row a boat on a calm lake."
+        },
+        {
+          "en": "plant",
+          "ch": "種植；植物",
+          "sentence": "She decided to plant some vegetables in her garden."
+        },
+        {
+          "en": "hike",
+          "ch": "健行",
+          "sentence": "We often hike in the local national park."
+        },
+        {
+          "en": "picnic",
+          "ch": "野餐",
+          "sentence": "Let's pack a basket and go for a picnic."
+        },
+        {
+          "en": "last",
+          "ch": "上一個的",
+          "sentence": "I saw him just last night."
+        },
+        {
+          "en": "live",
+          "ch": "居住",
+          "sentence": "She lives in a small apartment downtown."
+        },
+        {
+          "en": "playground",
+          "ch": "遊樂場；操場",
+          "sentence": "The children love playing at the playground."
+        },
+        {
+          "en": "everything",
+          "ch": "每樣事物",
+          "sentence": "Everything I own is in this box."
+        },
+        {
+          "en": "change",
+          "ch": "改變",
+          "sentence": "It's never too late to change your life."
+        },
+        {
+          "en": "burn",
+          "ch": "燃燒",
+          "sentence": "Be careful, the hot pan will burn your hand."
+        },
+        {
+          "en": "oil",
+          "ch": "油",
+          "sentence": "This salad dressing is made with olive oil."
+        },
+        {
+          "en": "sell",
+          "ch": "賣",
+          "sentence": "They decided to sell their old car."
+        },
+        {
+          "en": "make money",
+          "ch": "賺錢",
+          "sentence": "He works hard to make money for his family."
+        },
+        {
+          "en": "miss",
+          "ch": "想念",
+          "sentence": "I really miss my friends when I'm away."
+        },
+        {
+          "en": "little",
+          "ch": "小的",
+          "sentence": "There's a little dog sleeping on the sofa."
+        },
+        {
+          "en": "little by little",
+          "ch": "一點一點地；逐漸地",
+          "sentence": "Little by little, she learned to play the piano."
+        },
+        {
+          "en": "way",
+          "ch": "方式",
+          "sentence": "Is there a better way to solve this problem?"
+        },
+        {
+          "en": "coral reef",
+          "ch": "珊瑚礁",
+          "sentence": "Divers can explore the colorful coral reef."
+        },
+        {
+          "en": "palm",
+          "ch": "棕櫚",
+          "sentence": "Palm trees are common in tropical areas."
+        },
+        {
+          "en": "company",
+          "ch": "公司",
+          "sentence": "He started his own company after college."
+        },
+        {
+          "en": "village",
+          "ch": "村莊",
+          "sentence": "The old village is known for its beautiful scenery."
+        },
+        {
+          "en": "adult",
+          "ch": "成人",
+          "sentence": "Children must be accompanied by an adult."
+        }
+      ],
+      "Book 2 Unit 5 (句型)": [
+        {
+          "en": "How come?",
+          "ch": "怎麼會? / 為什麼?",
+          "sentence": "How come you're not coming to the party?"
+        }
+      ],
+      "Book 2 Unit 6": [
+        {
+          "en": "airport",
+          "ch": "機場",
+          "sentence": "I will meet you at the airport."
+        },
+        {
+          "en": "travel",
+          "ch": "旅行; 行進",
+          "sentence": "They love to travel to different countries."
+        },
+        {
+          "en": "rest",
+          "ch": "休息",
+          "sentence": "You should take a rest after your long walk."
+        },
+        {
+          "en": "hotel",
+          "ch": "飯店",
+          "sentence": "We booked a nice hotel for our vacation."
+        },
+        {
+          "en": "plane",
+          "ch": "飛機",
+          "sentence": "We are taking a plane to Paris next week."
+        },
+        {
+          "en": "the sights",
+          "ch": "風景; 名勝",
+          "sentence": "We spent the day seeing the sights of the city."
+        },
+        {
+          "en": "bookstore",
+          "ch": "書店",
+          "sentence": "I bought a new novel at the bookstore."
+        },
+        {
+          "en": "buy",
+          "ch": "購買",
+          "sentence": "I need to buy some milk from the supermarket."
+        },
+        {
+          "en": "just",
+          "ch": "剛才; 就; 只",
+          "sentence": "I just arrived home from work."
+        },
+        {
+          "en": "learn",
+          "ch": "學習",
+          "sentence": "She wants to learn how to play the piano."
+        },
+        {
+          "en": "story",
+          "ch": "故事",
+          "sentence": "Tell me a story about your adventure."
+        },
+        {
+          "en": "cool",
+          "ch": "酷的",
+          "sentence": "That's a really cool gadget!"
+        },
+        {
+          "en": "train",
+          "ch": "火車",
+          "sentence": "We took the train to the capital city."
+        },
+        {
+          "en": "cold",
+          "ch": "冷的",
+          "sentence": "It's very cold outside, so wear a coat."
+        },
+        {
+          "en": "try",
+          "ch": "嘗試",
+          "sentence": "Please try to be on time tomorrow."
+        },
+        {
+          "en": "way",
+          "ch": "距離; 路線",
+          "sentence": "Could you tell me the way to the post office?"
+        },
+        {
+          "en": "take",
+          "ch": "帶; 拿; 取",
+          "sentence": "Don't forget to take your keys with you."
+        },
+        {
+          "en": "the other day",
+          "ch": "前幾天",
+          "sentence": "I saw him at the mall the other day."
+        },
+        {
+          "en": "station",
+          "ch": "車站; 局",
+          "sentence": "The train will arrive at the station in five minutes."
+        },
+        {
+          "en": "department store",
+          "ch": "百貨公司",
+          "sentence": "Let's go shopping at the department store."
+        },
+        {
+          "en": "restaurant",
+          "ch": "餐廳",
+          "sentence": "We had dinner at an Italian restaurant."
+        },
+        {
+          "en": "theater",
+          "ch": "電影院",
+          "sentence": "They went to the theater to watch a play."
+        },
+        {
+          "en": "market",
+          "ch": "市場",
+          "sentence": "I buy fresh fruits and vegetables at the market."
+        },
+        {
+          "en": "temple",
+          "ch": "寺廟",
+          "sentence": "There is an ancient temple on top of the hill."
+        },
+        {
+          "en": "famous",
+          "ch": "有名的",
+          "sentence": "This city is famous for its delicious food."
+        },
+        {
+          "en": "during",
+          "ch": "在...期間",
+          "sentence": "He slept during the entire movie."
+        },
+        {
+          "en": "besides",
+          "ch": "除...之外",
+          "sentence": "Besides me, there was no one else there."
+        },
+        {
+          "en": "fall in love",
+          "ch": "陷入情網",
+          "sentence": "They fell in love at first sight."
+        },
+        {
+          "en": "age",
+          "ch": "年紀",
+          "sentence": "What is your age?"
+        },
+        {
+          "en": "lose",
+          "ch": "失去",
+          "sentence": "Don't lose your way in the forest."
+        },
+        {
+          "en": "cry",
+          "ch": "哭泣",
+          "sentence": "The baby started to cry."
+        },
+        {
+          "en": "hide",
+          "ch": "躲藏",
+          "sentence": "Let's play hide-and-seek."
+        },
+        {
+          "en": "build",
+          "ch": "建造",
+          "sentence": "They plan to build a new house."
+        },
+        {
+          "en": "trip",
+          "ch": "旅行; 行程",
+          "sentence": "We are planning a trip to Japan."
+        },
+        {
+          "en": "sadly",
+          "ch": "令人傷心地",
+          "sentence": "Sadly, the project was canceled."
+        },
+        {
+          "en": "last",
+          "ch": "持續",
+          "sentence": "The movie will last for two hours."
+        },
+        {
+          "en": "building",
+          "ch": "建築物",
+          "sentence": "That is the tallest building in the city."
+        },
+        {
+          "en": "flea",
+          "ch": "跳蚤",
+          "sentence": "My dog has a flea problem."
+        },
+        {
+          "en": "golden",
+          "ch": "金黃色的",
+          "sentence": "She has beautiful golden hair."
+        },
+        {
+          "en": "well known",
+          "ch": "著名的",
+          "sentence": "He is a well known artist."
+        },
+        {
+          "en": "forever",
+          "ch": "永遠",
+          "sentence": "I will love you forever."
+        }
       ]
     },
     "南一版": {
