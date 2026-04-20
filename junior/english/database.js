@@ -774,6 +774,459 @@ var jutorDB = {
           "ch": "我沒辦法。 / 我控制不了。",
           "sentence": "I can't help it."
         }
+      ],
+      "Book 2 Unit 3": [
+        {
+          "en": "painting",
+          "ch": "畫作",
+          "sentence": "She bought a beautiful painting for her living room."
+        },
+        {
+          "en": "flower",
+          "ch": "花",
+          "sentence": "The garden is full of colorful flowers."
+        },
+        {
+          "en": "which",
+          "ch": "哪一個",
+          "sentence": "Which color do you prefer, red or blue?"
+        },
+        {
+          "en": "thirsty",
+          "ch": "口渴的",
+          "sentence": "After the run, I was very thirsty."
+        },
+        {
+          "en": "coffee",
+          "ch": "咖啡",
+          "sentence": "I usually drink a cup of coffee in the morning."
+        },
+        {
+          "en": "shop",
+          "ch": "商店",
+          "sentence": "I need to go to the shop to buy milk."
+        },
+        {
+          "en": "later",
+          "ch": "稍後; 晚點",
+          "sentence": "I'll see you later this afternoon."
+        },
+        {
+          "en": "Of course.",
+          "ch": "當然。",
+          "sentence": "Can you help me with this? Of course."
+        },
+        {
+          "en": "clerk",
+          "ch": "店員",
+          "sentence": "The shop clerk was very helpful."
+        },
+        {
+          "en": "may",
+          "ch": "可以; 可能",
+          "sentence": "May I borrow your pen?"
+        },
+        {
+          "en": "juice",
+          "ch": "果汁",
+          "sentence": "My favorite juice is apple juice."
+        },
+        {
+          "en": "want",
+          "ch": "想要",
+          "sentence": "I want to learn English."
+        },
+        {
+          "en": "anything",
+          "ch": "任何事物",
+          "sentence": "Is there anything I can do to help?"
+        },
+        {
+          "en": "else",
+          "ch": "其他",
+          "sentence": "Who else is coming to the party?"
+        },
+        {
+          "en": "treat",
+          "ch": "請客; 款待",
+          "sentence": "It's my treat today."
+        },
+        {
+          "en": "sweet",
+          "ch": "甜美的; 甜的",
+          "sentence": "These grapes are very sweet."
+        },
+        {
+          "en": "hot",
+          "ch": "熱的",
+          "sentence": "The weather is very hot today."
+        },
+        {
+          "en": "chocolate",
+          "ch": "巧克力",
+          "sentence": "She loves to eat chocolate ice cream."
+        },
+        {
+          "en": "dollar",
+          "ch": "元",
+          "sentence": "How many dollars do you have?"
+        },
+        {
+          "en": "for here",
+          "ch": "內用",
+          "sentence": "Is this coffee for here or to go?"
+        },
+        {
+          "en": "to go",
+          "ch": "外帶",
+          "sentence": "I'd like a burger to go, please."
+        },
+        {
+          "en": "bright",
+          "ch": "鮮豔的; 明亮的",
+          "sentence": "The sun is very bright today."
+        },
+        {
+          "en": "dark",
+          "ch": "黑的; 暗的",
+          "sentence": "It gets dark early in winter."
+        },
+        {
+          "en": "art",
+          "ch": "美術; 藝術",
+          "sentence": "She loves visiting art museums."
+        },
+        {
+          "en": "milk",
+          "ch": "牛奶",
+          "sentence": "Would you like some milk with your cookies?"
+        },
+        {
+          "en": "hamburger",
+          "ch": "漢堡",
+          "sentence": "I want to eat a hamburger for lunch."
+        },
+        {
+          "en": "chicken rice",
+          "ch": "雞肉飯",
+          "sentence": "Chicken rice is a popular dish in Singapore."
+        },
+        {
+          "en": "tea",
+          "ch": "茶",
+          "sentence": "I drink a cup of hot tea every morning."
+        },
+        {
+          "en": "ice cream",
+          "ch": "冰淇淋",
+          "sentence": "My favorite dessert is chocolate ice cream."
+        },
+        {
+          "en": "soup",
+          "ch": "湯",
+          "sentence": "This hot soup is perfect for a cold day."
+        },
+        {
+          "en": "sandwich",
+          "ch": "三明治",
+          "sentence": "He packed a ham sandwich for his lunch."
+        },
+        {
+          "en": "work",
+          "ch": "作品",
+          "sentence": "This painting is a beautiful work of art."
+        },
+        {
+          "en": "show",
+          "ch": "表現; 秀出",
+          "sentence": "They will show their new products at the exhibition."
+        },
+        {
+          "en": "part",
+          "ch": "部分",
+          "sentence": "This is only a small part of the problem."
+        },
+        {
+          "en": "sky",
+          "ch": "天空",
+          "sentence": "The sky is clear and blue today."
+        },
+        {
+          "en": "street",
+          "ch": "街道",
+          "sentence": "Be careful when crossing the street."
+        },
+        {
+          "en": "by",
+          "ch": "被; 由",
+          "sentence": "The book was written by a famous author."
+        },
+        {
+          "en": "nearby",
+          "ch": "附近",
+          "sentence": "Is there a convenience store nearby?"
+        },
+        {
+          "en": "create",
+          "ch": "創造",
+          "sentence": "Artists create beautiful masterpieces."
+        },
+        {
+          "en": "balance",
+          "ch": "平衡",
+          "sentence": "He lost his balance and fell down."
+        }
+      ],
+      "Book 2 Unit 3 (句型)": [
+        {
+          "en": "Here you are.",
+          "ch": "給你。",
+          "sentence": "Here you are."
+        }
+      ],
+      "Book 2 Unit 4": [
+        {
+          "en": "why",
+          "ch": "為什麼",
+          "sentence": "I wonder why he left."
+        },
+        {
+          "en": "wear",
+          "ch": "戴; 穿",
+          "sentence": "I wear a blue shirt."
+        },
+        {
+          "en": "mask",
+          "ch": "口罩; 面具",
+          "sentence": "He put on a mask."
+        },
+        {
+          "en": "because",
+          "ch": "因為",
+          "sentence": "I am happy because it's sunny."
+        },
+        {
+          "en": "sick",
+          "ch": "生病的",
+          "sentence": "She felt sick after eating too much."
+        },
+        {
+          "en": "water",
+          "ch": "水",
+          "sentence": "Please drink more water."
+        },
+        {
+          "en": "glass",
+          "ch": "玻璃杯; 玻璃",
+          "sentence": "He poured milk into a glass."
+        },
+        {
+          "en": "flour",
+          "ch": "麵粉",
+          "sentence": "We need flour to bake bread."
+        },
+        {
+          "en": "need",
+          "ch": "需要; 需求",
+          "sentence": "I need to go home."
+        },
+        {
+          "en": "pie",
+          "ch": "派",
+          "sentence": "My grandma bakes delicious apple pies."
+        },
+        {
+          "en": "still",
+          "ch": "仍然",
+          "sentence": "It is still raining outside."
+        },
+        {
+          "en": "thing",
+          "ch": "東西; 事情",
+          "sentence": "What is that thing?"
+        },
+        {
+          "en": "a little",
+          "ch": "一點點",
+          "sentence": "Can I have a little more water?"
+        },
+        {
+          "en": "salt",
+          "ch": "鹽",
+          "sentence": "Please pass the salt."
+        },
+        {
+          "en": "something",
+          "ch": "某物; 某事",
+          "sentence": "I want something sweet."
+        },
+        {
+          "en": "sugar",
+          "ch": "糖",
+          "sentence": "This coffee needs more sugar."
+        },
+        {
+          "en": "get",
+          "ch": "取得",
+          "sentence": "I need to get some sleep."
+        },
+        {
+          "en": "all right",
+          "ch": "好的; 好吧",
+          "sentence": "Everything will be all right."
+        },
+        {
+          "en": "so",
+          "ch": "所以",
+          "sentence": "I am hungry, so I will eat."
+        },
+        {
+          "en": "back off",
+          "ch": "退後; 走開",
+          "sentence": "Back off, please."
+        },
+        {
+          "en": "meal",
+          "ch": "餐",
+          "sentence": "Let's have a meal together."
+        },
+        {
+          "en": "bottle",
+          "ch": "瓶子",
+          "sentence": "He drank a whole bottle of water."
+        },
+        {
+          "en": "candy",
+          "ch": "糖果",
+          "sentence": "Children love candy."
+        },
+        {
+          "en": "popcorn",
+          "ch": "爆米花",
+          "sentence": "We ate popcorn at the movie."
+        },
+        {
+          "en": "cup",
+          "ch": "杯",
+          "sentence": "She poured tea into the cup."
+        },
+        {
+          "en": "bowl",
+          "ch": "碗",
+          "sentence": "He ate a bowl of soup."
+        },
+        {
+          "en": "fruit salad",
+          "ch": "水果沙拉",
+          "sentence": "I like fruit salad for dessert."
+        },
+        {
+          "en": "pizza",
+          "ch": "披薩",
+          "sentence": "Let's order a pizza tonight."
+        },
+        {
+          "en": "milkshake",
+          "ch": "奶昔",
+          "sentence": "I bought a chocolate milkshake."
+        },
+        {
+          "en": "can",
+          "ch": "罐子",
+          "sentence": "Do you have a can of soda?"
+        },
+        {
+          "en": "toast",
+          "ch": "烤吐司; 烘烤",
+          "sentence": "I had toast for breakfast."
+        },
+        {
+          "en": "bread",
+          "ch": "麵包",
+          "sentence": "She bought a loaf of bread."
+        },
+        {
+          "en": "yummy",
+          "ch": "好吃的",
+          "sentence": "This cake is yummy."
+        },
+        {
+          "en": "easy",
+          "ch": "容易的",
+          "sentence": "Learning English is not always easy."
+        },
+        {
+          "en": "snack",
+          "ch": "點心",
+          "sentence": "I usually have a snack in the afternoon."
+        },
+        {
+          "en": "kid",
+          "ch": "小孩",
+          "sentence": "The kid is playing in the park."
+        },
+        {
+          "en": "cheese",
+          "ch": "乳酪",
+          "sentence": "Do you want some cheese with your pasta?"
+        },
+        {
+          "en": "plate",
+          "ch": "盤子",
+          "sentence": "Put the dishes on the plate."
+        },
+        {
+          "en": "last",
+          "ch": "最後(的)",
+          "sentence": "This is the last piece of cake."
+        },
+        {
+          "en": "enjoy",
+          "ch": "享受; 喜愛",
+          "sentence": "I enjoy reading books."
+        },
+        {
+          "en": "turn into",
+          "ch": "(使)變成",
+          "sentence": "The caterpillar will turn into a butterfly."
+        },
+        {
+          "en": "each",
+          "ch": "每一個(的)",
+          "sentence": "Each student received a prize."
+        },
+        {
+          "en": "tub",
+          "ch": "桶",
+          "sentence": "The baby is taking a bath in the tub."
+        },
+        {
+          "en": "slice",
+          "ch": "片",
+          "sentence": "Can I have a slice of pizza?"
+        },
+        {
+          "en": "spread",
+          "ch": "抹醬",
+          "sentence": "I like peanut butter spread on my toast."
+        },
+        {
+          "en": "mix",
+          "ch": "混合; 拌和",
+          "sentence": "Mix all the ingredients well."
+        }
+      ],
+      "Book 2 Unit 4 (句型)": [
+        {
+          "en": "Why is the baby crying?",
+          "ch": "那個寶寶為什麼在哭？",
+          "sentence": "Why is the baby crying?"
+        },
+        {
+          "en": "She's hungry.",
+          "ch": "她餓了。",
+          "sentence": "She's hungry."
+        }
       ]
     },
     "南一版": {
