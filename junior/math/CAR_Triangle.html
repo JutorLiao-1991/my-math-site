@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：全等三角形作圖探究 (完美重構版)</title>
+    <title>鳩特數理：全等三角形作圖探究 (終極完美版)</title>
     
     <script>
         window.MathJax = {
@@ -143,7 +143,7 @@
                 { title: "步驟 0：已知條件", desc: "給定三個線段 $a, b, c$。目標：作一 $\\triangle ABC$，使其三邊長等於此三線段。" },
                 { title: "步驟 1：複製底邊", desc: "畫一射線，量取已知線段 $c$ 的長度，在射線上畫弧交於點 $B$，得出 $\\overline{AB} = c$。" },
                 { title: "步驟 2：畫出 a 邊的軌跡", desc: "量取已知線段 $a$ 的長度，以 $B$ 為圓心畫弧。" },
-                { title: "步驟 3：畫出 b 邊的軌跡", desc: "量取已知線段 $b$ 的長度，以 $A$ 為圓心畫弧，確保與前一道弧交於 $C$ 點。" },
+                { title: "步驟 3：畫出 b 邊的軌跡", desc: "量取已知線段 $b$ 的長度，以 $A$ 為圓心畫弧，與前一道弧交於 $C$ 點。" },
                 { title: "步驟 4：完成 SSS 作圖", desc: "連接 $\\overline{AC}$ 與 $\\overline{BC}$，$\\triangle ABC$ 即為所求。" }
             ],
             'SAS': [
@@ -156,8 +156,8 @@
             'ASA': [
                 { title: "步驟 0：已知條件", desc: "給定兩個角 $\\angle A, \\angle B$ 以及它們的夾邊 $c$。" },
                 { title: "步驟 1：複製夾邊", desc: "畫一射線，量取已知線段 $c$ 的長度，複製得 $\\overline{AB} = c$。" },
-                { title: "步驟 2：複製 $\\angle A$", desc: "以 $A$ 為頂點，進行完整尺規作圖複製已知角 $\\angle A$，畫出第一條射線。" },
-                { title: "步驟 3：複製 $\\angle B$", desc: "以 $B$ 為頂點，在同側複製已知角 $\\angle B$，畫出第二條射線。" },
+                { title: "步驟 2：複製 $\\angle A$", desc: "以 $A$ 為頂點，複製已知角 $\\angle A$，畫出第一條射線。" },
+                { title: "步驟 3：複製 $\\angle B$", desc: "以 $B$ 為頂點，在同側複製已知角 $\\angle B$，畫出第二條交會射線。" },
                 { title: "步驟 4：完成 ASA 作圖", desc: "兩射線自然交於 $C$ 點，$\\triangle ABC$ 即為所求。" }
             ],
             'AAS': [
@@ -170,7 +170,7 @@
             ],
             'RHS': [
                 { title: "步驟 0：已知條件", desc: "給定一直角三角形的斜邊 $c$ 與一股 $a$。" },
-                { title: "步驟 1：製作直角", desc: "畫一射線並取點 $B$，利用「中垂線作圖」的原理，畫出過 $B$ 點的精準垂線以確保 $\\angle B = 90^\\circ$。" },
+                { title: "步驟 1：製作直角", desc: "畫一射線並取點 $B$，利用「過線上一點作垂線」的原理，畫出過 $B$ 點的精準垂線以確保 $\\angle B = 90^\\circ$。" },
                 { title: "步驟 2：複製股長", desc: "量取已知線段 $a$ 的長度，以 $B$ 為圓心，在垂線上畫弧交於 $C$ 點。" },
                 { title: "步驟 3：利用斜邊交會", desc: "量取已知斜邊 $c$ 的長度，以 $C$ 點為圓心往底邊畫弧，確保弧線與底線形成交叉，交點即為 $A$。" },
                 { title: "步驟 4：完成 RHS 作圖", desc: "連接 $\\overline{AC}$，$\\triangle ABC$ 即為所求。" }
@@ -187,7 +187,8 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        // --- 核心幾何設定引擎 ---
+        function makeGivenSeg(x, y, len) { return { p1: {x, y}, p2: {x+len, y}, len: len }; }
+
         function setupGeometry() {
             geo.gBox = { x: 20, y: 20, w: width - 40, h: 120 };
             geo.gCenterY = geo.gBox.y + geo.gBox.h / 2;
@@ -196,9 +197,9 @@
 
             if (currentTopic === 'SSS') {
                 geo.given = {
-                    c: { p1: {x: width*0.1, y: geo.gCenterY}, p2: {x: width*0.35, y: geo.gCenterY}, len: width*0.25 },
-                    a: { p1: {x: width*0.45, y: geo.gCenterY}, p2: {x: width*0.65, y: geo.gCenterY}, len: width*0.2 },
-                    b: { p1: {x: width*0.75, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.15 }
+                    c: makeGivenSeg(width*0.1, geo.gCenterY, width*0.25),
+                    a: makeGivenSeg(width*0.45, geo.gCenterY, width*0.2),
+                    b: makeGivenSeg(width*0.75, geo.gCenterY, width*0.15)
                 };
                 geo.A = { x: geo.baseX, y: geo.baseY }; geo.B = { x: geo.baseX + geo.given.c.len, y: geo.baseY };
                 let c = geo.given.c.len, a = geo.given.a.len, b = geo.given.b.len;
@@ -207,9 +208,9 @@
             } 
             else if (currentTopic === 'SAS') {
                 geo.given = {
-                    c: { p1: {x: width*0.1, y: geo.gCenterY}, p2: {x: width*0.35, y: geo.gCenterY}, len: width*0.25 },
+                    c: makeGivenSeg(width*0.1, geo.gCenterY, width*0.25),
                     angA: { O: {x: width*0.45, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/4, r: 40 },
-                    b: { p1: {x: width*0.7, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.2 }
+                    b: makeGivenSeg(width*0.7, geo.gCenterY, width*0.2)
                 };
                 geo.A = { x: geo.baseX, y: geo.baseY }; geo.B = { x: geo.A.x + geo.given.c.len, y: geo.baseY };
                 geo.C = { x: geo.A.x + geo.given.b.len * Math.cos(-Math.PI/4), y: geo.A.y + geo.given.b.len * Math.sin(-Math.PI/4) };
@@ -217,8 +218,8 @@
             else if (currentTopic === 'ASA') {
                 geo.given = {
                     angA: { O: {x: width*0.15, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/4, r: 40 },
-                    c: { p1: {x: width*0.35, y: geo.gCenterY}, p2: {x: width*0.6, y: geo.gCenterY}, len: width*0.25 },
-                    angB: { O: {x: width*0.75, y: geo.gCenterY+20}, a1: Math.PI, a2: Math.PI - Math.PI/3, r: 40 }
+                    c: makeGivenSeg(width*0.35, geo.gCenterY, width*0.25),
+                    angB: { O: {x: width*0.75, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/3, r: 40 }
                 };
                 geo.A = { x: geo.baseX, y: geo.baseY }; geo.B = { x: geo.A.x + geo.given.c.len, y: geo.baseY };
                 let aA = Math.PI/4, aB = Math.PI/3; let c = geo.given.c.len;
@@ -229,20 +230,21 @@
                 geo.given = {
                     angA: { O: {x: width*0.15, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/5, r: 40 },
                     angB: { O: {x: width*0.4, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/3, r: 40 },
-                    a: { p1: {x: width*0.65, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.25 }
+                    a: makeGivenSeg(width*0.65, geo.gCenterY, width*0.25)
                 };
                 geo.aux = { start: {x: width*0.5, y: height*0.4}, end: {x: width*0.9, y: height*0.4}, O: {x: width*0.7, y: height*0.4} };
                 let aA = Math.PI/5, aB = Math.PI/3, aC = Math.PI - aA - aB;
                 geo.B = { x: geo.baseX, y: geo.baseY }; geo.C = { x: geo.B.x + geo.given.a.len, y: geo.baseY };
                 let c = geo.given.a.len * Math.sin(aC) / Math.sin(aA);
                 geo.A = { x: geo.B.x + c * Math.cos(-aB), y: geo.B.y + c * Math.sin(-aB) };
+                geo.aC = aC; // 存下角C大小供作圖用
             }
             else if (currentTopic === 'RHS') {
                 geo.given = {
-                    a: { p1: {x: width*0.2, y: geo.gCenterY}, p2: {x: width*0.4, y: geo.gCenterY}, len: width*0.2 },
-                    c: { p1: {x: width*0.6, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.32 }
+                    a: makeGivenSeg(width*0.2, geo.gCenterY, width*0.2),
+                    c: makeGivenSeg(width*0.6, geo.gCenterY, width*0.3)
                 };
-                geo.B = { x: geo.baseX, y: geo.baseY }; 
+                geo.B = { x: geo.baseX + 20, y: geo.baseY }; // B點稍微右移給垂線作圖空間
                 geo.C = { x: geo.B.x, y: geo.B.y - geo.given.a.len };
                 let b = Math.sqrt(Math.pow(geo.given.c.len, 2) - Math.pow(geo.given.a.len, 2));
                 geo.A = { x: geo.B.x + b, y: geo.B.y };
@@ -301,58 +303,45 @@
             ctx.fillText(label, angData.O.x + 25*Math.cos((angData.a1+angData.a2)/2) - 5, angData.O.y + 25*Math.sin((angData.a1+angData.a2)/2) - 5);
         }
 
-        // --- 分鏡序列引擎 ---
-        function execPhase(phases, progress) {
-            let totalWeights = phases.reduce((a,b)=>a+b, 0); let curr = progress * totalWeights; let accum = 0;
-            for(let i=0; i<phases.length; i++) { if(curr <= accum + phases[i]) return { idx: i, p: (curr - accum) / phases[i] }; accum += phases[i]; }
-            return { idx: phases.length - 1, p: 1 };
-        }
-
-        // --- 共用動畫模組 ---
-        function playSegmentCopy(gP1, gP2, tP1, tAng, radius, label, isFirstStep, progress) {
-            let p = progress; let subP = p;
-            if (isFirstStep) {
-                if (p < 0.2) { drawLine(tP1, {x: tP1.x + geo.rayLen * (p/0.2), y: tP1.y}, '#888', 2); drawPoint(tP1.x, tP1.y, label); return; }
-                else { drawLine(tP1, {x: tP1.x + geo.rayLen, y: tP1.y}, '#888', 2); drawPoint(tP1.x, tP1.y, label); subP = (p - 0.2) / 0.8; }
+        // --- 進度計算工具 ---
+        function getAnimPhase(progress, breaks) {
+            for (let i = 0; i < breaks.length; i++) {
+                if (progress <= breaks[i]) {
+                    let prev = i === 0 ? 0 : breaks[i-1];
+                    return { phase: i, sub: (progress - prev) / (breaks[i] - prev) };
+                }
             }
-            let phases = [1, 2, 2, 2]; let s = execPhase(phases, subP); let idx = s.idx, sub = s.p;
-            if (idx >= 1) drawArc(gP1, radius, -0.3, 0.3, '#e74c3c', 2);
-            if (idx >= 3) drawArc(tP1, radius, tAng-0.3, tAng+0.3, '#3498db', 2);
-
-            let cX, cY, cAng, alpha = 1;
-            if (idx === 0) { cX = tP1.x + (gP1.x - tP1.x)*sub; cY = tP1.y + (gP1.y - tP1.y)*sub; cAng = 0; alpha = sub; }
-            else if (idx === 1) { cX = gP1.x; cY = gP1.y; cAng = -0.3 + 0.6*sub; drawArc(gP1, radius, -0.3, cAng, '#e74c3c', 2); }
-            else if (idx === 2) { cX = gP1.x + (tP1.x - gP1.x)*sub; cY = gP1.y + (tP1.y - gP1.y)*sub; cAng = tAng * sub; }
-            else if (idx === 3) { cX = tP1.x; cY = tP1.y; cAng = tAng - 0.3 + 0.6*sub; drawArc(tP1, radius, tAng-0.3, cAng, '#3498db', 2); }
-            if (alpha > 0) drawCompass(cX, cY, radius, cAng, alpha);
+            return { phase: breaks.length - 1, sub: 1 };
         }
 
-        function playAngleCopy(gO, gA1, gA2, tO, tBaseA, tEndA, r1, p) {
-            let r2 = Math.hypot(r1*Math.cos(gA2)-r1*Math.cos(gA1), r1*Math.sin(gA2)-r1*Math.sin(gA1));
-            let phases = [1, 2, 2, 2, 2, 2, 2, 2, 2]; let s = execPhase(phases, p); let idx = s.idx, sub = s.p;
+        // --- 核心共用動畫：角度複製巨集 ---
+        function drawAngleCopyAnim(gO, gBase, gEnd, tO, tBase, tEnd, r, progress) {
+            let p = getAnimPhase(progress, [0.2, 0.4, 0.6, 0.8, 1.0]);
+            let r2 = Math.hypot(r*Math.cos(gEnd)-r*Math.cos(gBase), r*Math.sin(gEnd)-r*Math.sin(gBase));
+            let gP1 = {x: gO.x+r*Math.cos(gBase), y: gO.y+r*Math.sin(gBase)};
+            let tP1 = {x: tO.x+r*Math.cos(tBase), y: tO.y+r*Math.sin(tBase)};
+            let gChAng = Math.atan2(r*Math.sin(gEnd)-r*Math.sin(gBase), r*Math.cos(gEnd)-r*Math.cos(gBase));
+            let tChAng = Math.atan2(r*Math.sin(tEnd)-r*Math.sin(tBase), r*Math.cos(tEnd)-r*Math.cos(tBase));
 
-            let gP1 = {x: gO.x + r1*Math.cos(gA1), y: gO.y + r1*Math.sin(gA1)}; let gP2 = {x: gO.x + r1*Math.cos(gA2), y: gO.y + r1*Math.sin(gA2)};
-            let tP1 = {x: tO.x + r1*Math.cos(tBaseA), y: tO.y + r1*Math.sin(tBaseA)}; let finalP = {x: tO.x + r1*Math.cos(tEndA), y: tO.y + r1*Math.sin(tEndA)};
-            let chAngG = Math.atan2(gP2.y-gP1.y, gP2.x-gP1.x); let chAngT = Math.atan2(finalP.y-tP1.y, finalP.x-tP1.x);
+            // 保留已畫好的線條
+            if (p.phase >= 1) drawArc(gO, r, gBase, gEnd, '#3498db', 2, gEnd < gBase);
+            let tArcEnd = tBase + (tEnd-tBase)*1.3; // 目標弧畫長一點以便交會
+            if (p.phase >= 2) drawArc(tO, r, tBase, tArcEnd, '#e67e22', 2, tArcEnd < tBase);
+            if (p.phase >= 3) drawArc(gP1, r2, gChAng-0.3, gChAng+0.3, '#e74c3c', 2);
+            if (p.phase >= 4) { drawArc(tP1, r2, tChAng-0.3, tChAng+0.3, '#2ecc71', 2); }
+            if (p.phase === 4 && p.sub > 0) {
+                drawLine(tO, {x: tO.x + geo.rayLen*Math.cos(tEnd)*p.sub, y: tO.y + geo.rayLen*Math.sin(tEnd)*p.sub}, '#888', 2);
+            }
 
-            if (idx >= 2) drawArc(gO, r1, Math.min(gA1, gA2)-0.2, Math.max(gA1, gA2)+0.2, '#3498db', 2);
-            if (idx >= 4) drawArc(tO, r1, Math.min(tBaseA, tEndA)-0.2, Math.max(tBaseA, tEndA)+0.2, '#e67e22', 2);
-            if (idx >= 6) drawArc(gP1, r2, chAngG-0.3, chAngG+0.3, '#e74c3c', 2);
-            if (idx >= 8) drawArc(tP1, r2, chAngT-0.3, chAngT+0.3, '#2ecc71', 2);
-            if (idx === 8 && sub > 0) drawLine(tO, {x: tO.x + (geo.rayLen)*Math.cos(tEndA)*sub, y: tO.y + (geo.rayLen)*Math.sin(tEndA)*sub}, '#888', 2);
+            // 同步圓規與畫弧動畫
+            let cx, cy, cr = r, cang;
+            if (p.phase === 0) { cx = gO.x; cy = gO.y; cang = gBase + (gEnd-gBase)*p.sub; drawArc(gO, r, gBase, cang, '#3498db', 2, gEnd < gBase); }
+            else if (p.phase === 1) { cx = gO.x + (tO.x-gO.x)*p.sub; cy = gO.y + (tO.y-gO.y)*p.sub; cang = tBase; }
+            else if (p.phase === 2) { cx = tO.x; cy = tO.y; cang = tBase + (tArcEnd-tBase)*p.sub; drawArc(tO, r, tBase, cang, '#e67e22', 2, tArcEnd < tBase); }
+            else if (p.phase === 3) { cx = gP1.x; cy = gP1.y; cr = r2; cang = gChAng - 0.3 + 0.6*p.sub; drawArc(gP1, r2, gChAng-0.3, cang, '#e74c3c', 2); }
+            else if (p.phase === 4) { cx = tP1.x; cy = tP1.y; cr = r2; cang = tChAng - 0.3 + 0.6*p.sub; drawArc(tP1, r2, tChAng-0.3, cang, '#2ecc71', 2); }
 
-            let cX, cY, cAng, cR = r1, alpha = 1;
-            if (idx === 0) { cX = geo.baseX + (gO.x - geo.baseX)*sub; cY = geo.baseY + (gO.y - geo.baseY)*sub; cAng = gA1; alpha = sub; }
-            else if (idx === 1) { cX = gO.x; cY = gO.y; cAng = gA1 + (gA2 - gA1) * sub; drawArc(gO, r1, gA1, cAng, '#3498db', 2, (gA2 < gA1)); }
-            else if (idx === 2) { cX = gO.x + (tO.x - gO.x)*sub; cY = gO.y + (tO.y - gO.y)*sub; cAng = tBaseA; }
-            else if (idx === 3) { cX = tO.x; cY = tO.y; let ext = tBaseA + (tEndA - tBaseA)*1.2; cAng = tBaseA + (ext - tBaseA) * sub; drawArc(tO, r1, tBaseA, cAng, '#e67e22', 2, (ext < tBaseA)); }
-            else if (idx === 4) { cX = tO.x + (gP1.x - tO.x)*sub; cY = tO.y + (gP1.y - tO.y)*sub; cR = r1 + (r2 - r1)*sub; cAng = chAngG; }
-            else if (idx === 5) { cX = gP1.x; cY = gP1.y; cR = r2; cAng = (chAngG - 0.3) + 0.6 * sub; drawArc(gP1, r2, chAngG-0.3, cAng, '#e74c3c', 2); }
-            else if (idx === 6) { cX = gP1.x + (tP1.x - gP1.x)*sub; cY = gP1.y + (tP1.y - gP1.y)*sub; cR = r2; cAng = chAngT; }
-            else if (idx === 7) { cX = tP1.x; cY = tP1.y; cR = r2; cAng = (chAngT - 0.3) + 0.6 * sub; drawArc(tP1, r2, chAngT-0.3, cAng, '#2ecc71', 2); }
-            else if (idx === 8) { alpha = 1 - sub; cX = tP1.x; cY = tP1.y; cR = r2; cAng = chAngT + 0.3; }
-
-            if (alpha > 0) drawCompass(cX, cY, cR, cAng, alpha);
+            if (p.phase < 4 || (p.phase === 4 && p.sub < 1)) drawCompass(cx, cy, cr, cang, 1);
         }
 
         // --- UI 控制 ---
@@ -384,40 +373,40 @@
             else if (currentTopic === 'SAS') {
                 drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.b, 'b');
                 if (step >= 1) { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
-                if (step >= 2) { drawArc(geo.A, geo.given.angA.r, -Math.PI/4 - 0.2, 0.2, '#e67e22', 2); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
+                if (step >= 2) { drawArc(geo.A, geo.given.angA.r, 0, -Math.PI/4 - 0.2, '#e67e22', 2, true); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
                 if (step >= 3) { drawArc(geo.A, geo.given.b.len, -Math.PI/4 - 0.3, -Math.PI/4 + 0.3, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -5, -15); }
                 if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
             else if (currentTopic === 'ASA') {
                 drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angB, 'B');
                 if (step >= 1) { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
-                if (step >= 2) { drawArc(geo.A, geo.given.angA.r, -Math.PI/4 - 0.2, 0.2, '#e67e22', 2); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
-                if (step >= 3) { let tEnd = Math.PI - Math.PI/3; drawArc(geo.B, geo.given.angB.r, Math.PI, tEnd, '#e67e22', 2, true); drawLine(geo.B, {x: geo.B.x + geo.rayLen*Math.cos(tEnd), y: geo.B.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
+                if (step >= 2) { drawArc(geo.A, geo.given.angA.r, 0, -Math.PI/4 - 0.2, '#e67e22', 2, true); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
+                if (step >= 3) { let tEnd = Math.PI - Math.PI/3; drawArc(geo.B, geo.given.angB.r, Math.PI, tEnd - 0.2, '#e67e22', 2, true); drawLine(geo.B, {x: geo.B.x + geo.rayLen*Math.cos(tEnd), y: geo.B.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
                 if (step >= 4) { drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -5, -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
             else if (currentTopic === 'AAS') {
                 drawGivenAngle(geo.given.angA, 'A'); drawGivenAngle(geo.given.angB, 'B'); drawGivenSegment(geo.given.a, 'a');
                 if (step >= 1) {
                     let O = geo.aux.O; drawLine(geo.aux.start, geo.aux.end, '#888', 2); drawPoint(O.x, O.y, '');
-                    drawArc(O, 40, -Math.PI, 0, '#ccc', 2); // 上半平角
+                    drawArc(O, 40, -Math.PI, 0, '#ccc', 2); // 上半平角 (-180 到 0)
                     let aA = Math.PI/5, aB = Math.PI/3; let eA = -Math.PI + aA; let eB = eA + aB;
                     drawLine(O, {x: O.x + 50*Math.cos(eA), y: O.y + 50*Math.sin(eA)}, '#3498db', 2);
                     drawLine(O, {x: O.x + 50*Math.cos(eB), y: O.y + 50*Math.sin(eB)}, '#2ecc71', 2);
                     ctx.fillStyle='#3498db'; ctx.fillText('A', O.x + 50*Math.cos(-Math.PI + aA/2), O.y + 50*Math.sin(-Math.PI + aA/2));
                     ctx.fillStyle='#2ecc71'; ctx.fillText('B', O.x + 50*Math.cos(eA + aB/2), O.y + 50*Math.sin(eA + aB/2));
-                    ctx.fillStyle='#e74c3c'; ctx.fillText('C', O.x + 50*Math.cos(eB + (Math.PI-aA-aB)/2), O.y + 50*Math.sin(eB + (Math.PI-aA-aB)/2));
+                    ctx.fillStyle='#e74c3c'; ctx.fillText('C', O.x + 50*Math.cos(eB + geo.aC/2), O.y + 50*Math.sin(eB + geo.aC/2));
                 }
                 if (step >= 2) { drawLine(geo.B, {x: geo.B.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); drawArc(geo.B, geo.given.a.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.C.x, geo.C.y, 'C'); }
-                if (step >= 3) { let tEnd = -Math.PI/3; drawArc(geo.B, geo.given.angB.r, 0, tEnd, '#e67e22', 2, true); drawLine(geo.B, {x: geo.B.x + geo.rayLen*Math.cos(tEnd), y: geo.B.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
-                if (step >= 4) { let tEnd = Math.PI + Math.PI - Math.PI/5 - Math.PI/3; drawArc(geo.C, geo.given.angA.r, Math.PI, tEnd, '#e67e22', 2); drawLine(geo.C, {x: geo.C.x + geo.rayLen*Math.cos(tEnd), y: geo.C.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
+                if (step >= 3) { let tEnd = -Math.PI/3; drawArc(geo.B, geo.given.angB.r, 0, tEnd - 0.2, '#e67e22', 2, true); drawLine(geo.B, {x: geo.B.x + geo.rayLen*Math.cos(tEnd), y: geo.B.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
+                if (step >= 4) { let tEnd = Math.PI - geo.aC; drawArc(geo.C, 40, Math.PI, tEnd - 0.2, '#e67e22', 2, true); drawLine(geo.C, {x: geo.C.x + geo.rayLen*Math.cos(tEnd), y: geo.C.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
                 if (step >= 5) { drawPoint(geo.A.x, geo.A.y, 'A', '#8e44ad', -5, -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
             else if (currentTopic === 'RHS') {
                 drawGivenSegment(geo.given.a, 'a (股)'); drawGivenSegment(geo.given.c, 'c (斜邊)');
                 if (step >= 1) { 
-                    drawLine({x: geo.B.x-40, y: geo.B.y}, {x: geo.B.x + geo.rayLen, y: geo.B.y}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); 
-                    drawArc(geo.B, 50, Math.PI-0.3, Math.PI+0.3, '#3498db', 1); drawArc(geo.B, 50, -0.3, 0.3, '#3498db', 1); // 左右弧
-                    drawArc({x:geo.B.x-50, y:geo.B.y}, 70, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawArc({x:geo.B.x+50, y:geo.B.y}, 70, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); // 上方交會
+                    drawLine({x: geo.B.x-60, y: geo.B.y}, {x: geo.B.x + geo.rayLen, y: geo.B.y}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); 
+                    drawArc(geo.B, 40, Math.PI-0.3, Math.PI+0.3, '#3498db', 1); drawArc(geo.B, 40, -0.3, 0.3, '#3498db', 1); // 左右弧
+                    drawArc({x:geo.B.x-40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawArc({x:geo.B.x+40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); // 上方交會
                     drawLine(geo.B, {x: geo.B.x, y: geo.B.y - width*0.3}, '#888', 2); ctx.strokeRect(geo.B.x, geo.B.y-15, 15, 15);
                 }
                 if (step >= 2) { drawArc(geo.B, geo.given.a.len, -Math.PI/2 - 0.3, -Math.PI/2 + 0.3, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', 10, -5); }
@@ -426,52 +415,118 @@
             }
         }
 
-        // --- 動畫圖層 ---
+        // --- 動畫圖層 (時間軸影格同步) ---
         function animate() {
             animProgress += 0.005; if (animProgress > 1) animProgress = 1; 
             ctx.clearRect(0, 0, width, height); drawStaticState(currentStep - 1);
 
             if (currentTopic === 'SSS') {
-                if (currentStep === 1) playSegmentCopy(geo.given.c.p1, geo.given.c.p2, geo.A, 0, geo.given.c.len, 'A', true, animProgress);
-                else if (currentStep === 2) { let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x); playSegmentCopy(geo.given.a.p1, geo.given.a.p2, geo.B, aB, geo.given.a.len, null, false, animProgress); }
-                else if (currentStep === 3) { let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x); playSegmentCopy(geo.given.b.p1, geo.given.b.p2, geo.A, aA, geo.given.b.len, null, false, animProgress); }
+                if (currentStep === 1) {
+                    let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    if (p.phase === 0) { drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
+                    else {
+                        drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A');
+                        let cx, cy, cang = 0;
+                        if(p.phase===1) { cx = geo.given.c.p1.x + (geo.A.x-geo.given.c.p1.x)*p.sub; cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub; }
+                        else if(p.phase===2) { cx = geo.A.x; cy = geo.baseY; cang = -0.3 + 0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2); }
+                        if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1);
+                    }
+                }
+                else if (currentStep === 2) {
+                    let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x);
+                    let cx = geo.given.a.p1.x + (geo.B.x-geo.given.a.p1.x)*p.sub; let cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub;
+                    if(p.phase===0) drawCompass(cx, cy, geo.given.a.len, aB, 1);
+                    else if(p.phase===1) { drawArc(geo.B, geo.given.a.len, aB-0.3, aB-0.3+0.6*p.sub, '#e67e22', 2); drawCompass(geo.B.x, geo.B.y, geo.given.a.len, aB-0.3+0.6*p.sub, 1); }
+                }
+                else if (currentStep === 3) {
+                    let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x);
+                    let cx = geo.given.b.p1.x + (geo.A.x-geo.given.b.p1.x)*p.sub; let cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub;
+                    if(p.phase===0) drawCompass(cx, cy, geo.given.b.len, aA, 1);
+                    else if(p.phase===1) { drawArc(geo.A, geo.given.b.len, aA-0.3, aA-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.A.x, geo.A.y, geo.given.b.len, aA-0.3+0.6*p.sub, 1); }
+                }
             }
             else if (currentTopic === 'SAS') {
-                if (currentStep === 1) playSegmentCopy(geo.given.c.p1, geo.given.c.p2, geo.A, 0, geo.given.c.len, 'A', true, animProgress);
-                else if (currentStep === 2) playAngleCopy(geo.given.angA.O, geo.given.angA.a1, geo.given.angA.a2, geo.A, 0, -Math.PI/4, geo.given.angA.r, animProgress);
-                else if (currentStep === 3) playSegmentCopy(geo.given.b.p1, geo.given.b.p2, geo.A, -Math.PI/4, geo.given.b.len, null, false, animProgress);
+                if (currentStep === 1) { /* 同 SSS Step 1 */ 
+                    let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    if (p.phase === 0) { drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
+                    else { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); }
+                }
+                else if (currentStep === 2) drawAngleCopyAnim(geo.given.angA.O, 0, -Math.PI/4, geo.A, 0, -Math.PI/4, 40, animProgress);
+                else if (currentStep === 3) {
+                    let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); 
+                    if(p.phase===0) drawCompass(geo.given.b.p1.x+(geo.A.x-geo.given.b.p1.x)*p.sub, geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub, geo.given.b.len, -Math.PI/4, 1);
+                    else if(p.phase===1) { drawArc(geo.A, geo.given.b.len, -Math.PI/4-0.3, -Math.PI/4-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.A.x, geo.A.y, geo.given.b.len, -Math.PI/4-0.3+0.6*p.sub, 1); }
+                }
             }
             else if (currentTopic === 'ASA') {
-                if (currentStep === 1) playSegmentCopy(geo.given.c.p1, geo.given.c.p2, geo.A, 0, geo.given.c.len, 'A', true, animProgress);
-                else if (currentStep === 2) playAngleCopy(geo.given.angA.O, geo.given.angA.a1, geo.given.angA.a2, geo.A, 0, -Math.PI/4, geo.given.angA.r, animProgress);
-                else if (currentStep === 3) playAngleCopy(geo.given.angB.O, geo.given.angB.a1, geo.given.angB.a2, geo.B, Math.PI, Math.PI - Math.PI/3, geo.given.angB.r, animProgress);
+                if (currentStep === 1) { /* 同上 */
+                    let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    if(p.phase === 0){ drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
+                    else { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); }
+                }
+                else if (currentStep === 2) drawAngleCopyAnim(geo.given.angA.O, 0, -Math.PI/4, geo.A, 0, -Math.PI/4, 40, animProgress);
+                else if (currentStep === 3) drawAngleCopyAnim(geo.given.angB.O, 0, -Math.PI/3, geo.B, Math.PI, Math.PI - Math.PI/3, 40, animProgress);
             }
             else if (currentTopic === 'AAS') {
                 if (currentStep === 1) {
-                    let s = execPhase([1, 2, 2, 2], animProgress); let idx = s.idx, sub = s.p;
-                    let O = geo.aux.O; drawLine(geo.aux.start, geo.aux.end, '#888', 2); drawPoint(O.x, O.y, '');
-                    if(idx >= 0) drawArc(O, 40, -Math.PI, -Math.PI + Math.PI*sub, '#ccc', 2);
+                    let p = getAnimPhase(animProgress, [0.2, 0.4, 0.6, 1.0]); let O = geo.aux.O;
+                    drawLine(geo.aux.start, geo.aux.end, '#888', 2); drawPoint(O.x, O.y, '');
                     let aA = Math.PI/5, aB = Math.PI/3; let eA = -Math.PI + aA; let eB = eA + aB;
-                    if(idx >= 1) { drawLine(O, {x: O.x + 50*Math.cos(eA)*sub, y: O.y + 50*Math.sin(eA)*sub}, '#3498db', 2); }
-                    if(idx >= 2) { drawLine(O, {x: O.x + 50*Math.cos(eA), y: O.y + 50*Math.sin(eA)}, '#3498db', 2); drawLine(O, {x: O.x + 50*Math.cos(eB)*sub, y: O.y + 50*Math.sin(eB)*sub}, '#2ecc71', 2); ctx.fillStyle='#3498db'; ctx.fillText('A', O.x + 50*Math.cos(-Math.PI + aA/2), O.y + 50*Math.sin(-Math.PI + aA/2)); }
-                    if(idx >= 3) { drawLine(O, {x: O.x + 50*Math.cos(eB), y: O.y + 50*Math.sin(eB)}, '#2ecc71', 2); ctx.fillStyle='#2ecc71'; ctx.fillText('B', O.x + 50*Math.cos(eA + aB/2), O.y + 50*Math.sin(eA + aB/2)); ctx.fillStyle='#e74c3c'; ctx.fillText('C', O.x + 50*Math.cos(eB + (Math.PI-aA-aB)/2)*sub, O.y + 50*Math.sin(eB + (Math.PI-aA-aB)/2)*sub); }
+                    if(p.phase >= 1) { drawArc(O, 40, -Math.PI, 0, '#ccc', 2); drawLine(O, {x: O.x + 50*Math.cos(eA), y: O.y + 50*Math.sin(eA)}, '#3498db', 2); }
+                    if(p.phase >= 2) { drawLine(O, {x: O.x + 50*Math.cos(eB), y: O.y + 50*Math.sin(eB)}, '#2ecc71', 2); }
+                    
+                    if(p.phase === 0) { drawArc(O, 40, -Math.PI, -Math.PI + Math.PI*p.sub, '#ccc', 2); drawCompass(O.x, O.y, 40, -Math.PI + Math.PI*p.sub, 1); }
+                    else if(p.phase === 1) { drawLine(O, {x: O.x + 50*Math.cos(eA)*p.sub, y: O.y + 50*Math.sin(eA)*p.sub}, '#3498db', 2); }
+                    else if(p.phase === 2) { drawLine(O, {x: O.x + 50*Math.cos(eB)*p.sub, y: O.y + 50*Math.sin(eB)*p.sub}, '#2ecc71', 2); }
+                    else if(p.phase === 3) {
+                        ctx.fillStyle='#3498db'; ctx.fillText('A', O.x + 50*Math.cos(-Math.PI + aA/2), O.y + 50*Math.sin(-Math.PI + aA/2));
+                        ctx.fillStyle='#2ecc71'; ctx.fillText('B', O.x + 50*Math.cos(eA + aB/2), O.y + 50*Math.sin(eA + aB/2));
+                        ctx.fillStyle='#e74c3c'; ctx.fillText('C', O.x + 50*Math.cos(eB + geo.aC/2), O.y + 50*Math.sin(eB + geo.aC/2));
+                    }
                 }
-                else if (currentStep === 2) playSegmentCopy(geo.given.a.p1, geo.given.a.p2, geo.B, 0, geo.given.a.len, 'B', true, animProgress);
-                else if (currentStep === 3) playAngleCopy(geo.given.angB.O, geo.given.angB.a1, geo.given.angB.a2, geo.B, 0, -Math.PI/3, geo.given.angB.r, animProgress);
-                else if (currentStep === 4) { let tEnd = Math.PI + Math.PI - Math.PI/5 - Math.PI/3; playAngleCopy(geo.aux.O, Math.PI, tEnd, geo.C, Math.PI, tEnd, 40, animProgress); }
+                else if (currentStep === 2) { /* 同 SSS Step 1 */
+                    let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    if (p.phase === 0) { drawLine(geo.B, {x: geo.B.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
+                    else { drawLine(geo.B, {x: geo.B.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.a.p1.x+(geo.B.x-geo.given.a.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.B.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.B, geo.given.a.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.a.len, cang, 1); }
+                }
+                else if (currentStep === 3) drawAngleCopyAnim(geo.given.angB.O, 0, -Math.PI/3, geo.B, 0, -Math.PI/3, 40, animProgress);
+                else if (currentStep === 4) {
+                    let aA = Math.PI/5, aB = Math.PI/3; let eA = -Math.PI + aA; let eB = eA + aB;
+                    drawAngleCopyAnim(geo.aux.O, eB, 0, geo.C, Math.PI, Math.PI - geo.aC, 40, animProgress);
+                }
             }
             else if (currentTopic === 'RHS') {
                 if (currentStep === 1) {
-                    let s = execPhase([1, 2, 2, 2, 2], animProgress); let idx = s.idx, sub = s.p;
-                    if(idx === 0) { drawLine({x: geo.B.x-40, y: geo.B.y}, {x: geo.B.x + geo.rayLen*sub, y: geo.B.y}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
-                    else { drawLine({x: geo.B.x-40, y: geo.B.y}, {x: geo.B.x + geo.rayLen, y: geo.B.y}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
-                    if(idx >= 1) { drawArc(geo.B, 50, Math.PI-0.3*sub, Math.PI+0.3*sub, '#3498db', 1); drawArc(geo.B, 50, -0.3*sub, 0.3*sub, '#3498db', 1); drawCompass(geo.B.x, geo.B.y, 50, Math.PI, idx===1?1:0); }
-                    if(idx >= 2) { drawArc(geo.B, 50, Math.PI-0.3, Math.PI+0.3, '#3498db', 1); drawArc(geo.B, 50, -0.3, 0.3, '#3498db', 1); drawArc({x:geo.B.x-50, y:geo.B.y}, 70, -Math.PI/2-0.4*sub, -Math.PI/2+0.4*sub, '#e67e22', 1); drawCompass(geo.B.x-50, geo.B.y, 70, -Math.PI/2, idx===2?1:0); }
-                    if(idx >= 3) { drawArc({x:geo.B.x-50, y:geo.B.y}, 70, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawArc({x:geo.B.x+50, y:geo.B.y}, 70, -Math.PI/2-0.4*sub, -Math.PI/2+0.4*sub, '#e67e22', 1); drawCompass(geo.B.x+50, geo.B.y, 70, -Math.PI/2, idx===3?1:0); }
-                    if(idx === 4) { drawArc({x:geo.B.x+50, y:geo.B.y}, 70, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawLine(geo.B, {x: geo.B.x, y: geo.B.y - width*0.3*sub}, '#888', 2); }
+                    let p = getAnimPhase(animProgress, [0.15, 0.3, 0.5, 0.7, 0.9, 1.0]); let B = geo.B; let r1 = 40; let r2 = 65;
+                    let p1x = B.x - r1; let p2x = B.x + r1;
+
+                    if (p.phase >= 1) drawArc(B, r1, Math.PI-0.3, Math.PI+0.3, '#3498db', 1);
+                    if (p.phase >= 2) drawArc(B, r1, -0.3, 0.3, '#3498db', 1);
+                    if (p.phase >= 3) drawArc({x:p1x, y:B.y}, r2, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1);
+                    if (p.phase >= 4) drawArc({x:p2x, y:B.y}, r2, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1);
+
+                    if (p.phase === 0) { drawLine({x: B.x-60, y: B.y}, {x: B.x + geo.rayLen*p.sub, y: B.y}, '#888', 2); }
+                    else { drawLine({x: B.x-60, y: B.y}, {x: B.x + geo.rayLen, y: B.y}, '#888', 2); drawPoint(B.x, B.y, 'B'); }
+
+                    let cx, cy, cr=r1, cang;
+                    if (p.phase === 1) { cx = B.x; cy = B.y; cang = Math.PI - 0.3 + 0.6*p.sub; drawArc(B, r1, Math.PI-0.3, cang, '#3498db', 1); }
+                    else if (p.phase === 2) { cx = B.x; cy = B.y; cang = -0.3 + 0.6*p.sub; drawArc(B, r1, -0.3, cang, '#3498db', 1); }
+                    else if (p.phase === 3) { cx = p1x; cy = B.y; cr = r2; cang = -Math.PI/2 - 0.4 + 0.8*p.sub; drawArc({x:p1x, y:B.y}, r2, -Math.PI/2-0.4, cang, '#e67e22', 1); }
+                    else if (p.phase === 4) { cx = p2x; cy = B.y; cr = r2; cang = -Math.PI/2 - 0.4 + 0.8*p.sub; drawArc({x:p2x, y:B.y}, r2, -Math.PI/2-0.4, cang, '#e67e22', 1); }
+                    else if (p.phase === 5) { drawLine(B, {x: B.x, y: B.y - width*0.3*p.sub}, '#888', 2); }
+
+                    if (p.phase >= 1 && p.phase <= 4) drawCompass(cx, cy, cr, cang, 1);
                 }
-                else if (currentStep === 2) playSegmentCopy(geo.given.a.p1, geo.given.a.p2, geo.B, -Math.PI/2, geo.given.a.len, null, false, animProgress);
-                else if (currentStep === 3) { let tAng = Math.atan2(geo.A.y-geo.C.y, geo.A.x-geo.C.x); playSegmentCopy(geo.given.c.p1, geo.given.c.p2, geo.C, tAng, geo.given.c.len, null, false, animProgress); }
+                else if (currentStep === 2) {
+                    let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); 
+                    if(p.phase===0) drawCompass(geo.given.a.p1.x+(geo.B.x-geo.given.a.p1.x)*p.sub, geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub, geo.given.a.len, -Math.PI/2, 1);
+                    else if(p.phase===1) { drawArc(geo.B, geo.given.a.len, -Math.PI/2-0.3, -Math.PI/2-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.B.x, geo.B.y, geo.given.a.len, -Math.PI/2-0.3+0.6*p.sub, 1); }
+                }
+                else if (currentStep === 3) {
+                    let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); let tAng = Math.atan2(geo.A.y-geo.C.y, geo.A.x-geo.C.x);
+                    if(p.phase===0) drawCompass(geo.given.c.p1.x+(geo.C.x-geo.given.c.p1.x)*p.sub, geo.gCenterY+(geo.C.y-geo.gCenterY)*p.sub, geo.given.c.len, tAng, 1);
+                    else if(p.phase===1) { drawArc(geo.C, geo.given.c.len, tAng-0.3, tAng-0.3+0.6*p.sub, '#e74c3c', 2); drawCompass(geo.C.x, geo.C.y, geo.given.c.len, tAng-0.3+0.6*p.sub, 1); }
+                }
             }
 
             if (animProgress < 1) animationFrameId = requestAnimationFrame(animate);
