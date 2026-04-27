@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：全等三角形作圖探究 (終極物理連動版)</title>
+    
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            svg: { fontCache: 'global' },
+            startup: { typeset: false }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #4a90e2; --secondary-color: #f5a623; --bg-color: #f4f7f6;
+            --text-color: #333; --panel-bg: #ffffff; --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8; --border-color: #e1e4e8; --highlight: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #334155; color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--accent); font-weight: bold;
+            border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        .main-wrapper { flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative; }
+        .panel {
+            background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        #graph-panel { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; background: #fff;}
+        canvas { width: 100%; height: 100%; object-fit: contain; }
+
+        #controls-panel { flex: 1; min-width: 380px; max-width: 450px; border: 1px solid var(--border-color); }
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
+
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .menu-btn {
+            padding: 12px 8px; background-color: #f1f1f1; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+            font-weight: bold; color: #666; transition: all 0.2s; font-size: 0.95rem;
+        }
+        .menu-btn:hover { background-color: #e2e8f0; }
+        .menu-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .step-container { background: #eef6fc; border-left: 5px solid var(--primary-color); border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1; }
+        .step-title { font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+        .step-desc { font-size: 1.05rem; line-height: 1.6; color: #444; min-height: 80px;}
+        .critical-text { color: var(--highlight); font-weight: 900; font-size: 1.1em; text-decoration: underline;}
+
+        .action-group { display: flex; gap: 8px; margin-top: auto; flex-wrap: wrap; }
+        .action-btn {
+            flex: 1 1 30%; padding: 10px; font-size: 0.95rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; border: none; color: white; text-align: center;
+        }
+        .btn-next { background-color: var(--primary-color); box-shadow: 0 4px 0 #3174c6; }
+        .btn-next:active { transform: translateY(4px); box-shadow: none; }
+        .btn-next:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+        .btn-play { background-color: var(--secondary-color); box-shadow: 0 4px 0 #d68f1c; }
+        .btn-play:active { transform: translateY(4px); box-shadow: none; }
+        .btn-reset { background-color: #e74c3c; box-shadow: 0 4px 0 #c0392b; flex: 1 1 100%; margin-bottom: 5px;}
+        .btn-reset:active { transform: translateY(4px); box-shadow: none; }
+        .btn-prev { background-color: #95a5a6; box-shadow: 0 4px 0 #7f8c8d; }
+        .btn-prev:active { transform: translateY(4px); box-shadow: none; }
+        .btn-prev:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+        .btn-replay { background-color: #16a085; box-shadow: 0 4px 0 #12876f; }
+        .btn-replay:active { transform: translateY(4px); box-shadow: none; }
+        .btn-replay:disabled { background-color: #ccc; box-shadow: 0 4px 0 #aaa; cursor: not-allowed; transform: none;}
+
+        .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(0,0,0,0.1); font-size: 1.5rem; pointer-events: none; user-select: none; z-index: 50; }
+        
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 400px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回主選單</a>
+        <h2 class="page-title">鳩特數理：全等三角形作圖探究</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="panel" id="graph-panel">
+            <canvas id="geometryCanvas"></canvas>
+            <div class="watermark">Presented by Jutor</div>
+        </div>
+
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                <div class="menu-grid">
+                    <button class="menu-btn active" onclick="selectTopic('SSS')" id="btn-SSS">SSS 全等作圖</button>
+                    <button class="menu-btn" onclick="selectTopic('SAS')" id="btn-SAS">SAS 全等作圖</button>
+                    <button class="menu-btn" onclick="selectTopic('ASA')" id="btn-ASA">ASA 全等作圖</button>
+                    <button class="menu-btn" onclick="selectTopic('AAS')" id="btn-AAS">AAS 全等作圖</button>
+                    <button class="menu-btn" style="grid-column: span 2;" onclick="selectTopic('RHS')" id="btn-RHS">RHS 全等作圖</button>
+                </div>
+                <div class="step-container">
+                    <div class="step-title" id="step-title">載入中...</div>
+                    <div class="step-desc" id="step-desc">請稍候。</div>
+                </div>
+                <div class="action-group">
+                    <button class="action-btn btn-reset" onclick="resetAnimation()" id="btn-reset">重新作圖</button>
+                    <button class="action-btn btn-prev" onclick="prevStep()" id="btn-prev">上一步</button>
+                    <button class="action-btn btn-replay" onclick="replayStep()" id="btn-replay">再看一次</button>
+                    <button class="action-btn btn-play" onclick="toggleAutoPlay()" id="btn-play">連續播放</button>
+                    <button class="action-btn btn-next" onclick="nextStep()" id="btn-next">下一步</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('geometryCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let currentTopic = 'SSS';
+        let currentStep = 0; let isAnimating = false; let autoPlay = false; let animProgress = 0; let animationFrameId;
+
+        // 全域作圖狀態與座標
+        const geo = {};
+
+        const stepsData = {
+            'SSS': [
+                { title: "步驟 0：已知條件", desc: "給定三個線段 $a, b, c$。目標：作一 $\\triangle ABC$，使其三邊長等於此三線段。" },
+                { title: "步驟 1：複製底邊", desc: "畫一射線，量取已知線段 $c$ 的長度，在射線上畫弧交於點 $B$，得出 $\\overline{AB} = c$。" },
+                { title: "步驟 2：畫出 a 邊的軌跡", desc: "量取已知線段 $a$ 的長度，以 $B$ 為圓心畫弧。" },
+                { title: "步驟 3：畫出 b 邊的軌跡", desc: "量取已知線段 $b$ 的長度，以 $A$ 為圓心畫弧，與前一道弧交於 $C$ 點。" },
+                { title: "步驟 4：完成 SSS 作圖", desc: "連接 $\\overline{AC}$ 與 $\\overline{BC}$，$\\triangle ABC$ 即為所求。" }
+            ],
+            'SAS': [
+                { title: "步驟 0：已知條件", desc: "給定線段 $b, c$ 以及它們的夾角 $\\angle A$。" },
+                { title: "步驟 1：複製底邊", desc: "畫一射線，量取已知線段 $c$ 的長度，複製得 $\\overline{AB} = c$。" },
+                { title: "步驟 2：複製夾角 $\\angle A$", desc: "以 $A$ 為頂點，複製已知角 $\\angle A$，畫出包含角度的射線。" },
+                { title: "步驟 3：量取另一邊長", desc: "量取已知線段 $b$ 的長度，以 $A$ 為圓心，在剛才的射線上畫弧交於 $C$ 點。" },
+                { title: "步驟 4：完成 SAS 作圖", desc: "連接 $\\overline{BC}$，$\\triangle ABC$ 即為所求。" }
+            ],
+            'ASA': [
+                { title: "步驟 0：已知條件", desc: "給定兩個角 $\\angle A, \\angle B$ 以及它們的夾邊 $c$。" },
+                { title: "步驟 1：複製夾邊", desc: "畫一射線，量取已知線段 $c$ 的長度，複製得 $\\overline{AB} = c$。" },
+                { title: "步驟 2：複製 $\\angle A$", desc: "以 $A$ 為頂點，複製已知角 $\\angle A$，畫出第一條射線。" },
+                { title: "步驟 3：複製 $\\angle B$", desc: "以 $B$ 為頂點，在同側複製已知角 $\\angle B$，畫出第二條射線。" },
+                { title: "步驟 4：完成 ASA 作圖", desc: "兩射線交於 $C$ 點，$\\triangle ABC$ 即為所求。" }
+            ],
+            'AAS': [
+                { title: "步驟 0：已知條件", desc: "給定兩個角 $\\angle A, \\angle B$ 以及一對應邊 $a$。<br><span class='critical-text'>注意：尺規無法直接平移角度，我們須先求出 $\\angle C$。</span>" },
+                { title: "步驟 1：利用平角求 $\\angle C$", desc: "畫一直線表示 $180^\\circ$，依序扣除 $\\angle A$ 與 $\\angle B$，剩下的角度即為第三角 $\\angle C$。此時作圖條件已轉化為 ASA。" },
+                { title: "步驟 2：複製已知邊", desc: "畫一射線，量取已知線段 $a$ 的長度，複製得 $\\overline{BC} = a$。" },
+                { title: "步驟 3：於端點作 $\\angle B$", desc: "以 $B$ 為頂點，複製已知角 $\\angle B$ 畫出射線。" },
+                { title: "步驟 4：於端點作 $\\angle C$", desc: "以 $C$ 為頂點，複製剛求得的 $\\angle C$ 畫出射線。" },
+                { title: "步驟 5：完成 AAS 作圖", desc: "兩射線交會出 $A$ 點，$\\triangle ABC$ 即為所求。" }
+            ],
+            'RHS': [
+                { title: "步驟 0：已知條件", desc: "給定一直角三角形的斜邊 $c$ 與一股 $a$。" },
+                { title: "步驟 1：製作直角", desc: "畫一直線，在線上取一點 $B$，並利用「過線上一點作垂線」的方法，畫出垂直線以確保 $\\angle B = 90^\\circ$。" },
+                { title: "步驟 2：複製股長", desc: "量取已知線段 $a$ 的長度，以 $B$ 為圓心，在垂線上畫弧交於 $C$ 點。" },
+                { title: "步驟 3：利用斜邊交會", desc: "量取已知斜邊 $c$ 的長度，以 $C$ 點為圓心，往底邊直線畫弧交於 $A$ 點。" },
+                { title: "步驟 4：完成 RHS 作圖", desc: "連接 $\\overline{AC}$，$\\triangle ABC$ 即為所求。" }
+            ]
+        };
+
+        function resizeCanvas() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr); width = rect.width; height = rect.height;
+            setupGeometry();
+            if(!isAnimating) drawStaticState(currentStep);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // 核心幾何設定引擎
+        function setupGeometry() {
+            // 已知條件區 (Given Area) 的共用座標
+            geo.gBox = { x: 20, y: 20, w: width - 40, h: 120 };
+            geo.gCenterY = geo.gBox.y + geo.gBox.h / 2;
+            
+            // 作圖區基準點
+            geo.baseY = height * 0.75;
+            geo.baseX = width * 0.2;
+
+            if (currentTopic === 'SSS') {
+                geo.given = {
+                    c: { p1: {x: width*0.1, y: geo.gCenterY}, p2: {x: width*0.35, y: geo.gCenterY}, len: width*0.25 },
+                    a: { p1: {x: width*0.45, y: geo.gCenterY}, p2: {x: width*0.65, y: geo.gCenterY}, len: width*0.2 },
+                    b: { p1: {x: width*0.75, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.15 }
+                };
+                geo.A = { x: geo.baseX, y: geo.baseY };
+                geo.B = { x: geo.baseX + geo.given.c.len, y: geo.baseY };
+                // 計算 C 點座標 (利用餘弦定理)
+                let c = geo.given.c.len, a = geo.given.a.len, b = geo.given.b.len;
+                let cosA = (b*b + c*c - a*a) / (2*b*c);
+                let angleA = Math.acos(cosA);
+                geo.C = { x: geo.A.x + b * Math.cos(-angleA), y: geo.A.y + b * Math.sin(-angleA) };
+            } 
+            else if (currentTopic === 'SAS') {
+                geo.given = {
+                    c: { p1: {x: width*0.1, y: geo.gCenterY}, p2: {x: width*0.35, y: geo.gCenterY}, len: width*0.25 },
+                    angA: { O: {x: width*0.45, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/4, r: 40 },
+                    b: { p1: {x: width*0.7, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.2 }
+                };
+                geo.A = { x: geo.baseX, y: geo.baseY };
+                geo.B = { x: geo.A.x + geo.given.c.len, y: geo.baseY };
+                geo.C = { x: geo.A.x + geo.given.b.len * Math.cos(-Math.PI/4), y: geo.A.y + geo.given.b.len * Math.sin(-Math.PI/4) };
+            }
+            else if (currentTopic === 'ASA') {
+                geo.given = {
+                    angA: { O: {x: width*0.15, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/4, r: 40 },
+                    c: { p1: {x: width*0.35, y: geo.gCenterY}, p2: {x: width*0.6, y: geo.gCenterY}, len: width*0.25 },
+                    angB: { O: {x: width*0.75, y: geo.gCenterY+20}, a1: Math.PI, a2: Math.PI + Math.PI/3, r: 40 } // -120deg from right, drawn flipped
+                };
+                geo.A = { x: geo.baseX, y: geo.baseY };
+                geo.B = { x: geo.A.x + geo.given.c.len, y: geo.baseY };
+                // 計算 C
+                let aA = Math.PI/4, aB = Math.PI/3;
+                let c = geo.given.c.len;
+                let b = c * Math.sin(aB) / Math.sin(Math.PI - aA - aB);
+                geo.C = { x: geo.A.x + b * Math.cos(-aA), y: geo.A.y + b * Math.sin(-aA) };
+            }
+            else if (currentTopic === 'AAS') {
+                geo.given = {
+                    angA: { O: {x: width*0.15, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/5, r: 40 },
+                    angB: { O: {x: width*0.4, y: geo.gCenterY+20}, a1: 0, a2: -Math.PI/3, r: 40 },
+                    a: { p1: {x: width*0.65, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.25 }
+                };
+                // AAS 專屬附屬作圖區 (求角 C)
+                geo.aux = { start: {x: width*0.6, y: height*0.4}, end: {x: width*0.9, y: height*0.4}, O: {x: width*0.75, y: height*0.4} };
+                let aA = Math.PI/5, aB = Math.PI/3, aC = Math.PI - aA - aB;
+                
+                geo.B = { x: geo.baseX, y: geo.baseY };
+                geo.C = { x: geo.B.x + geo.given.a.len, y: geo.baseY };
+                let c = geo.given.a.len * Math.sin(aC) / Math.sin(aA);
+                geo.A = { x: geo.B.x + c * Math.cos(-aB), y: geo.B.y + c * Math.sin(-aB) };
+            }
+            else if (currentTopic === 'RHS') {
+                geo.given = {
+                    a: { p1: {x: width*0.2, y: geo.gCenterY}, p2: {x: width*0.4, y: geo.gCenterY}, len: width*0.2 },
+                    c: { p1: {x: width*0.6, y: geo.gCenterY}, p2: {x: width*0.9, y: geo.gCenterY}, len: width*0.3 }
+                };
+                geo.B = { x: geo.baseX + width*0.1, y: geo.baseY }; // 留空間畫垂線弧
+                geo.C = { x: geo.B.x, y: geo.B.y - geo.given.a.len };
+                let b = Math.sqrt(Math.pow(geo.given.c.len, 2) - Math.pow(geo.given.a.len, 2));
+                geo.A = { x: geo.B.x + b, y: geo.B.y };
+            }
+        }
+
+        function selectTopic(topic) {
+            currentTopic = topic;
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${topic}`).classList.add('active');
+            resizeCanvas(); resetAnimation();
+            
+            // 強制延遲更新 MathJax 以防 Race Condition
+            setTimeout(() => {
+                if(window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(()=>{});
+                }
+            }, 150);
+        }
+
+        // --- 繪圖底層工具 ---
+        function drawPoint(x, y, label, color = '#333', offsetY = -10) {
+            ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+            ctx.font = "italic bold 18px 'Times New Roman', serif"; ctx.fillStyle = color;
+            ctx.fillText(label, x - 5, y + offsetY);
+        }
+        function drawLine(p1, p2, color = '#333', lw = 2, dash=[]) {
+            ctx.beginPath(); ctx.setLineDash(dash); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); ctx.setLineDash([]);
+        }
+        function drawArc(center, radius, sAng, eAng, color = '#aaa', lw = 2, ccw = false) {
+            ctx.beginPath(); ctx.arc(center.x, center.y, radius, sAng, eAng, ccw);
+            ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
+        }
+        // 畫已知條件區框線
+        function drawGivenBox() {
+            ctx.fillStyle = '#f8fafc'; ctx.fillRect(geo.gBox.x, geo.gBox.y, geo.gBox.w, geo.gBox.h);
+            ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
+            ctx.strokeRect(geo.gBox.x, geo.gBox.y, geo.gBox.w, geo.gBox.h); ctx.setLineDash([]);
+            ctx.font = "bold 14px sans-serif"; ctx.fillStyle = '#64748b';
+            ctx.fillText("已知條件區", geo.gBox.x + 10, geo.gBox.y + 20);
+        }
+        // 動態圓規 (與前版相同，強化透明度控制)
+        function drawCompass(needleX, needleY, radius, pencilAngle, alpha = 1) {
+            ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+            let baseLegLen = Math.min(canvas.width, canvas.height) * 0.35; 
+            let legLen = Math.max(radius * 0.85, baseLegLen); 
+            let halfR = radius / 2;
+            let h = Math.sqrt(legLen * legLen - halfR * halfR);
+
+            let pX = needleX + radius * Math.cos(pencilAngle); let pY = needleY + radius * Math.sin(pencilAngle);
+            let midX = (needleX + pX) / 2; let midY = (needleY + pY) / 2;
+            
+            let dx = pX - needleX; let dy = pY - needleY; let len = Math.sqrt(dx*dx + dy*dy);
+            let nx = -dy / len; let ny = dx / len;
+            if (ny > 0) { nx = -nx; ny = -ny; } 
+            
+            let hX = midX + h * nx; let hY = midY + h * ny;
+
+            ctx.beginPath(); ctx.moveTo(needleX, needleY); ctx.lineTo(hX, hY); ctx.lineWidth=4; ctx.strokeStyle='#555'; ctx.stroke(); 
+            ctx.beginPath(); ctx.moveTo(pX, pY); ctx.lineTo(hX, hY); ctx.lineWidth=4; ctx.strokeStyle='#888'; ctx.stroke(); 
+            ctx.beginPath(); ctx.arc(hX, hY, 6, 0, Math.PI*2); ctx.fillStyle='#f39c12'; ctx.fill(); ctx.stroke(); 
+            ctx.beginPath(); ctx.arc(needleX, needleY, 2, 0, Math.PI*2); ctx.fillStyle='#333'; ctx.fill();
+            ctx.restore();
+        }
+
+        // 幫手函數：畫已知線段
+        function drawGivenSegment(segData, label) {
+            drawLine(segData.p1, segData.p2, '#333', 3);
+            ctx.font = "italic 16px 'Times New Roman', serif"; ctx.fillStyle = '#333';
+            ctx.fillText(label, (segData.p1.x+segData.p2.x)/2, segData.p1.y - 10);
+        }
+        // 幫手函數：畫已知角度
+        function drawGivenAngle(angData, label) {
+            let p1 = {x: angData.O.x + 50*Math.cos(angData.a1), y: angData.O.y + 50*Math.sin(angData.a1)};
+            let p2 = {x: angData.O.x + 50*Math.cos(angData.a2), y: angData.O.y + 50*Math.sin(angData.a2)};
+            drawLine(angData.O, p1, '#333', 3); drawLine(angData.O, p2, '#333', 3);
+            drawArc(angData.O, 20, Math.min(angData.a1, angData.a2), Math.max(angData.a1, angData.a2), '#333', 2);
+            ctx.font = "italic 16px 'Times New Roman', serif"; ctx.fillStyle = '#333';
+            ctx.fillText(label, angData.O.x + 25*Math.cos((angData.a1+angData.a2)/2) - 5, angData.O.y + 25*Math.sin((angData.a1+angData.a2)/2) - 5);
+        }
+
+        // --- UI 控制 ---
+        function updateUI() {
+            let data = stepsData[currentTopic][currentStep];
+            document.getElementById('step-title').innerHTML = data.title; document.getElementById('step-desc').innerHTML = data.desc;
+            if(window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(()=>{});
+            document.getElementById('btn-next').disabled = (currentStep >= stepsData[currentTopic].length - 1);
+            document.getElementById('btn-prev').disabled = (currentStep === 0);
+            document.getElementById('btn-replay').disabled = (currentStep === 0);
+        }
+        function resetAnimation() { cancelAnimationFrame(animationFrameId); isAnimating = false; autoPlay = false; currentStep = 0; animProgress = 0; document.getElementById('btn-play').innerText = "連續播放"; updateUI(); drawStaticState(0); }
+        function toggleAutoPlay() { autoPlay = !autoPlay; document.getElementById('btn-play').innerText = autoPlay ? "暫停" : "連續播放"; if (autoPlay && !isAnimating) { if(currentStep >= stepsData[currentTopic].length - 1) resetAnimation(); nextStep(); } }
+        function nextStep() { if (isAnimating || currentStep >= stepsData[currentTopic].length - 1) return; currentStep++; animProgress = 0; isAnimating = true; updateUI(); animate(); }
+        function prevStep() { if (isAnimating) cancelAnimationFrame(animationFrameId); isAnimating = false; if (autoPlay) toggleAutoPlay(); if (currentStep > 0) currentStep--; animProgress = 0; updateUI(); drawStaticState(currentStep); }
+        function replayStep() { if (isAnimating) cancelAnimationFrame(animationFrameId); if (autoPlay) toggleAutoPlay(); if (currentStep === 0) return; animProgress = 0; isAnimating = true; updateUI(); animate(); }
+
+        // --- 靜態圖層 ---
+        function drawStaticState(step) {
+            ctx.clearRect(0, 0, width, height);
+            drawGivenBox();
+
+            if (currentTopic === 'SSS') {
+                drawGivenSegment(geo.given.c, 'c'); drawGivenSegment(geo.given.a, 'a'); drawGivenSegment(geo.given.b, 'b');
+                if (step >= 1) { drawLine({x: geo.A.x-20, y: geo.A.y}, {x: geo.B.x+80, y: geo.baseY}, '#888', 1); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.2, 0.2, '#e74c3c', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
+                if (step >= 2) { drawArc(geo.B, geo.given.a.len, Math.PI - 0.5, Math.PI + 0.5, '#3498db', 2); }
+                if (step >= 3) { drawArc(geo.A, geo.given.b.len, -0.5, 0.5, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -15); }
+                if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
+            }
+            else if (currentTopic === 'SAS') {
+                drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.b, 'b');
+                if (step >= 1) { drawLine({x: geo.A.x-20, y: geo.A.y}, {x: geo.B.x+80, y: geo.baseY}, '#888', 1); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.2, 0.2, '#e74c3c', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
+                if (step >= 2) { 
+                    drawArc(geo.A, 40, -Math.PI/4 - 0.2, 0.2, '#3498db', 1); 
+                    drawLine(geo.A, {x: geo.A.x + width*0.3*Math.cos(-Math.PI/4), y: geo.A.y + width*0.3*Math.sin(-Math.PI/4)}, '#888', 1); 
+                }
+                if (step >= 3) { drawArc(geo.A, geo.given.b.len, -Math.PI/4 - 0.2, -Math.PI/4 + 0.2, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -15); }
+                if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
+            }
+            else if (currentTopic === 'ASA') {
+                drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angB, 'B');
+                if (step >= 1) { drawLine({x: geo.A.x-20, y: geo.A.y}, {x: geo.B.x+80, y: geo.baseY}, '#888', 1); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.2, 0.2, '#e74c3c', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
+                if (step >= 2) { drawLine(geo.A, {x: geo.A.x + width*0.4*Math.cos(-Math.PI/4), y: geo.A.y + width*0.4*Math.sin(-Math.PI/4)}, '#888', 1); }
+                if (step >= 3) { drawLine(geo.B, {x: geo.B.x + width*0.4*Math.cos(Math.PI+Math.PI/3), y: geo.B.y + width*0.4*Math.sin(Math.PI+Math.PI/3)}, '#888', 1); }
+                if (step >= 4) { drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
+            }
+            else if (currentTopic === 'AAS') {
+                drawGivenAngle(geo.given.angA, 'A'); drawGivenAngle(geo.given.angB, 'B'); drawGivenSegment(geo.given.a, 'a');
+                if (step >= 1) {
+                    drawLine(geo.aux.start, geo.aux.end, '#888', 1); drawPoint(geo.aux.O.x, geo.aux.O.y, '', '#333');
+                    drawArc(geo.aux.O, 30, Math.PI, 0, '#ccc', 1, true);
+                    let aA = Math.PI/5, aB = Math.PI/3;
+                    drawLine(geo.aux.O, {x: geo.aux.O.x + 40*Math.cos(Math.PI + aA), y: geo.aux.O.y + 40*Math.sin(Math.PI + aA)}, '#3498db', 2);
+                    drawLine(geo.aux.O, {x: geo.aux.O.x + 40*Math.cos(Math.PI + aA + aB), y: geo.aux.O.y + 40*Math.sin(Math.PI + aA + aB)}, '#2ecc71', 2);
+                    ctx.fillStyle='#3498db'; ctx.fillText('A', geo.aux.O.x - 25, geo.aux.O.y - 5);
+                    ctx.fillStyle='#2ecc71'; ctx.fillText('B', geo.aux.O.x - 5, geo.aux.O.y - 20);
+                    ctx.fillStyle='#e74c3c'; ctx.fillText('C', geo.aux.O.x + 20, geo.aux.O.y - 10);
+                }
+                if (step >= 2) { drawLine({x: geo.B.x-20, y: geo.baseY}, {x: geo.C.x+80, y: geo.baseY}, '#888', 1); drawPoint(geo.B.x, geo.B.y, 'B'); drawArc(geo.B, geo.given.a.len, -0.2, 0.2, '#e74c3c', 2); drawPoint(geo.C.x, geo.C.y, 'C'); }
+                if (step >= 3) { drawLine(geo.B, {x: geo.B.x + width*0.4*Math.cos(-Math.PI/3), y: geo.B.y + width*0.4*Math.sin(-Math.PI/3)}, '#888', 1); }
+                if (step >= 4) { drawLine(geo.C, {x: geo.C.x + width*0.4*Math.cos(Math.PI+Math.PI - Math.PI/5 - Math.PI/3), y: geo.C.y + width*0.4*Math.sin(Math.PI+Math.PI - Math.PI/5 - Math.PI/3)}, '#888', 1); }
+                if (step >= 5) { drawPoint(geo.A.x, geo.A.y, 'A', '#8e44ad', -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
+            }
+            else if (currentTopic === 'RHS') {
+                drawGivenSegment(geo.given.a, 'a (股)'); drawGivenSegment(geo.given.c, 'c (斜邊)');
+                if (step >= 1) { 
+                    drawLine({x: geo.B.x-60, y: geo.baseY}, {x: geo.A.x+80, y: geo.baseY}, '#888', 1); drawPoint(geo.B.x, geo.B.y, 'B'); 
+                    drawLine(geo.B, {x: geo.B.x, y: geo.B.y - width*0.3}, '#888', 1);
+                    ctx.strokeRect(geo.B.x, geo.B.y-15, 15, 15);
+                }
+                if (step >= 2) { drawArc(geo.B, geo.given.a.len, -Math.PI/2 - 0.2, -Math.PI/2 + 0.2, '#3498db', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -15); }
+                if (step >= 3) { drawArc(geo.C, geo.given.c.len, -0.2, 0.4, '#2ecc71', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
+                if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
+            }
+        }
+
+        // --- 動畫圖層 ---
+        // 為了節省程式碼並保持動畫的高級感，使用通用的階段計算
+        function getPhase(progress) {
+            if(progress < 0.3) return { p: 1, type: 'measure', sub: progress/0.3 };
+            if(progress < 0.6) return { p: 2, type: 'move', sub: (progress-0.3)/0.3 };
+            return { p: 3, type: 'draw', sub: (progress-0.6)/0.4 };
+        }
+
+        function animate() {
+            animProgress += 0.005; if (animProgress > 1) animProgress = 1; 
+            ctx.clearRect(0, 0, width, height); drawStaticState(currentStep - 1);
+            
+            let phase = getPhase(animProgress);
+            let toolAlpha = phase.p === 1 ? phase.sub*5 : (phase.p === 3 && phase.sub > 0.8 ? (1-phase.sub)*5 : 1);
+
+            if (currentTopic === 'SSS') {
+                if (currentStep === 1) {
+                    let cx = phase.p===1 ? geo.given.c.p1.x : (phase.p===2 ? geo.given.c.p1.x + (geo.A.x - geo.given.c.p1.x)*phase.sub : geo.A.x);
+                    let cy = phase.p===1 ? geo.given.c.p1.y : (phase.p===2 ? geo.given.c.p1.y + (geo.A.y - geo.given.c.p1.y)*phase.sub : geo.A.y);
+                    let ang = phase.p===3 ? -0.2 + 0.4*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.A, geo.given.c.len, -0.2, ang, '#e74c3c', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.c.len, ang, toolAlpha);
+                } else if (currentStep === 2) {
+                    let cx = phase.p===1 ? geo.given.a.p1.x : (phase.p===2 ? geo.given.a.p1.x + (geo.B.x - geo.given.a.p1.x)*phase.sub : geo.B.x);
+                    let cy = phase.p===1 ? geo.given.a.p1.y : (phase.p===2 ? geo.given.a.p1.y + (geo.B.y - geo.given.a.p1.y)*phase.sub : geo.B.y);
+                    let baseAng = Math.PI - Math.acos((geo.given.a.len*geo.given.a.len + geo.given.c.len*geo.given.c.len - geo.given.b.len*geo.given.b.len)/(2*geo.given.a.len*geo.given.c.len));
+                    let ang = phase.p===3 ? baseAng - 0.5 + 1.0*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.B, geo.given.a.len, baseAng-0.5, ang, '#3498db', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.a.len, ang, toolAlpha);
+                } else if (currentStep === 3) {
+                    let cx = phase.p===1 ? geo.given.b.p1.x : (phase.p===2 ? geo.given.b.p1.x + (geo.A.x - geo.given.b.p1.x)*phase.sub : geo.A.x);
+                    let cy = phase.p===1 ? geo.given.b.p1.y : (phase.p===2 ? geo.given.b.p1.y + (geo.A.y - geo.given.b.p1.y)*phase.sub : geo.A.y);
+                    let baseAng = -Math.acos((geo.given.b.len*geo.given.b.len + geo.given.c.len*geo.given.c.len - geo.given.a.len*geo.given.a.len)/(2*geo.given.b.len*geo.given.c.len));
+                    let ang = phase.p===3 ? baseAng - 0.5 + 1.0*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.A, geo.given.b.len, baseAng-0.5, ang, '#2ecc71', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.b.len, ang, toolAlpha);
+                } else if (currentStep === 4) drawStaticState(4);
+            }
+            else if (currentTopic === 'SAS') {
+                if (currentStep === 1) { /* 簡化：直接秀出，或用簡單漸變 */ drawStaticState(1); }
+                else if (currentStep === 2) {
+                    if(phase.p===1) { drawArc(geo.given.angA.O, 40, 0, -Math.PI/4*phase.sub, '#3498db', 2, true); drawCompass(geo.given.angA.O.x, geo.given.angA.O.y, 40, -Math.PI/4*phase.sub, toolAlpha); }
+                    if(phase.p===2) { drawArc(geo.A, 40, 0, -Math.PI/4, '#ccc', 1, true); }
+                    if(phase.p===3) { drawArc(geo.A, 40, 0, -Math.PI/4, '#3498db', 1, true); drawLine(geo.A, {x: geo.A.x + width*0.3*Math.cos(-Math.PI/4)*phase.sub, y: geo.A.y + width*0.3*Math.sin(-Math.PI/4)*phase.sub}, '#888', 2); }
+                }
+                else if (currentStep === 3) {
+                    let cx = phase.p===1 ? geo.given.b.p1.x : (phase.p===2 ? geo.given.b.p1.x + (geo.A.x - geo.given.b.p1.x)*phase.sub : geo.A.x);
+                    let cy = phase.p===1 ? geo.given.b.p1.y : (phase.p===2 ? geo.given.b.p1.y + (geo.A.y - geo.given.b.p1.y)*phase.sub : geo.A.y);
+                    let ang = phase.p===3 ? -Math.PI/4 - 0.2 + 0.4*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.A, geo.given.b.len, -Math.PI/4-0.2, ang, '#2ecc71', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.b.len, ang, toolAlpha);
+                } else if (currentStep === 4) drawStaticState(4);
+            }
+            else if (currentTopic === 'ASA') {
+                if (currentStep === 1) drawStaticState(1);
+                else if (currentStep === 2) { drawLine(geo.A, {x: geo.A.x + width*0.4*Math.cos(-Math.PI/4)*animProgress, y: geo.A.y + width*0.4*Math.sin(-Math.PI/4)*animProgress}, '#888', 2); }
+                else if (currentStep === 3) { drawLine(geo.B, {x: geo.B.x + width*0.4*Math.cos(Math.PI+Math.PI/3)*animProgress, y: geo.B.y + width*0.4*Math.sin(Math.PI+Math.PI/3)*animProgress}, '#888', 2); }
+                else if (currentStep === 4) drawStaticState(4);
+            }
+            else if (currentTopic === 'AAS') {
+                if (currentStep === 1) { drawStaticState(1); } // 附屬作圖直接靜態呈現以節省時間
+                else if (currentStep === 2) drawStaticState(2);
+                else if (currentStep === 3) { drawLine(geo.B, {x: geo.B.x + width*0.4*Math.cos(-Math.PI/3)*animProgress, y: geo.B.y + width*0.4*Math.sin(-Math.PI/3)*animProgress}, '#888', 2); }
+                else if (currentStep === 4) { drawLine(geo.C, {x: geo.C.x + width*0.4*Math.cos(Math.PI+Math.PI - Math.PI/5 - Math.PI/3)*animProgress, y: geo.C.y + width*0.4*Math.sin(Math.PI+Math.PI - Math.PI/5 - Math.PI/3)*animProgress}, '#888', 2); }
+                else if (currentStep === 5) drawStaticState(5);
+            }
+            else if (currentTopic === 'RHS') {
+                if (currentStep === 1) { drawLine(geo.B, {x: geo.B.x, y: geo.B.y - width*0.3*animProgress}, '#888', 2); }
+                else if (currentStep === 2) {
+                    let cx = phase.p===1 ? geo.given.a.p1.x : (phase.p===2 ? geo.given.a.p1.x + (geo.B.x - geo.given.a.p1.x)*phase.sub : geo.B.x);
+                    let cy = phase.p===1 ? geo.given.a.p1.y : (phase.p===2 ? geo.given.a.p1.y + (geo.B.y - geo.given.a.p1.y)*phase.sub : geo.B.y);
+                    let ang = phase.p===3 ? -Math.PI/2 - 0.2 + 0.4*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.B, geo.given.a.len, -Math.PI/2-0.2, ang, '#3498db', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.a.len, ang, toolAlpha);
+                }
+                else if (currentStep === 3) {
+                    let cx = phase.p===1 ? geo.given.c.p1.x : (phase.p===2 ? geo.given.c.p1.x + (geo.C.x - geo.given.c.p1.x)*phase.sub : geo.C.x);
+                    let cy = phase.p===1 ? geo.given.c.p1.y : (phase.p===2 ? geo.given.c.p1.y + (geo.C.y - geo.given.c.p1.y)*phase.sub : geo.C.y);
+                    // 計算 C 往底線畫的基準角度
+                    let baseAng = Math.asin(geo.given.a.len / geo.given.c.len);
+                    let ang = phase.p===3 ? baseAng - 0.3 + 0.6*phase.sub : 0;
+                    if(phase.p===3) drawArc(geo.C, geo.given.c.len, baseAng-0.3, ang, '#2ecc71', 2);
+                    if(toolAlpha>0) drawCompass(cx, cy, geo.given.c.len, ang, toolAlpha);
+                }
+                else if (currentStep === 4) drawStaticState(4);
+            }
+
+            if (animProgress < 1) animationFrameId = requestAnimationFrame(animate);
+            else {
+                isAnimating = false; drawStaticState(currentStep); updateUI();
+                if (autoPlay && currentStep < stepsData[currentTopic].length - 1) setTimeout(() => nextStep(), 800);
+                else if (autoPlay) toggleAutoPlay();
+            }
+        }
+        
+        setTimeout(() => { selectTopic('SSS'); }, 100);
+    </script>
+</body>
+</html>
