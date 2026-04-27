@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>鳩特數理：全等三角形作圖探究 (終極完美版)</title>
+    <title>鳩特數理：全等三角形作圖探究 (終極完美穩定版)</title>
     
     <script>
         window.MathJax = {
@@ -132,7 +132,7 @@
     <script>
         const canvas = document.getElementById('geometryCanvas');
         const ctx = canvas.getContext('2d');
-        let width, height;
+        let width = 800, height = 600; // 給予預設值防呆
         let currentTopic = 'SSS';
         let currentStep = 0; let isAnimating = false; let autoPlay = false; let animProgress = 0; let animationFrameId;
 
@@ -178,7 +178,9 @@
         };
 
         function resizeCanvas() {
+            if (!canvas.parentElement) return;
             const rect = canvas.parentElement.getBoundingClientRect();
+            if (rect.width === 0) return; // 防呆：避免 DOM 未渲染完全
             const dpr = window.devicePixelRatio || 1;
             canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr); width = rect.width; height = rect.height;
@@ -187,7 +189,7 @@
         }
         window.addEventListener('resize', resizeCanvas);
 
-        function makeGivenSeg(x, y, len) { return { p1: {x, y}, p2: {x+len, y}, len: len }; }
+        function makeGivenSeg(x, y, len) { return { p1: {x: x, y: y}, p2: {x: x+len, y: y}, len: len }; }
 
         function setupGeometry() {
             geo.gBox = { x: 20, y: 20, w: width - 40, h: 120 };
@@ -237,14 +239,14 @@
                 geo.B = { x: geo.baseX, y: geo.baseY }; geo.C = { x: geo.B.x + geo.given.a.len, y: geo.baseY };
                 let c = geo.given.a.len * Math.sin(aC) / Math.sin(aA);
                 geo.A = { x: geo.B.x + c * Math.cos(-aB), y: geo.B.y + c * Math.sin(-aB) };
-                geo.aC = aC; // 存下角C大小供作圖用
+                geo.aC = aC; 
             }
             else if (currentTopic === 'RHS') {
                 geo.given = {
                     a: makeGivenSeg(width*0.2, geo.gCenterY, width*0.2),
                     c: makeGivenSeg(width*0.6, geo.gCenterY, width*0.3)
                 };
-                geo.B = { x: geo.baseX + 20, y: geo.baseY }; // B點稍微右移給垂線作圖空間
+                geo.B = { x: geo.baseX + 20, y: geo.baseY }; 
                 geo.C = { x: geo.B.x, y: geo.B.y - geo.given.a.len };
                 let b = Math.sqrt(Math.pow(geo.given.c.len, 2) - Math.pow(geo.given.a.len, 2));
                 geo.A = { x: geo.B.x + b, y: geo.B.y };
@@ -254,31 +256,44 @@
         function selectTopic(topic) {
             currentTopic = topic;
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${topic}`).classList.add('active');
-            resizeCanvas(); resetAnimation();
-            setTimeout(() => { if(window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(()=>{}); }, 150);
+            let activeBtn = document.getElementById(`btn-${topic}`);
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            resizeCanvas(); 
+            resetAnimation();
+            
+            setTimeout(() => { 
+                if(window.MathJax && window.MathJax.typesetPromise) {
+                    window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(()=>{}); 
+                }
+            }, 150);
         }
 
         // --- 繪圖底層工具 ---
         function drawPoint(x, y, label, color = '#333', offsetX = -5, offsetY = -10) {
+            if (isNaN(x) || isNaN(y)) return; // 防呆
             ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
             if(label) { ctx.font = "italic bold 18px 'Times New Roman', serif"; ctx.fillStyle = color; ctx.fillText(label, x + offsetX, y + offsetY); }
         }
         function drawLine(p1, p2, color = '#333', lw = 2, dash=[]) {
+            if (!p1 || !p2 || isNaN(p1.x) || isNaN(p2.x)) return;
             ctx.beginPath(); ctx.setLineDash(dash); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
             ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke(); ctx.setLineDash([]);
         }
         function drawArc(center, radius, sAng, eAng, color = '#aaa', lw = 2, ccw = false) {
+            if (!center || isNaN(center.x) || isNaN(radius) || radius < 0) return;
             ctx.beginPath(); ctx.arc(center.x, center.y, radius, sAng, eAng, ccw);
             ctx.strokeStyle = color; ctx.lineWidth = lw; ctx.stroke();
         }
         function drawGivenBox() {
+            if (!geo.gBox) return;
             ctx.fillStyle = '#f8fafc'; ctx.fillRect(geo.gBox.x, geo.gBox.y, geo.gBox.w, geo.gBox.h);
             ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]);
             ctx.strokeRect(geo.gBox.x, geo.gBox.y, geo.gBox.w, geo.gBox.h); ctx.setLineDash([]);
             ctx.font = "bold 14px sans-serif"; ctx.fillStyle = '#64748b'; ctx.fillText("已知條件區", geo.gBox.x + 10, geo.gBox.y + 20);
         }
         function drawCompass(needleX, needleY, radius, pencilAngle, alpha = 1) {
+            if (isNaN(needleX) || isNaN(needleY) || isNaN(radius) || isNaN(pencilAngle)) return;
             ctx.save(); ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
             let legLen = Math.max(radius * 0.85, 150); let halfR = radius / 2; let h = Math.sqrt(legLen * legLen - halfR * halfR);
             let pX = needleX + radius * Math.cos(pencilAngle); let pY = needleY + radius * Math.sin(pencilAngle);
@@ -293,8 +308,12 @@
             ctx.beginPath(); ctx.arc(needleX, needleY, 2, 0, Math.PI*2); ctx.fillStyle='#333'; ctx.fill();
             ctx.restore();
         }
-        function drawGivenSegment(segData, label) { drawLine(segData.p1, segData.p2, '#333', 3); ctx.font = "italic 16px 'Times New Roman', serif"; ctx.fillStyle = '#333'; ctx.fillText(label, (segData.p1.x+segData.p2.x)/2, segData.p1.y - 10); }
+        function drawGivenSegment(segData, label) { 
+            if(!segData) return;
+            drawLine(segData.p1, segData.p2, '#333', 3); ctx.font = "italic 16px 'Times New Roman', serif"; ctx.fillStyle = '#333'; ctx.fillText(label, (segData.p1.x+segData.p2.x)/2, segData.p1.y - 10); 
+        }
         function drawGivenAngle(angData, label) {
+            if(!angData) return;
             let p1 = {x: angData.O.x + 40*Math.cos(angData.a1), y: angData.O.y + 40*Math.sin(angData.a1)};
             let p2 = {x: angData.O.x + 40*Math.cos(angData.a2), y: angData.O.y + 40*Math.sin(angData.a2)};
             drawLine(angData.O, p1, '#333', 3); drawLine(angData.O, p2, '#333', 3);
@@ -323,18 +342,14 @@
             let gChAng = Math.atan2(r*Math.sin(gEnd)-r*Math.sin(gBase), r*Math.cos(gEnd)-r*Math.cos(gBase));
             let tChAng = Math.atan2(r*Math.sin(tEnd)-r*Math.sin(tBase), r*Math.cos(tEnd)-r*Math.cos(tBase));
 
-            // 保留已畫好的線條
             if (p.phase >= 1) drawArc(gO, r, gBase, gEnd, '#3498db', 2, gEnd < gBase);
-            let tArcEnd = tBase + (tEnd-tBase)*1.3; // 目標弧畫長一點以便交會
+            let tArcEnd = tBase + (tEnd-tBase)*1.3; 
             if (p.phase >= 2) drawArc(tO, r, tBase, tArcEnd, '#e67e22', 2, tArcEnd < tBase);
             if (p.phase >= 3) drawArc(gP1, r2, gChAng-0.3, gChAng+0.3, '#e74c3c', 2);
-            if (p.phase >= 4) { drawArc(tP1, r2, tChAng-0.3, tChAng+0.3, '#2ecc71', 2); }
-            if (p.phase === 4 && p.sub > 0) {
-                drawLine(tO, {x: tO.x + geo.rayLen*Math.cos(tEnd)*p.sub, y: tO.y + geo.rayLen*Math.sin(tEnd)*p.sub}, '#888', 2);
-            }
+            if (p.phase >= 4) drawArc(tP1, r2, tChAng-0.3, tChAng+0.3, '#2ecc71', 2); 
+            if (p.phase === 4 && p.sub > 0) drawLine(tO, {x: tO.x + geo.rayLen*Math.cos(tEnd)*p.sub, y: tO.y + geo.rayLen*Math.sin(tEnd)*p.sub}, '#888', 2);
 
-            // 同步圓規與畫弧動畫
-            let cx, cy, cr = r, cang;
+            let cx = gO.x, cy = gO.y, cr = r, cang = gBase; // 預設值防呆
             if (p.phase === 0) { cx = gO.x; cy = gO.y; cang = gBase + (gEnd-gBase)*p.sub; drawArc(gO, r, gBase, cang, '#3498db', 2, gEnd < gBase); }
             else if (p.phase === 1) { cx = gO.x + (tO.x-gO.x)*p.sub; cy = gO.y + (tO.y-gO.y)*p.sub; cang = tBase; }
             else if (p.phase === 2) { cx = tO.x; cy = tO.y; cang = tBase + (tArcEnd-tBase)*p.sub; drawArc(tO, r, tBase, cang, '#e67e22', 2, tArcEnd < tBase); }
@@ -346,14 +361,29 @@
 
         // --- UI 控制 ---
         function updateUI() {
+            if (!stepsData[currentTopic] || !stepsData[currentTopic][currentStep]) return;
             let data = stepsData[currentTopic][currentStep];
-            document.getElementById('step-title').innerHTML = data.title; document.getElementById('step-desc').innerHTML = data.desc;
-            if(window.MathJax && window.MathJax.typesetPromise) window.MathJax.typesetPromise([document.getElementById('step-desc')]).catch(()=>{});
-            document.getElementById('btn-next').disabled = (currentStep >= stepsData[currentTopic].length - 1);
-            document.getElementById('btn-prev').disabled = (currentStep === 0);
-            document.getElementById('btn-replay').disabled = (currentStep === 0);
+            document.getElementById('step-title').innerHTML = data.title; 
+            document.getElementById('step-desc').innerHTML = data.desc;
+            
+            let btnNext = document.getElementById('btn-next');
+            let btnPrev = document.getElementById('btn-prev');
+            let btnReplay = document.getElementById('btn-replay');
+            
+            if (btnNext) btnNext.disabled = (currentStep >= stepsData[currentTopic].length - 1);
+            if (btnPrev) btnPrev.disabled = (currentStep === 0);
+            if (btnReplay) btnReplay.disabled = (currentStep === 0);
         }
-        function resetAnimation() { cancelAnimationFrame(animationFrameId); isAnimating = false; autoPlay = false; currentStep = 0; animProgress = 0; document.getElementById('btn-play').innerText = "連續播放"; updateUI(); drawStaticState(0); }
+        
+        function resetAnimation() { 
+            if (animationFrameId) cancelAnimationFrame(animationFrameId); 
+            isAnimating = false; autoPlay = false; currentStep = 0; animProgress = 0; 
+            let btnPlay = document.getElementById('btn-play');
+            if(btnPlay) btnPlay.innerText = "連續播放"; 
+            updateUI(); 
+            drawStaticState(0); 
+        }
+        
         function toggleAutoPlay() { autoPlay = !autoPlay; document.getElementById('btn-play').innerText = autoPlay ? "暫停" : "連續播放"; if (autoPlay && !isAnimating) { if(currentStep >= stepsData[currentTopic].length - 1) resetAnimation(); nextStep(); } }
         function nextStep() { if (isAnimating || currentStep >= stepsData[currentTopic].length - 1) return; currentStep++; animProgress = 0; isAnimating = true; updateUI(); animate(); }
         function prevStep() { if (isAnimating) cancelAnimationFrame(animationFrameId); isAnimating = false; if (autoPlay) toggleAutoPlay(); if (currentStep > 0) currentStep--; animProgress = 0; updateUI(); drawStaticState(currentStep); }
@@ -363,32 +393,32 @@
         function drawStaticState(step) {
             ctx.clearRect(0, 0, width, height); drawGivenBox();
 
-            if (currentTopic === 'SSS') {
+            if (currentTopic === 'SSS' && geo.given) {
                 drawGivenSegment(geo.given.c, 'c'); drawGivenSegment(geo.given.a, 'a'); drawGivenSegment(geo.given.b, 'b');
                 if (step >= 1) { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
                 if (step >= 2) { let aB = Math.atan2(geo.C.y-geo.B.y, geo.C.x-geo.B.x); drawArc(geo.B, geo.given.a.len, aB-0.3, aB+0.3, '#e67e22', 2); }
                 if (step >= 3) { let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x); drawArc(geo.A, geo.given.b.len, aA-0.3, aA+0.3, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -5, -15); }
                 if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
-            else if (currentTopic === 'SAS') {
+            else if (currentTopic === 'SAS' && geo.given) {
                 drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.b, 'b');
                 if (step >= 1) { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
                 if (step >= 2) { drawArc(geo.A, geo.given.angA.r, 0, -Math.PI/4 - 0.2, '#e67e22', 2, true); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
                 if (step >= 3) { drawArc(geo.A, geo.given.b.len, -Math.PI/4 - 0.3, -Math.PI/4 + 0.3, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -5, -15); }
                 if (step >= 4) { drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
-            else if (currentTopic === 'ASA') {
+            else if (currentTopic === 'ASA' && geo.given) {
                 drawGivenAngle(geo.given.angA, 'A'); drawGivenSegment(geo.given.c, 'c'); drawGivenAngle(geo.given.angB, 'B');
                 if (step >= 1) { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
                 if (step >= 2) { drawArc(geo.A, geo.given.angA.r, 0, -Math.PI/4 - 0.2, '#e67e22', 2, true); drawLine(geo.A, {x: geo.A.x + geo.rayLen*Math.cos(-Math.PI/4), y: geo.A.y + geo.rayLen*Math.sin(-Math.PI/4)}, '#888', 2); }
                 if (step >= 3) { let tEnd = Math.PI - Math.PI/3; drawArc(geo.B, geo.given.angB.r, Math.PI, tEnd - 0.2, '#e67e22', 2, true); drawLine(geo.B, {x: geo.B.x + geo.rayLen*Math.cos(tEnd), y: geo.B.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
                 if (step >= 4) { drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', -5, -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
-            else if (currentTopic === 'AAS') {
+            else if (currentTopic === 'AAS' && geo.given && geo.aux) {
                 drawGivenAngle(geo.given.angA, 'A'); drawGivenAngle(geo.given.angB, 'B'); drawGivenSegment(geo.given.a, 'a');
                 if (step >= 1) {
                     let O = geo.aux.O; drawLine(geo.aux.start, geo.aux.end, '#888', 2); drawPoint(O.x, O.y, '');
-                    drawArc(O, 40, -Math.PI, 0, '#ccc', 2); // 上半平角 (-180 到 0)
+                    drawArc(O, 40, -Math.PI, 0, '#ccc', 2);
                     let aA = Math.PI/5, aB = Math.PI/3; let eA = -Math.PI + aA; let eB = eA + aB;
                     drawLine(O, {x: O.x + 50*Math.cos(eA), y: O.y + 50*Math.sin(eA)}, '#3498db', 2);
                     drawLine(O, {x: O.x + 50*Math.cos(eB), y: O.y + 50*Math.sin(eB)}, '#2ecc71', 2);
@@ -401,12 +431,12 @@
                 if (step >= 4) { let tEnd = Math.PI - geo.aC; drawArc(geo.C, 40, Math.PI, tEnd - 0.2, '#e67e22', 2, true); drawLine(geo.C, {x: geo.C.x + geo.rayLen*Math.cos(tEnd), y: geo.C.y + geo.rayLen*Math.sin(tEnd)}, '#888', 2); }
                 if (step >= 5) { drawPoint(geo.A.x, geo.A.y, 'A', '#8e44ad', -5, -15); drawLine(geo.A, geo.C, '#c0392b', 3); drawLine(geo.B, geo.C, '#c0392b', 3); drawLine(geo.A, geo.B, '#c0392b', 3); }
             }
-            else if (currentTopic === 'RHS') {
+            else if (currentTopic === 'RHS' && geo.given) {
                 drawGivenSegment(geo.given.a, 'a (股)'); drawGivenSegment(geo.given.c, 'c (斜邊)');
                 if (step >= 1) { 
                     drawLine({x: geo.B.x-60, y: geo.B.y}, {x: geo.B.x + geo.rayLen, y: geo.B.y}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); 
-                    drawArc(geo.B, 40, Math.PI-0.3, Math.PI+0.3, '#3498db', 1); drawArc(geo.B, 40, -0.3, 0.3, '#3498db', 1); // 左右弧
-                    drawArc({x:geo.B.x-40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawArc({x:geo.B.x+40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); // 上方交會
+                    drawArc(geo.B, 40, Math.PI-0.3, Math.PI+0.3, '#3498db', 1); drawArc(geo.B, 40, -0.3, 0.3, '#3498db', 1); 
+                    drawArc({x:geo.B.x-40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); drawArc({x:geo.B.x+40, y:geo.B.y}, 65, -Math.PI/2-0.4, -Math.PI/2+0.4, '#e67e22', 1); 
                     drawLine(geo.B, {x: geo.B.x, y: geo.B.y - width*0.3}, '#888', 2); ctx.strokeRect(geo.B.x, geo.B.y-15, 15, 15);
                 }
                 if (step >= 2) { drawArc(geo.B, geo.given.a.len, -Math.PI/2 - 0.3, -Math.PI/2 + 0.3, '#2ecc71', 2); drawPoint(geo.C.x, geo.C.y, 'C', '#8e44ad', 10, -5); }
@@ -417,18 +447,20 @@
 
         // --- 動畫圖層 (時間軸影格同步) ---
         function animate() {
+            if (!geo.given) return; // 防呆
             animProgress += 0.005; if (animProgress > 1) animProgress = 1; 
             ctx.clearRect(0, 0, width, height); drawStaticState(currentStep - 1);
 
             if (currentTopic === 'SSS') {
                 if (currentStep === 1) {
                     let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    let cx = geo.A.x, cy = geo.baseY, cang = 0;
                     if (p.phase === 0) { drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
                     else {
                         drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A');
-                        let cx, cy, cang = 0;
                         if(p.phase===1) { cx = geo.given.c.p1.x + (geo.A.x-geo.given.c.p1.x)*p.sub; cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub; }
                         else if(p.phase===2) { cx = geo.A.x; cy = geo.baseY; cang = -0.3 + 0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2); }
+                        else if(p.phase===3) { drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2); }
                         if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1);
                     }
                 }
@@ -437,32 +469,49 @@
                     let cx = geo.given.a.p1.x + (geo.B.x-geo.given.a.p1.x)*p.sub; let cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub;
                     if(p.phase===0) drawCompass(cx, cy, geo.given.a.len, aB, 1);
                     else if(p.phase===1) { drawArc(geo.B, geo.given.a.len, aB-0.3, aB-0.3+0.6*p.sub, '#e67e22', 2); drawCompass(geo.B.x, geo.B.y, geo.given.a.len, aB-0.3+0.6*p.sub, 1); }
+                    else if(p.phase===2) { drawArc(geo.B, geo.given.a.len, aB-0.3, aB+0.3, '#e67e22', 2); }
                 }
                 else if (currentStep === 3) {
                     let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); let aA = Math.atan2(geo.C.y-geo.A.y, geo.C.x-geo.A.x);
                     let cx = geo.given.b.p1.x + (geo.A.x-geo.given.b.p1.x)*p.sub; let cy = geo.gCenterY + (geo.baseY-geo.gCenterY)*p.sub;
                     if(p.phase===0) drawCompass(cx, cy, geo.given.b.len, aA, 1);
                     else if(p.phase===1) { drawArc(geo.A, geo.given.b.len, aA-0.3, aA-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.A.x, geo.A.y, geo.given.b.len, aA-0.3+0.6*p.sub, 1); }
+                    else if(p.phase===2) { drawArc(geo.A, geo.given.b.len, aA-0.3, aA+0.3, '#2ecc71', 2); }
                 }
             }
             else if (currentTopic === 'SAS') {
-                if (currentStep === 1) { /* 同 SSS Step 1 */ 
+                if (currentStep === 1) { 
                     let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    let cx = geo.A.x, cy = geo.baseY, cang=0; 
                     if (p.phase === 0) { drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
-                    else { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); }
+                    else { 
+                        drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); 
+                        if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}
+                        else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);}
+                        else if(p.phase===3){drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2);} 
+                        if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); 
+                    }
                 }
                 else if (currentStep === 2) drawAngleCopyAnim(geo.given.angA.O, 0, -Math.PI/4, geo.A, 0, -Math.PI/4, 40, animProgress);
                 else if (currentStep === 3) {
                     let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); 
                     if(p.phase===0) drawCompass(geo.given.b.p1.x+(geo.A.x-geo.given.b.p1.x)*p.sub, geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub, geo.given.b.len, -Math.PI/4, 1);
                     else if(p.phase===1) { drawArc(geo.A, geo.given.b.len, -Math.PI/4-0.3, -Math.PI/4-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.A.x, geo.A.y, geo.given.b.len, -Math.PI/4-0.3+0.6*p.sub, 1); }
+                    else if(p.phase===2) { drawArc(geo.A, geo.given.b.len, -Math.PI/4-0.3, -Math.PI/4+0.3, '#2ecc71', 2); }
                 }
             }
             else if (currentTopic === 'ASA') {
-                if (currentStep === 1) { /* 同上 */
+                if (currentStep === 1) { 
                     let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    let cx = geo.A.x, cy = geo.baseY, cang=0; 
                     if(p.phase === 0){ drawLine(geo.A, {x: geo.A.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); }
-                    else { drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); }
+                    else { 
+                        drawLine(geo.A, {x: geo.A.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.A.x, geo.A.y, 'A'); 
+                        if(p.phase===1){cx=geo.given.c.p1.x+(geo.A.x-geo.given.c.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}
+                        else if(p.phase===2){cx=geo.A.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.A, geo.given.c.len, -0.3, cang, '#3498db', 2);}
+                        else if(p.phase===3){drawArc(geo.A, geo.given.c.len, -0.3, 0.3, '#3498db', 2);} 
+                        if(p.phase < 3) drawCompass(cx, cy, geo.given.c.len, cang, 1); 
+                    }
                 }
                 else if (currentStep === 2) drawAngleCopyAnim(geo.given.angA.O, 0, -Math.PI/4, geo.A, 0, -Math.PI/4, 40, animProgress);
                 else if (currentStep === 3) drawAngleCopyAnim(geo.given.angB.O, 0, -Math.PI/3, geo.B, Math.PI, Math.PI - Math.PI/3, 40, animProgress);
@@ -484,10 +533,17 @@
                         ctx.fillStyle='#e74c3c'; ctx.fillText('C', O.x + 50*Math.cos(eB + geo.aC/2), O.y + 50*Math.sin(eB + geo.aC/2));
                     }
                 }
-                else if (currentStep === 2) { /* 同 SSS Step 1 */
+                else if (currentStep === 2) { 
                     let p = getAnimPhase(animProgress, [0.2, 0.4, 0.8, 1.0]);
+                    let cx = geo.B.x, cy = geo.baseY, cang=0;
                     if (p.phase === 0) { drawLine(geo.B, {x: geo.B.x + geo.rayLen*p.sub, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); }
-                    else { drawLine(geo.B, {x: geo.B.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B'); let cx, cy, cang=0; if(p.phase===1){cx=geo.given.a.p1.x+(geo.B.x-geo.given.a.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}else if(p.phase===2){cx=geo.B.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.B, geo.given.a.len, -0.3, cang, '#3498db', 2);} if(p.phase < 3) drawCompass(cx, cy, geo.given.a.len, cang, 1); }
+                    else { 
+                        drawLine(geo.B, {x: geo.B.x + geo.rayLen, y: geo.baseY}, '#888', 2); drawPoint(geo.B.x, geo.B.y, 'B');  
+                        if(p.phase===1){cx=geo.given.a.p1.x+(geo.B.x-geo.given.a.p1.x)*p.sub; cy=geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub;}
+                        else if(p.phase===2){cx=geo.B.x; cy=geo.baseY; cang=-0.3+0.6*p.sub; drawArc(geo.B, geo.given.a.len, -0.3, cang, '#3498db', 2);} 
+                        else if(p.phase===3){drawArc(geo.B, geo.given.a.len, -0.3, 0.3, '#3498db', 2);}
+                        if(p.phase < 3) drawCompass(cx, cy, geo.given.a.len, cang, 1); 
+                    }
                 }
                 else if (currentStep === 3) drawAngleCopyAnim(geo.given.angB.O, 0, -Math.PI/3, geo.B, 0, -Math.PI/3, 40, animProgress);
                 else if (currentStep === 4) {
@@ -508,7 +564,7 @@
                     if (p.phase === 0) { drawLine({x: B.x-60, y: B.y}, {x: B.x + geo.rayLen*p.sub, y: B.y}, '#888', 2); }
                     else { drawLine({x: B.x-60, y: B.y}, {x: B.x + geo.rayLen, y: B.y}, '#888', 2); drawPoint(B.x, B.y, 'B'); }
 
-                    let cx, cy, cr=r1, cang;
+                    let cx = B.x, cy = B.y, cr=r1, cang = Math.PI;
                     if (p.phase === 1) { cx = B.x; cy = B.y; cang = Math.PI - 0.3 + 0.6*p.sub; drawArc(B, r1, Math.PI-0.3, cang, '#3498db', 1); }
                     else if (p.phase === 2) { cx = B.x; cy = B.y; cang = -0.3 + 0.6*p.sub; drawArc(B, r1, -0.3, cang, '#3498db', 1); }
                     else if (p.phase === 3) { cx = p1x; cy = B.y; cr = r2; cang = -Math.PI/2 - 0.4 + 0.8*p.sub; drawArc({x:p1x, y:B.y}, r2, -Math.PI/2-0.4, cang, '#e67e22', 1); }
@@ -521,19 +577,30 @@
                     let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); 
                     if(p.phase===0) drawCompass(geo.given.a.p1.x+(geo.B.x-geo.given.a.p1.x)*p.sub, geo.gCenterY+(geo.baseY-geo.gCenterY)*p.sub, geo.given.a.len, -Math.PI/2, 1);
                     else if(p.phase===1) { drawArc(geo.B, geo.given.a.len, -Math.PI/2-0.3, -Math.PI/2-0.3+0.6*p.sub, '#2ecc71', 2); drawCompass(geo.B.x, geo.B.y, geo.given.a.len, -Math.PI/2-0.3+0.6*p.sub, 1); }
+                    else if(p.phase===2) { drawArc(geo.B, geo.given.a.len, -Math.PI/2-0.3, -Math.PI/2+0.3, '#2ecc71', 2); }
                 }
                 else if (currentStep === 3) {
                     let p = getAnimPhase(animProgress, [0.3, 0.7, 1.0]); let tAng = Math.atan2(geo.A.y-geo.C.y, geo.A.x-geo.C.x);
                     if(p.phase===0) drawCompass(geo.given.c.p1.x+(geo.C.x-geo.given.c.p1.x)*p.sub, geo.gCenterY+(geo.C.y-geo.gCenterY)*p.sub, geo.given.c.len, tAng, 1);
                     else if(p.phase===1) { drawArc(geo.C, geo.given.c.len, tAng-0.3, tAng-0.3+0.6*p.sub, '#e74c3c', 2); drawCompass(geo.C.x, geo.C.y, geo.given.c.len, tAng-0.3+0.6*p.sub, 1); }
+                    else if(p.phase===2) { drawArc(geo.C, geo.given.c.len, tAng-0.3, tAng+0.3, '#e74c3c', 2); }
                 }
             }
 
             if (animProgress < 1) animationFrameId = requestAnimationFrame(animate);
-            else { isAnimating = false; drawStaticState(currentStep); updateUI(); if (autoPlay && currentStep < stepsData[currentTopic].length - 1) setTimeout(() => nextStep(), 800); else if (autoPlay) toggleAutoPlay(); }
+            else { 
+                isAnimating = false; 
+                drawStaticState(currentStep); 
+                updateUI(); 
+                if (autoPlay && currentStep < stepsData[currentTopic].length - 1) setTimeout(() => nextStep(), 800); 
+                else if (autoPlay) toggleAutoPlay(); 
+            }
         }
         
-        setTimeout(() => { selectTopic('SSS'); }, 100);
+        // 使用 window.onload 取代 setTimeout，確保 DOM 完全準備就緒
+        window.addEventListener('load', () => {
+            selectTopic('SSS');
+        });
     </script>
 </body>
 </html>
