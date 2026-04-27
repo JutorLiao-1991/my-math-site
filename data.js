@@ -53,6 +53,13 @@ const lessonData = [
     tagName: "國中數學",
     desc: "透過鳩特精心設計的步驟，一步一步領悟尺規作圖方式"
     },
+    {title: "尺規作圖做三角形",
+    category: "junior",
+    url: "junior/math/CAR_Triangle.html",
+    tagClass: "math", // 藍色標籤
+    tagName: "國中數學",
+    desc: "透過鳩特精心設計的步驟，一步一步用尺規作圖完成指定三角形"
+    },
     {
     title: "平面族示意動畫",
     category: "senior",
