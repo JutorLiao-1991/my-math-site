@@ -2551,6 +2551,233 @@ var jutorDB = {
           "ch": "(某處) 令人愉快的",
           "sentence": "The people in this town are very friendly."
         }
+      ],
+      "Book 4 Unit 4": [
+        {
+          "en": "set up",
+          "ch": "搭建；建立",
+          "sentence": "We need to set up the tent before it gets dark."
+        },
+        {
+          "en": "make a fire",
+          "ch": "生火",
+          "sentence": "It's cold, let's make a fire to keep warm."
+        },
+        {
+          "en": "boil",
+          "ch": "煮沸",
+          "sentence": "Please boil some water for tea."
+        },
+        {
+          "en": "bug",
+          "ch": "蟲",
+          "sentence": "There's a bug crawling on the wall."
+        },
+        {
+          "en": "picnic",
+          "ch": "野餐",
+          "sentence": "We are going to have a picnic in the park tomorrow."
+        },
+        {
+          "en": "hang out",
+          "ch": "晾掛",
+          "sentence": "I need to hang out the laundry to dry."
+        },
+        {
+          "en": "towel",
+          "ch": "毛巾",
+          "sentence": "Don't forget to bring a towel to the beach."
+        },
+        {
+          "en": "lie",
+          "ch": "躺下",
+          "sentence": "I like to lie on the grass and read a book."
+        },
+        {
+          "en": "grass",
+          "ch": "草地；草",
+          "sentence": "The grass is always greener on the other side."
+        },
+        {
+          "en": "string lights",
+          "ch": "繩燈",
+          "sentence": "We decorated the patio with string lights for the party."
+        },
+        {
+          "en": "moon",
+          "ch": "月亮",
+          "sentence": "The full moon was beautiful last night."
+        },
+        {
+          "en": "count",
+          "ch": "數數；計算",
+          "sentence": "Can you count how many apples are in the basket?"
+        },
+        {
+          "en": "pack",
+          "ch": "打包",
+          "sentence": "We need to pack our suitcases for the trip."
+        },
+        {
+          "en": "perfect",
+          "ch": "完美的",
+          "sentence": "Everything was perfect for our wedding day."
+        },
+        {
+          "en": "be able to",
+          "ch": "能夠",
+          "sentence": "I hope I will be able to visit you soon."
+        },
+        {
+          "en": "well",
+          "ch": "很好地",
+          "sentence": "She sings very well."
+        },
+        {
+          "en": "loudly",
+          "ch": "大聲地",
+          "sentence": "He spoke loudly so everyone could hear him."
+        },
+        {
+          "en": "slowly",
+          "ch": "緩慢地",
+          "sentence": "The snail moved slowly across the path."
+        },
+        {
+          "en": "gently",
+          "ch": "輕柔地",
+          "sentence": "She gently woke her sleeping baby."
+        },
+        {
+          "en": "smile",
+          "ch": "微笑",
+          "sentence": "Her smile lit up the room."
+        },
+        {
+          "en": "hop",
+          "ch": "單腳跳躍",
+          "sentence": "The rabbit hopped across the field."
+        },
+        {
+          "en": "dancing queen",
+          "ch": "舞后",
+          "sentence": "She felt like a dancing queen on the dance floor."
+        },
+        {
+          "en": "hard",
+          "ch": "努力地",
+          "sentence": "She works hard to achieve her goals."
+        },
+        {
+          "en": "trip",
+          "ch": "絆倒",
+          "sentence": "Be careful not to trip on the rug."
+        },
+        {
+          "en": "experience",
+          "ch": "經歷；體驗",
+          "sentence": "He has a lot of experience in teaching."
+        },
+        {
+          "en": "diary",
+          "ch": "日記",
+          "sentence": "She writes in her diary every night."
+        },
+        {
+          "en": "arrive",
+          "ch": "抵達",
+          "sentence": "What time will you arrive at the station?"
+        },
+        {
+          "en": "area",
+          "ch": "區域；地區",
+          "sentence": "This area is known for its beautiful scenery."
+        },
+        {
+          "en": "successfully",
+          "ch": "成功地",
+          "sentence": "He successfully completed the project."
+        },
+        {
+          "en": "pot",
+          "ch": "鍋子；壺",
+          "sentence": "The soup is boiling in the pot."
+        },
+        {
+          "en": "burn",
+          "ch": "燒焦；燃燒",
+          "sentence": "Be careful not to burn your hand on the hot stove."
+        },
+        {
+          "en": "unhappy",
+          "ch": "不開心的",
+          "sentence": "She was unhappy with the results."
+        },
+        {
+          "en": "hold",
+          "ch": "舉辦；握住",
+          "sentence": "Can you hold my bag for a moment?"
+        },
+        {
+          "en": "circle",
+          "ch": "圓圈",
+          "sentence": "Draw a circle on the paper."
+        },
+        {
+          "en": "shy",
+          "ch": "害羞的",
+          "sentence": "She is very shy around strangers."
+        },
+        {
+          "en": "line",
+          "ch": "列；線條",
+          "sentence": "Please wait in line."
+        },
+        {
+          "en": "laugh",
+          "ch": "笑",
+          "sentence": "They laughed loudly at the joke."
+        },
+        {
+          "en": "anyone",
+          "ch": "任何人",
+          "sentence": "Is anyone home?"
+        },
+        {
+          "en": "else",
+          "ch": "其他",
+          "sentence": "Is there anything else you need?"
+        },
+        {
+          "en": "clap",
+          "ch": "拍手；鼓掌",
+          "sentence": "The audience began to clap after the performance."
+        },
+        {
+          "en": "cheer",
+          "ch": "歡呼；鼓舞",
+          "sentence": "The fans cheered for their favorite team."
+        },
+        {
+          "en": "festival",
+          "ch": "節慶；節日",
+          "sentence": "The city holds a music festival every summer."
+        },
+        {
+          "en": "heart",
+          "ch": "愛心；內心",
+          "sentence": "He has a kind heart."
+        },
+        {
+          "en": "shape",
+          "ch": "形狀",
+          "sentence": "The clouds were in the shape of a dog."
+        },
+        {
+          "en": "lucky",
+          "ch": "幸運的",
+          "sentence": "I feel so lucky to have such good friends."
+        }
       ]
     },
     "翰林版": {
