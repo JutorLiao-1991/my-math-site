@@ -3258,6 +3258,218 @@ var jutorDB = {
           "ch": "如果明天天氣好，我們就去野餐。",
           "sentence": "We'll go on a picnic if it's sunny tomorrow."
         }
+      ],
+      "Book 4 Unit 5": [
+        {
+          "en": "although",
+          "ch": "雖然",
+          "sentence": "Although it was raining, we went for a walk."
+        },
+        {
+          "en": "matter",
+          "ch": "問題；事件",
+          "sentence": "What's the matter? You look upset."
+        },
+        {
+          "en": "sore throat",
+          "ch": "喉嚨痛",
+          "sentence": "I have a sore throat and it hurts to swallow."
+        },
+        {
+          "en": "explain",
+          "ch": "解釋",
+          "sentence": "Can you explain this rule to me?"
+        },
+        {
+          "en": "cough",
+          "ch": "咳嗽",
+          "sentence": "He has a bad cough from the cold."
+        },
+        {
+          "en": "probably",
+          "ch": "很可能；大概",
+          "sentence": "It will probably rain tomorrow."
+        },
+        {
+          "en": "take care of",
+          "ch": "照顧",
+          "sentence": "Please take care of your little brother."
+        },
+        {
+          "en": "noon",
+          "ch": "中午",
+          "sentence": "Let's meet at noon for lunch."
+        },
+        {
+          "en": "both",
+          "ch": "兩者 (都)",
+          "sentence": "Both of them are coming to the party."
+        },
+        {
+          "en": "medicine",
+          "ch": "藥",
+          "sentence": "The doctor prescribed some medicine for my flu."
+        },
+        {
+          "en": "honey",
+          "ch": "蜂蜜",
+          "sentence": "I like to put honey in my tea."
+        },
+        {
+          "en": "lemon",
+          "ch": "檸檬",
+          "sentence": "She squeezed a lemon into her water."
+        },
+        {
+          "en": "useful",
+          "ch": "有用的",
+          "sentence": "This dictionary is very useful for learning English."
+        },
+        {
+          "en": "stand",
+          "ch": "攤位",
+          "sentence": "There's a fruit stand down the street."
+        },
+        {
+          "en": "feel like",
+          "ch": "想要",
+          "sentence": "I feel like eating pizza tonight."
+        },
+        {
+          "en": "cold",
+          "ch": "感冒",
+          "sentence": "I caught a cold last week."
+        },
+        {
+          "en": "well",
+          "ch": "健康的",
+          "sentence": "I hope you are well."
+        },
+        {
+          "en": "treat",
+          "ch": "治療",
+          "sentence": "The doctor will treat his illness."
+        },
+        {
+          "en": "head",
+          "ch": "頭",
+          "sentence": "He nodded his head."
+        },
+        {
+          "en": "headache",
+          "ch": "頭痛",
+          "sentence": "I have a terrible headache today."
+        },
+        {
+          "en": "stomachache",
+          "ch": "胃痛",
+          "sentence": "Eating too much candy gave me a stomachache."
+        },
+        {
+          "en": "fever",
+          "ch": "發燒",
+          "sentence": "The child had a high fever."
+        },
+        {
+          "en": "runny nose",
+          "ch": "流鼻水",
+          "sentence": "She has a runny nose because of her allergies."
+        },
+        {
+          "en": "knee",
+          "ch": "膝蓋",
+          "sentence": "He scraped his knee when he fell."
+        },
+        {
+          "en": "nail",
+          "ch": "指甲",
+          "sentence": "She painted her nails red."
+        },
+        {
+          "en": "finger",
+          "ch": "手指",
+          "sentence": "He pointed with his finger."
+        },
+        {
+          "en": "neck",
+          "ch": "脖子",
+          "sentence": "My neck is stiff from sleeping in a bad position."
+        },
+        {
+          "en": "shoulder",
+          "ch": "肩膀",
+          "sentence": "She carried the bag on her shoulder."
+        },
+        {
+          "en": "bakery",
+          "ch": "麵包店",
+          "sentence": "I bought fresh bread at the bakery."
+        },
+        {
+          "en": "common",
+          "ch": "常見的；共同的",
+          "sentence": "This is a common problem."
+        },
+        {
+          "en": "actually",
+          "ch": "實際上；事實上",
+          "sentence": "He said he was busy, but actually, he was just playing games."
+        },
+        {
+          "en": "helpful",
+          "ch": "有幫助的",
+          "sentence": "Your advice was very helpful."
+        },
+        {
+          "en": "root",
+          "ch": "根；根源",
+          "sentence": "The tree has deep roots."
+        },
+        {
+          "en": "reason",
+          "ch": "原因；理由",
+          "sentence": "What's your reason for being late?"
+        },
+        {
+          "en": "power up",
+          "ch": "增強力量",
+          "sentence": "The game character needs to power up to defeat the boss."
+        },
+        {
+          "en": "sweet",
+          "ch": "甜食",
+          "sentence": "She loves to eat sweet treats."
+        },
+        {
+          "en": "sharp",
+          "ch": "敏銳的",
+          "sentence": "Be careful with that sharp knife."
+        },
+        {
+          "en": "recipe",
+          "ch": "食譜",
+          "sentence": "Can you share the recipe for this cake?"
+        },
+        {
+          "en": "memory",
+          "ch": "記憶；記憶力",
+          "sentence": "I have a good memory for faces."
+        },
+        {
+          "en": "brain",
+          "ch": "頭腦",
+          "sentence": "Reading helps to train your brain."
+        },
+        {
+          "en": "focus",
+          "ch": "專注；焦點",
+          "sentence": "It's hard to focus when there's so much noise."
+        },
+        {
+          "en": "blood",
+          "ch": "血液",
+          "sentence": "Blood flows through our veins."
+        }
       ]
     }
   },
