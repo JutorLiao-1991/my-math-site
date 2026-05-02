@@ -3019,6 +3019,245 @@ var jutorDB = {
           "ch": "亨利和他的兄弟一樣高。",
           "sentence": "Henry is as tall as his brother."
         }
+      ],
+      "Book 4 Unit 4": [
+        {
+          "en": "typhoon",
+          "ch": "颱風",
+          "sentence": "A typhoon is coming, so we should stay indoors."
+        },
+        {
+          "en": "blow",
+          "ch": "吹",
+          "sentence": "The wind began to blow strongly."
+        },
+        {
+          "en": "rose",
+          "ch": "玫瑰",
+          "sentence": "He gave her a single red rose."
+        },
+        {
+          "en": "balcony",
+          "ch": "陽台",
+          "sentence": "We had breakfast on the balcony overlooking the sea."
+        },
+        {
+          "en": "must",
+          "ch": "必須；一定",
+          "sentence": "You must finish your homework before watching TV."
+        },
+        {
+          "en": "prepare",
+          "ch": "準備",
+          "sentence": "They need to prepare for the exam next week."
+        },
+        {
+          "en": "should",
+          "ch": "應該",
+          "sentence": "You should apologize for what you said."
+        },
+        {
+          "en": "candle",
+          "ch": "蠟燭",
+          "sentence": "We lit a candle when the power went out."
+        },
+        {
+          "en": "radio",
+          "ch": "收音機；廣播",
+          "sentence": "I listen to the radio every morning for the news."
+        },
+        {
+          "en": "news",
+          "ch": "新聞；消息",
+          "sentence": "I heard the good news about your promotion."
+        },
+        {
+          "en": "if",
+          "ch": "如果",
+          "sentence": "If it rains, we will stay home."
+        },
+        {
+          "en": "or",
+          "ch": "否則",
+          "sentence": "Study hard, or you will fail the test."
+        },
+        {
+          "en": "have to",
+          "ch": "必須",
+          "sentence": "I have to finish my homework by tomorrow."
+        },
+        {
+          "en": "go out",
+          "ch": "熄滅",
+          "sentence": "The fire went out in the rain."
+        },
+        {
+          "en": "train",
+          "ch": "訓練",
+          "sentence": "The athletes train hard every day."
+        },
+        {
+          "en": "face",
+          "ch": "面對",
+          "sentence": "You must face your fears."
+        },
+        {
+          "en": "try one's best",
+          "ch": "盡力而為",
+          "sentence": "She always tries her best in everything she does."
+        },
+        {
+          "en": "turn on",
+          "ch": "打開 (電源)",
+          "sentence": "Please turn on the light."
+        },
+        {
+          "en": "latest",
+          "ch": "最新的",
+          "sentence": "This is the latest model of the smartphone."
+        },
+        {
+          "en": "star",
+          "ch": "星星",
+          "sentence": "The sky was full of bright stars."
+        },
+        {
+          "en": "shine",
+          "ch": "閃耀；照耀",
+          "sentence": "The sun shines brightly in the morning."
+        },
+        {
+          "en": "giant",
+          "ch": "巨大的",
+          "sentence": "The elephant is a giant animal."
+        },
+        {
+          "en": "wave",
+          "ch": "浪",
+          "sentence": "The waves were crashing on the shore."
+        },
+        {
+          "en": "rainbow",
+          "ch": "彩虹",
+          "sentence": "We saw a beautiful rainbow after the rain."
+        },
+        {
+          "en": "pretty",
+          "ch": "漂亮的",
+          "sentence": "She has a pretty smile."
+        },
+        {
+          "en": "garden",
+          "ch": "花園",
+          "sentence": "There are many colorful flowers in the garden."
+        },
+        {
+          "en": "frog",
+          "ch": "青蛙",
+          "sentence": "A frog can jump very high."
+        },
+        {
+          "en": "noise",
+          "ch": "聲響；噪音",
+          "sentence": "The loud noise woke me up."
+        },
+        {
+          "en": "pond",
+          "ch": "池塘",
+          "sentence": "There are ducks swimming in the pond."
+        },
+        {
+          "en": "noisy",
+          "ch": "嘈雜的",
+          "sentence": "The classroom was very noisy during playtime."
+        },
+        {
+          "en": "earthquake",
+          "ch": "地震",
+          "sentence": "The earthquake caused a lot of damage."
+        },
+        {
+          "en": "bravely",
+          "ch": "英勇地",
+          "sentence": "He bravely faced the danger."
+        },
+        {
+          "en": "sharp",
+          "ch": "尖銳的",
+          "sentence": "Be careful with that sharp knife."
+        },
+        {
+          "en": "reach",
+          "ch": "到達",
+          "sentence": "We finally reached the top of the mountain."
+        },
+        {
+          "en": "space",
+          "ch": "空間",
+          "sentence": "There is not enough space in this small car."
+        },
+        {
+          "en": "size",
+          "ch": "大小；尺寸",
+          "sentence": "What size shoes do you wear?"
+        },
+        {
+          "en": "as",
+          "ch": "介作；如同",
+          "sentence": "He works as a doctor in the hospital."
+        },
+        {
+          "en": "times",
+          "ch": "次",
+          "sentence": "I have visited that city many times."
+        },
+        {
+          "en": "suddenly",
+          "ch": "突然",
+          "sentence": "Suddenly, the lights went out."
+        },
+        {
+          "en": "flashlight",
+          "ch": "手電筒",
+          "sentence": "I used a flashlight to find my way in the dark."
+        },
+        {
+          "en": "sway",
+          "ch": "搖擺",
+          "sentence": "The trees swayed gently in the breeze."
+        },
+        {
+          "en": "fear",
+          "ch": "恐懼",
+          "sentence": "He overcame his fear of flying."
+        },
+        {
+          "en": "rescue",
+          "ch": "救援",
+          "sentence": "The firefighters rescued the cat from the tree."
+        },
+        {
+          "en": "rubble",
+          "ch": "瓦礫；碎石",
+          "sentence": "The old building was reduced to rubble after the demolition."
+        },
+        {
+          "en": "sense",
+          "ch": "感官",
+          "sentence": "Humans have five senses."
+        },
+        {
+          "en": "survivor",
+          "ch": "生還者",
+          "sentence": "She was the only survivor of the plane crash."
+        }
+      ],
+      "Book 4 Unit 4 (句型)": [
+        {
+          "en": "We'll go on a picnic if it's sunny tomorrow.",
+          "ch": "如果明天天氣好，我們就去野餐。",
+          "sentence": "We'll go on a picnic if it's sunny tomorrow."
+        }
       ]
     }
   },
