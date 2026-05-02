@@ -3470,6 +3470,233 @@ var jutorDB = {
           "ch": "血液",
           "sentence": "Blood flows through our veins."
         }
+      ],
+      "Book 4 Unit 6": [
+        {
+          "en": "pass",
+          "ch": "傳遞；通過",
+          "sentence": "Please pass me the salt."
+        },
+        {
+          "en": "throw",
+          "ch": "丟；投擲",
+          "sentence": "He can throw a baseball very far."
+        },
+        {
+          "en": "point",
+          "ch": "得分",
+          "sentence": "We need to score one more point to win."
+        },
+        {
+          "en": "win",
+          "ch": "贏；獲勝",
+          "sentence": "They trained hard to win the championship."
+        },
+        {
+          "en": "until",
+          "ch": "直到",
+          "sentence": "I will wait for you until midnight."
+        },
+        {
+          "en": "member",
+          "ch": "成員",
+          "sentence": "She is a valuable member of our team."
+        },
+        {
+          "en": "group",
+          "ch": "團體",
+          "sentence": "Let's work together as a group."
+        },
+        {
+          "en": "fail",
+          "ch": "考不及格；失敗",
+          "sentence": "He failed the math test last week."
+        },
+        {
+          "en": "test",
+          "ch": "考試",
+          "sentence": "I have a big English test tomorrow."
+        },
+        {
+          "en": "afraid",
+          "ch": "害怕的；擔憂的",
+          "sentence": "Don't be afraid to try new things."
+        },
+        {
+          "en": "forget",
+          "ch": "忘記",
+          "sentence": "I always forget people's names."
+        },
+        {
+          "en": "fresh",
+          "ch": "新的；新鮮的",
+          "sentence": "These vegetables are very fresh."
+        },
+        {
+          "en": "count... in",
+          "ch": "算...參加一份",
+          "sentence": "If you're going to the party, count me in!"
+        },
+        {
+          "en": "begin",
+          "ch": "開始",
+          "sentence": "Let the game begin!"
+        },
+        {
+          "en": "meeting",
+          "ch": "會議；會面",
+          "sentence": "We have a meeting tomorrow morning."
+        },
+        {
+          "en": "come on",
+          "ch": "快點；少來了",
+          "sentence": "Come on, we're going to be late!"
+        },
+        {
+          "en": "excuse",
+          "ch": "藉口；理由",
+          "sentence": "What's your excuse for being late?"
+        },
+        {
+          "en": "around the corner",
+          "ch": "即將來臨；在附近",
+          "sentence": "My birthday is just around the corner."
+        },
+        {
+          "en": "grade",
+          "ch": "成績",
+          "sentence": "She got good grades in all her subjects."
+        },
+        {
+          "en": "hold back",
+          "ch": "阻礙",
+          "sentence": "Don't hold back your feelings."
+        },
+        {
+          "en": "few",
+          "ch": "很少(的)",
+          "sentence": "I have a few friends in this city."
+        },
+        {
+          "en": "simple",
+          "ch": "簡單的",
+          "sentence": "The instructions are very simple."
+        },
+        {
+          "en": "expect",
+          "ch": "預計；期望",
+          "sentence": "I expect you to do your best."
+        },
+        {
+          "en": "mistake",
+          "ch": "錯誤",
+          "sentence": "Everyone makes mistakes."
+        },
+        {
+          "en": "angle",
+          "ch": "立場；角度",
+          "sentence": "Look at the problem from a different angle."
+        },
+        {
+          "en": "allow",
+          "ch": "允許",
+          "sentence": "My parents don't allow me to stay out late."
+        },
+        {
+          "en": "laugh",
+          "ch": "笑；笑聲",
+          "sentence": "We always laugh at his jokes."
+        },
+        {
+          "en": "keep in mind",
+          "ch": "記住",
+          "sentence": "Please keep in mind what I told you."
+        },
+        {
+          "en": "honest",
+          "ch": "誠實的；可信的",
+          "sentence": "To be honest, I don't know the answer."
+        },
+        {
+          "en": "lead to",
+          "ch": "導致",
+          "sentence": "Hard work often leads to success."
+        },
+        {
+          "en": "push",
+          "ch": "迫使；推動",
+          "sentence": "Don't push me, I'm already stressed."
+        },
+        {
+          "en": "excellent",
+          "ch": "優秀的；極佳的",
+          "sentence": "That's an excellent idea!"
+        },
+        {
+          "en": "be able to",
+          "ch": "能夠",
+          "sentence": "I will be able to help you tomorrow."
+        },
+        {
+          "en": "define",
+          "ch": "下定義；界定",
+          "sentence": "Can you define the word \"happiness\"?"
+        },
+        {
+          "en": "matter",
+          "ch": "要緊；重要",
+          "sentence": "It doesn't matter what others think."
+        },
+        {
+          "en": "picture",
+          "ch": "想像",
+          "sentence": "Can you picture yourself living here?"
+        },
+        {
+          "en": "as for",
+          "ch": "至於",
+          "sentence": "As for me, I'm staying home tonight."
+        },
+        {
+          "en": "to the full",
+          "ch": "盡可能",
+          "sentence": "We should live life to the full."
+        },
+        {
+          "en": "fair",
+          "ch": "展覽會",
+          "sentence": "The county fair is held every summer."
+        },
+        {
+          "en": "stereotype",
+          "ch": "刻板印象；對…有偏見",
+          "sentence": "It's important to challenge stereotypes."
+        },
+        {
+          "en": "gender",
+          "ch": "性別",
+          "sentence": "What is your gender?"
+        },
+        {
+          "en": "self",
+          "ch": "自我",
+          "sentence": "He is very confident in himself."
+        },
+        {
+          "en": "talent",
+          "ch": "人才；天分",
+          "sentence": "She has a great talent for music."
+        },
+        {
+          "en": "designer",
+          "ch": "設計師",
+          "sentence": "He is a fashion designer."
+        },
+        {
+          "en": "record",
+          "ch": "紀錄；記載",
+          "sentence": "She broke the world record in the long jump."
+        }
       ]
     }
   },
