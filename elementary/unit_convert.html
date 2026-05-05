@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳩特數理：小數點漂移特訓</title>
+    
+    <style>
+        :root {
+            --primary-color: #4a90e2; 
+            --secondary-color: #f5a623; 
+            --bg-color: #f4f7f6;
+            --text-color: #333; 
+            --panel-bg: #ffffff; 
+            --nav-bg: rgba(30, 41, 59, 0.95);
+            --accent: #38bdf8; 
+            --border-color: #e1e4e8; 
+            --highlight: #e74c3c;
+            --success: #4CAF50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+
+        /* === 導覽列 === */
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid #334155; color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--accent); font-weight: bold;
+            border: 1px solid var(--accent); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer;
+        }
+        .back-btn:hover { background: var(--accent); color: #0f172a; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        /* === 主排版 === */
+        .main-wrapper { flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative; }
+        .panel {
+            background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+        }
+
+        /* === 左側：漂移展示區 === */
+        #graph-panel { flex: 2; position: relative; display: flex; justify-content: center; align-items: center; background: #fff; transition: 0.3s; }
+        .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(0,0,0,0.05); font-size: 1.5rem; pointer-events: none; user-select: none; z-index: 50; }
+        
+        .drifter-container { display: flex; justify-content: center; align-items: flex-end; width: 100%; padding: 20px; overflow-x: auto; z-index: 10; }
+        .digit { font-size: 5vw; font-family: 'Courier New', monospace; font-weight: bold; width: 6vw; max-width: 60px; text-align: center; transition: 0.2s; color: var(--text-color); }
+        .digit.ghost { color: #e1e4e8; } 
+        
+        .dot { font-size: 6vw; color: var(--highlight); width: 3vw; max-width: 30px; text-align: center; margin: 0 2px; transform: translateY(-5px); font-weight: bold; animation: pulse 1.5s infinite alternate; }
+        @keyframes pulse { from { transform: translateY(-5px) scale(1); } to { transform: translateY(-5px) scale(1.2); } }
+
+        /* === 右側：控制面板 === */
+        #controls-panel { flex: 1; min-width: 380px; max-width: 450px; border: 1px solid var(--border-color); }
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
+
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .menu-btn {
+            padding: 12px 8px; background-color: #f1f1f1; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;
+            font-weight: bold; color: #666; transition: all 0.2s; font-size: 0.95rem;
+        }
+        .menu-btn:hover { background-color: #e2e8f0; }
+        .menu-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+        .menu-btn.special { grid-column: span 2; background-color: #334155; color: white; border-color: #1e293b; }
+
+        .step-container { background: #eef6fc; border-left: 5px solid var(--primary-color); border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1; display: flex; flex-direction: column;}
+        
+        .stats-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; color: var(--text-color); font-size: 1.1rem; border-bottom: 1px dashed #ccc; padding-bottom: 10px;}
+        .timer-bar-container { width: 100%; height: 6px; background: #ddd; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--primary-color); width: 100%; transition: width 1s linear; }
+
+        .question-box { font-size: 1.8rem; font-weight: bold; text-align: center; margin: auto 0; }
+        .unit-tag { background: var(--primary-color); color: white; padding: 5px 12px; border-radius: 8px; font-size: 1.2rem; display: inline-block; margin: 0 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+
+        /* 動作按鈕 */
+        .action-group { display: flex; gap: 8px; margin-top: auto; flex-wrap: wrap; }
+        .action-btn {
+            flex: 1 1 45%; padding: 15px 10px; font-size: 1.1rem; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: 0.2s; border: none; color: white; text-align: center;
+        }
+        .btn-prev { background-color: #95a5a6; box-shadow: 0 4px 0 #7f8c8d; }
+        .btn-prev:active { transform: translateY(4px); box-shadow: none; }
+        .btn-next { background-color: #95a5a6; box-shadow: 0 4px 0 #7f8c8d; }
+        .btn-next:active { transform: translateY(4px); box-shadow: none; }
+        .btn-submit { background-color: var(--success); box-shadow: 0 4px 0 #2E7D32; flex: 1 1 100%; margin-top: 5px;}
+        .btn-submit:active { transform: translateY(4px); box-shadow: none; }
+
+        /* 錯誤提示區 */
+        .hint-box { margin-bottom: 20px; padding: 15px; background: #FFF0F0; border: 2px solid var(--highlight); border-radius: 8px; animation: shake 0.5s; font-size: 1rem; }
+        .hint-box h3 { color: var(--highlight); margin: 0 0 10px 0; font-size: 1.1rem;}
+        .ladder-img { font-family: monospace; font-size: 0.9rem; color: #444; background: white; padding: 10px; border-radius: 6px; margin-top: 10px; line-height: 1.6; text-align: center; font-weight: bold; border: 1px dashed #ccc;}
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
+        .score-display { font-size: 6rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; text-shadow: 2px 2px 0px rgba(0,0,0,0.1); }
+
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 300px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+            .digit { font-size: 2rem; width: 30px; }
+            .dot { font-size: 2.5rem; width: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回主選單</a>
+        <h2 class="page-title">鳩特數理：單位換算特訓</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- 左側面板：小數點漂移展示區 -->
+        <div class="panel" id="graph-panel">
+            <div id="welcome-msg" style="color: #999; font-size: 1.5rem; font-weight: bold; position: absolute;">👈 請從右側選擇關卡開始特訓</div>
+            <div class="drifter-container hidden" id="drifter-area"></div>
+            <div class="watermark">Presented by Jutor</div>
+            
+            <!-- 結算畫面 (覆蓋在圖形面板上) -->
+            <div id="end-screen" class="end-screen hidden">
+                <h2>挑戰結束！</h2>
+                <div id="final-score" class="score-display">0</div>
+                <p style="color: #666; font-size: 1.2rem;">請從右側選單選擇關卡再次挑戰</p>
+            </div>
+        </div>
+
+        <!-- 右側面板：控制與狀態 -->
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                
+                <div class="menu-grid">
+                    <button class="menu-btn" onclick="startGame('length')" id="btn-length">📏 長度換算</button>
+                    <button class="menu-btn" onclick="startGame('weight')" id="btn-weight">⚖️ 重量換算</button>
+                    <button class="menu-btn" onclick="startGame('area')" id="btn-area">🗺️ 面積換算</button>
+                    <button class="menu-btn" onclick="startGame('volume')" id="btn-volume">🥛 容積換算</button>
+                    <button class="menu-btn special" onclick="startGame('mixed')" id="btn-mixed">🎲 綜合大挑戰</button>
+                </div>
+
+                <div class="step-container hidden" id="game-status">
+                    <div class="stats-header">
+                        <span id="stat-q">題號：1 / 10</span>
+                        <span id="stat-score" style="color: var(--primary-color);">分數：0</span>
+                        <span id="stat-timer" style="color: var(--highlight);">300s</span>
+                    </div>
+                    <div class="timer-bar-container"><div id="timer-bar" class="timer-bar"></div></div>
+                    
+                    <div class="question-box">
+                        <span id="q-number">--</span> 
+                        <span id="q-unit1" class="unit-tag">--</span> 
+                        <br><span style="color: #999; font-size: 1.2rem; display:inline-block; margin: 10px 0;">轉換為</span><br>
+                        <span style="color: var(--highlight);">?</span> 
+                        <span id="q-unit2" class="unit-tag" style="background: var(--secondary-color);">--</span>
+                    </div>
+                </div>
+
+                <!-- 錯誤提示區 -->
+                <div id="hint-area" class="hint-box hidden">
+                    <h3>❌ 哎呀，小數點移錯囉！</h3>
+                    <p id="hint-text"></p>
+                    <div id="hint-ladder" class="ladder-img"></div>
+                </div>
+
+                <div class="action-group hidden" id="game-actions">
+                    <button class="action-btn btn-prev" onclick="moveDot(-1)">◀ 向左移</button>
+                    <button class="action-btn btn-next" onclick="moveDot(1)">向右移 ▶</button>
+                    <button class="action-btn btn-submit" onclick="checkAnswer()">確認答案 ✔️</button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Web Audio API 音效生成器 ===
+        let audioCtx = null;
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(880, now); 
+                oscillator.frequency.exponentialRampToValueAtTime(1108.73, now + 0.1); 
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                oscillator.start(now); oscillator.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
+        }
+
+        // === 單位進率資料庫 ===
+        const unitDB = {
+            length: { units: { '公里': 1000000, '公尺': 1000, '公分': 10, '毫米': 1 }, ladder: "公里 ➔ (×1000) ➔ 公尺 ➔ (×100) ➔ 公分 ➔ (×10) ➔ 毫米" },
+            weight: { units: { '公噸': 1000000, '公斤': 1000, '公克': 1 }, ladder: "公噸 ➔ (×1000) ➔ 公斤 ➔ (×1000) ➔ 公克" },
+            area: { units: { '平方公里': 1000000, '公頃': 10000, '公畝': 100, '平方公尺': 1 }, ladder: "平方公里 ➔ (×100) ➔ 公頃 ➔ (×100) ➔ 公畝 ➔ (×100) ➔ 平方公尺" },
+            volume: { units: { '立方公尺': 1000000, '度': 1000000, '公升': 1000, '立方公分': 1, 'c.c.': 1, '毫升': 1 }, ladder: "立方公尺(度) ➔ (×1000) ➔ 公升 ➔ (×1000) ➔ 毫升(c.c./立方公分)" }
+        };
+
+        let state = { mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null, hasErroredThisQuestion: false, chars: [], dotIndex: 0, targetValue: 0, currentShift: 0, correctShift: 0 };
+
+        function startGame(mode) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (state.timerInterval) clearInterval(state.timerInterval);
+            
+            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 300;
+            
+            // UI 切換
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+            
+            document.getElementById('welcome-msg').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('drifter-area').classList.remove('hidden');
+            document.getElementById('game-status').classList.remove('hidden');
+            document.getElementById('game-actions').classList.remove('hidden');
+            document.getElementById('hint-area').classList.add('hidden');
+            
+            startTimer(); nextQuestion();
+        }
+
+        function startTimer() {
+            document.getElementById('stat-timer').innerText = state.timer + 's';
+            document.getElementById('timer-bar').style.width = '100%';
+            
+            state.timerInterval = setInterval(() => {
+                state.timer--;
+                document.getElementById('stat-timer').innerText = state.timer + 's';
+                document.getElementById('timer-bar').style.width = (state.timer / 300 * 100) + '%';
+                if (state.timer <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (state.qIndex >= 10) return endGame();
+            state.qIndex++; state.hasErroredThisQuestion = false;
+            document.getElementById('hint-area').classList.add('hidden');
+            document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
+            generateProblem();
+        }
+
+        function generateProblem() {
+            let cat = state.mode;
+            let categories = ['length', 'weight', 'area', 'volume'];
+            if (cat === 'mixed') cat = categories[Math.floor(Math.random() * categories.length)];
+            
+            let keys = Object.keys(unitDB[cat].units);
+            let u1 = keys[Math.floor(Math.random() * keys.length)];
+            let u2 = keys[Math.floor(Math.random() * keys.length)];
+            while (u1 === u2) u2 = keys[Math.floor(Math.random() * keys.length)];
+            
+            let rawNum = parseFloat((Math.random() * 99 + 1).toFixed(Math.random() > 0.5 ? 1 : 0));
+            let ratio = unitDB[cat].units[u1] / unitDB[cat].units[u2];
+            let shiftNeeded = Math.round(Math.log10(ratio)); 
+            
+            document.getElementById('q-number').innerText = rawNum;
+            document.getElementById('q-unit1').innerText = u1;
+            document.getElementById('q-unit2').innerText = u2;
+            
+            state.correctShift = shiftNeeded; state.currentShift = 0;
+            state.problemCategory = cat; state.problemU1 = u1; state.problemU2 = u2;
+
+            setupDrifter(rawNum.toString());
+        }
+
+        function setupDrifter(numStr) {
+            if (!numStr.includes('.')) numStr += '.';
+            let parts = numStr.split('.');
+            let padLeft = '0000000000' + parts[0]; // 增加緩衝區確保在大螢幕也夠長
+            let padRight = parts[1] + '0000000000';
+            let fullString = padLeft + '.' + padRight;
+            
+            state.chars = fullString.split('');
+            state.dotIndex = state.chars.indexOf('.');
+            renderDrifter();
+        }
+
+        function renderDrifter() {
+            const area = document.getElementById('drifter-area');
+            area.innerHTML = '';
+            
+            let firstNonZero = state.chars.findIndex(c => c !== '0' && c !== '.');
+            let lastNonZero = state.chars.findLastIndex(c => c !== '0' && c !== '.');
+            if (firstNonZero === -1) { firstNonZero = state.dotIndex - 1; lastNonZero = state.dotIndex - 1; }
+            
+            let solidStart = Math.min(firstNonZero, state.dotIndex - 1);
+            let solidEnd = Math.max(lastNonZero, state.dotIndex + 1);
+
+            state.chars.forEach((char, idx) => {
+                let div = document.createElement('div');
+                if (char === '.') {
+                    div.className = 'dot'; div.innerText = '▼'; 
+                    let actualDot = document.createElement('div');
+                    actualDot.innerText = '.'; actualDot.style.marginTop = '-10px';
+                    div.appendChild(actualDot);
+                } else {
+                    div.className = 'digit'; div.innerText = char;
+                    if (char === '0' && (idx < solidStart || idx > solidEnd)) div.classList.add('ghost');
+                }
+                area.appendChild(div);
+            });
+            
+            // 自動平滑捲動到中央
+            setTimeout(() => {
+                let dotEl = area.querySelector('.dot');
+                if(dotEl) dotEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'end' });
+            }, 50);
+        }
+
+        function moveDot(direction) {
+            let idx = state.dotIndex; let targetIdx = idx + direction;
+            if (targetIdx < 0 || targetIdx >= state.chars.length) return;
+            
+            let temp = state.chars[targetIdx];
+            state.chars[targetIdx] = '.'; state.chars[idx] = temp;
+            
+            state.dotIndex = targetIdx; state.currentShift += direction;
+            document.getElementById('hint-area').classList.add('hidden');
+            renderDrifter();
+        }
+
+        function checkAnswer() {
+            if (state.currentShift === state.correctShift) {
+                playSound('correct');
+                if (!state.hasErroredThisQuestion) state.score += 10;
+                document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                
+                document.getElementById('graph-panel').style.background = '#E8F5E9';
+                setTimeout(() => {
+                    document.getElementById('graph-panel').style.background = '#fff';
+                    nextQuestion();
+                }, 1000);
+            } else {
+                playSound('wrong');
+                state.hasErroredThisQuestion = true;
+                const hintArea = document.getElementById('hint-area');
+                const hintText = document.getElementById('hint-text');
+                const hintLadder = document.getElementById('hint-ladder');
+                
+                hintArea.classList.remove('hidden');
+                hintLadder.innerText = unitDB[state.problemCategory].ladder;
+                
+                if (state.correctShift === 0) {
+                    hintText.innerHTML = `⚠️ 注意囉！從 <strong>${state.problemU1}</strong> 到 <strong>${state.problemU2}</strong>，這兩個單位的容量是<strong style="color:var(--highlight);">完全相等</strong>的！<br>所以小數點不需要移動喔！`;
+                } else {
+                    let dir = state.correctShift > 0 ? "右 ▶" : "◀ 左";
+                    let steps = Math.abs(state.correctShift);
+                    let multiplier = Math.pow(10, steps);
+                    let op = state.correctShift > 0 ? "乘" : "除";
+                    
+                    hintText.innerHTML = `從 <strong>${state.problemU1}</strong> 變成 <strong>${state.problemU2}</strong>：<br>
+                    應該要 <strong>${op}以 ${multiplier}</strong>。<br>
+                    所以小數點必須向 <strong style="color:var(--highlight); font-size:1.1em;">${dir} 移動 ${steps} 位</strong> 喔！`;
+                }
+            }
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            document.getElementById('game-actions').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+        }
+    </script>
+</body>
+</html>
