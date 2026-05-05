@@ -94,6 +94,9 @@
         .btn-submit { background-color: var(--success); box-shadow: 0 4px 0 #2E7D32; flex: 1 1 100%; margin-top: 5px;}
         .btn-submit:active { transform: translateY(4px); box-shadow: none; }
 
+        /* 鎖定按鈕時的樣式 (防呆鎖) */
+        .action-btn:disabled { background: #94a3b8; box-shadow: 0 4px 0 #64748b; cursor: not-allowed; transform: none; }
+
         /* 錯誤提示區 */
         .hint-box { margin-bottom: 20px; padding: 15px; background: #FFF0F0; border: 2px solid var(--highlight); border-radius: 8px; animation: shake 0.5s; font-size: 1rem; }
         .hint-box h3 { color: var(--highlight); margin: 0 0 10px 0; font-size: 1.1rem;}
@@ -172,9 +175,9 @@
                 </div>
 
                 <div class="action-group hidden" id="game-actions">
-                    <button class="action-btn btn-prev" onclick="moveDot(-1)">◀ 向左移</button>
-                    <button class="action-btn btn-next" onclick="moveDot(1)">向右移 ▶</button>
-                    <button class="action-btn btn-submit" onclick="checkAnswer()">確認答案 ✔️</button>
+                    <button class="action-btn btn-prev" id="btn-left" onclick="moveDot(-1)">◀ 向左移</button>
+                    <button class="action-btn btn-next" id="btn-right" onclick="moveDot(1)">向右移 ▶</button>
+                    <button class="action-btn btn-submit" id="btn-submit" onclick="checkAnswer()">確認答案 ✔️</button>
                 </div>
 
             </div>
@@ -240,7 +243,8 @@
             volume: { units: { '立方公尺': 1000000, '度': 1000000, '公升': 1000, '立方公分': 1, 'c.c.': 1, '毫升': 1 }, ladder: "立方公尺(度) ➔ (×1000) ➔ 公升 ➔ (×1000) ➔ 毫升(c.c./立方公分)" }
         };
 
-        let state = { mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null, hasErroredThisQuestion: false, chars: [], dotIndex: 0, targetValue: 0, currentShift: 0, correctShift: 0 };
+        // 🛑 新增了 isSubmitting 作為防連擊鎖
+        let state = { mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null, hasErroredThisQuestion: false, chars: [], dotIndex: 0, targetValue: 0, currentShift: 0, correctShift: 0, isSubmitting: false };
 
         function startGame(mode) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -276,7 +280,16 @@
 
         function nextQuestion() {
             if (state.qIndex >= 10) return endGame();
+            
+            // 🛑 換題時重置防呆鎖
             state.qIndex++; state.hasErroredThisQuestion = false;
+            state.isSubmitting = false; 
+
+            // 🛑 解鎖操作按鈕
+            document.getElementById('btn-left').disabled = false;
+            document.getElementById('btn-right').disabled = false;
+            document.getElementById('btn-submit').disabled = false;
+
             document.getElementById('hint-area').classList.add('hidden');
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             generateProblem();
@@ -351,6 +364,9 @@
         }
 
         function moveDot(direction) {
+            // 🛑 若已經按下確認進入結算動畫，就不允許再移動
+            if (state.isSubmitting) return;
+
             let idx = state.dotIndex; let targetIdx = idx + direction;
             if (targetIdx < 0 || targetIdx >= state.chars.length) return;
             
@@ -359,7 +375,6 @@
             
             state.dotIndex = targetIdx; state.currentShift += direction;
             
-            // 觸發移動的音效
             playSound('move');
             
             document.getElementById('hint-area').classList.add('hidden');
@@ -367,7 +382,18 @@
         }
 
         function checkAnswer() {
+            // 🛑 防連擊：如果已經在上鎖狀態，直接忽略後續點擊
+            if (state.isSubmitting) return;
+
             if (state.currentShift === state.correctShift) {
+                // 🔒 答對時扣上安全鎖
+                state.isSubmitting = true;
+                
+                // 將操作按鈕設定為 disabled 狀態（視覺反灰）
+                document.getElementById('btn-left').disabled = true;
+                document.getElementById('btn-right').disabled = true;
+                document.getElementById('btn-submit').disabled = true;
+
                 playSound('correct');
                 if (!state.hasErroredThisQuestion) state.score += 10;
                 document.getElementById('stat-score').innerText = `分數：${state.score}`;
