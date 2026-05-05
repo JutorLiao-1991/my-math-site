@@ -1,139 +1,120 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年5月5日" // 更新日期
+    lastUpdated: "2026年5月5日 23:58" // 已更新為最新時間
 };
 
 // --- 課程資料區 ---
-// category 對應首頁按鈕: 'english' (英文), 'math' (數學), 'game' (遊戲)
-// tagClass 對應 CSS 顏色: 'tag-pink' (粉紅), 'tag-blue' (藍), 'tag-green' (綠)
-
 const lessonData = [
-    // === 英文 KK 音標區 ===
     {
-        title: "無聲子音 (Voiceless)",
-        category: "english",
-        url: "english/kk_pronunciation/voiceless.html",
-        tagClass: "tag-pink",
-        tagName: "KK音標",
-        desc: "學習聲帶不振動的發音，掌握氣音技巧 (p, t, k, f, s...)"
-    },
-    {
-        title: "有聲子音 (Voiced)",
-        category: "english",
-        url: "english/kk_pronunciation/voiced.html",
-        tagClass: "tag-pink",
-        tagName: "KK音標",
-        desc: "學習聲帶振動的發音，分辨清濁音差異 (b, d, g, v, z...)"
+        title: "文昌鐘",
+        category: "language",
+        url: "wen_chang_clock/wen_chang_clock.html",
+        tagClass: "lang",
+        tagName: "日文學習",
+        desc: "文昌帝君顯靈中。"
     },
     {
-        title: "單母音 (Single Vowels)",
-        category: "english",
-        url: "english/kk_pronunciation/single_vowel.html",
-        tagClass: "tag-pink",
-        tagName: "KK音標",
-        desc: "基礎母音發音練習，對照嘴型與舌位。"
+        title: "日文假名特訓",
+        category: "language",
+        url: "language/japanese/jp_menu.html",
+        tagClass: "lang",
+        tagName: "日文學習",
+        desc: "包含平假名、片假名以及濁音的完整練習，適合初學者入門。"
     },
     {
-        title: "雙母音 (Double Vowels)",
-        category: "english",
-        url: "english/kk_pronunciation/double_vowel.html",
-        tagClass: "tag-pink",
-        tagName: "KK音標",
-        desc: "由兩個母音組成的滑音練習，掌握發音變化。"
-    },
- 
-
-    // === 遊戲區 ===
-    {
-        title: "子音大挑戰-1",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice-1.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對/p/、/t/、/k/、/f/、/s/、/θ/、/b/、/d/、/g/、/v/、/z/、/ð/選出正確首音。"
+        title: "圓周運動與簡諧投影",
+        category: "senior",    // 高中區
+        url: "senior/physics/shm_circle.html",
+        tagClass: "phys",      // 紫色標籤
+        tagName: "高中物理",
+        desc: "透過動態投影，理解等速圓周運動、正弦波與簡諧運動(SHM)的數學關聯。"
     },
     {
-        title: "子音大挑戰-2",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice-2.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對/ʃ/、/tʃ/、/dʒ/、/ʒ/！試著選出正確的單字。"
+        title: "物質加熱曲線與三態變化",
+        category: "junior", // 國中區
+        url: "junior/science/heating_curve.html", // 新檔案的路徑
+        tagClass: "phys", // 使用物理（紫色）標籤
+        tagName: "國中理化",
+        desc: "透過加熱曲線與巨觀、微觀畫面熟悉曲線意義。"
     },
     {
-        title: "子音大挑戰-3",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice-3.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對/m/、/n/、/l/、/r/進行聽音辨字大考驗！記得選要聽字首還是字尾喔！"
+        title: "多項式函數圖形",
+        category: "senior",
+        url: "senior/math/poly_function_graphing.html",
+        tagClass: "math", // 藍色標籤
+        tagName: "高中數學",
+        desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
     },
     {
-        title: "母音大挑戰-1",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice_6.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對與a和e最有關的/æ/、/e/、/ɛ/的大考驗！試著選出正確的單字。"
+        title: "尺規作圖基本技巧",
+        category: "junior",
+        url: "junior/math/CAR.html",
+        tagClass: "math", // 藍色標籤
+        tagName: "國中數學",
+        desc: "透過鳩特精心設計的步驟，一步一步領悟尺規作圖方式"
     },
     {
-        title: "母音大挑戰-2",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice_7.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對與i還有ee最有關聯的/i/、/ɪ/做個加強練習吧！。"
-    },
-        {
-        title: "母音大挑戰-3",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice_8.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對與o最有關聯的兩個發音/o/、/ɔ/來個小測試吧。"
-    },
-        {
-        title: "母音大挑戰-4",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice_9.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對與u和oo最有關聯的/u/、/ʊ/來訓練一下吧！"
-    },
-        {
-        title: "母音大挑戰-5",
-        category: "game",
-        url: "english/kk_pronunciation/single_practice_10.html",
-        tagClass: "tag-green",
-        tagName: "自我測驗",
-        desc: "針對與/ʌ/、/ɑ/、/ə/、/ɚ/、/ɝ/搭配紅字來訓練一下吧！"
+        title: "尺規作圖做三角形",
+        category: "junior",
+        url: "junior/math/CAR_Triangle.html",
+        tagClass: "math", // 藍色標籤
+        tagName: "國中數學",
+        desc: "透過鳩特精心設計的步驟，一步一步用尺規作圖完成指定三角形"
     },
     {
-        title: "動物方城市：聽力大對決",
-        category: "game",
-        url: "english/kk_pronunciation/dual_game.html",
-        tagClass: "tag-green",
-        tagName: "雙人對戰",
-        desc: "🦊 狐狸 vs 🐰 兔子！刺激的雙人搶答 PK 賽。"
+        title: "平面族示意動畫",
+        category: "senior",
+        url: "senior/math/Family_of_planes.html",
+        tagClass: "math", // 藍色標籤
+        tagName: "高中數學",
+        desc: "透過調整k，觀察平面族是什麼概念。"
     },
-
-
-    // === 數學區 ===
     {
-        title: "小數乘除法特訓",
-        category: "math",
-        url: "math/grade5-2/decimals_times_div.html", 
-        tagClass: "tag-blue",
-        tagName: "五年級數學",
-        desc: "挑戰直式計算與小數點移位！限時 300 秒，看你能拿幾分？"
+        title: "光電效應實驗室",
+        category: "senior",
+        url: "senior/physics/photoelectric_effect.html",
+        tagClass: "phys", // 藍色標籤
+        tagName: "高中物理",
+        desc: "經由調整光線的頻率、強度、金屬靶，觀察發射出來的電子。"
+    },
+    {
+        title: "常見元素的週期表",
+        category: "junior", // 國中區
+        url: "junior/science/periodic_table.html", // 新檔案的路徑
+        tagClass: "chem", // 使用化學標籤
+        tagName: "國中理化",
+        desc: "常見的元素週期表，讓我們邊玩邊學吧！"
+    },
+    {
+        title: "高中光譜實驗",
+        category: "senior",    // 高中區
+        url: "senior/physics/spectrum.html",
+        tagClass: "phys",      // 藍色標籤
+        tagName: "高中物理",
+        desc: "親手操作當年的光譜實驗，並以能階理解現象。"
+    },
+    {
+        title: "元素JUNO！",
+        category: "junior",
+        url: "junior/science/element_uno.html",
+        tagClass: "chem",
+        tagName: "國中理化",
+        desc: "來場元素JUNO吧！"
+    },
+    {
+        title: "鳩特數理‧國中單字練習",
+        category: "language",
+        url: "junior/english/vol_test.html",
+        tagClass: "lang",
+        tagName: "國中英文",
+        desc: "單字是根本中的根本，請好好來紮根。"
     },
     {
         title: "單位換算特訓",
-        category: "math",
-        url: "math/grade5-2/unit-practice.html", // 請依據您的實際路徑調整
-        tagClass: "tag-blue",
-        tagName: "五年級數學",
+        category: "elementary", // 設定為國小區類別
+        url: "elementary/unit_convert.html", // 依照您截圖的路徑
+        tagClass: "math",
+        tagName: "國小數學",
         desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
     }
-
 ];
