@@ -193,15 +193,35 @@
             oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
             
-            if (type === 'correct') {
-                oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(880, now); 
-                oscillator.frequency.exponentialRampToValueAtTime(1108.73, now + 0.1); 
+            if (type === 'move') {
+                // 短促的「啵」聲 (操作回饋)
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(600, now);
+                oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.05);
                 gainNode.gain.setValueAtTime(0, now);
-                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                oscillator.start(now); oscillator.stop(now + 0.4);
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                oscillator.start(now); oscillator.stop(now + 0.05);
+                
+            } else if (type === 'correct') {
+                // 經典門鈴「叮～咚～」 (E5 降至 C5)
+                oscillator.type = 'sine';
+                
+                // 「叮」
+                oscillator.frequency.setValueAtTime(659.25, now); 
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
+                
+                // 「咚」
+                oscillator.frequency.setValueAtTime(523.25, now + 0.3); 
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.32);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                
+                oscillator.start(now); oscillator.stop(now + 1.0);
+                
             } else if (type === 'wrong') {
+                // 低沉叭叭聲
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(300, now);
                 oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
@@ -338,6 +358,10 @@
             state.chars[targetIdx] = '.'; state.chars[idx] = temp;
             
             state.dotIndex = targetIdx; state.currentShift += direction;
+            
+            // 觸發移動的音效
+            playSound('move');
+            
             document.getElementById('hint-area').classList.add('hidden');
             renderDrifter();
         }
