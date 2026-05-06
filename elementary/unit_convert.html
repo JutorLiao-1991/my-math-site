@@ -2,7 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- ⚠️ 防線 1：強制鎖定縮放比例，禁止使用者雙指或雙擊縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>鳩特數理：小數點漂移特訓 (終極連動版)</title>
     
     <style>
@@ -19,14 +20,20 @@
             --success: #4CAF50;
         }
 
-        /* ⚠️ 就是漏了這行最關鍵的隱藏樣式！ */
         .hidden { display: none !important; }
 
+        /* ⚠️ 防線 2：加入 touch-action 與 user-select */
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0;
             background-color: var(--bg-color); color: var(--text-color);
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            touch-action: manipulation; /* 徹底停用雙擊放大，並消除點擊延遲 */
+            -webkit-user-select: none; /* 防止連點時選取到文字 (Safari) */
+            user-select: none; /* 防止連點時選取到文字 */
         }
+
+        /* 確保所有按鈕都有最佳的觸控反應 */
+        button { touch-action: manipulation; }
 
         /* === 導覽列 === */
         .nav-bar {
@@ -94,7 +101,7 @@
         .btn-submit { background-color: var(--success); box-shadow: 0 4px 0 #2E7D32; flex: 1 1 100%; margin-top: 5px;}
         .btn-submit:active { transform: translateY(4px); box-shadow: none; }
 
-        /* 鎖定按鈕時的樣式 (防呆鎖) */
+        /* 防呆鎖時的按鈕樣式 */
         .action-btn:disabled { background: #94a3b8; box-shadow: 0 4px 0 #64748b; cursor: not-allowed; transform: none; }
 
         /* 錯誤提示區 */
@@ -197,7 +204,6 @@
             const now = audioCtx.currentTime;
             
             if (type === 'move') {
-                // 短促的「啵」聲 (操作回饋)
                 oscillator.type = 'triangle';
                 oscillator.frequency.setValueAtTime(600, now);
                 oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.05);
@@ -207,7 +213,6 @@
                 oscillator.start(now); oscillator.stop(now + 0.05);
                 
             } else if (type === 'correct') {
-                // 經典門鈴「叮～咚～」 (E5 降至 C5)
                 oscillator.type = 'sine';
                 
                 // 「叮」
@@ -224,7 +229,6 @@
                 oscillator.start(now); oscillator.stop(now + 1.0);
                 
             } else if (type === 'wrong') {
-                // 低沉叭叭聲
                 oscillator.type = 'sawtooth';
                 oscillator.frequency.setValueAtTime(300, now);
                 oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
@@ -243,7 +247,7 @@
             volume: { units: { '立方公尺': 1000000, '度': 1000000, '公升': 1000, '立方公分': 1, 'c.c.': 1, '毫升': 1 }, ladder: "立方公尺(度) ➔ (×1000) ➔ 公升 ➔ (×1000) ➔ 毫升(c.c./立方公分)" }
         };
 
-        // 🛑 新增了 isSubmitting 作為防連擊鎖
+        // 🛑 加入防呆鎖 isSubmitting
         let state = { mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null, hasErroredThisQuestion: false, chars: [], dotIndex: 0, targetValue: 0, currentShift: 0, correctShift: 0, isSubmitting: false };
 
         function startGame(mode) {
@@ -281,11 +285,10 @@
         function nextQuestion() {
             if (state.qIndex >= 10) return endGame();
             
-            // 🛑 換題時重置防呆鎖
+            // 🛑 換題時重置防呆鎖與按鈕
             state.qIndex++; state.hasErroredThisQuestion = false;
             state.isSubmitting = false; 
 
-            // 🛑 解鎖操作按鈕
             document.getElementById('btn-left').disabled = false;
             document.getElementById('btn-right').disabled = false;
             document.getElementById('btn-submit').disabled = false;
@@ -364,7 +367,7 @@
         }
 
         function moveDot(direction) {
-            // 🛑 若已經按下確認進入結算動畫，就不允許再移動
+            // 🛑 確認送出後鎖定移動
             if (state.isSubmitting) return;
 
             let idx = state.dotIndex; let targetIdx = idx + direction;
@@ -382,14 +385,12 @@
         }
 
         function checkAnswer() {
-            // 🛑 防連擊：如果已經在上鎖狀態，直接忽略後續點擊
+            // 🛑 防連擊鎖
             if (state.isSubmitting) return;
 
             if (state.currentShift === state.correctShift) {
-                // 🔒 答對時扣上安全鎖
+                // 🔒 答對上鎖，按鈕變灰
                 state.isSubmitting = true;
-                
-                // 將操作按鈕設定為 disabled 狀態（視覺反灰）
                 document.getElementById('btn-left').disabled = true;
                 document.getElementById('btn-right').disabled = true;
                 document.getElementById('btn-submit').disabled = true;
