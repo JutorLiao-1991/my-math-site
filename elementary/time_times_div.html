@@ -192,4 +192,484 @@
             } else if (type === 'success') { 
                 oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523.25, now); 
                 gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
-                oscillator.frequency.setValueAtTime(659.25, now +
+                oscillator.frequency.setValueAtTime(659.25, now + 0.15); 
+                oscillator.frequency.setValueAtTime(783.99, now + 0.3);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                oscillator.start(now); oscillator.stop(now + 1.0);
+            } else if (type === 'wrong') { 
+                oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(250, now);
+                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
+        }
+
+        const UNITS = [
+            { big: '日', small: '時', limit: 24 },
+            { big: '時', small: '分', limit: 60 },
+            { big: '分', small: '秒', limit: 60 }
+        ];
+
+        let state = {
+            mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
+            blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: "",
+            maxStep: 0, currentVisibleStep: 1
+        };
+
+        function startGame(mode) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (state.timerInterval) clearInterval(state.timerInterval);
+
+            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 300;
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+            
+            document.getElementById('welcome-msg').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            document.getElementById('game-status').classList.remove('hidden');
+            
+            startTimer(); nextQuestion();
+        }
+
+        function startTimer() {
+            document.getElementById('stat-timer').innerText = state.timer + 's';
+            document.getElementById('timer-bar').style.width = '100%';
+            state.timerInterval = setInterval(() => {
+                state.timer--;
+                document.getElementById('stat-timer').innerText = state.timer + 's';
+                document.getElementById('timer-bar').style.width = (state.timer / 300 * 100) + '%';
+                if (state.timer <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (state.qIndex >= 10) return endGame();
+            state.qIndex++; 
+            state.blanksData = {}; state.logicalOrder = []; state.focusIndex = 0; state.currentInputStr = "";
+            state.currentVisibleStep = 1; state.maxStep = 1;
+            
+            document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
+            generateProblem();
+            updateStepVisibility();
+            updateFocusUI();
+            
+            // 換題時平滑滾回最上方
+            document.getElementById('graph-panel').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // === 新增：一般整數直式乘法網格 (用於單位換算) ===
+        function buildStandardMulGrid(n1, n2, stepNum, prefix, registerList) {
+            let s1 = n1.toString(); let s2 = n2.toString();
+            let finalAns = (n1 * n2).toString();
+            let cols = Math.max(s1.length, s2.length + 1, finalAns.length);
+
+            let gridHtml = `<div class="math-grid-div step-obj" data-step="${stepNum}" style="grid-template-columns: repeat(${cols}, 40px); margin: 15px auto;">`;
+
+            // Row 1 & 2
+            for(let i=0; i<cols - s1.length; i++) gridHtml += `<div></div>`;
+            for(let i=0; i<s1.length; i++) gridHtml += `<div class="cell">${s1[i]}</div>`;
+            for(let i=0; i<cols - s2.length - 1; i++) gridHtml += `<div></div>`;
+            gridHtml += `<div class="cell">×</div>`;
+            for(let i=0; i<s2.length; i++) gridHtml += `<div class="cell">${s2[i]}</div>`;
+            gridHtml += `<div class="math-line" style="grid-column: 1 / -1;"></div>`;
+
+            let stepRecords = [];
+            let p_rows = [];
+            
+            for (let i = s2.length - 1; i >= 0; i--) {
+                let digit = parseInt(s2[i]);
+                let prod = (n1 * digit).toString();
+                let shift = s2.length - 1 - i;
+                p_rows.push({ prod: prod, shift: shift, isZero: (digit === 0 && s2.length > 1) });
+            }
+
+            if (p_rows.length > 1) {
+                p_rows.forEach((r, r_idx) => {
+                    let targetStr = r.isZero ? "0".repeat(s1.length) : r.prod;
+                    for(let i=0; i<cols - targetStr.length - r.shift; i++) gridHtml += `<div></div>`;
+                    for(let i=0; i<targetStr.length; i++) {
+                        let id = `${prefix}_p${r_idx}_${i}`;
+                        gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${targetStr[i]}"></div>`;
+                        stepRecords.push({ id: id, ans: targetStr[i], step: stepNum });
+                    }
+                    for(let i=0; i<r.shift; i++) gridHtml += `<div></div>`;
+                });
+                gridHtml += `<div class="math-line" style="grid-column: 1 / -1;"></div>`;
+            }
+
+            for(let i=0; i<cols - finalAns.length; i++) gridHtml += `<div></div>`;
+            for(let i=0; i<finalAns.length; i++) {
+                let id = `${prefix}_f_${i}`;
+                gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${finalAns[i]}"></div>`;
+                stepRecords.push({ id: id, ans: finalAns[i], step: stepNum });
+            }
+
+            gridHtml += `</div>`;
+            stepRecords.forEach(rec => registerList.push(rec));
+            return gridHtml;
+        }
+
+        // === 直式除法網格產生器 ===
+        function buildDivGridHtml(dividend, divisor, stepNum, prefix, registerList) {
+            let d_str = divisor.toString(); let D_str = dividend.toString();
+            let d_len = d_str.length; let cols = d_len + 1 + D_str.length;
+
+            let gridHtml = `<div class="math-grid-div step-obj" data-step="${stepNum}" style="grid-template-columns: repeat(${cols}, 40px); margin: 15px auto;">`;
+
+            let steps = []; let currentVal = 0; let started = false;
+
+            for(let i=0; i<D_str.length; i++) {
+                currentVal = currentVal * 10 + parseInt(D_str[i]);
+                let col = d_len + 2 + i;
+                if(currentVal >= divisor || started) {
+                    started = true;
+                    let q = Math.floor(currentVal / divisor);
+                    let p = (q * divisor).toString();
+                    let rem = (currentVal - q * divisor).toString();
+
+                    steps.push({ q: q.toString(), p: p, rem: rem, col: col, isLast: (i === D_str.length - 1), nextDigit: (i < D_str.length - 1) ? D_str[i+1] : "" });
+                    currentVal = parseInt(rem);
+                }
+            }
+
+            let stepRecords = [];
+
+            // 1. 商數列
+            for(let c=1; c<=cols; c++) {
+                let step = steps.find(s => s.col === c);
+                if(step) {
+                    let id = `${prefix}_q_${c}`;
+                    gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${step.q}"></div>`;
+                    step.q_id = { id: id, ans: step.q, step: stepNum };
+                } else gridHtml += `<div></div>`;
+            }
+
+            // 2. 除號與被除數
+            gridHtml += `<div class="div-line" style="grid-column: ${d_len + 1} / -1;"></div>`;
+            for(let c=1; c<=d_len; c++) gridHtml += `<div class="cell">${d_str[c-1]}</div>`;
+            gridHtml += `<div class="cell paren">)</div>`;
+            for(let c=1; c<=D_str.length; c++) gridHtml += `<div class="cell">${D_str[c-1]}</div>`;
+
+            // 3. 乘積與餘數
+            steps.forEach((step, idx) => {
+                stepRecords.push(step.q_id);
+                let p_len = step.p.length; let p_start_col = step.col - p_len + 1;
+                for(let c=1; c<=cols; c++) {
+                    if(c >= p_start_col && c <= step.col) {
+                        let char = step.p[c - p_start_col];
+                        let id = `${prefix}_p_${idx}_${c}`;
+                        gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
+                        stepRecords.push({ id: id, ans: char, step: stepNum });
+                    } else gridHtml += `<div></div>`;
+                }
+
+                gridHtml += `<div class="sub-line" style="grid-column: ${d_len + 2} / -1;"></div>`;
+
+                let combinedStr = step.rem;
+                if (combinedStr === "0" && !step.isLast) combinedStr = "";
+                combinedStr += step.nextDigit;
+                if (step.isLast && combinedStr === "") combinedStr = "0";
+
+                if (combinedStr !== "") {
+                    let comb_end_col = step.isLast ? step.col : step.col + 1;
+                    let comb_start_col = comb_end_col - combinedStr.length + 1;
+                    for(let c=1; c<=cols; c++) {
+                        if(c >= comb_start_col && c <= comb_end_col) {
+                            let char = combinedStr[c - comb_start_col];
+                            let id = `${prefix}_rem_${idx}_${c}`;
+                            gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
+                            stepRecords.push({ id: id, ans: char, step: stepNum });
+                        } else gridHtml += `<div></div>`;
+                    }
+                } else {
+                     for(let c=1; c<=cols; c++) gridHtml += `<div></div>`; 
+                }
+            });
+
+            gridHtml += `</div>`;
+            stepRecords.forEach(rec => registerList.push(rec));
+            return gridHtml;
+        }
+
+        // === 各題型生成邏輯 ===
+        function buildMulProblem(container, u) {
+            let big = Math.floor(Math.random() * 4) + 1; 
+            let small = Math.floor(Math.random() * 30) + 15; 
+            let multiplier = Math.floor(Math.random() * 5) + 3; 
+            
+            let pBig = big * multiplier; let pSmall = small * multiplier;
+            let finalBig = pBig; let finalSmall = pSmall;
+            let needsCarry = pSmall >= u.limit;
+            
+            if (needsCarry) { finalBig += Math.floor(pSmall / u.limit); finalSmall = pSmall % u.limit; }
+            state.maxStep = needsCarry ? 3 : 2;
+
+            // 置頂題目
+            container.innerHTML = `
+                <div class="horizontal-problem">
+                    ${big} ${u.big} ${small} ${u.small} × ${multiplier} = 
+                    ${createBlankHTML('t1', finalBig, state.maxStep)} ${u.big} 
+                    ${createBlankHTML('t2', finalSmall, state.maxStep)} ${u.small}
+                </div>
+                
+                <div class="step-block step-obj" data-step="1">
+                    <div class="step-label">第一步：直式乘法</div>
+                    <div class="math-grid-mul">
+                        <div></div> <div class="math-label">${u.big}</div> <div class="math-label">${u.small}</div> <div></div>
+                        <div></div> <div>${big}</div> <div>${small}</div> <div></div>
+                        <div>×</div> <div></div> <div>${multiplier}</div> <div></div>
+                        <div class="math-line"></div>
+                        <div></div> ${createBlankHTML('p1', pBig, 1)} ${createBlankHTML('p2', pSmall, 1)} <div></div>
+                    </div>
+                </div>
+            `;
+
+            if (needsCarry) {
+                container.innerHTML += `
+                    <div class="step-block step-obj" data-step="2">
+                        <div class="step-label">第二步：進一步換算</div> 
+                        <div class="equation-line">
+                        ${pBig} ${u.big} ${pSmall} ${u.small} = 
+                        ${createBlankHTML('c1', finalBig, 2)} ${u.big} ${createBlankHTML('c2', finalSmall, 2)} ${u.small}
+                        </div>
+                    </div>
+                `;
+                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
+                registerBlank('c1', finalBig, 2); registerBlank('c2', finalSmall, 2);
+                registerBlank('t1', finalBig, 3); registerBlank('t2', finalSmall, 3);
+            } else {
+                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
+                registerBlank('t1', finalBig, 2); registerBlank('t2', finalSmall, 2);
+            }
+        }
+
+        function buildDivNumProblem(container, u) {
+            let divisor = Math.floor(Math.random() * 6) + 3; 
+            let ansBig = Math.floor(Math.random() * 3) + 1; 
+            let ansSmall = Math.floor(Math.random() * 40) + 10; 
+            
+            let totalSmall = ansBig * u.limit + ansSmall;
+            let startTotalSmall = totalSmall * divisor;
+            let startBig = Math.floor(startTotalSmall / u.limit);
+            let startSmall = startTotalSmall % u.limit;
+            if (startSmall === 0) { startSmall = 5; startTotalSmall += 5; totalSmall = startTotalSmall/divisor; } 
+            
+            let bigToSmall = startBig * u.limit;
+            state.maxStep = 3;
+
+            // 置頂題目
+            container.innerHTML = `
+                <div class="horizontal-problem">
+                    ${startBig} ${u.big} ${startSmall} ${u.small} ÷ ${divisor} = 
+                    ${createBlankHTML('t1', ansBig, 3)} ${u.big} ${createBlankHTML('t2', ansSmall, 3)} ${u.small}
+                </div>
+            `;
+            
+            let gridReg1 = [];
+            let mulGridHtml = buildStandardMulGrid(startBig, u.limit, 1, 'm1', gridReg1);
+
+            container.innerHTML += `
+                <div class="step-block step-obj" data-step="1">
+                    <div class="step-label">第一步：全部換成小單位</div>
+                    <div class="equation-line" style="color: #64748B;">先將 ${startBig} ${u.big} 換成 ${u.small}</div>
+                    ${mulGridHtml}
+                    <div class="equation-line" style="margin-top: 15px;">
+                        ${createBlankHTML('s1_0', bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
+                        ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
+                    </div>
+                </div>
+            `;
+            
+            let gridReg2 = [];
+            let divGrid = buildDivGridHtml(startTotalSmall, divisor, 2, 'd1', gridReg2);
+
+            container.innerHTML += `
+                <div class="step-block step-obj" data-step="2">
+                    <div class="step-label">第二步：直式除法</div>
+                    ${divGrid}
+                </div>
+                <div class="step-block step-obj" data-step="3">
+                    <div class="step-label">第三步：商數換算回原單位</div>
+                    <div class="equation-line">
+                        ${totalSmall} ${u.small} = 
+                        ${createBlankHTML('s3_1', ansBig, 3)} ${u.big} ${createBlankHTML('s3_2', ansSmall, 3)} ${u.small}
+                    </div>
+                </div>
+            `;
+            
+            gridReg1.forEach(r => registerBlank(r.id, r.ans, r.step));
+            registerBlank('s1_0', bigToSmall, 1);
+            registerBlank('s1_2', startTotalSmall, 1);
+            
+            gridReg2.forEach(r => registerBlank(r.id, r.ans, r.step));
+            
+            registerBlank('s3_1', ansBig, 3); registerBlank('s3_2', ansSmall, 3);
+            registerBlank('t1', ansBig, 3); registerBlank('t2', ansSmall, 3);
+        }
+
+        function buildDivTimeProblem(container, u) {
+            let multiplier = Math.floor(Math.random() * 5) + 3; 
+            let divBig = Math.floor(Math.random() * 2); 
+            let divSmall = Math.floor(Math.random() * 40) + 10; 
+            if(divBig === 0 && divSmall < 20) divSmall += 20; 
+
+            let divTotalSmall = divBig * u.limit + divSmall;
+            let startTotalSmall = divTotalSmall * multiplier;
+            let startBig = Math.floor(startTotalSmall / u.limit);
+            let startSmall = startTotalSmall % u.limit;
+
+            let s1_bigToSmall = startBig * u.limit;
+            let s2_bigToSmall = divBig * u.limit;
+            state.maxStep = 3;
+
+            container.innerHTML = `
+                <div class="horizontal-problem">
+                    ${startBig} ${u.big} ${startSmall} ${u.small} ÷ 
+                    ${divBig > 0 ? divBig + ' ' + u.big : ''} ${divSmall} ${u.small} = 
+                    ${createBlankHTML('t1', multiplier, 3)}
+                </div>
+            `;
+            
+            let gridReg1 = [];
+            let mulGridHtml1 = buildStandardMulGrid(startBig, u.limit, 1, 'm1', gridReg1);
+            
+            container.innerHTML += `
+                <div class="step-block step-obj" data-step="1">
+                    <div class="step-label">第一步：被除數換成小單位</div>
+                    <div class="equation-line" style="color: #64748B;">先將 ${startBig} ${u.big} 換成 ${u.small}</div>
+                    ${mulGridHtml1}
+                    <div class="equation-line" style="margin-top: 15px;">
+                        ${createBlankHTML('s1_0', s1_bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
+                        ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
+                    </div>
+                </div>
+            `;
+
+            let gridReg2 = [];
+            let step2Html = `<div class="step-block step-obj" data-step="2"><div class="step-label">第二步：除數換成小單位</div>`;
+            
+            if (divBig > 0) {
+                let mulGridHtml2 = buildStandardMulGrid(divBig, u.limit, 2, 'm2', gridReg2);
+                step2Html += `
+                    <div class="equation-line" style="color: #64748B;">先將 ${divBig} ${u.big} 換成 ${u.small}</div>
+                    ${mulGridHtml2}
+                    <div class="equation-line" style="margin-top: 15px;">
+                        ${createBlankHTML('s2_0', s2_bigToSmall, 2)} ${u.small} + ${divSmall} ${u.small} = 
+                        ${createBlankHTML('s2_2', divTotalSmall, 2)} ${u.small}
+                    </div>
+                </div>`;
+            } else {
+                step2Html += `
+                    <div class="equation-line">
+                        除數已經是小單位：${createBlankHTML('s2_2', divTotalSmall, 2)} ${u.small}
+                    </div>
+                </div>`;
+            }
+            container.innerHTML += step2Html;
+
+            let gridReg3 = [];
+            let divGrid = buildDivGridHtml(startTotalSmall, divTotalSmall, 3, 'd2', gridReg3);
+            
+            container.innerHTML += `
+                <div class="step-block step-obj" data-step="3">
+                    <div class="step-label">第三步：直式除法</div>
+                    ${divGrid}
+                </div>
+            `;
+            
+            gridReg1.forEach(r => registerBlank(r.id, r.ans, r.step));
+            registerBlank('s1_0', s1_bigToSmall, 1);
+            registerBlank('s1_2', startTotalSmall, 1);
+            
+            if(divBig > 0) {
+                gridReg2.forEach(r => registerBlank(r.id, r.ans, r.step));
+                registerBlank('s2_0', s2_bigToSmall, 2); 
+            }
+            registerBlank('s2_2', divTotalSmall, 2);
+            
+            gridReg3.forEach(r => registerBlank(r.id, r.ans, r.step));
+            registerBlank('t1', multiplier, 3);
+        }
+
+        // === 共用系統邏輯 ===
+        function createBlankHTML(id, ans, step) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
+        
+        function registerBlank(id, ans, step) {
+            state.blanksData[id] = { ans: ans.toString(), step: step };
+            state.logicalOrder.push(id);
+        }
+
+        function updateStepVisibility() {
+            document.querySelectorAll('.step-obj').forEach(el => {
+                let s = parseInt(el.getAttribute('data-step'));
+                if (s <= state.currentVisibleStep) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
+
+        function updateFocusUI() {
+            document.querySelectorAll('.blank, .grid-input').forEach(el => el.classList.remove('active'));
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (currentId) {
+                let el = document.getElementById(currentId);
+                if (el) {
+                    el.classList.add('active');
+                    // 自動平滑捲動到目前輸入框 (延遲一點讓 DOM 顯示)
+                    setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+                }
+            } else {
+                playSound('success');
+                state.score += 10;
+                document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                setTimeout(nextQuestion, 1500);
+            }
+        }
+
+        window.inputDigit = function(num) {
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (!currentId) return;
+
+            let targetAns = state.blanksData[currentId].ans;
+            let el = document.getElementById(currentId);
+            let testStr = state.currentInputStr + num.toString();
+            
+            if (targetAns.startsWith(testStr)) {
+                playSound('type');
+                state.currentInputStr = testStr;
+                el.innerText = state.currentInputStr;
+                el.classList.remove('error');
+
+                if (state.currentInputStr === targetAns) {
+                    playSound('correct');
+                    el.classList.remove('active'); el.classList.add('filled');
+                    state.currentInputStr = ""; state.focusIndex++;
+                    
+                    let nextId = state.logicalOrder[state.focusIndex];
+                    if (nextId) {
+                        let nextStep = state.blanksData[nextId].step;
+                        if (nextStep > state.currentVisibleStep) {
+                            state.currentVisibleStep = nextStep;
+                            updateStepVisibility();
+                        }
+                    }
+                    updateFocusUI();
+                }
+            } else {
+                playSound('wrong');
+                el.classList.add('error');
+                setTimeout(() => el.classList.remove('error'), 300);
+                state.currentInputStr = ""; el.innerText = "";
+            }
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+        }
+    </script>
+</body>
+</html>
