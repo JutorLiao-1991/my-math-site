@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <!-- ⚠️ 防線 1：強制鎖定縮放比例，禁止使用者雙指或雙擊縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鳩特數理｜小數乘除法特訓 (雙欄連動版)</title>
+    
+    <style>
+        :root {
+            /* 沿用第一段的溫暖粉色系，但套用第二段的變數架構 */
+            --primary-color: #FF8BA7; 
+            --secondary-color: #FF6B8B; 
+            --bg-color: #FAEEE7;
+            --text-color: #594A4E; 
+            --panel-bg: #FFFFFF; 
+            --nav-bg: rgba(89, 74, 78, 0.95); /* 深褐色導覽列 */
+            --accent: #FF8BA7; 
+            --border-color: #F0D9DE; 
+            --highlight: #FF6B6B;
+            --error: #FF6B6B;
+            --success: #4CAF50;
+        }
+
+        .hidden { display: none !important; }
+
+        /* ⚠️ 防線 2：加入 touch-action 與 user-select */
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', Roboto, Helvetica, sans-serif; 
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none;
+            background-image: linear-gradient(rgba(255, 139, 167, 0.1) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 139, 167, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        button { touch-action: manipulation; }
+
+        /* === 導覽列 === */
+        .nav-bar {
+            padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(0,0,0,0.1); color: white; flex-shrink: 0; z-index: 100;
+        }
+        .back-btn {
+            text-decoration: none; color: var(--primary-color); font-weight: bold;
+            border: 1px solid var(--primary-color); padding: 5px 15px; border-radius: 20px;
+            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer;
+        }
+        .back-btn:hover { background: var(--primary-color); color: white; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        /* === 主排版 === */
+        .main-wrapper { flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative; }
+        .panel {
+            background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; position: relative; overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        /* === 左側：計算與展示區 === */
+        #graph-panel { flex: 2; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; background: #fff; transition: 0.3s; overflow-y: auto; }
+        .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(255, 139, 167, 0.15); font-size: 1.5rem; pointer-events: none; z-index: 0; }
+        
+        .workspace { margin: 1rem 0; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; z-index: 10; padding: 20px; }
+        .horizontal-problem { font-size: 1.8rem; margin-bottom: 1.5rem; font-weight: bold; background: var(--bg-color); padding: 10px 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        
+        /* 直式計算 CSS 移植 */
+        .math-grid { display: grid; gap: 6px; font-family: 'Courier New', Courier, monospace; font-size: 2.2rem; justify-content: center; }
+        .cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; }
+        .dot-marker { position: absolute; right: -6px; bottom: 2px; color: var(--text-color); font-weight: bold; font-size: 1.5rem; z-index: 10; pointer-events: none; }
+        .input-cell { border: 2px dashed var(--border-color); border-radius: 8px; cursor: pointer; transition: 0.2s; background: #fafafa; color: var(--accent); }
+        .input-cell.active { border-color: var(--accent); border-style: solid; background: #fff; box-shadow: 0 0 8px rgba(255,139,167,0.3); transform: scale(1.05); z-index: 5; }
+        .input-cell.error { border-color: var(--error); background: #FFF0F0; border-style: solid; color: var(--error); }
+        .input-cell.filled { border: 2px solid transparent; background: transparent; cursor: default; color: var(--text-color); }
+        .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; }
+        .div-line { border-bottom: 3px solid var(--text-color); grid-column: 2 / -1; margin: 2px 0; height: 0; }
+        .sub-line { border-bottom: 2px solid var(--border-color); grid-column: 2 / -1; margin: 2px 0; height: 0; }
+        .paren { font-weight: lighter; transform: scaleY(1.8) translateY(-2px); }
+
+        /* 小數點安插階段 CSS */
+        .decimal-hint { color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
+        .gap-container { display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-family: 'Courier New', monospace; font-weight: bold; }
+        .gap-btn { width: 25px; height: 50px; background: rgba(255,139,167,0.1); border: 2px dashed rgba(255,139,167,0.3); cursor: pointer; border-radius: 8px; margin: 0 2px; transition: 0.2s;}
+        .gap-btn:hover { background: var(--accent); border-style: solid; }
+        .dot { color: var(--accent); margin: 0 5px; }
+
+        /* === 右側：控制面板 === */
+        #controls-panel { flex: 1; min-width: 380px; max-width: 450px; }
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
+
+        .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .menu-btn {
+            padding: 12px 8px; background-color: #f1f1f1; border: 2px solid #ddd; border-radius: 6px; cursor: pointer;
+            font-weight: bold; color: #666; transition: all 0.2s; font-size: 0.95rem;
+        }
+        .menu-btn:hover { background-color: var(--border-color); color: var(--text-color); }
+        .menu-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .step-container { background: #fffafb; border-left: 5px solid var(--primary-color); border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1; display: flex; flex-direction: column;}
+        
+        .stats-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; color: var(--text-color); font-size: 1.1rem; border-bottom: 1px dashed var(--border-color); padding-bottom: 10px;}
+        .timer-bar-container { width: 100%; height: 6px; background: #ddd; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--primary-color); width: 100%; transition: width 1s linear; }
+
+        /* 數字鍵盤 (移植並適應右側面板) */
+        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
+        .num-btn { background: #fff; border: 2px solid var(--border-color); padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s;}
+        .num-btn:active { background: var(--accent); color: white; transform: scale(0.95); }
+
+        /* 結算畫面 */
+        .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
+        .score-display { font-size: 5rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; }
+
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 400px; flex: none; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="../../index.html" class="back-btn"><span>⬅</span>&nbsp;回主選單</a>
+        <h2 class="page-title">🍎 鳩特數理｜小數特訓基地</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <!-- 左側面板：黑板展示區 -->
+        <div class="panel" id="graph-panel">
+            <div id="welcome-msg" style="color: #999; font-size: 1.5rem; font-weight: bold; position: absolute;">請從右側選擇難度開始特訓 👉 </div>
+            
+            <div class="workspace hidden" id="workspace">
+                <div id="horizontal-problem" class="horizontal-problem"></div>
+                <div id="math-vertical" class="math-grid"></div>
+                <div id="decimal-phase" class="hidden">
+                    <p class="decimal-hint">✨ 數字全對了！請點擊正確的縫隙，放上小數點！</p>
+                    <div id="gap-area" class="gap-container"></div>
+                </div>
+            </div>
+
+            <div class="watermark">Presented by Jutor</div>
+            
+            <!-- 結算畫面 (覆蓋在圖形面板上) -->
+            <div id="end-screen" class="end-screen hidden">
+                <h2>挑戰結束！</h2>
+                <div id="final-score" class="score-display">0</div>
+                <p style="color: #666; font-size: 1.2rem;">請從右側選單選擇關卡再次挑戰</p>
+            </div>
+        </div>
+
+        <!-- 右側面板：控制與狀態 -->
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                
+                <div class="menu-grid">
+                    <button class="menu-btn" id="btn-mul-normal" onclick="startGame('mul', 'normal')">✖️ 小數乘法 (普通)</button>
+                    <button class="menu-btn" id="btn-mul-hard" onclick="startGame('mul', 'hard')">✖️ 小數乘法 (困難)</button>
+                    <button class="menu-btn" id="btn-div-normal" onclick="startGame('div', 'normal')">➗ 小數除法 (普通)</button>
+                    <button class="menu-btn" id="btn-div-hard" onclick="startGame('div', 'hard')">➗ 小數除法 (困難)</button>
+                </div>
+
+                <div class="step-container hidden" id="game-status">
+                    <div class="stats-header">
+                        <span id="stat-q">題號：1 / 10</span>
+                        <span id="stat-score" style="color: var(--primary-color);">分數：0</span>
+                        <span id="stat-timer" style="color: var(--highlight);">300s</span>
+                    </div>
+                    <div class="timer-bar-container"><div id="timer-bar" class="timer-bar"></div></div>
+                    
+                    <!-- 數字鍵盤放置於右側 -->
+                    <div id="numpad" class="numpad">
+                        <button class="num-btn" onclick="inputDigit(1)">1</button>
+                        <button class="num-btn" onclick="inputDigit(2)">2</button>
+                        <button class="num-btn" onclick="inputDigit(3)">3</button>
+                        <button class="num-btn" onclick="inputDigit(4)">4</button>
+                        <button class="num-btn" onclick="inputDigit(5)">5</button>
+                        <button class="num-btn" onclick="inputDigit(6)">6</button>
+                        <button class="num-btn" onclick="inputDigit(7)">7</button>
+                        <button class="num-btn" onclick="inputDigit(8)">8</button>
+                        <button class="num-btn" onclick="inputDigit(9)">9</button>
+                        <button class="num-btn" onclick="inputDigit(0)">0</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === Web Audio API 音效生成器 (移植自第二段) ===
+        let audioCtx = null;
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'move') { // 打字音效
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.1, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                oscillator.start(now); oscillator.stop(now + 0.05);
+            } else if (type === 'correct') { // 答對音效
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(659.25, now); 
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
+                oscillator.frequency.setValueAtTime(523.25, now + 0.3); 
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.32);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                oscillator.start(now); oscillator.stop(now + 1.0);
+            } else if (type === 'wrong') { // 答錯音效
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
+        }
+
+        // === 遊戲邏輯 (移植自第一段) ===
+        let state = {
+            mode: '', difficulty: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
+            problem: null, hasErroredThisQuestion: false, phase: 'digits',
+            totalInputs: 0, filledCount: 0, logicalOrder: [], cellAnswers: {}, focusId: null
+        };
+
+        function startGame(mode, diff) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (state.timerInterval) clearInterval(state.timerInterval);
+
+            state.mode = mode; state.difficulty = diff;
+            state.qIndex = 0; state.score = 0; state.timer = 300;
+
+            // UI 狀態切換
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}-${diff}`).classList.add('active');
+            
+            document.getElementById('welcome-msg').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            document.getElementById('game-status').classList.remove('hidden');
+            
+            startTimer(); nextQuestion();
+        }
+
+        function startTimer() {
+            document.getElementById('stat-timer').innerText = state.timer + 's';
+            document.getElementById('timer-bar').style.width = '100%';
+
+            state.timerInterval = setInterval(() => {
+                state.timer--;
+                document.getElementById('stat-timer').innerText = state.timer + 's';
+                document.getElementById('timer-bar').style.width = (state.timer / 300 * 100) + '%';
+                if (state.timer <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (state.qIndex >= 10) return endGame();
+            state.qIndex++; 
+            state.hasErroredThisQuestion = false; 
+            state.phase = 'digits';
+            state.totalInputs = 0; state.filledCount = 0;
+            state.logicalOrder = []; state.cellAnswers = {}; state.focusId = null;
+            
+            document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
+            document.getElementById('numpad').classList.remove('hidden');
+            document.getElementById('decimal-phase').classList.add('hidden');
+            document.getElementById('math-vertical').classList.remove('hidden');
+            
+            generateProblem();
+            renderVertical();
+            findNextFocus();
+        }
+
+        function generateProblem() {
+            let n1, n2, ansStr;
+            let orig_n1_str = ""; 
+
+            if (state.mode === 'mul') {
+                n1 = parseFloat((Math.random() * 9 + 1).toFixed(1));
+                n2 = parseFloat((Math.random() * 9 + 1).toFixed(state.difficulty === 'normal' ? 0 : 1));
+                ansStr = (Math.round(n1 * 10) * Math.round(n2 * 10) / 100).toString();
+                orig_n1_str = n1.toString();
+                state.problem = { n1: n1.toString(), n2: n2.toString(), ans: ansStr, ansDigits: ansStr.replace('.', '').split('') };
+            } else {
+                let divisor = Math.floor(Math.random() * 8 + 2);
+                let quotient = parseFloat((Math.random() * 9 + 1).toFixed(state.difficulty === 'normal' ? 1 : 2));
+                n1 = parseFloat((Math.round(quotient * 100) * divisor / 100).toFixed(2));
+                n2 = divisor;
+                ansStr = quotient.toString();
+                orig_n1_str = n1.toString();
+
+                let D_str = n1.toString();
+                let q_dec_len = ansStr.includes('.') ? ansStr.split('.')[1].length : 0;
+                let d_dec_len = D_str.includes('.') ? D_str.split('.')[1].length : 0;
+
+                if (q_dec_len > d_dec_len) {
+                    if (d_dec_len === 0) D_str += '.';
+                    D_str += '0'.repeat(q_dec_len - d_dec_len);
+                }
+
+                state.problem = { n1: D_str, n2: n2.toString(), ans: ansStr, ansDigits: ansStr.replace('.', '').split('') };
+            }
+            
+            document.getElementById('horizontal-problem').innerText = `${orig_n1_str} ${state.mode === 'mul' ? '×' : '÷'} ${state.problem.n2} = ?`;
+        }
+
+        function renderVertical() {
+            const grid = document.getElementById('math-vertical');
+            grid.innerHTML = '';
+            const p = state.problem;
+
+            if (state.mode === 'mul') {
+                let n1_clean = p.n1.replace('.', '');
+                let n2_clean = p.n2.replace('.', '');
+                let cols = Math.max(n1_clean.length, n2_clean.length + 1, p.ansDigits.length);
+                grid.style.gridTemplateColumns = `repeat(${cols}, 42px)`;
+                
+                drawFactorRow(grid, p.n1, false, cols);
+                drawFactorRow(grid, p.n2, true, cols);
+                grid.appendChild(createLine('math-line'));
+                
+                let p_rows = [];
+                for (let i = n2_clean.length - 1; i >= 0; i--) {
+                    let prod = (parseInt(n1_clean) * parseInt(n2_clean[i])).toString();
+                    p_rows.push({ prod: prod, shift: n2_clean.length - 1 - i });
+                }
+                
+                if (p_rows.length > 1) {
+                    p_rows.forEach(r => { drawInputRow(grid, r.prod.split(''), r.prod.length + r.shift, cols); });
+                    grid.appendChild(createLine('math-line'));
+                }
+                drawInputRow(grid, p.ansDigits, p.ansDigits.length, cols);
+                
+            } else {
+                let D_str = p.n1; let Q_str = p.ans; let div_int = parseInt(p.n2);
+                let D_clean = D_str.replace('.', ''); let Q_clean = Q_str.replace('.', '');
+                
+                let cols = 2 + D_str.length;
+                grid.style.gridTemplateColumns = `repeat(${cols}, 42px)`;
+
+                let col_map = [];
+                let d_col = 2;
+                for (let i = 0; i < D_str.length; i++) {
+                    if (D_str[i] !== '.') col_map.push(d_col);
+                    d_col++;
+                }
+
+                let offset = D_clean.length - Q_clean.length;
+                let current_rem = parseInt(D_clean.substring(0, offset + 1));
+                let steps_data = [];
+
+                for (let i = 0; i < Q_clean.length; i++) {
+                    let q_digit = parseInt(Q_clean[i]);
+                    let pp = q_digit * div_int;
+                    let end_idx = offset + i;
+                    
+                    let step = {
+                        q_idx: i, q_char: Q_clean[i],
+                        pp_val: pp.toString(), pp_end: end_idx,
+                        rem_val: null, rem_end: null,
+                        q_id: null, pp_ids: [], rem_ids: []
+                    };
+                    
+                    current_rem -= pp;
+                    
+                    if (i < Q_clean.length - 1) {
+                        let next_digit = D_clean[offset + i + 1];
+                        step.rem_val = parseInt(current_rem.toString() + next_digit).toString();
+                        step.rem_end = end_idx + 1;
+                        current_rem = parseInt(step.rem_val);
+                    } else {
+                        step.rem_val = current_rem.toString(); 
+                        step.rem_end = end_idx;
+                    }
+                    steps_data.push(step);
+                }
+
+                let d_dec_idx = D_str.indexOf('.'); if (d_dec_idx === -1) d_dec_idx = D_str.length;
+                let q_dec_idx = Q_str.indexOf('.'); if (q_dec_idx === -1) q_dec_idx = Q_str.length;
+                let q_start_col = 2 + (d_dec_idx - q_dec_idx);
+                
+                let q_col_map = [];
+                let q_col_iter = q_start_col;
+                for (let i = 0; i < Q_str.length; i++) {
+                    if (Q_str[i] !== '.') q_col_map.push(q_col_iter);
+                    q_col_iter++;
+                }
+
+                let q_row = Array(cols).fill(null);
+                for(let i=0; i<Q_clean.length; i++) { q_row[q_col_map[i]] = { type: 'q', idx: i, char: Q_clean[i] }; }
+                if (Q_str.includes('.')) q_row[q_start_col + Q_str.indexOf('.')] = { type: 'dot', char: '.' };
+                
+                q_row.forEach(item => {
+                    if (!item) grid.appendChild(createCell(''));
+                    else if (item.type === 'dot') grid.appendChild(createCell('.'));
+                    else {
+                        let id = 'input-' + state.totalInputs++;
+                        let cell = createCell('', true, id);
+                        cell.onclick = () => setFocus(id);
+                        grid.appendChild(cell);
+                        state.cellAnswers[id] = item.char;
+                        steps_data[item.idx].q_id = id;
+                    }
+                });
+
+                grid.appendChild(createLine('div-line'));
+                let d_row = Array(cols).fill('');
+                d_row[0] = p.n2; d_row[1] = ')';
+                for(let i=0; i<D_str.length; i++) d_row[2+i] = D_str[i];
+                d_row.forEach(c => {
+                    let cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (c === ')') cell.classList.add('paren');
+                    cell.innerText = c;
+                    grid.appendChild(cell);
+                });
+
+                steps_data.forEach((step, idx) => {
+                    step.pp_ids = drawDivRowRetIds(grid, step.pp_val, step.pp_end, col_map, cols);
+                    grid.appendChild(createLine('sub-line'));
+                    step.rem_ids = drawDivRowRetIds(grid, step.rem_val, step.rem_end, col_map, cols);
+                });
+
+                state.logicalOrder = [];
+                steps_data.forEach(step => {
+                    if (step.q_id) state.logicalOrder.push(step.q_id);
+                    for (let i = 0; i < step.pp_ids.length; i++) state.logicalOrder.push(step.pp_ids[i]);
+                    for (let i = 0; i < step.rem_ids.length; i++) state.logicalOrder.push(step.rem_ids[i]);
+                });
+            }
+        }
+
+        function drawFactorRow(grid, numStr, hasSymbol, totalCols) {
+            let cleanStr = numStr.replace('.', '');
+            let dotPosFromRight = numStr.includes('.') ? numStr.length - 1 - numStr.indexOf('.') : -1;
+            let emptyCount = totalCols - cleanStr.length - (hasSymbol ? 1 : 0);
+
+            for(let i=0; i<emptyCount; i++) grid.appendChild(createCell(''));
+            if(hasSymbol) grid.appendChild(createCell('×'));
+
+            for(let i=0; i<cleanStr.length; i++) {
+                let cell = createCell(cleanStr[i]);
+                if (cleanStr.length - 1 - i === dotPosFromRight) {
+                     let dot = document.createElement('span'); dot.className = 'dot-marker'; dot.innerText = '.';
+                     cell.appendChild(dot);
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function drawInputRow(grid, answerArr, shiftLength, totalCols) {
+            let emptyCount = totalCols - shiftLength;
+            for(let i=0; i<emptyCount; i++) grid.appendChild(createCell(''));
+
+            let rowIds = [];
+            answerArr.forEach(digit => {
+                let id = 'input-' + state.totalInputs++;
+                let cell = createCell('', true, id);
+                cell.onclick = () => setFocus(id);
+                grid.appendChild(cell);
+                state.cellAnswers[id] = digit.toString();
+                rowIds.push(id);
+            });
+            for (let i = rowIds.length - 1; i >= 0; i--) state.logicalOrder.push(rowIds[i]);
+            for(let i=0; i<shiftLength - answerArr.length; i++) grid.appendChild(createCell(''));
+        }
+
+        function drawDivRowRetIds(grid, val_str, end_d_idx, col_map, totalCols) {
+            let rowCells = Array(totalCols).fill(null);
+            let d_idx = end_d_idx;
+            for (let i = val_str.length - 1; i >= 0; i--) {
+                rowCells[col_map[d_idx]] = val_str[i];
+                d_idx--;
+            }
+            
+            let ids = [];
+            rowCells.forEach(content => {
+                if (content === null) grid.appendChild(createCell(''));
+                else {
+                    let id = 'input-' + state.totalInputs++;
+                    let cell = createCell('', true, id);
+                    cell.onclick = () => setFocus(id);
+                    grid.appendChild(cell);
+                    state.cellAnswers[id] = content;
+                    ids.push(id);
+                }
+            });
+            return ids; 
+        }
+
+        function createCell(content, isInput = false, id = null) {
+            let div = document.createElement('div');
+            div.className = 'cell' + (isInput ? ' input-cell' : '');
+            if (isInput && id) div.id = id;
+            div.innerText = content;
+            return div;
+        }
+
+        function createLine(className) { let d = document.createElement('div'); d.className = className; return d; }
+
+        function setFocus(id) {
+            let cell = document.getElementById(id);
+            if (cell && !cell.classList.contains('filled')) {
+                state.focusId = id; updateFocusUI();
+            }
+        }
+
+        function findNextFocus() {
+            for (let i = 0; i < state.logicalOrder.length; i++) {
+                let id = state.logicalOrder[i];
+                let cell = document.getElementById(id);
+                if (cell && !cell.classList.contains('filled')) {
+                    state.focusId = id; updateFocusUI(); return;
+                }
+            }
+            state.focusId = null; updateFocusUI();
+        }
+
+        function updateFocusUI() {
+            document.querySelectorAll('.input-cell').forEach(el => el.classList.remove('active'));
+            if (state.focusId) {
+                let target = document.getElementById(state.focusId);
+                if (target) target.classList.add('active');
+            }
+        }
+
+        window.inputDigit = function(num) {
+            if (state.phase !== 'digits' || !state.focusId) return;
+            const correctDigit = state.cellAnswers[state.focusId];
+            const cell = document.getElementById(state.focusId);
+
+            if (num.toString() === correctDigit) {
+                playSound('move'); // 播放打字音效
+                cell.innerText = num; cell.classList.remove('error'); cell.classList.add('filled');
+                state.filledCount++;
+                if (state.filledCount >= state.totalInputs) {
+                    if (state.mode === 'mul') setTimeout(startDecimalPhase, 400);
+                    else handleDivisionSuccess(); 
+                } else findNextFocus();
+            } else {
+                playSound('wrong'); // 播放答錯音效
+                state.hasErroredThisQuestion = true;
+                cell.classList.add('error'); cell.innerText = num;
+                setTimeout(() => { cell.innerText = ''; cell.classList.remove('error'); }, 400);
+            }
+        }
+
+        function handleDivisionSuccess() {
+            playSound('correct'); // 除法無小數點填寫，直接過關
+            if (!state.hasErroredThisQuestion) state.score += 10;
+            document.getElementById('stat-score').innerText = `分數：${state.score}`;
+            setTimeout(nextQuestion, 1200);
+        }
+
+        function startDecimalPhase() {
+            playSound('correct'); // 第一階段直式完成音效
+            state.phase = 'decimal';
+            document.getElementById('math-vertical').classList.add('hidden');
+            document.getElementById('numpad').classList.add('hidden');
+            const ui = document.getElementById('decimal-phase');
+            ui.classList.remove('hidden');
+            
+            const gapArea = document.getElementById('gap-area'); gapArea.innerHTML = '';
+            const digits = state.problem.ansDigits;
+            let targetIndex = state.problem.ans.indexOf('.');
+            if(targetIndex === -1) targetIndex = digits.length;
+
+            for (let i = 0; i <= digits.length; i++) {
+                let btn = document.createElement('button'); btn.className = 'gap-btn';
+                btn.onclick = () => checkDecimal(i, targetIndex); gapArea.appendChild(btn);
+                if (i < digits.length) {
+                    let span = document.createElement('span'); span.innerText = digits[i]; gapArea.appendChild(span);
+                }
+            }
+        }
+
+        function checkDecimal(index, target) {
+            const gapBtns = document.querySelectorAll('.gap-btn');
+            if (index === target) {
+                playSound('correct'); // 小數點填對音效
+                if (!state.hasErroredThisQuestion) state.score += 10;
+                document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                let dot = document.createElement('span'); dot.className = 'dot'; dot.innerText = '.';
+                gapBtns[index].replaceWith(dot);
+                document.querySelectorAll('.gap-btn').forEach(b => b.style.visibility = 'hidden');
+                setTimeout(nextQuestion, 1500);
+            } else {
+                playSound('wrong');
+                state.hasErroredThisQuestion = true;
+                gapBtns[index].style.background = 'var(--error)';
+                setTimeout(() => gapBtns[index].style.background = '', 400);
+            }
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+        }
+    </script>
+</body>
+</html>
