@@ -7,7 +7,6 @@
     
     <style>
         :root {
-            /* 專屬時間單元的知性藍綠色系 */
             --primary-color: #3B82F6; 
             --secondary-color: #10B981; 
             --bg-color: #EFF6FF;
@@ -36,88 +35,72 @@
 
         button { touch-action: manipulation; }
 
-        /* === 導覽列 === */
-        .nav-bar {
-            padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between;
-            color: white; flex-shrink: 0; z-index: 100;
-        }
-        .back-btn {
-            text-decoration: none; color: #93C5FD; font-weight: bold;
-            border: 1px solid #93C5FD; padding: 5px 15px; border-radius: 20px;
-            font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer;
-        }
+        .nav-bar { padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between; color: white; flex-shrink: 0; z-index: 100; }
+        .back-btn { text-decoration: none; color: #93C5FD; font-weight: bold; border: 1px solid #93C5FD; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer; }
         .back-btn:hover { background: #93C5FD; color: #1E293B; }
         .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
 
-        /* === 主排版 === */
         .main-wrapper { flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative; }
-        .panel {
-            background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; position: relative; overflow: hidden;
-            border: 2px solid #fff;
-        }
+        .panel { background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; overflow: hidden; border: 2px solid #fff; }
 
-        /* === 左側：黑板展示區 === */
-        #graph-panel { flex: 2; position: relative; display: flex; flex-direction: column; background: #fff; transition: 0.3s; overflow-y: auto; padding: 30px;}
+        /* 左側：加入 scroll-behavior 實現平滑捲動 */
+        #graph-panel { flex: 2; position: relative; display: flex; flex-direction: column; background: #fff; transition: 0.3s; overflow-y: auto; padding: 30px; scroll-behavior: smooth;}
         .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(59, 130, 246, 0.08); font-size: 1.5rem; pointer-events: none; z-index: 0; }
         
-        .workspace { margin: 1rem auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; max-width: 600px; z-index: 10; font-size: 1.6rem; line-height: 2.2; }
+        .workspace { margin: 1rem auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; max-width: 650px; z-index: 10; font-size: 1.6rem; line-height: 2.2; padding-bottom: 50px;}
         
-        /* 橫式題目區 */
+        /* 橫式題目 - 永遠置頂顯示 */
         .horizontal-problem { margin-bottom: 2rem; font-weight: bold; background: var(--bg-color); padding: 15px 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; text-align: center; color: var(--primary-color);}
         
-        /* 步驟區塊 */
-        .step-block { margin-bottom: 1.5rem; width: 100%; text-align: center; animation: fadeIn 0.5s ease-out; }
+        .step-block { margin-bottom: 2.5rem; width: 100%; text-align: center; animation: fadeIn 0.5s ease-out; background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px dashed #CBD5E1;}
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .step-label { color: #64748B; font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
-        .equation-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; margin-bottom: 10px;}
+        .step-label { color: #475569; font-size: 1.3rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #E2E8F0; display: inline-block; padding-bottom: 5px;}
+        .equation-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;}
 
-        /* 直式乘法專用網格 */
+        /* 時間直式乘法網格 (依單位分格) */
         .math-grid-mul { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-family: 'Courier New', Courier, monospace; font-size: 2rem; margin: 1rem auto; text-align: center; max-width: 300px; align-items: center;}
-        .math-line { border-bottom: 2px solid var(--text-color); grid-column: 1 / -1; margin: 5px 0; height: 0; }
+        
+        /* 一般直式計算網格 (乘法、除法共用) */
+        .math-grid-div { display: grid; gap: 4px; font-family: 'Courier New', monospace; font-size: 2rem; margin: 1rem auto; justify-content: center; align-items: center; text-align: center; }
+        
+        .cell { width: 40px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .paren { transform: scaleY(1.5) translateY(-2px); font-weight: lighter; }
+        .math-line { border-bottom: 3px solid var(--text-color); margin: 5px 0; height: 0; }
+        .div-line { border-bottom: 3px solid var(--text-color); margin: 2px 0; height: 0; }
+        .sub-line { border-bottom: 2px solid #94A3B8; margin: 2px 0; height: 0; }
         .math-label { font-size: 1.2rem; color: #64748B; font-family: 'Microsoft JhengHei', sans-serif;}
+        
+        /* 單格輸入框 */
+        .grid-input { border: 2px dashed #94A3B8; border-radius: 6px; cursor: pointer; transition: 0.2s; background: #fff; color: var(--primary-color); }
+        .grid-input.active { border-color: var(--accent); border-style: solid; box-shadow: 0 0 8px rgba(245,158,11,0.4); transform: scale(1.1); z-index: 5;}
+        .grid-input.filled { border: 2px solid transparent; background: transparent; color: var(--text-color); }
+        .grid-input.error { border-color: var(--error); background: #FEF2F2; color: var(--error); animation: shake 0.3s; }
 
-        /* 填空底線 (學生輸入區) */
-        .blank {
-            display: inline-block; min-width: 50px; height: 45px; line-height: 45px;
-            border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold;
-            color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px;
-            font-family: 'Courier New', monospace; font-size: 2rem;
-        }
+        /* 多格底線輸入框 */
+        .blank { display: inline-block; min-width: 50px; height: 45px; line-height: 45px; border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 2rem; }
         .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
-        .blank.filled { border-bottom: 3px solid transparent; color: var(--success); }
+        .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
         .blank.error { animation: shake 0.3s; color: var(--error); border-bottom-color: var(--error); }
+        
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* 文字提示 (如省略過程) */
-        .text-hint { font-size: 1.3rem; color: #64748B; border-bottom: 1px dashed #CBD5E1; display: inline-block; padding-bottom: 5px;}
-
-        /* === 右側：控制面板 === */
         #controls-panel { flex: 1; min-width: 380px; max-width: 450px; }
         .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
-
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
-        .menu-btn {
-            padding: 15px; background-color: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 8px; cursor: pointer;
-            font-weight: bold; color: #475569; transition: all 0.2s; font-size: 1.1rem; display: flex; align-items: center; justify-content: flex-start; gap: 10px;
-        }
+        .menu-btn { padding: 15px; background-color: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: all 0.2s; font-size: 1.1rem; display: flex; align-items: center; justify-content: flex-start; gap: 10px; }
         .menu-btn:hover { background-color: var(--border-color); color: var(--primary-color); }
         .menu-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
 
         .step-container { background: #F0FDF4; border-left: 5px solid var(--secondary-color); border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1; display: flex; flex-direction: column;}
-        
         .stats-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; color: var(--text-color); font-size: 1.1rem; border-bottom: 1px dashed #A7F3D0; padding-bottom: 10px;}
         .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
         .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
 
-        /* 數字鍵盤 */
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: auto; }
         .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.8rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
         .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
         .num-btn.zero { grid-column: span 3; }
 
-        /* 結算畫面 */
         .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
         .score-display { font-size: 6rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 0px rgba(59, 130, 246, 0.1); }
         .replay-btn { background: var(--secondary-color); color: white; font-size: 1.5rem; padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); transition: 0.2s;}
@@ -127,7 +110,7 @@
             .main-wrapper { flex-direction: column; overflow-y: auto; }
             #graph-panel { min-height: 450px; flex: none; padding: 15px; }
             #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
-            .workspace { font-size: 1.3rem; }
+            .workspace { font-size: 1.3rem; padding-bottom: 20px;}
             .blank { min-width: 40px; height: 35px; line-height: 35px; font-size: 1.5rem; }
         }
     </style>
@@ -142,12 +125,8 @@
     <div class="main-wrapper">
         <div class="panel" id="graph-panel">
             <div id="welcome-msg" style="color: #94A3B8; font-size: 1.5rem; font-weight: bold; text-align: center; margin-top: 50px;">請從右側選擇題型開始特訓 👉 </div>
-            
-            <div class="workspace hidden" id="workspace">
-                </div>
-
+            <div class="workspace hidden" id="workspace"></div>
             <div class="watermark">Presented by Jutor</div>
-            
             <div id="end-screen" class="end-screen hidden">
                 <h2>挑戰結束！獲得分數</h2>
                 <div id="final-score" class="score-display">0</div>
@@ -157,11 +136,10 @@
 
         <div class="panel" id="controls-panel">
             <div class="controls-content">
-                
                 <div class="menu-grid">
                     <button class="menu-btn" id="btn-mul" onclick="startGame('mul')">✖️ 一、時間的乘法 (直式進位)</button>
-                    <button class="menu-btn" id="btn-divNum" onclick="startGame('divNum')">➗ 二、時間除以數字 (先換算)</button>
-                    <button class="menu-btn" id="btn-divTime" onclick="startGame('divTime')">➗ 三、時間除以時間 (雙換算)</button>
+                    <button class="menu-btn" id="btn-divNum" onclick="startGame('divNum')">➗ 二、時間除以數字 (直式除法)</button>
+                    <button class="menu-btn" id="btn-divTime" onclick="startGame('divTime')">➗ 三、時間除以時間 (直式除法)</button>
                 </div>
 
                 <div class="step-container hidden" id="game-status">
@@ -185,13 +163,12 @@
                         <button class="num-btn zero" onclick="inputDigit(0)">0</button>
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
 
     <script>
-        // === Web Audio API 音效 ===
+        // === 音效系統 ===
         let audioCtx = null;
         function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -215,340 +192,4 @@
             } else if (type === 'success') { 
                 oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523.25, now); 
                 gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
-                oscillator.frequency.setValueAtTime(659.25, now + 0.15); 
-                oscillator.frequency.setValueAtTime(783.99, now + 0.3);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
-                oscillator.start(now); oscillator.stop(now + 1.0);
-            } else if (type === 'wrong') { 
-                oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(250, now);
-                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                oscillator.start(now); oscillator.stop(now + 0.3);
-            }
-        }
-
-        // === 遊戲狀態管理 ===
-        const UNITS = [
-            { big: '日', small: '時', limit: 24 },
-            { big: '時', small: '分', limit: 60 },
-            { big: '分', small: '秒', limit: 60 }
-        ];
-
-        let state = {
-            mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
-            blanksData: {}, // { id: { ans: string, step: number } }
-            logicalOrder: [], // array of blank IDs
-            focusIndex: 0,
-            currentInputStr: "",
-            maxStep: 0,
-            currentVisibleStep: 1
-        };
-
-        function startGame(mode) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (state.timerInterval) clearInterval(state.timerInterval);
-
-            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 300;
-
-            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`btn-${mode}`).classList.add('active');
-            
-            document.getElementById('welcome-msg').classList.add('hidden');
-            document.getElementById('end-screen').classList.add('hidden');
-            document.getElementById('workspace').classList.remove('hidden');
-            document.getElementById('game-status').classList.remove('hidden');
-            
-            startTimer(); nextQuestion();
-        }
-
-        function startTimer() {
-            document.getElementById('stat-timer').innerText = state.timer + 's';
-            document.getElementById('timer-bar').style.width = '100%';
-            state.timerInterval = setInterval(() => {
-                state.timer--;
-                document.getElementById('stat-timer').innerText = state.timer + 's';
-                document.getElementById('timer-bar').style.width = (state.timer / 300 * 100) + '%';
-                if (state.timer <= 0) endGame();
-            }, 1000);
-        }
-
-        function nextQuestion() {
-            if (state.qIndex >= 10) return endGame();
-            state.qIndex++; 
-            state.blanksData = {}; state.logicalOrder = []; state.focusIndex = 0; state.currentInputStr = "";
-            state.currentVisibleStep = 1; state.maxStep = 1;
-            
-            document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
-            generateProblem();
-            updateFocusUI();
-            updateStepVisibility();
-        }
-
-        // === 產生題目與渲染 ===
-        function generateProblem() {
-            const workspace = document.getElementById('workspace');
-            workspace.innerHTML = '';
-            const unitPair = UNITS[Math.floor(Math.random() * UNITS.length)];
-            
-            if (state.mode === 'mul') buildMulProblem(workspace, unitPair);
-            else if (state.mode === 'divNum') buildDivNumProblem(workspace, unitPair);
-            else if (state.mode === 'divTime') buildDivTimeProblem(workspace, unitPair);
-        }
-
-        function buildMulProblem(container, u) {
-            let big = Math.floor(Math.random() * 4) + 1; // 1~4
-            let small = Math.floor(Math.random() * 30) + 15; // 15~44
-            let multiplier = Math.floor(Math.random() * 5) + 3; // 3~7
-            
-            let pBig = big * multiplier;
-            let pSmall = small * multiplier;
-            
-            let finalBig = pBig;
-            let finalSmall = pSmall;
-            let needsCarry = pSmall >= u.limit;
-            
-            if (needsCarry) {
-                finalBig += Math.floor(pSmall / u.limit);
-                finalSmall = pSmall % u.limit;
-            }
-
-            // 步驟1：直式乘法基底
-            // 步驟2：進一步換算 (若需要)
-            // 步驟3：橫式最終答案
-            state.maxStep = needsCarry ? 3 : 2;
-
-            let html = `
-                <div class="horizontal-problem step-obj" data-step="${state.maxStep}">
-                    ${big} ${u.big} ${small} ${u.small} × ${multiplier} = 
-                    ${createBlankHTML('t1', finalBig, state.maxStep)} ${u.big} 
-                    ${createBlankHTML('t2', finalSmall, state.maxStep)} ${u.small}
-                </div>
-                
-                <div class="math-grid-mul step-obj" data-step="1">
-                    <div></div> <div class="math-label">${u.big}</div> <div class="math-label">${u.small}</div> <div></div>
-                    <div></div> <div>${big}</div> <div>${small}</div> <div></div>
-                    <div>×</div> <div></div> <div>${multiplier}</div> <div></div>
-                    <div class="math-line"></div>
-                    <div></div> ${createBlankHTML('p1', pBig, 1)} ${createBlankHTML('p2', pSmall, 1)} <div></div>
-                </div>
-            `;
-            container.innerHTML = html;
-
-            if (needsCarry) {
-                let carryHtml = `
-                    <div class="math-grid-mul step-obj" style="margin-top:-20px;" data-step="2">
-                        <div style="font-size:1.2rem; color:#64748B;">進一步換算→</div> 
-                        ${createBlankHTML('c1', finalBig, 2)} 
-                        ${createBlankHTML('c2', finalSmall, 2)} 
-                        <div></div>
-                    </div>
-                `;
-                container.innerHTML += carryHtml;
-                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
-                registerBlank('c1', finalBig, 2); registerBlank('c2', finalSmall, 2);
-                registerBlank('t1', finalBig, 3); registerBlank('t2', finalSmall, 3);
-            } else {
-                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
-                registerBlank('t1', finalBig, 2); registerBlank('t2', finalSmall, 2);
-            }
-        }
-
-        function buildDivNumProblem(container, u) {
-            let divisor = Math.floor(Math.random() * 6) + 3; // 3~8
-            let ansBig = Math.floor(Math.random() * 3) + 1; // 1~3
-            let ansSmall = Math.floor(Math.random() * 40) + 10; // 10~49
-            
-            let totalSmall = ansBig * u.limit + ansSmall;
-            let startTotalSmall = totalSmall * divisor;
-            
-            let startBig = Math.floor(startTotalSmall / u.limit);
-            let startSmall = startTotalSmall % u.limit;
-            if (startSmall === 0) { startSmall = 5; startTotalSmall += 5; totalSmall = startTotalSmall/divisor; } // 避免剛好整除無小單位
-            
-            let bigToSmall = startBig * u.limit;
-            state.maxStep = 3;
-
-            let html = `
-                <div class="horizontal-problem step-obj" data-step="3">
-                    ${startBig} ${u.big} ${startSmall} ${u.small} ÷ ${divisor} = 
-                    ${createBlankHTML('t1', ansBig, 3)} ${u.big} 
-                    ${createBlankHTML('t2', ansSmall, 3)} ${u.small}
-                </div>
-                
-                <div class="step-block step-obj" data-step="1">
-                    <div class="step-label">第一步：全部換成小單位</div>
-                    <div class="equation-line">
-                        ${startBig} ${u.big} ${startSmall} ${u.small} = 
-                        ${createBlankHTML('s1_1', bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
-                        ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
-                    </div>
-                </div>
-
-                <div class="step-block step-obj" data-step="2">
-                    <div class="step-label">第二步：用直式進行除法</div>
-                    <div class="text-hint">（在計算紙上計算，省略過程）</div>
-                </div>
-
-                <div class="step-block step-obj" data-step="2">
-                    <div class="step-label">第三步：商數換算回原單位</div>
-                    <div class="equation-line">
-                        ${totalSmall} ${u.small} = 
-                        ${createBlankHTML('s3_1', ansBig, 2)} ${u.big} 
-                        ${createBlankHTML('s3_2', ansSmall, 2)} ${u.small}
-                    </div>
-                </div>
-            `;
-            container.innerHTML = html;
-            
-            registerBlank('s1_1', bigToSmall, 1); registerBlank('s1_2', startTotalSmall, 1);
-            registerBlank('s3_1', ansBig, 2); registerBlank('s3_2', ansSmall, 2);
-            registerBlank('t1', ansBig, 3); registerBlank('t2', ansSmall, 3);
-        }
-
-        function buildDivTimeProblem(container, u) {
-            let multiplier = Math.floor(Math.random() * 5) + 3; // 3~7
-            
-            let divBig = Math.floor(Math.random() * 2); // 0~1
-            let divSmall = Math.floor(Math.random() * 40) + 10; // 10~49
-            if(divBig === 0 && divSmall < 20) divSmall += 20; // 確保除數不會太小
-
-            let divTotalSmall = divBig * u.limit + divSmall;
-            let startTotalSmall = divTotalSmall * multiplier;
-            
-            let startBig = Math.floor(startTotalSmall / u.limit);
-            let startSmall = startTotalSmall % u.limit;
-
-            let s1_bigToSmall = startBig * u.limit;
-            let s2_bigToSmall = divBig * u.limit;
-            
-            state.maxStep = 3;
-
-            let html = `
-                <div class="horizontal-problem step-obj" data-step="3">
-                    ${startBig} ${u.big} ${startSmall} ${u.small} ÷ 
-                    ${divBig > 0 ? divBig + ' ' + u.big : ''} ${divSmall} ${u.small} = 
-                    ${createBlankHTML('t1', multiplier, 3)}
-                </div>
-                
-                <div class="step-block step-obj" data-step="1">
-                    <div class="step-label">第一步：被除數換成小單位</div>
-                    <div class="equation-line">
-                        ${startBig} ${u.big} ${startSmall} ${u.small} = 
-                        ${createBlankHTML('s1_1', s1_bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
-                        ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
-                    </div>
-                </div>
-
-                <div class="step-block step-obj" data-step="2">
-                    <div class="step-label">第二步：除數換成小單位</div>
-                    <div class="equation-line">
-                        ${divBig > 0 ? divBig + ' ' + u.big : ''} ${divSmall} ${u.small} = 
-                        ${divBig > 0 ? createBlankHTML('s2_1', s2_bigToSmall, 2) + ` ${u.small} + ` : ''} 
-                        ${divBig > 0 ? divSmall : ''} ${divBig > 0 ? u.small : ''} ${divBig > 0 ? '=' : ''}
-                        ${createBlankHTML('s2_2', divTotalSmall, 2)} ${u.small}
-                    </div>
-                </div>
-
-                <div class="step-block step-obj" data-step="3">
-                    <div class="step-label">第三步：用直式進行除法，得到答案</div>
-                    <div class="text-hint">（在計算紙上計算，省略過程）</div>
-                </div>
-            `;
-            container.innerHTML = html;
-            
-            registerBlank('s1_1', s1_bigToSmall, 1); registerBlank('s1_2', startTotalSmall, 1);
-            if(divBig > 0) registerBlank('s2_1', s2_bigToSmall, 2); 
-            registerBlank('s2_2', divTotalSmall, 2);
-            registerBlank('t1', multiplier, 3);
-        }
-
-        // === 核心輔助函數 ===
-        function createBlankHTML(id, ans, step) {
-            return `<span class="blank" id="${id}" data-ans="${ans}"></span>`;
-        }
-
-        function registerBlank(id, ans, step) {
-            state.blanksData[id] = { ans: ans.toString(), step: step };
-            state.logicalOrder.push(id);
-        }
-
-        function updateStepVisibility() {
-            document.querySelectorAll('.step-obj').forEach(el => {
-                let s = parseInt(el.getAttribute('data-step'));
-                if (s <= state.currentVisibleStep) el.classList.remove('hidden');
-                else el.classList.add('hidden');
-            });
-        }
-
-        function updateFocusUI() {
-            document.querySelectorAll('.blank').forEach(el => el.classList.remove('active'));
-            let currentId = state.logicalOrder[state.focusIndex];
-            if (currentId) {
-                let el = document.getElementById(currentId);
-                if (el) el.classList.add('active');
-            } else {
-                // 全部完成
-                playSound('success');
-                state.score += 10;
-                document.getElementById('stat-score').innerText = `分數：${state.score}`;
-                setTimeout(nextQuestion, 1500);
-            }
-        }
-
-        // === 輸入處理 (防呆前綴比對) ===
-        window.inputDigit = function(num) {
-            let currentId = state.logicalOrder[state.focusIndex];
-            if (!currentId) return;
-
-            let targetAns = state.blanksData[currentId].ans;
-            let el = document.getElementById(currentId);
-            
-            let testStr = state.currentInputStr + num.toString();
-            
-            if (targetAns.startsWith(testStr)) {
-                // 字母正確 (可能是部份或全部)
-                playSound('type');
-                state.currentInputStr = testStr;
-                el.innerText = state.currentInputStr;
-                el.classList.remove('error');
-
-                if (state.currentInputStr === targetAns) {
-                    // 完全匹配 -> 鎖定並前往下一個
-                    playSound('correct');
-                    el.classList.remove('active');
-                    el.classList.add('filled');
-                    state.currentInputStr = "";
-                    state.focusIndex++;
-                    
-                    // 檢查是否需要解鎖新步驟
-                    let nextId = state.logicalOrder[state.focusIndex];
-                    if (nextId) {
-                        let nextStep = state.blanksData[nextId].step;
-                        if (nextStep > state.currentVisibleStep) {
-                            state.currentVisibleStep = nextStep;
-                            updateStepVisibility();
-                        }
-                    }
-                    updateFocusUI();
-                }
-            } else {
-                // 按錯了，立刻亮紅燈
-                playSound('wrong');
-                el.classList.add('error');
-                setTimeout(() => el.classList.remove('error'), 300);
-                // 不保留錯誤輸入，讓學生重新打這格 (或保留之前對的狀態)
-                state.currentInputStr = ""; 
-                el.innerText = "";
-            }
-        }
-
-        function endGame() {
-            clearInterval(state.timerInterval);
-            document.getElementById('workspace').classList.add('hidden');
-            document.getElementById('end-screen').classList.remove('hidden');
-            document.getElementById('final-score').innerText = state.score;
-        }
-    </script>
-</body>
-</html>
+                oscillator.frequency.setValueAtTime(659.25, now +
