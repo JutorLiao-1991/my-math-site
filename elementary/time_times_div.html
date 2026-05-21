@@ -61,7 +61,6 @@
         .cell { width: 40px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .paren { transform: scaleY(1.5) translateY(-2px); font-weight: lighter; }
         
-        /* 修正 1：加上 grid-column: 1 / -1 讓底線完整橫跨 */
         .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 5px 0; height: 0; width: 100%;}
         .div-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; width: 100%;}
         .sub-line { border-bottom: 2px solid #94A3B8; grid-column: 1 / -1; margin: 2px 0; height: 0; width: 100%;}
@@ -263,7 +262,6 @@
             else if (state.mode === 'divTime') buildDivTimeProblem(workspace, unitPair);
         }
 
-        // === 修正 4：一般整數直式乘法網格 (略過連續 0) ===
         function buildStandardMulGrid(n1, n2, stepNum, prefix, registerList) {
             let s1 = n1.toString(); let s2 = n2.toString();
             let finalAns = (n1 * n2).toString();
@@ -290,7 +288,6 @@
 
             let valid_p_rows = p_rows.filter(r => !r.isZero);
 
-            // 如果非零列超過1行，才需要顯示中間相加過程
             if (valid_p_rows.length > 1) {
                 valid_p_rows.forEach((r, r_idx) => {
                     let targetStr = r.prod;
@@ -303,7 +300,7 @@
                     }
                     for(let i=0; i<r.shift; i++) gridHtml += `<div></div>`;
                     
-                    // 修正 3：右至左加入陣列
+                    // 乘法由右向左
                     for(let i = tempRowRecords.length - 1; i >= 0; i--) stepRecords.push(tempRowRecords[i]);
                 });
                 gridHtml += `<div class="math-line"></div>`;
@@ -316,7 +313,7 @@
                 gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${finalAns[i]}"></div>`;
                 tempFinal.push({ id: id, ans: finalAns[i], step: stepNum });
             }
-            // 修正 3：右至左加入陣列
+            // 乘法最終答案也是由右向左
             for(let i = tempFinal.length - 1; i >= 0; i--) stepRecords.push(tempFinal[i]);
 
             gridHtml += `</div>`;
@@ -363,19 +360,19 @@
             for(let c=1; c<=D_str.length; c++) gridHtml += `<div class="cell">${D_str[c-1]}</div>`;
 
             steps.forEach((step, idx) => {
+                // 先填商
                 stepRecords.push(step.q_id);
                 
+                // 再填乘積 (左至右)
                 let p_len = step.p.length; let p_start_col = step.col - p_len + 1;
-                let tempP = [];
                 for(let c=1; c<=cols; c++) {
                     if(c >= p_start_col && c <= step.col) {
                         let char = step.p[c - p_start_col];
                         let id = `${prefix}_p_${idx}_${c}`;
                         gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
-                        tempP.push({ id: id, ans: char, step: stepNum });
+                        stepRecords.push({ id: id, ans: char, step: stepNum });
                     } else gridHtml += `<div></div>`;
                 }
-                for(let i = tempP.length - 1; i >= 0; i--) stepRecords.push(tempP[i]);
 
                 gridHtml += `<div class="sub-line"></div>`;
 
@@ -384,7 +381,7 @@
                 combinedStr += step.nextDigit;
                 if (step.isLast && combinedStr === "") combinedStr = "0";
 
-                let tempRem = [];
+                // 最後填餘數+掉下來的數字 (左至右)
                 if (combinedStr !== "") {
                     let comb_end_col = step.isLast ? step.col : step.col + 1;
                     let comb_start_col = comb_end_col - combinedStr.length + 1;
@@ -393,10 +390,9 @@
                             let char = combinedStr[c - comb_start_col];
                             let id = `${prefix}_rem_${idx}_${c}`;
                             gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
-                            tempRem.push({ id: id, ans: char, step: stepNum });
+                            stepRecords.push({ id: id, ans: char, step: stepNum });
                         } else gridHtml += `<div></div>`;
                     }
-                    for(let i = tempRem.length - 1; i >= 0; i--) stepRecords.push(tempRem[i]);
                 } else {
                      for(let c=1; c<=cols; c++) gridHtml += `<div></div>`; 
                 }
@@ -449,7 +445,6 @@
                         </div>
                     </div>
                 `;
-                // 修正 3：由小到大 (右到左) 填寫
                 registerBlank('p2', pSmall, 1); registerBlank('p1', pBig, 1); 
                 registerBlank('c2', finalSmall, 2); registerBlank('c1', finalBig, 2); 
                 registerBlank('t2', finalSmall, 3); registerBlank('t1', finalBig, 3); 
@@ -463,12 +458,10 @@
             let divisor = Math.floor(Math.random() * 6) + 3; 
             let ansBig = Math.floor(Math.random() * 3) + 1; 
             
-            // 修正 2：嚴格限制亂數大小，絕不超過進位上限
             let maxSmall = u.limit - 1;
             let minSmall = Math.min(10, Math.floor(maxSmall / 2));
             let ansSmall = Math.floor(Math.random() * (maxSmall - minSmall + 1)) + minSmall; 
             
-            // 防止小單位為 0，引發後面運算整除沒算式的問題
             while (((ansBig * u.limit + ansSmall) * divisor) % u.limit === 0) {
                 ansSmall++;
                 if (ansSmall >= u.limit) ansSmall = minSmall;
@@ -526,7 +519,7 @@
             
             gridReg2.forEach(r => registerBlank(r.id, r.ans, r.step));
             
-            registerBlank('s3_2', ansSmall, 3); registerBlank('s3_1', ansBig, 3); // 先右後左
+            registerBlank('s3_2', ansSmall, 3); registerBlank('s3_1', ansBig, 3); 
             registerBlank('t2', ansSmall, 3); registerBlank('t1', ansBig, 3); 
         }
 
@@ -534,7 +527,6 @@
             let multiplier = Math.floor(Math.random() * 5) + 3; 
             let divBig = Math.floor(Math.random() * 2); 
             
-            // 修正 2
             let maxSmall = u.limit - 1;
             let minSmall = Math.min(10, Math.floor(maxSmall / 2));
             let divSmall = Math.floor(Math.random() * (maxSmall - minSmall + 1)) + minSmall;
