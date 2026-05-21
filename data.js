@@ -124,5 +124,13 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "挑戰小數乘法與除法。"
+    },
+    {
+        title: "時間乘法與除法",
+        category: "elementary", // 設定為國小區類別
+        url: "elementary/time_times_div.html", // 依照您截圖的路徑
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "挑戰時間的乘法與除法。"
     }
 ];
