@@ -116,5 +116,13 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
+    },
+    {
+        title: "小數乘法與除法",
+        category: "elementary", // 設定為國小區類別
+        url: "elementary/decimal_times_div.html", // 依照您截圖的路徑
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "挑戰小數乘法與除法。"
     }
 ];
