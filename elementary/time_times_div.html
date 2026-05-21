@@ -56,14 +56,16 @@
         .equation-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;}
 
         .math-grid-mul { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; font-family: 'Courier New', Courier, monospace; font-size: 2rem; margin: 1rem auto; text-align: center; max-width: 300px; align-items: center;}
-        
         .math-grid-div { display: grid; gap: 4px; font-family: 'Courier New', monospace; font-size: 2rem; margin: 1rem auto; justify-content: center; align-items: center; text-align: center; }
         
         .cell { width: 40px; height: 45px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
         .paren { transform: scaleY(1.5) translateY(-2px); font-weight: lighter; }
-        .math-line { border-bottom: 3px solid var(--text-color); margin: 5px 0; height: 0; }
-        .div-line { border-bottom: 3px solid var(--text-color); margin: 2px 0; height: 0; }
-        .sub-line { border-bottom: 2px solid #94A3B8; margin: 2px 0; height: 0; }
+        
+        /* 修正 1：加上 grid-column: 1 / -1 讓底線完整橫跨 */
+        .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 5px 0; height: 0; width: 100%;}
+        .div-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; width: 100%;}
+        .sub-line { border-bottom: 2px solid #94A3B8; grid-column: 1 / -1; margin: 2px 0; height: 0; width: 100%;}
+        
         .math-label { font-size: 1.2rem; color: #64748B; font-family: 'Microsoft JhengHei', sans-serif;}
         
         .grid-input { border: 2px dashed #94A3B8; border-radius: 6px; cursor: pointer; transition: 0.2s; background: #fff; color: var(--primary-color); }
@@ -162,7 +164,6 @@
     </div>
 
     <script>
-        // === 音效系統 ===
         let audioCtx = null;
         function playSound(type) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -252,21 +253,17 @@
             document.getElementById('graph-panel').scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ==========================================
-        //  這就是上一版不小心漏掉的靈魂核心函式！
-        // ==========================================
         function generateProblem() {
             const workspace = document.getElementById('workspace');
-            workspace.innerHTML = ''; // 清空上一題
-            const unitPair = UNITS[Math.floor(Math.random() * UNITS.length)]; // 隨機抽單位
+            workspace.innerHTML = ''; 
+            const unitPair = UNITS[Math.floor(Math.random() * UNITS.length)]; 
 
-            // 根據不同模式，呼叫對應的產生器
             if (state.mode === 'mul') buildMulProblem(workspace, unitPair);
             else if (state.mode === 'divNum') buildDivNumProblem(workspace, unitPair);
             else if (state.mode === 'divTime') buildDivTimeProblem(workspace, unitPair);
         }
 
-        // === 新增：一般整數直式乘法網格 (用於單位換算) ===
+        // === 修正 4：一般整數直式乘法網格 (略過連續 0) ===
         function buildStandardMulGrid(n1, n2, stepNum, prefix, registerList) {
             let s1 = n1.toString(); let s2 = n2.toString();
             let finalAns = (n1 * n2).toString();
@@ -274,13 +271,12 @@
 
             let gridHtml = `<div class="math-grid-div step-obj" data-step="${stepNum}" style="grid-template-columns: repeat(${cols}, 40px); margin: 15px auto;">`;
 
-            // Row 1 & 2
             for(let i=0; i<cols - s1.length; i++) gridHtml += `<div></div>`;
             for(let i=0; i<s1.length; i++) gridHtml += `<div class="cell">${s1[i]}</div>`;
             for(let i=0; i<cols - s2.length - 1; i++) gridHtml += `<div></div>`;
             gridHtml += `<div class="cell">×</div>`;
             for(let i=0; i<s2.length; i++) gridHtml += `<div class="cell">${s2[i]}</div>`;
-            gridHtml += `<div class="math-line" style="grid-column: 1 / -1;"></div>`;
+            gridHtml += `<div class="math-line"></div>`;
 
             let stepRecords = [];
             let p_rows = [];
@@ -289,36 +285,45 @@
                 let digit = parseInt(s2[i]);
                 let prod = (n1 * digit).toString();
                 let shift = s2.length - 1 - i;
-                p_rows.push({ prod: prod, shift: shift, isZero: (digit === 0 && s2.length > 1) });
+                p_rows.push({ prod: prod, shift: shift, isZero: (digit === 0) });
             }
 
-            if (p_rows.length > 1) {
-                p_rows.forEach((r, r_idx) => {
-                    let targetStr = r.isZero ? "0".repeat(s1.length) : r.prod;
+            let valid_p_rows = p_rows.filter(r => !r.isZero);
+
+            // 如果非零列超過1行，才需要顯示中間相加過程
+            if (valid_p_rows.length > 1) {
+                valid_p_rows.forEach((r, r_idx) => {
+                    let targetStr = r.prod;
+                    let tempRowRecords = [];
                     for(let i=0; i<cols - targetStr.length - r.shift; i++) gridHtml += `<div></div>`;
                     for(let i=0; i<targetStr.length; i++) {
                         let id = `${prefix}_p${r_idx}_${i}`;
                         gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${targetStr[i]}"></div>`;
-                        stepRecords.push({ id: id, ans: targetStr[i], step: stepNum });
+                        tempRowRecords.push({ id: id, ans: targetStr[i], step: stepNum });
                     }
                     for(let i=0; i<r.shift; i++) gridHtml += `<div></div>`;
+                    
+                    // 修正 3：右至左加入陣列
+                    for(let i = tempRowRecords.length - 1; i >= 0; i--) stepRecords.push(tempRowRecords[i]);
                 });
-                gridHtml += `<div class="math-line" style="grid-column: 1 / -1;"></div>`;
+                gridHtml += `<div class="math-line"></div>`;
             }
 
+            let tempFinal = [];
             for(let i=0; i<cols - finalAns.length; i++) gridHtml += `<div></div>`;
             for(let i=0; i<finalAns.length; i++) {
                 let id = `${prefix}_f_${i}`;
                 gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${finalAns[i]}"></div>`;
-                stepRecords.push({ id: id, ans: finalAns[i], step: stepNum });
+                tempFinal.push({ id: id, ans: finalAns[i], step: stepNum });
             }
+            // 修正 3：右至左加入陣列
+            for(let i = tempFinal.length - 1; i >= 0; i--) stepRecords.push(tempFinal[i]);
 
             gridHtml += `</div>`;
             stepRecords.forEach(rec => registerList.push(rec));
             return gridHtml;
         }
 
-        // === 直式除法網格產生器 ===
         function buildDivGridHtml(dividend, divisor, stepNum, prefix, registerList) {
             let d_str = divisor.toString(); let D_str = dividend.toString();
             let d_len = d_str.length; let cols = d_len + 1 + D_str.length;
@@ -343,7 +348,6 @@
 
             let stepRecords = [];
 
-            // 1. 商數列
             for(let c=1; c<=cols; c++) {
                 let step = steps.find(s => s.col === c);
                 if(step) {
@@ -353,32 +357,34 @@
                 } else gridHtml += `<div></div>`;
             }
 
-            // 2. 除號與被除數
-            gridHtml += `<div class="div-line" style="grid-column: ${d_len + 1} / -1;"></div>`;
+            gridHtml += `<div class="div-line"></div>`;
             for(let c=1; c<=d_len; c++) gridHtml += `<div class="cell">${d_str[c-1]}</div>`;
             gridHtml += `<div class="cell paren">)</div>`;
             for(let c=1; c<=D_str.length; c++) gridHtml += `<div class="cell">${D_str[c-1]}</div>`;
 
-            // 3. 乘積與餘數
             steps.forEach((step, idx) => {
                 stepRecords.push(step.q_id);
+                
                 let p_len = step.p.length; let p_start_col = step.col - p_len + 1;
+                let tempP = [];
                 for(let c=1; c<=cols; c++) {
                     if(c >= p_start_col && c <= step.col) {
                         let char = step.p[c - p_start_col];
                         let id = `${prefix}_p_${idx}_${c}`;
                         gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
-                        stepRecords.push({ id: id, ans: char, step: stepNum });
+                        tempP.push({ id: id, ans: char, step: stepNum });
                     } else gridHtml += `<div></div>`;
                 }
+                for(let i = tempP.length - 1; i >= 0; i--) stepRecords.push(tempP[i]);
 
-                gridHtml += `<div class="sub-line" style="grid-column: ${d_len + 2} / -1;"></div>`;
+                gridHtml += `<div class="sub-line"></div>`;
 
                 let combinedStr = step.rem;
                 if (combinedStr === "0" && !step.isLast) combinedStr = "";
                 combinedStr += step.nextDigit;
                 if (step.isLast && combinedStr === "") combinedStr = "0";
 
+                let tempRem = [];
                 if (combinedStr !== "") {
                     let comb_end_col = step.isLast ? step.col : step.col + 1;
                     let comb_start_col = comb_end_col - combinedStr.length + 1;
@@ -387,9 +393,10 @@
                             let char = combinedStr[c - comb_start_col];
                             let id = `${prefix}_rem_${idx}_${c}`;
                             gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${char}"></div>`;
-                            stepRecords.push({ id: id, ans: char, step: stepNum });
+                            tempRem.push({ id: id, ans: char, step: stepNum });
                         } else gridHtml += `<div></div>`;
                     }
+                    for(let i = tempRem.length - 1; i >= 0; i--) stepRecords.push(tempRem[i]);
                 } else {
                      for(let c=1; c<=cols; c++) gridHtml += `<div></div>`; 
                 }
@@ -400,7 +407,7 @@
             return gridHtml;
         }
 
-        // === 各題型生成邏輯 ===
+        // === 題目生成邏輯 ===
         function buildMulProblem(container, u) {
             let big = Math.floor(Math.random() * 4) + 1; 
             let small = Math.floor(Math.random() * 30) + 15; 
@@ -442,26 +449,35 @@
                         </div>
                     </div>
                 `;
-                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
-                registerBlank('c1', finalBig, 2); registerBlank('c2', finalSmall, 2);
-                registerBlank('t1', finalBig, 3); registerBlank('t2', finalSmall, 3);
+                // 修正 3：由小到大 (右到左) 填寫
+                registerBlank('p2', pSmall, 1); registerBlank('p1', pBig, 1); 
+                registerBlank('c2', finalSmall, 2); registerBlank('c1', finalBig, 2); 
+                registerBlank('t2', finalSmall, 3); registerBlank('t1', finalBig, 3); 
             } else {
-                registerBlank('p1', pBig, 1); registerBlank('p2', pSmall, 1);
-                registerBlank('t1', finalBig, 2); registerBlank('t2', finalSmall, 2);
+                registerBlank('p2', pSmall, 1); registerBlank('p1', pBig, 1); 
+                registerBlank('t2', finalSmall, 2); registerBlank('t1', finalBig, 2); 
             }
         }
 
         function buildDivNumProblem(container, u) {
             let divisor = Math.floor(Math.random() * 6) + 3; 
             let ansBig = Math.floor(Math.random() * 3) + 1; 
-            let ansSmall = Math.floor(Math.random() * 40) + 10; 
+            
+            // 修正 2：嚴格限制亂數大小，絕不超過進位上限
+            let maxSmall = u.limit - 1;
+            let minSmall = Math.min(10, Math.floor(maxSmall / 2));
+            let ansSmall = Math.floor(Math.random() * (maxSmall - minSmall + 1)) + minSmall; 
+            
+            // 防止小單位為 0，引發後面運算整除沒算式的問題
+            while (((ansBig * u.limit + ansSmall) * divisor) % u.limit === 0) {
+                ansSmall++;
+                if (ansSmall >= u.limit) ansSmall = minSmall;
+            }
             
             let totalSmall = ansBig * u.limit + ansSmall;
             let startTotalSmall = totalSmall * divisor;
             let startBig = Math.floor(startTotalSmall / u.limit);
             let startSmall = startTotalSmall % u.limit;
-            if (startSmall === 0) { startSmall = 5; startTotalSmall += 5; totalSmall = startTotalSmall/divisor; } 
-            
             let bigToSmall = startBig * u.limit;
             state.maxStep = 3;
 
@@ -510,15 +526,27 @@
             
             gridReg2.forEach(r => registerBlank(r.id, r.ans, r.step));
             
-            registerBlank('s3_1', ansBig, 3); registerBlank('s3_2', ansSmall, 3);
-            registerBlank('t1', ansBig, 3); registerBlank('t2', ansSmall, 3);
+            registerBlank('s3_2', ansSmall, 3); registerBlank('s3_1', ansBig, 3); // 先右後左
+            registerBlank('t2', ansSmall, 3); registerBlank('t1', ansBig, 3); 
         }
 
         function buildDivTimeProblem(container, u) {
             let multiplier = Math.floor(Math.random() * 5) + 3; 
             let divBig = Math.floor(Math.random() * 2); 
-            let divSmall = Math.floor(Math.random() * 40) + 10; 
-            if(divBig === 0 && divSmall < 20) divSmall += 20; 
+            
+            // 修正 2
+            let maxSmall = u.limit - 1;
+            let minSmall = Math.min(10, Math.floor(maxSmall / 2));
+            let divSmall = Math.floor(Math.random() * (maxSmall - minSmall + 1)) + minSmall;
+            if (divBig === 0 && divSmall < Math.floor(u.limit/2)) {
+                divSmall += Math.floor(u.limit/2);
+                if(divSmall >= u.limit) divSmall = u.limit - 1;
+            }
+            
+            while (((divBig * u.limit + divSmall) * multiplier) % u.limit === 0) {
+                divSmall++;
+                if (divSmall >= u.limit) divSmall = minSmall;
+            }
 
             let divTotalSmall = divBig * u.limit + divSmall;
             let startTotalSmall = divTotalSmall * multiplier;
@@ -598,7 +626,6 @@
             registerBlank('t1', multiplier, 3);
         }
 
-        // === 共用系統邏輯 ===
         function createBlankHTML(id, ans, step) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
         
         function registerBlank(id, ans, step) {
