@@ -206,9 +206,9 @@
         ];
 
         let state = {
-            mode: '', qIndex: 0, score: 0, timer: 600, timerInterval: null,
+            mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
             blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: "",
-            maxStep: 0, currentVisibleStep: 1
+            maxStep: 0, currentVisibleStep: 1, isCountingDown: false
         };
 
         function startGame(mode) {
@@ -242,14 +242,38 @@
             if (state.qIndex >= 10) return endGame();
             state.qIndex++; 
             state.blanksData = {}; state.logicalOrder = []; state.focusIndex = 0; state.currentInputStr = "";
-            state.currentVisibleStep = 1; state.maxStep = 1;
+            state.currentVisibleStep = 0; // 初始設為 0，先隱藏所有解題步驟
+            state.maxStep = 1;
             
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             generateProblem();
             updateStepVisibility();
-            updateFocusUI();
-            
             document.getElementById('graph-panel').scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 倒數計時 UI 邏輯
+            state.isCountingDown = true;
+            const workspace = document.getElementById('workspace');
+            let cdEl = document.createElement('div');
+            cdEl.id = 'step-countdown';
+            cdEl.style.cssText = 'font-size: 2rem; color: var(--accent); font-weight: bold; margin: 30px 0; text-align: center;';
+            workspace.appendChild(cdEl);
+
+            let count = 3;
+            cdEl.innerText = `準備開始... ${count}`;
+            
+            let cdInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    cdEl.innerText = `準備開始... ${count}`;
+                } else {
+                    clearInterval(cdInterval);
+                    cdEl.remove();
+                    state.isCountingDown = false;
+                    state.currentVisibleStep = 1; // 倒數結束，顯示第一步
+                    updateStepVisibility();
+                    updateFocusUI();
+                }
+            }, 1000);
         }
 
         function generateProblem() {
@@ -481,11 +505,11 @@
 
             container.innerHTML += `
                 <div class="step-block step-obj" data-step="1">
-                    <div class="step-label">第一步：全部換成小單位</div>
+                    <div class="step-label">第一步：將 ${startBig} ${u.big} ${startSmall} ${u.small} 換成小單位</div>
                     <div class="equation-line" style="color: #64748B;">先將 ${startBig} ${u.big} 換成 ${u.small}</div>
                     ${mulGridHtml}
                     <div class="equation-line" style="margin-top: 15px;">
-                        ${createBlankHTML('s1_0', bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
+                        所以 ${startBig} ${u.big} ${startSmall} ${u.small} = ${createBlankHTML('s1_0', bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
                         ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
                     </div>
                 </div>
@@ -557,30 +581,32 @@
             
             container.innerHTML += `
                 <div class="step-block step-obj" data-step="1">
-                    <div class="step-label">第一步：被除數換成小單位</div>
+                    <div class="step-label">第一步：將被除數 ${startBig} ${u.big} ${startSmall} ${u.small} 換成小單位</div>
                     <div class="equation-line" style="color: #64748B;">先將 ${startBig} ${u.big} 換成 ${u.small}</div>
                     ${mulGridHtml1}
                     <div class="equation-line" style="margin-top: 15px;">
-                        ${createBlankHTML('s1_0', s1_bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
+                        所以 ${startBig} ${u.big} ${startSmall} ${u.small} = ${createBlankHTML('s1_0', s1_bigToSmall, 1)} ${u.small} + ${startSmall} ${u.small} = 
                         ${createBlankHTML('s1_2', startTotalSmall, 1)} ${u.small}
                     </div>
                 </div>
             `;
 
             let gridReg2 = [];
-            let step2Html = `<div class="step-block step-obj" data-step="2"><div class="step-label">第二步：除數換成小單位</div>`;
+            let step2Html = "";
             
             if (divBig > 0) {
+                step2Html += `<div class="step-block step-obj" data-step="2"><div class="step-label">第二步：將除數 ${divBig} ${u.big} ${divSmall} ${u.small} 換成小單位</div>`;
                 let mulGridHtml2 = buildStandardMulGrid(divBig, u.limit, 2, 'm2', gridReg2);
                 step2Html += `
                     <div class="equation-line" style="color: #64748B;">先將 ${divBig} ${u.big} 換成 ${u.small}</div>
                     ${mulGridHtml2}
                     <div class="equation-line" style="margin-top: 15px;">
-                        ${createBlankHTML('s2_0', s2_bigToSmall, 2)} ${u.small} + ${divSmall} ${u.small} = 
+                        所以 ${divBig} ${u.big} ${divSmall} ${u.small} = ${createBlankHTML('s2_0', s2_bigToSmall, 2)} ${u.small} + ${divSmall} ${u.small} = 
                         ${createBlankHTML('s2_2', divTotalSmall, 2)} ${u.small}
                     </div>
                 </div>`;
             } else {
+                step2Html += `<div class="step-block step-obj" data-step="2"><div class="step-label">第二步：除數換成小單位</div>`;
                 step2Html += `
                     <div class="equation-line" style="color: #64748B;">
                         除數 ${divSmall} ${u.small} 的單位已是最小單位，不須換算。
@@ -671,6 +697,7 @@
         };
 
         window.inputDigit = function(num) {
+            if (state.isCountingDown) return; // 倒數期間禁止輸入
             let currentId = state.logicalOrder[state.focusIndex];
             if (!currentId) return;
 
