@@ -91,10 +91,10 @@
         .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
         .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
 
-        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: auto; }
-        .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.8rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
+        /* 修改為 5 欄排列，適合手機直立操作 */
+        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
+        .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
         .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
-        .num-btn.zero { grid-column: span 3; }
 
         .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
         .score-display { font-size: 6rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 0px rgba(59, 130, 246, 0.1); }
@@ -155,7 +155,7 @@
                         <button class="num-btn" onclick="inputDigit(7)">7</button>
                         <button class="num-btn" onclick="inputDigit(8)">8</button>
                         <button class="num-btn" onclick="inputDigit(9)">9</button>
-                        <button class="num-btn zero" onclick="inputDigit(0)">0</button>
+                        <button class="num-btn" onclick="inputDigit(0)">0</button>
                     </div>
                 </div>
             </div>
@@ -300,7 +300,6 @@
                     }
                     for(let i=0; i<r.shift; i++) gridHtml += `<div></div>`;
                     
-                    // 乘法由右向左
                     for(let i = tempRowRecords.length - 1; i >= 0; i--) stepRecords.push(tempRowRecords[i]);
                 });
                 gridHtml += `<div class="math-line"></div>`;
@@ -313,7 +312,6 @@
                 gridHtml += `<div class="cell grid-input" id="${id}" data-ans="${finalAns[i]}"></div>`;
                 tempFinal.push({ id: id, ans: finalAns[i], step: stepNum });
             }
-            // 乘法最終答案也是由右向左
             for(let i = tempFinal.length - 1; i >= 0; i--) stepRecords.push(tempFinal[i]);
 
             gridHtml += `</div>`;
@@ -360,10 +358,8 @@
             for(let c=1; c<=D_str.length; c++) gridHtml += `<div class="cell">${D_str[c-1]}</div>`;
 
             steps.forEach((step, idx) => {
-                // 先填商
                 stepRecords.push(step.q_id);
                 
-                // 再填乘積 (左至右)
                 let p_len = step.p.length; let p_start_col = step.col - p_len + 1;
                 for(let c=1; c<=cols; c++) {
                     if(c >= p_start_col && c <= step.col) {
@@ -381,7 +377,6 @@
                 combinedStr += step.nextDigit;
                 if (step.isLast && combinedStr === "") combinedStr = "0";
 
-                // 最後填餘數+掉下來的數字 (左至右)
                 if (combinedStr !== "") {
                     let comb_end_col = step.isLast ? step.col : step.col + 1;
                     let comb_start_col = comb_end_col - combinedStr.length + 1;
@@ -447,10 +442,10 @@
                 `;
                 registerBlank('p2', pSmall, 1); registerBlank('p1', pBig, 1); 
                 registerBlank('c2', finalSmall, 2); registerBlank('c1', finalBig, 2); 
-                registerBlank('t2', finalSmall, 3); registerBlank('t1', finalBig, 3); 
+                registerBlank('t1', finalBig, 3); registerBlank('t2', finalSmall, 3); 
             } else {
                 registerBlank('p2', pSmall, 1); registerBlank('p1', pBig, 1); 
-                registerBlank('t2', finalSmall, 2); registerBlank('t1', finalBig, 2); 
+                registerBlank('t1', finalBig, 2); registerBlank('t2', finalSmall, 2); 
             }
         }
 
@@ -520,7 +515,7 @@
             gridReg2.forEach(r => registerBlank(r.id, r.ans, r.step));
             
             registerBlank('s3_2', ansSmall, 3); registerBlank('s3_1', ansBig, 3); 
-            registerBlank('t2', ansSmall, 3); registerBlank('t1', ansBig, 3); 
+            registerBlank('t1', ansBig, 3); registerBlank('t2', ansSmall, 3); 
         }
 
         function buildDivTimeProblem(container, u) {
