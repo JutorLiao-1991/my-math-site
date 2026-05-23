@@ -141,7 +141,7 @@
                     <div class="stats-header">
                         <span id="stat-q">題號：1 / 10</span>
                         <span id="stat-score" style="color: var(--success);">分數：0</span>
-                        <span id="stat-timer" style="color: var(--accent);">300s</span>
+                        <span id="stat-timer" style="color: var(--accent);">600s</span>
                     </div>
                     <div class="timer-bar-container"><div id="timer-bar" class="timer-bar"></div></div>
                     
@@ -206,7 +206,7 @@
         ];
 
         let state = {
-            mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
+            mode: '', qIndex: 0, score: 0, timer: 600, timerInterval: null,
             blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: "",
             maxStep: 0, currentVisibleStep: 1
         };
@@ -215,7 +215,7 @@
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (state.timerInterval) clearInterval(state.timerInterval);
 
-            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 300;
+            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 600;
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById(`btn-${mode}`).classList.add('active');
             
@@ -233,7 +233,7 @@
             state.timerInterval = setInterval(() => {
                 state.timer--;
                 document.getElementById('stat-timer').innerText = state.timer + 's';
-                document.getElementById('timer-bar').style.width = (state.timer / 300 * 100) + '%';
+                document.getElementById('timer-bar').style.width = (state.timer / 600 * 100) + '%';
                 if (state.timer <= 0) endGame();
             }, 1000);
         }
