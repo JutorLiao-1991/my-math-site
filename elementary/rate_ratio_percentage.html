@@ -294,26 +294,61 @@
             else if (state.mode === 'mode5') buildMode5(workspace);
         }
 
-        // 模式一：計算比率 (情境題 -> 分數填空)
+        // 模式一：計算比率 (題庫隨機輪替：雞蛋、選舉、出席率、錄取率)
         function buildMode1(container) {
-            let total = Math.floor(Math.random() * 20) + 20; // 20~39
-            let broken = Math.floor(Math.random() * 10) + 2; // 2~11
-            let safe = total - broken;
+            const problemTypes = [
+                () => { // 情境 A：雞蛋破掉與沒破
+                    let total = Math.floor(Math.random() * 20) + 20; // 20~39
+                    let broken = Math.floor(Math.random() * 10) + 2; // 2~11
+                    let safe = total - broken;
+                    return {
+                        text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`,
+                        ansNum: safe, ansDen: total, label: "沒破掉的雞蛋"
+                    };
+                },
+                () => { // 情境 B：得票率
+                    let total = Math.floor(Math.random() * 10) + 25; // 25~34
+                    let votes = Math.floor(Math.random() * 15) + 10; // 10~24
+                    return {
+                        text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？`,
+                        ansNum: votes, ansDen: total, label: "得票數"
+                    };
+                },
+                () => { // 情境 C：出席率
+                    let total = Math.floor(Math.random() * 5) + 28; // 28~32
+                    let absent = Math.floor(Math.random() * 4) + 2; // 2~5
+                    let present = total - absent;
+                    return {
+                        text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`,
+                        ansNum: present, ansDen: total, label: "出席人數"
+                    };
+                },
+                () => { // 情境 D：錄取率
+                    let total = (Math.floor(Math.random() * 5) + 4) * 10; // 40, 50...80
+                    let pass = Math.floor(Math.random() * 10) + 5; // 5~14
+                    return {
+                        text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`,
+                        ansNum: pass, ansDen: total, label: "錄取人數"
+                    };
+                }
+            ];
+
+            // 隨機抽一題出來
+            let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
 
             container.innerHTML = `
                 <div class="horizontal-problem">
-                    媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>
-                    請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？
+                    ${selected.text}
                 </div>
                 <div class="step-block">
                     <div class="step-label">解題步驟</div>
                     <div class="equation-line">
-                        沒破掉的雞蛋占全部的比率是： ${createFractionHTML('m1_num', safe, 'm1_den', total)}
+                        ${selected.label}占全部的比率是： ${createFractionHTML('m1_num', selected.ansNum, 'm1_den', selected.ansDen)}
                     </div>
                 </div>
             `;
-            registerBlank('m1_num', safe);
-            registerBlank('m1_den', total);
+            registerBlank('m1_num', selected.ansNum);
+            registerBlank('m1_den', selected.ansDen);
         }
 
         // 模式二：必背百分率 (1/2, 1/4 等 -> 百分率)
@@ -391,21 +426,19 @@
             registerBlank('m4_ans', finalAns);
         }
 
-        // 模式五：百分率的應用 (情境題 + 翻譯鷹架)
+        // 模式五：百分率的應用 (新增「加N成」題型)
         function buildMode5(container) {
             let price = (Math.floor(Math.random() * 15) + 10) * 100; // 1000 ~ 2400
             
-            // 隨機決定題型：0 = 打 N 折, 1 = N% off
-            let type = Math.floor(Math.random() * 2);
+            // 隨機決定題型：0 = 打 N 折, 1 = N% off, 2 = 加 N 成
+            let type = Math.floor(Math.random() * 3);
             
             if (type === 0) {
-                // 打 N 折 (例如 8 折, 75 折)
+                // 情境 A：打 N 折 (例如 8 折, 75 折)
                 let discountOptions = [7, 8, 9, 75, 85];
                 let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
-                // 如果是 7 折，內部數學是 70%
                 let percentage = discount < 10 ? discount * 10 : discount; 
                 let finalPrice = price * percentage / 100;
-                let decFormat = discount < 10 ? `0.${discount}` : `0.${discount}`;
 
                 container.innerHTML = `
                     <div class="horizontal-problem">
@@ -429,8 +462,8 @@
                 registerBlank('m5_d2', discount);
                 registerBlank('m5_ans', finalPrice);
 
-            } else {
-                // N% off (例如 20% off)
+            } else if (type === 1) {
+                // 情境 B：N% off (例如 20% off)
                 let offOptions = [10, 20, 25, 30];
                 let off = offOptions[Math.floor(Math.random() * offOptions.length)];
                 let remainPercentage = 100 - off;
@@ -456,6 +489,38 @@
                 `;
                 registerBlank('m5_p1', remainPercentage);
                 registerBlank('m5_d1', remainPercentage);
+                registerBlank('m5_ans', finalPrice);
+
+            } else {
+                // 情境 C：加 N 成
+                let costOptions = [500, 800, 1200, 2000, 4000];
+                let cost = costOptions[Math.floor(Math.random() * costOptions.length)];
+                let markupOptions = [1, 2, 3, 4, 5]; // 1成 到 5成
+                let markup = markupOptions[Math.floor(Math.random() * markupOptions.length)];
+                let markupPercentage = markup * 10;
+                let finalPrice = cost * (1 + markup / 10);
+                
+                container.innerHTML = `
+                    <div class="horizontal-problem">
+                        一雙球鞋的成本是 ${cost} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯加成邏輯</div>
+                        <div class="equation-line" style="font-size: 1.4rem;">
+                            加 ${markup} 成代表要多加成本的 ${createBlankHTML('m5_p1', markupPercentage)} <span class="static-symbol">%</span><br>
+                            所以定價是成本的： 100% + ${markupPercentage}% = ${createBlankHTML('m5_p2', 100 + markupPercentage)} <span class="static-symbol">%</span>
+                        </div>
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第二步：計算定價</div>
+                        <div class="equation-line">
+                            ${cost} × 1.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', markup)} = ${createBlankHTML('m5_ans', finalPrice)} 元
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', markupPercentage);
+                registerBlank('m5_p2', 100 + markupPercentage);
+                registerBlank('m5_d1', markup);
                 registerBlank('m5_ans', finalPrice);
             }
         }
