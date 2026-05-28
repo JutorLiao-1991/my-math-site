@@ -132,5 +132,13 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "挑戰時間的乘法與除法。"
+    },
+    {
+        title: "比率與百分率",
+        category: "elementary", // 設定為國小區類別
+        url: "elementary/rate_ratio_percentage.html", // 依照您截圖的路徑
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "試著在此精熟比率與百分率吧！"
     }
 ];
