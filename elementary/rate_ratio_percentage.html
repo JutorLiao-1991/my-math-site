@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>鳩特數理｜比率與百分率特訓基地</title>
+    
+    <style>
+        :root {
+            --primary-color: #3B82F6; 
+            --secondary-color: #10B981; 
+            --bg-color: #EFF6FF;
+            --text-color: #1E293B; 
+            --panel-bg: #FFFFFF; 
+            --nav-bg: rgba(30, 41, 59, 0.95); 
+            --accent: #F59E0B; 
+            --border-color: #DBEAFE; 
+            --error: #EF4444;
+            --success: #10B981;
+        }
+
+        .hidden { display: none !important; }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', Roboto, sans-serif; 
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+            touch-action: manipulation;
+            -webkit-user-select: none; user-select: none;
+            background-image: linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        button { touch-action: manipulation; }
+
+        .nav-bar { padding: 10px 20px; background: var(--nav-bg); display: flex; align-items: center; justify-content: space-between; color: white; flex-shrink: 0; z-index: 100; }
+        .back-btn { text-decoration: none; color: #93C5FD; font-weight: bold; border: 1px solid #93C5FD; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; transition: 0.3s; display: flex; align-items: center; cursor: pointer; }
+        .back-btn:hover { background: #93C5FD; color: #1E293B; }
+        .page-title { margin:0; font-size:1.2rem; font-weight: 700; letter-spacing: 1px;}
+
+        .main-wrapper { flex: 1; display: flex; padding: 15px; gap: 15px; overflow: hidden; position: relative; }
+        .panel { background: var(--panel-bg); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; overflow: hidden; border: 2px solid #fff; }
+
+        #graph-panel { flex: 2; position: relative; display: flex; flex-direction: column; background: #fff; transition: 0.3s; overflow-y: auto; padding: 30px; scroll-behavior: smooth;}
+        .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(59, 130, 246, 0.08); font-size: 1.5rem; pointer-events: none; z-index: 0; }
+        
+        .workspace { margin: 1rem auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; width: 100%; max-width: 650px; z-index: 10; font-size: 1.6rem; line-height: 2.2; padding-bottom: 50px;}
+        
+        .horizontal-problem { margin-bottom: 2rem; font-weight: bold; background: var(--bg-color); padding: 25px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); width: 100%; text-align: left; color: var(--primary-color); font-size: 1.4rem; line-height: 1.6;}
+        
+        .step-block { margin-bottom: 2.5rem; width: 100%; text-align: center; animation: fadeIn 0.5s ease-out; background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px dashed #CBD5E1;}
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .step-label { color: #475569; font-size: 1.3rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #E2E8F0; display: inline-block; padding-bottom: 5px;}
+        .equation-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;}
+        
+        /* 新增：分數顯示專用 CSS */
+        .fraction { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 5px; }
+        .fraction .blank { height: 40px; line-height: 40px; border: 2px dashed #94A3B8; border-bottom: 2px dashed #94A3B8; margin: 3px 0; border-radius: 6px; padding: 0 15px; min-width: 30px;}
+        .fraction .blank.active { border: 2px solid var(--accent); background: rgba(245, 158, 11, 0.1); border-bottom: 2px solid var(--accent);}
+        .fraction .blank.filled { border: 2px solid transparent; background: transparent; border-bottom: 2px solid transparent;}
+        .fraction-line { width: 100%; height: 3px; background-color: var(--text-color); margin: 2px 0; border-radius: 2px;}
+
+        /* 新增：靜態符號 (例如 %, 小數點) */
+        .static-symbol { font-weight: bold; color: var(--text-color); margin: 0 2px; font-size: 1.8rem;}
+        
+        .blank { display: inline-block; min-width: 50px; height: 45px; line-height: 45px; border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 2rem; }
+        .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
+        .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
+        .blank.error { animation: shake 0.3s; color: var(--error); border-color: var(--error); }
+        
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+        #controls-panel { flex: 1; min-width: 380px; max-width: 450px; }
+        .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
+        .menu-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
+        .menu-btn { padding: 15px; background-color: #F8FAFC; border: 2px solid #E2E8F0; border-radius: 8px; cursor: pointer; font-weight: bold; color: #475569; transition: all 0.2s; font-size: 1.1rem; display: flex; align-items: center; justify-content: flex-start; gap: 10px; }
+        .menu-btn:hover { background-color: var(--border-color); color: var(--primary-color); }
+        .menu-btn.active { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+        .step-container { background: #F0FDF4; border-left: 5px solid var(--secondary-color); border-radius: 4px; padding: 15px; margin-bottom: 20px; flex: 1; display: flex; flex-direction: column;}
+        .stats-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 15px; color: var(--text-color); font-size: 1.1rem; border-bottom: 1px dashed #A7F3D0; padding-bottom: 10px;}
+        .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
+        .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
+
+        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
+        .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
+        .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
+
+        .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
+        .score-display { font-size: 6rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 0px rgba(59, 130, 246, 0.1); }
+        .replay-btn { background: var(--secondary-color); color: white; font-size: 1.5rem; padding: 15px 40px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); transition: 0.2s;}
+        .replay-btn:hover { transform: scale(1.05); }
+
+        @media (max-width: 800px) {
+            .main-wrapper { flex-direction: column; overflow-y: auto; }
+            #graph-panel { min-height: 450px; flex: none; padding: 15px; }
+            #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }
+            .workspace { font-size: 1.3rem; padding-bottom: 20px;}
+            .blank { min-width: 40px; height: 35px; line-height: 35px; font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="#" class="back-btn"><span>⬅</span>&nbsp;回主選單</a>
+        <h2 class="page-title">📊 鳩特數理｜比率與百分率特訓</h2>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="panel" id="graph-panel">
+            <div id="welcome-msg" style="color: #94A3B8; font-size: 1.5rem; font-weight: bold; text-align: center; margin-top: 50px;">請從右側選擇題型開始特訓 👉 </div>
+            <div class="workspace hidden" id="workspace"></div>
+            <div class="watermark">Presented by Jutor</div>
+            
+            <div id="end-screen" class="end-screen hidden">
+                <h2>挑戰結束！獲得分數</h2>
+                <div id="final-score" class="score-display">0</div>
+                <button class="replay-btn" onclick="location.reload()">🔄 再玩一次</button>
+            </div>
+        </div>
+
+        <div class="panel" id="controls-panel">
+            <div class="controls-content">
+                <div class="menu-grid">
+                    <button class="menu-btn" id="btn-mode1" onclick="startGame('mode1')">1️⃣ 一、計算比率</button>
+                    <button class="menu-btn" id="btn-mode2" onclick="startGame('mode2')">2️⃣ 二、必背百分率</button>
+                    <button class="menu-btn" id="btn-mode3" onclick="startGame('mode3')">3️⃣ 三、小數轉換百分率</button>
+                    <button class="menu-btn" id="btn-mode4" onclick="startGame('mode4')">4️⃣ 四、分數轉換百分率</button>
+                    <button class="menu-btn" id="btn-mode5" onclick="startGame('mode5')">5️⃣ 五、百分率的應用</button>
+                </div>
+
+                <div class="step-container hidden" id="game-status">
+                    <div class="stats-header">
+                        <span id="stat-q">題號：1 / 10</span>
+                        <span id="stat-score" style="color: var(--success);">分數：0</span>
+                        <span id="stat-timer" style="color: var(--accent);">600s</span>
+                    </div>
+                    <div class="timer-bar-container"><div id="timer-bar" class="timer-bar"></div></div>
+                    
+                    <div id="numpad" class="numpad">
+                        <button class="num-btn" onclick="inputDigit(1)">1</button>
+                        <button class="num-btn" onclick="inputDigit(2)">2</button>
+                        <button class="num-btn" onclick="inputDigit(3)">3</button>
+                        <button class="num-btn" onclick="inputDigit(4)">4</button>
+                        <button class="num-btn" onclick="inputDigit(5)">5</button>
+                        <button class="num-btn" onclick="inputDigit(6)">6</button>
+                        <button class="num-btn" onclick="inputDigit(7)">7</button>
+                        <button class="num-btn" onclick="inputDigit(8)">8</button>
+                        <button class="num-btn" onclick="inputDigit(9)">9</button>
+                        <button class="num-btn" onclick="inputDigit(0)">0</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 音效系統 (維持原有設定)
+        let audioCtx = null;
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'type') { 
+                oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.1, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                oscillator.start(now); oscillator.stop(now + 0.05);
+            } else if (type === 'correct') { 
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, now); 
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+                oscillator.start(now); oscillator.stop(now + 0.2);
+            } else if (type === 'success') { 
+                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523.25, now); 
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                oscillator.frequency.setValueAtTime(659.25, now + 0.15); 
+                oscillator.frequency.setValueAtTime(783.99, now + 0.3);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                oscillator.start(now); oscillator.stop(now + 1.0);
+            } else if (type === 'wrong') { 
+                oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(250, now);
+                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
+        }
+
+        // 狀態管理
+        let state = {
+            mode: '', qIndex: 0, score: 0, timer: 600, timerInterval: null,
+            blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: "",
+            isCountingDown: false
+        };
+
+        function startGame(mode) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (state.timerInterval) clearInterval(state.timerInterval);
+
+            state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 600;
+            
+            document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`btn-${mode}`).classList.add('active');
+            
+            document.getElementById('welcome-msg').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('workspace').classList.remove('hidden');
+            document.getElementById('game-status').classList.remove('hidden');
+            
+            startTimer(); nextQuestion();
+        }
+
+        function startTimer() {
+            document.getElementById('stat-timer').innerText = state.timer + 's';
+            document.getElementById('timer-bar').style.width = '100%';
+            state.timerInterval = setInterval(() => {
+                state.timer--;
+                document.getElementById('stat-timer').innerText = state.timer + 's';
+                document.getElementById('timer-bar').style.width = (state.timer / 600 * 100) + '%';
+                if (state.timer <= 0) endGame();
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            if (state.qIndex >= 10) return endGame();
+            state.qIndex++; 
+            state.blanksData = {}; state.logicalOrder = []; state.focusIndex = 0; state.currentInputStr = "";
+            
+            document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
+            generateProblem();
+            document.getElementById('graph-panel').scrollTo({ top: 0, behavior: 'smooth' });
+
+            // 倒數計時 UI
+            state.isCountingDown = true;
+            const workspace = document.getElementById('workspace');
+            let cdEl = document.createElement('div');
+            cdEl.id = 'step-countdown';
+            cdEl.style.cssText = 'font-size: 2rem; color: var(--accent); font-weight: bold; margin: 30px 0; text-align: center;';
+            workspace.prepend(cdEl); // 放到最上方
+
+            let count = 2; // 為了展示流暢，測試版設短一點
+            cdEl.innerText = `準備開始... ${count}`;
+            
+            let cdInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    cdEl.innerText = `準備開始... ${count}`;
+                } else {
+                    clearInterval(cdInterval);
+                    cdEl.remove();
+                    state.isCountingDown = false;
+                    updateFocusUI();
+                }
+            }, 1000);
+        }
+
+        // ===== 題型生成邏輯 =====
+
+        function createFractionHTML(idNum, ansNum, idDen, ansDen) {
+            return `
+                <div class="fraction">
+                    <span class="blank" id="${idNum}" data-ans="${ansNum}"></span>
+                    <div class="fraction-line"></div>
+                    <span class="blank" id="${idDen}" data-ans="${ansDen}"></span>
+                </div>
+            `;
+        }
+
+        function createBlankHTML(id, ans) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
+        
+        function registerBlank(id, ans) {
+            state.blanksData[id] = { ans: ans.toString() };
+            state.logicalOrder.push(id);
+        }
+
+        function generateProblem() {
+            const workspace = document.getElementById('workspace');
+            workspace.innerHTML = ''; 
+
+            if (state.mode === 'mode1') buildMode1(workspace);
+            else if (state.mode === 'mode2') buildMode2(workspace);
+            else if (state.mode === 'mode3') buildMode3(workspace);
+            else if (state.mode === 'mode4') buildMode4(workspace);
+            else if (state.mode === 'mode5') buildMode5(workspace);
+        }
+
+        // 模式一：計算比率 (情境題 -> 分數填空)
+        function buildMode1(container) {
+            let total = Math.floor(Math.random() * 20) + 20; // 20~39
+            let broken = Math.floor(Math.random() * 10) + 2; // 2~11
+            let safe = total - broken;
+
+            container.innerHTML = `
+                <div class="horizontal-problem">
+                    媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>
+                    請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？
+                </div>
+                <div class="step-block">
+                    <div class="step-label">解題步驟</div>
+                    <div class="equation-line">
+                        沒破掉的雞蛋占全部的比率是： ${createFractionHTML('m1_num', safe, 'm1_den', total)}
+                    </div>
+                </div>
+            `;
+            registerBlank('m1_num', safe);
+            registerBlank('m1_den', total);
+        }
+
+        // 模式二：必背百分率 (1/2, 1/4 等 -> 百分率)
+        function buildMode2(container) {
+            const pool = [
+                {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75},
+                {n: 1, d: 5, a: 20}, {n: 2, d: 5, a: 40}, {n: 3, d: 5, a: 60}, {n: 4, d: 5, a: 80},
+                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30}
+            ];
+            let q = pool[Math.floor(Math.random() * pool.length)];
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">必背轉換挑戰！</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        <div class="fraction">
+                            <span style="margin-bottom: 5px;">${q.n}</span>
+                            <div class="fraction-line"></div>
+                            <span style="margin-top: 5px;">${q.d}</span>
+                        </div> 
+                        = ${createBlankHTML('m2_ans', q.a)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            registerBlank('m2_ans', q.a);
+        }
+
+        // 模式三：小數轉換百分率 (小數 -> 填數字 + 固定 %)
+        function buildMode3(container) {
+            // 產生如 0.76, 0.08, 0.6 的數字 (轉為百分率為 76, 8, 60)
+            let raw = Math.floor(Math.random() * 99) + 1;
+            let percentage = raw;
+            let decStr = (raw / 100).toString();
+            // 處理 0.60 -> 0.6 的情況
+            if (raw % 10 === 0) { decStr = (raw / 100).toFixed(1); }
+            if (raw < 10) { decStr = "0.0" + raw; }
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">小數換成百分率</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        ${decStr} = ${createBlankHTML('m3_ans', percentage)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            registerBlank('m3_ans', percentage);
+        }
+
+        // 模式四：分數轉換百分率 (擴分邏輯)
+        function buildMode4(container) {
+            // 分母為 20, 25, 50
+            const dens = [20, 25, 50];
+            let den = dens[Math.floor(Math.random() * dens.length)];
+            let num = Math.floor(Math.random() * (den - 1)) + 1;
+            let multiplier = 100 / den;
+            let finalAns = num * multiplier;
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">分數換成百分率</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        <div class="fraction">
+                            <span style="margin-bottom: 5px;">${num}</span>
+                            <div class="fraction-line"></div>
+                            <span style="margin-top: 5px;">${den}</span>
+                        </div> 
+                        = ${createFractionHTML('m4_num', finalAns, 'm4_den', 100)} 
+                        = ${createBlankHTML('m4_ans', finalAns)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            // 引導順序：先寫分母 100 -> 再寫擴分後的分子 -> 最後寫百分率
+            registerBlank('m4_den', 100);
+            registerBlank('m4_num', finalAns);
+            registerBlank('m4_ans', finalAns);
+        }
+
+        // 模式五：百分率的應用 (情境題 + 翻譯鷹架)
+        function buildMode5(container) {
+            let price = (Math.floor(Math.random() * 15) + 10) * 100; // 1000 ~ 2400
+            
+            // 隨機決定題型：0 = 打 N 折, 1 = N% off
+            let type = Math.floor(Math.random() * 2);
+            
+            if (type === 0) {
+                // 打 N 折 (例如 8 折, 75 折)
+                let discountOptions = [7, 8, 9, 75, 85];
+                let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
+                // 如果是 7 折，內部數學是 70%
+                let percentage = discount < 10 ? discount * 10 : discount; 
+                let finalPrice = price * percentage / 100;
+                let decFormat = discount < 10 ? `0.${discount}` : `0.${discount}`;
+
+                container.innerHTML = `
+                    <div class="horizontal-problem">
+                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>。<br>請問打折後的售價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯折數</div>
+                        <div class="equation-line">
+                            打 ${discount} 折 = 原價的 ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span> = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', discount)}
+                        </div>
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第二步：計算售價</div>
+                        <div class="equation-line">
+                            ${price} × 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d2', discount)} = ${createBlankHTML('m5_ans', finalPrice)} 元
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', percentage);
+                registerBlank('m5_d1', discount);
+                registerBlank('m5_d2', discount);
+                registerBlank('m5_ans', finalPrice);
+
+            } else {
+                // N% off (例如 20% off)
+                let offOptions = [10, 20, 25, 30];
+                let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let remainPercentage = 100 - off;
+                let finalPrice = price * remainPercentage / 100;
+
+                container.innerHTML = `
+                    <div class="horizontal-problem">
+                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯 off 邏輯</div>
+                        <div class="equation-line" style="font-size: 1.4rem;">
+                            ${off}% off 代表扣掉 ${off}%<br>
+                            所以要付的錢是原價的： 100% - ${off}% = ${createBlankHTML('m5_p1', remainPercentage)} <span class="static-symbol">%</span>
+                        </div>
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第二步：計算售價</div>
+                        <div class="equation-line">
+                            ${price} × 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', remainPercentage)} = ${createBlankHTML('m5_ans', finalPrice)} 元
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', remainPercentage);
+                registerBlank('m5_d1', remainPercentage);
+                registerBlank('m5_ans', finalPrice);
+            }
+        }
+
+        // ===== 核心互動邏輯 =====
+
+        function updateFocusUI() {
+            document.querySelectorAll('.blank').forEach(el => el.classList.remove('active'));
+            let currentId = state.logicalOrder[state.focusIndex];
+            
+            if (currentId) {
+                let el = document.getElementById(currentId);
+                if (el) {
+                    el.classList.add('active');
+                    // 為了避免擋住視線，畫面平滑滾動到輸入格
+                    setTimeout(() => { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 100);
+                }
+            } else {
+                // 全部答對
+                playSound('success');
+                state.score += 10;
+                document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                setTimeout(nextQuestion, 1200);
+            }
+        }
+
+        window.inputDigit = function(num) {
+            if (state.isCountingDown) return; 
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (!currentId) return;
+
+            let targetAns = state.blanksData[currentId].ans;
+            let el = document.getElementById(currentId);
+            let testStr = state.currentInputStr + num.toString();
+
+            // 如果目標答案開頭符合目前的輸入 (例如目標是 50，先按 5 是對的)
+            if (targetAns.startsWith(testStr)) {
+                playSound('type');
+                state.currentInputStr = testStr;
+                el.innerText = state.currentInputStr;
+                el.classList.remove('error');
+
+                // 檢查是否完全吻合
+                if (state.currentInputStr === targetAns) {
+                    playSound('correct');
+                    el.classList.remove('active');
+                    el.classList.add('filled');
+                    state.currentInputStr = "";
+                    state.focusIndex++;
+                    updateFocusUI();
+                }
+            } else {
+                // 答錯邏輯
+                playSound('wrong');
+                el.classList.add('error');
+                setTimeout(() => el.classList.remove('error'), 300);
+                state.currentInputStr = ""; 
+                el.innerText = "";
+            }
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+        }
+    </script>
+</body>
+</html>
