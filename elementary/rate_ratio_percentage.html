@@ -70,10 +70,8 @@
         .blank { display: inline-block; min-width: 50px; height: 45px; line-height: 45px; border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 2rem; }
         .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
         .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
-        .blank.error { animation: shake 0.3s; color: var(--error); border-color: var(--error); }
+        .blank.error { color: var(--error); border-color: var(--error); }
         
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-
         /* 直式計算 */
         .math-grid { display: grid; gap: 6px; font-family: 'Courier New', Courier, monospace; font-size: 2.2rem; justify-content: center; }
         .cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; }
@@ -178,7 +176,7 @@
     </div>
 
     <script>
-        // === 增強型音效系統 (防呆) ===
+        // 音效系統
         let audioCtx = null;
         function initAudio() {
             try {
@@ -191,7 +189,6 @@
             try {
                 initAudio();
                 if (!audioCtx) return;
-                
                 const oscillator = audioCtx.createOscillator();
                 const gainNode = audioCtx.createGain();
                 oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
@@ -290,7 +287,7 @@
 
         function createBlankHTML(id, ans) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
         
-        // 加入 step 參數以支援逐步解鎖
+        // 賦予 step 參數，控制逐步解鎖
         function registerBlank(id, ans, type = 'blank', step = 1) {
             state.blanksData[id] = { ans: ans.toString(), type: type, step: step };
             state.logicalOrder.push(id);
@@ -377,19 +374,19 @@
             const problemTypes = [
                 () => { 
                     let total = Math.floor(Math.random() * 20) + 20; let broken = Math.floor(Math.random() * 10) + 2; let safe = total - broken;
-                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
+                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？ [cite: 2]`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 10) + 25; let votes = Math.floor(Math.random() * 15) + 10; 
-                    return { text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？`, ansNum: votes, ansDen: total, label: "得票數" };
+                    return { text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？ [cite: 2]`, ansNum: votes, ansDen: total, label: "得票數" };
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 5) + 28; let absent = Math.floor(Math.random() * 4) + 2; let present = total - absent;
-                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`, ansNum: present, ansDen: total, label: "出席人數" };
+                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？ [cite: 2]`, ansNum: present, ansDen: total, label: "出席人數" };
                 },
                 () => { 
                     let total = (Math.floor(Math.random() * 5) + 4) * 10; let pass = Math.floor(Math.random() * 10) + 5; 
-                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`, ansNum: pass, ansDen: total, label: "錄取人數" };
+                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？ [cite: 7]`, ansNum: pass, ansDen: total, label: "錄取人數" };
                 }
             ];
             let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
@@ -439,7 +436,7 @@
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
-                        <div class="step-label">小數換成百分率</div>
+                        <div class="step-label">小數換成百分率 [cite: 7]</div>
                         <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
                             ${decStr} = ${createBlankHTML('m3_ans', raw)} <span class="static-symbol">%</span>
                         </div>
@@ -458,7 +455,7 @@
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
-                        <div class="step-label">分數換成百分率</div>
+                        <div class="step-label">分數換成百分率 [cite: 9]</div>
                         <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
                             <div class="fraction"><span style="margin-bottom: 5px;">${num}</span><div class="fraction-line"></div><span style="margin-top: 5px;">${den}</span></div> 
                             = ${createFractionHTML('m4_num', finalAns, 'm4_den', 100)} 
@@ -484,7 +481,7 @@
 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>。<br>請問打折後的售價是多少元？
+                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售 [cite: 15]。<br>請問打折後的售價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯折數</div>
@@ -504,7 +501,7 @@
 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？
+                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span> [cite: 15]。<br>請問特價後的售價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯 off 邏輯</div>
@@ -525,7 +522,7 @@
                 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？
+                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價 [cite: 15]。<br>請問這雙球鞋的定價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯加成邏輯</div>
@@ -575,7 +572,6 @@
 
         // ===== 核心互動邏輯與焦點切換 =====
 
-        // 檢查並解鎖新步驟 UI
         function updateStepVisibility(currentStep) {
             document.querySelectorAll('.step-obj').forEach(el => {
                 let s = parseInt(el.getAttribute('data-step'));
@@ -589,7 +585,7 @@
             let currentId = state.logicalOrder[state.focusIndex];
             
             if (currentId) {
-                // 1. 抓取目前焦點的所屬步驟
+                // 判定當前步驟，解鎖對應的 UI
                 let currentStep = 1;
                 if (currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) {
                     let parts = currentId.split('_');
@@ -597,11 +593,9 @@
                 } else {
                     currentStep = state.blanksData[currentId].step || 1;
                 }
-                
-                // 2. 解鎖並顯示對應的步驟 UI
                 updateStepVisibility(currentStep);
 
-                // 3. 處理特殊指令或一般游標焦點
+                // 處理特殊指令或一般游標焦點
                 if (currentId.startsWith('DECIMAL_')) {
                     startDecimalPhase(currentId);
                 } 
@@ -641,6 +635,7 @@
             if (!el) return;
 
             if (targetData.type === 'cell') {
+                // 直式運算的防呆：錯了直接清空，符合原本操作手感
                 if (num.toString() === targetAns) {
                     playSound('move'); 
                     el.innerText = num;
@@ -655,6 +650,7 @@
                     setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
                 }
             } else { 
+                // 橫式填空的防呆：錯了「保留前綴」，不直接清空！
                 let testStr = state.currentInputStr + num.toString();
                 if (targetAns.startsWith(testStr)) {
                     playSound('type');
@@ -673,8 +669,13 @@
                 } else {
                     playSound('wrong');
                     el.classList.add('error');
-                    setTimeout(() => el.classList.remove('error'), 300);
-                    state.currentInputStr = ""; el.innerText = "";
+                    
+                    // 短暫顯示錯誤輸入，隨後恢復正確的數字，不強迫學生重頭打
+                    el.innerText = testStr; 
+                    setTimeout(() => { 
+                        el.innerText = state.currentInputStr;
+                        el.classList.remove('error'); 
+                    }, 400);
                 }
             }
         }
