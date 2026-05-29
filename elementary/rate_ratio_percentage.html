@@ -73,7 +73,7 @@
         
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
-        /* === 移植：直式計算專用 CSS === */
+        /* 直式計算專用 CSS */
         .math-grid { display: grid; gap: 6px; font-family: 'Courier New', Courier, monospace; font-size: 2.2rem; justify-content: center; }
         .cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; }
         .dot-marker { position: absolute; right: -6px; bottom: 2px; color: var(--text-color); font-weight: bold; font-size: 1.5rem; z-index: 10; pointer-events: none; }
@@ -83,14 +83,14 @@
         .input-cell.filled { border: 2px solid transparent; background: transparent; color: var(--text-color); }
         .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; }
         
-        /* === 移植：小數點安插階段 CSS === */
+        /* 小數點安插階段 CSS */
         .decimal-hint { color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
         .gap-container { display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-family: 'Courier New', monospace; font-weight: bold; }
         .gap-btn { width: 25px; height: 50px; background: rgba(245, 158, 11, 0.1); border: 2px dashed rgba(245, 158, 11, 0.3); cursor: pointer; border-radius: 8px; margin: 0 2px; transition: 0.2s;}
         .gap-btn:hover { background: var(--accent); border-style: solid; }
         .dot { color: var(--accent); margin: 0 5px; }
 
-        /* === 控制面板 === */
+        /* 控制面板 */
         #controls-panel { flex: 1; min-width: 380px; max-width: 450px; }
         .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
@@ -177,51 +177,66 @@
     </div>
 
     <script>
-        // 音效系統
+        // === 增強型音效系統 (加入 Try-Catch 防止不支援環境當機) ===
         let audioCtx = null;
-        function playSound(type) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
-            const now = audioCtx.currentTime;
-            
-            if (type === 'type' || type === 'move') { 
-                oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(800, now);
-                oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.05);
-                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.1, now + 0.01);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                oscillator.start(now); oscillator.stop(now + 0.05);
-            } else if (type === 'correct') { 
-                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, now); 
-                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
-                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
-                oscillator.start(now); oscillator.stop(now + 0.2);
-            } else if (type === 'success') { 
-                oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523.25, now); 
-                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
-                oscillator.frequency.setValueAtTime(659.25, now + 0.15); 
-                oscillator.frequency.setValueAtTime(783.99, now + 0.3);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
-                oscillator.start(now); oscillator.stop(now + 1.0);
-            } else if (type === 'wrong') { 
-                oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(250, now);
-                oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.3);
-                gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                oscillator.start(now); oscillator.stop(now + 0.3);
+        
+        function initAudio() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            } catch (e) {
+                console.warn("AudioContext init failed:", e);
             }
         }
 
-        // 狀態管理 (拔除全域倒數設定)
+        function playSound(type) {
+            try {
+                initAudio();
+                if (!audioCtx) return;
+                
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+                
+                if (type === 'type' || type === 'move') { 
+                    oscillator.type = 'triangle'; oscillator.frequency.setValueAtTime(800, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                    gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.1, now + 0.01);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    oscillator.start(now); oscillator.stop(now + 0.05);
+                } else if (type === 'correct') { 
+                    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(659.25, now); 
+                    gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                    gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+                    oscillator.start(now); oscillator.stop(now + 0.2);
+                } else if (type === 'success') { 
+                    oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(523.25, now); 
+                    gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                    oscillator.frequency.setValueAtTime(659.25, now + 0.15); 
+                    oscillator.frequency.setValueAtTime(783.99, now + 0.3);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                    oscillator.start(now); oscillator.stop(now + 1.0);
+                } else if (type === 'wrong') { 
+                    oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(250, now);
+                    oscillator.frequency.exponentialRampToValueAtTime(100, now + 0.3);
+                    gainNode.gain.setValueAtTime(0, now); gainNode.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    oscillator.start(now); oscillator.stop(now + 0.3);
+                }
+            } catch (e) {
+                // 音效播放失敗時，靜默攔截，保證遊戲順暢
+            }
+        }
+
+        // 狀態管理 
         let state = {
             mode: '', qIndex: 0, score: 0, timer: 600, timerInterval: null,
             blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: ""
         };
 
         function startGame(mode) {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            initAudio(); // 安全初始化音效
             if (state.timerInterval) clearInterval(state.timerInterval);
 
             state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 600;
@@ -255,9 +270,14 @@
             
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             generateProblem();
-            document.getElementById('graph-panel').scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // 安全滾動，防範舊版瀏覽器對 behavior: 'smooth' 噴錯
+            const panel = document.getElementById('graph-panel');
+            try { 
+                if (panel.scrollTo) panel.scrollTo({ top: 0, behavior: 'smooth' }); 
+                else panel.scrollTop = 0;
+            } catch(e) { panel.scrollTop = 0; }
 
-            // 移除倒數，直接啟動焦點
             updateFocusUI();
         }
 
@@ -275,7 +295,6 @@
 
         function createBlankHTML(id, ans) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
         
-        // 加入 type 屬性，用以分辨是橫式填空(blank)還是直式網格(cell)
         function registerBlank(id, ans, type = 'blank') {
             state.blanksData[id] = { ans: ans.toString(), type: type };
             state.logicalOrder.push(id);
@@ -285,11 +304,9 @@
         function createVerticalGridHtml(n1Str, n2Str, stepPrefix) {
             let n1_clean = n1Str.replace('.', '');
             let n2_clean = n2Str.replace('.', '');
-            // 計算所需行寬：被乘數長度、乘數長度+1(因為有 x 符號)、最終答案長度，取最大值
             let cols = Math.max(n1_clean.length, n2_clean.length + 1, (parseInt(n1_clean) * parseInt(n2_clean)).toString().length);
             let html = `<div class="math-grid" style="grid-template-columns: repeat(${cols}, 42px); margin: 20px auto;">`;
 
-            // 渲染固定數字列（被乘數、乘數）
             function buildFactorRow(str, hasSymbol) {
                 let clean = str.replace('.', '');
                 let dotPos = str.includes('.') ? str.length - 1 - str.indexOf('.') : -1;
@@ -310,10 +327,8 @@
             html += `<div class="math-line"></div>`;
 
             let p_rows = [];
-            // 生成各層乘積
             for (let i = n2_clean.length - 1; i >= 0; i--) {
                 let digit = parseInt(n2_clean[i]);
-                // 防呆設計：如果是 0.8，則略過最前方的 0 運算列，符合人類直覺
                 if (i === 0 && digit === 0) continue; 
                 let prod = (parseInt(n1_clean) * digit).toString();
                 p_rows.push({ prod: prod, shift: n2_clean.length - 1 - i });
@@ -322,7 +337,6 @@
             let inputIds = [];
             let totalInputs = 0;
 
-            // 渲染需填空的列，並回傳由右至左的答題順序
             function buildInputRow(answerStr, shift, prefixId) {
                 let rowHtml = '';
                 let empty = cols - answerStr.length - shift;
@@ -335,16 +349,12 @@
                 }
                 for(let i=0; i<shift; i++) rowHtml += `<div class="cell"></div>`;
 
-                // 把要註冊的 ID 由右向左倒序存入，符合直式由右向左計算的 UX
                 for (let i = tempIds.length - 1; i >= 0; i--) inputIds.push(tempIds[i]);
                 return rowHtml;
             }
 
-            // 只有當乘數是非個位數時，才需要輸出中間運算列
             if (p_rows.length > 1) {
-                p_rows.forEach((r, idx) => {
-                    html += buildInputRow(r.prod, r.shift, `${stepPrefix}_p${idx}`);
-                });
+                p_rows.forEach((r, idx) => { html += buildInputRow(r.prod, r.shift, `${stepPrefix}_p${idx}`); });
                 html += `<div class="math-line"></div>`;
             }
 
@@ -368,8 +378,331 @@
             else if (state.mode === 'mode5') buildMode5(workspace);
         }
 
-        // 模式一：計算比率 (題庫輪替)
         function buildMode1(container) {
             const problemTypes = [
-                () => { // 雞蛋
-                    let total = Math.floor(Math.random() * 20) + 20; let broken
+                () => { 
+                    let total = Math.floor(Math.random() * 20) + 20; let broken = Math.floor(Math.random() * 10) + 2; let safe = total - broken;
+                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
+                },
+                () => { 
+                    let total = Math.floor(Math.random() * 10) + 25; let votes = Math.floor(Math.random() * 15) + 10; 
+                    return { text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？`, ansNum: votes, ansDen: total, label: "得票數" };
+                },
+                () => { 
+                    let total = Math.floor(Math.random() * 5) + 28; let absent = Math.floor(Math.random() * 4) + 2; let present = total - absent;
+                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`, ansNum: present, ansDen: total, label: "出席人數" };
+                },
+                () => { 
+                    let total = (Math.floor(Math.random() * 5) + 4) * 10; let pass = Math.floor(Math.random() * 10) + 5; 
+                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`, ansNum: pass, ansDen: total, label: "錄取人數" };
+                }
+            ];
+            let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
+
+            container.innerHTML = `
+                <div class="horizontal-problem">${selected.text}</div>
+                <div class="step-block">
+                    <div class="step-label">解題步驟</div>
+                    <div class="equation-line">
+                        ${selected.label}占全部的比率是： ${createFractionHTML('m1_num', selected.ansNum, 'm1_den', selected.ansDen)}
+                    </div>
+                </div>
+            `;
+            registerBlank('m1_num', selected.ansNum);
+            registerBlank('m1_den', selected.ansDen);
+        }
+
+        function buildMode2(container) {
+            const pool = [
+                {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75},
+                {n: 1, d: 5, a: 20}, {n: 2, d: 5, a: 40}, {n: 3, d: 5, a: 60}, {n: 4, d: 5, a: 80},
+                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30}
+            ];
+            let q = pool[Math.floor(Math.random() * pool.length)];
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">必背轉換挑戰！</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        <div class="fraction"><span style="margin-bottom: 5px;">${q.n}</span><div class="fraction-line"></div><span style="margin-top: 5px;">${q.d}</span></div> 
+                        = ${createBlankHTML('m2_ans', q.a)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            registerBlank('m2_ans', q.a);
+        }
+
+        function buildMode3(container) {
+            let raw = Math.floor(Math.random() * 99) + 1;
+            let decStr = (raw / 100).toString();
+            if (raw % 10 === 0) { decStr = (raw / 100).toFixed(1); }
+            if (raw < 10) { decStr = "0.0" + raw; }
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">小數換成百分率</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        ${decStr} = ${createBlankHTML('m3_ans', raw)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            registerBlank('m3_ans', raw);
+        }
+
+        function buildMode4(container) {
+            const dens = [20, 25, 50];
+            let den = dens[Math.floor(Math.random() * dens.length)];
+            let num = Math.floor(Math.random() * (den - 1)) + 1;
+            let finalAns = num * (100 / den);
+
+            container.innerHTML = `
+                <div class="step-block">
+                    <div class="step-label">分數換成百分率</div>
+                    <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
+                        <div class="fraction"><span style="margin-bottom: 5px;">${num}</span><div class="fraction-line"></div><span style="margin-top: 5px;">${den}</span></div> 
+                        = ${createFractionHTML('m4_num', finalAns, 'm4_den', 100)} 
+                        = ${createBlankHTML('m4_ans', finalAns)} <span class="static-symbol">%</span>
+                    </div>
+                </div>
+            `;
+            registerBlank('m4_den', 100); registerBlank('m4_num', finalAns); registerBlank('m4_ans', finalAns);
+        }
+
+        function buildMode5(container) {
+            let price = (Math.floor(Math.random() * 15) + 10) * 100; // 1000 ~ 2400
+            let type = Math.floor(Math.random() * 3);
+            
+            let n1 = price; let n2_str = ""; let step1_html = "";
+
+            if (type === 0) { 
+                let discountOptions = [7, 8, 9, 75, 85];
+                let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
+                let percentage = discount < 10 ? discount * 10 : discount; 
+                n2_str = discount < 10 ? `0.${discount}` : `0.${discount}`;
+
+                step1_html = `
+                    <div class="horizontal-problem">
+                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>。<br>請問打折後的售價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯折數</div>
+                        <div class="equation-line">
+                            打 ${discount} 折 = 原價的 ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span> = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', discount)}
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', percentage); registerBlank('m5_d1', discount);
+
+            } else if (type === 1) { 
+                let offOptions = [10, 20, 25, 30];
+                let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let percentage = 100 - off;
+                n2_str = `0.${percentage}`;
+
+                step1_html = `
+                    <div class="horizontal-problem">
+                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯 off 邏輯</div>
+                        <div class="equation-line" style="font-size: 1.4rem;">
+                            ${off}% off 代表扣掉 ${off}%<br>
+                            所以要付的錢是原價的： 100% - ${off}% = ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', percentage);
+
+            } else { 
+                let costOptions = [500, 800, 1200, 2000];
+                n1 = costOptions[Math.floor(Math.random() * costOptions.length)];
+                let markup = Math.floor(Math.random() * 5) + 1; // 1~5成
+                let percentage = 100 + (markup * 10);
+                n2_str = `1.${markup}`; 
+                
+                step1_html = `
+                    <div class="horizontal-problem">
+                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？
+                    </div>
+                    <div class="step-block">
+                        <div class="step-label">第一步：翻譯加成邏輯</div>
+                        <div class="equation-line" style="font-size: 1.4rem;">
+                            加 ${markup} 成代表要多加成本的 ${createBlankHTML('m5_p1', markup * 10)} <span class="static-symbol">%</span><br>
+                            所以定價是成本的： 100% + ${markup * 10}% = ${createBlankHTML('m5_p2', percentage)} <span class="static-symbol">%</span>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m5_p1', markup * 10); registerBlank('m5_p2', percentage);
+            }
+
+            let vMath = createVerticalGridHtml(n1.toString(), n2_str, 'm5');
+            let decCount = n2_str.includes('.') ? n2_str.split('.')[1].length : 0;
+            let finalAns = Math.round(n1 * parseFloat(n2_str)); 
+
+            container.innerHTML = step1_html + `
+                <div class="step-block">
+                    <div class="step-label">第二步：直式計算</div>
+                    <div id="m5_step2_math">
+                        ${vMath.html}
+                    </div>
+                    <div id="m5_step2_decimal" class="hidden">
+                        <p class="decimal-hint">✨ 數字全對了！請點擊正確的縫隙，放上小數點！</p>
+                        <div id="m5_gap_area" class="gap-container"></div>
+                    </div>
+                    <div id="m5_step2_final" class="equation-line hidden" style="margin-top: 20px; font-size: 1.6rem; color: var(--error); font-weight: bold;">
+                        所以答案是 ${finalAns} 元！
+                    </div>
+                </div>
+            `;
+
+            vMath.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell'); });
+
+            if (decCount > 0) {
+                state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}`);
+            } else {
+                state.logicalOrder.push(`SHOW_FINAL_${finalAns}`);
+            }
+        }
+
+        // ===== 核心互動邏輯與焦點切換 =====
+
+        function updateFocusUI() {
+            document.querySelectorAll('.blank, .input-cell').forEach(el => el.classList.remove('active'));
+            let currentId = state.logicalOrder[state.focusIndex];
+            
+            if (currentId) {
+                if (currentId.startsWith('DECIMAL_')) {
+                    startDecimalPhase(currentId);
+                } 
+                else if (currentId.startsWith('SHOW_FINAL_')) {
+                    let finalAns = currentId.split('_')[2];
+                    document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`;
+                    document.getElementById('m5_step2_final').classList.remove('hidden');
+                    playSound('success');
+                    state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                    setTimeout(nextQuestion, 1500);
+                } 
+                else {
+                    let el = document.getElementById(currentId);
+                    if (el) {
+                        el.classList.add('active');
+                        // 安全保護機制：避免特定核心（如舊版 WKWebView）在 scrollIntoView 時噴錯
+                        setTimeout(() => { 
+                            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                            catch (e) { el.scrollIntoView(); }
+                        }, 100);
+                    }
+                }
+            } else {
+                playSound('success');
+                state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                setTimeout(nextQuestion, 1200);
+            }
+        }
+
+        window.inputDigit = function(num) {
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) return; 
+
+            let targetData = state.blanksData[currentId];
+            let targetAns = targetData.ans;
+            let el = document.getElementById(currentId);
+
+            if (targetData.type === 'cell') {
+                if (num.toString() === targetAns) {
+                    playSound('move'); 
+                    el.innerText = num;
+                    el.classList.remove('error', 'active');
+                    el.classList.add('filled');
+                    state.focusIndex++;
+                    updateFocusUI();
+                } else {
+                    playSound('wrong');
+                    el.classList.add('error');
+                    el.innerText = num;
+                    setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
+                }
+            } else { 
+                let testStr = state.currentInputStr + num.toString();
+                if (targetAns.startsWith(testStr)) {
+                    playSound('type');
+                    state.currentInputStr = testStr;
+                    el.innerText = state.currentInputStr;
+                    el.classList.remove('error');
+
+                    if (state.currentInputStr === targetAns) {
+                        playSound('correct');
+                        el.classList.remove('active');
+                        el.classList.add('filled');
+                        state.currentInputStr = "";
+                        state.focusIndex++;
+                        updateFocusUI();
+                    }
+                } else {
+                    playSound('wrong');
+                    el.classList.add('error');
+                    setTimeout(() => el.classList.remove('error'), 300);
+                    state.currentInputStr = ""; el.innerText = "";
+                }
+            }
+        }
+
+        function startDecimalPhase(commandId) {
+            playSound('correct'); 
+            document.getElementById('m5_step2_decimal').classList.remove('hidden');
+
+            let parts = commandId.split('_');
+            let digits = parts[1].split('');
+            let decCount = parseInt(parts[2]);
+            let targetIndex = digits.length - decCount; 
+
+            const gapArea = document.getElementById('m5_gap_area');
+            gapArea.innerHTML = '';
+
+            for (let i = 0; i <= digits.length; i++) {
+                let btn = document.createElement('button');
+                btn.className = 'gap-btn';
+                btn.onclick = () => checkDecimal(i, targetIndex, parts[3]);
+                gapArea.appendChild(btn);
+                if (i < digits.length) {
+                    let span = document.createElement('span');
+                    span.innerText = digits[i];
+                    gapArea.appendChild(span);
+                }
+            }
+            
+            setTimeout(() => { 
+                try { document.getElementById('m5_step2_decimal').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+                catch (e) { document.getElementById('m5_step2_decimal').scrollIntoView(); }
+            }, 100);
+        }
+
+        function checkDecimal(index, targetIndex, finalAns) {
+            const gapBtns = document.getElementById('m5_gap_area').querySelectorAll('.gap-btn');
+            if (index === targetIndex) {
+                playSound('success');
+                let dot = document.createElement('span'); dot.className = 'dot'; dot.innerText = '.';
+                gapBtns[index].replaceWith(dot);
+                gapBtns.forEach(b => b.style.visibility = 'hidden');
+
+                document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`;
+                document.getElementById('m5_step2_final').classList.remove('hidden');
+                
+                state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                setTimeout(nextQuestion, 1800);
+            } else {
+                playSound('wrong');
+                gapBtns[index].style.background = 'var(--error)';
+                setTimeout(() => gapBtns[index].style.background = '', 400);
+            }
+        }
+
+        function endGame() {
+            clearInterval(state.timerInterval);
+            document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('final-score').innerText = state.score;
+        }
+    </script>
+</body>
+</html>
