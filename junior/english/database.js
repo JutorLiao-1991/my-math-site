@@ -1227,6 +1227,105 @@ var jutorDB = {
           "ch": "她餓了。",
           "sentence": "She's hungry."
         }
+      ],
+      "Book 2 Unit 5": [
+        {
+          "en": "yesterday",
+          "ch": "昨天",
+          "sentence": "I saw her yesterday."
+        },
+        {
+          "en": "beach",
+          "ch": "海灘",
+          "sentence": "We went to the beach last summer."
+        },
+        {
+          "en": "trash",
+          "ch": "垃圾",
+          "sentence": "Please take out the trash."
+        },
+        {
+          "en": "ago",
+          "ch": "前；以前",
+          "sentence": "He left two hours ago."
+        },
+        {
+          "en": "visit",
+          "ch": "拜訪",
+          "sentence": "I plan to visit my grandparents next week."
+        },
+        {
+          "en": "island",
+          "ch": "島嶼",
+          "sentence": "We spent our vacation on a beautiful island."
+        },
+        {
+          "en": "a few",
+          "ch": "幾個；一些",
+          "sentence": "I have a few questions for you."
+        },
+        {
+          "en": "sea",
+          "ch": "海",
+          "sentence": "The ship sailed across the calm sea."
+        },
+        {
+          "en": "stop",
+          "ch": "停止",
+          "sentence": "Please stop talking."
+        },
+        {
+          "en": "happen",
+          "ch": "發生",
+          "sentence": "Accidents can happen easily."
+        },
+        {
+          "en": "dead",
+          "ch": "死亡的",
+          "sentence": "The tree is dead."
+        },
+        {
+          "en": "warm",
+          "ch": "溫暖的",
+          "sentence": "It's a warm day today."
+        },
+        {
+          "en": "rainforest",
+          "ch": "雨林",
+          "sentence": "Many unique animals live in the rainforest."
+        },
+        {
+          "en": "die",
+          "ch": "死亡",
+          "sentence": "He is afraid to die."
+        },
+        {
+          "en": "by",
+          "ch": "在…旁邊",
+          "sentence": "The book is by the bed."
+        },
+        {
+          "en": "then",
+          "ch": "那時候",
+          "sentence": "I was in high school then."
+        },
+        {
+          "en": "busy",
+          "ch": "忙碌的",
+          "sentence": "I am busy washing the dishes."
+        }
+      ],
+      "Book 2 Unit 5 (句型)": [
+        {
+          "en": "What happened to you?",
+          "ch": "你發生什麼事？",
+          "sentence": "What happened to you?"
+        },
+        {
+          "en": "How come?",
+          "ch": "怎麼會？；為什麼？",
+          "sentence": "How come you are late again?"
+        }
       ]
     },
     "南一版": {
