@@ -102,9 +102,13 @@
         .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
         .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
 
-        .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
+        /* === 全新 3x4 數字鍵盤樣式 === */
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; max-width: 320px; margin-inline: auto; width: 100%; }
         .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
         .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
+        
+        .num-btn.del-btn { background: #FEF2F2; color: var(--error); border-color: #FECACA;}
+        .num-btn.del-btn:active { background: #FEE2E2; box-shadow: none; border-color: var(--error);}
 
         .end-screen { position: absolute; inset: 0; background: rgba(255,255,255,0.95); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 60; }
         .score-display { font-size: 6rem; color: var(--primary-color); margin: 20px 0; font-weight: bold; text-shadow: 3px 3px 0px rgba(59, 130, 246, 0.1); }
@@ -168,7 +172,9 @@
                         <button class="num-btn" onclick="inputDigit(7)">7</button>
                         <button class="num-btn" onclick="inputDigit(8)">8</button>
                         <button class="num-btn" onclick="inputDigit(9)">9</button>
+                        <button class="num-btn" onclick="inputDigit('.')">.</button>
                         <button class="num-btn" onclick="inputDigit(0)">0</button>
+                        <button class="num-btn del-btn" onclick="inputDelete()">⌫</button>
                     </div>
                 </div>
             </div>
@@ -176,7 +182,7 @@
     </div>
 
     <script>
-        // 音效系統
+        // === 音效系統 ===
         let audioCtx = null;
         function initAudio() {
             try {
@@ -372,19 +378,19 @@
             const problemTypes = [
                 () => { 
                     let total = Math.floor(Math.random() * 20) + 20; let broken = Math.floor(Math.random() * 10) + 2; let safe = total - broken;
-                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了 [cite: 2] 。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
+                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 10) + 25; let votes = Math.floor(Math.random() * 15) + 10; 
-                    return { text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他 [cite: 2] 。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？`, ansNum: votes, ansDen: total, label: "得票數" };
+                    return { text: `米米班上有 ${total} 個人，競選班長時有 ${votes} 個人投票給他。<br><br>請問：米米的<span style="color: var(--error);">得票率</span>用分數表示是多少？`, ansNum: votes, ansDen: total, label: "得票數" };
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 5) + 28; let absent = Math.floor(Math.random() * 4) + 2; let present = total - absent;
-                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假 [cite: 2] 。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`, ansNum: present, ansDen: total, label: "出席人數" };
+                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`, ansNum: present, ansDen: total, label: "出席人數" };
                 },
                 () => { 
                     let total = (Math.floor(Math.random() * 5) + 4) * 10; let pass = Math.floor(Math.random() * 10) + 5; 
-                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人 [cite: 15] 。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`, ansNum: pass, ansDen: total, label: "錄取人數" };
+                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`, ansNum: pass, ansDen: total, label: "錄取人數" };
                 }
             ];
             let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
@@ -403,11 +409,13 @@
             registerBlank('m1_num', selected.ansNum); registerBlank('m1_den', selected.ansDen);
         }
 
+        // 新增 1/8, 3/8 等帶有小數點的常見百分率
         function buildMode2(container) {
             const pool = [
                 {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75},
                 {n: 1, d: 5, a: 20}, {n: 2, d: 5, a: 40}, {n: 3, d: 5, a: 60}, {n: 4, d: 5, a: 80},
-                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30}
+                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30},
+                {n: 1, d: 8, a: 12.5}, {n: 3, d: 8, a: 37.5}, {n: 5, d: 8, a: 62.5}, {n: 7, d: 8, a: 87.5}
             ];
             let q = pool[Math.floor(Math.random() * pool.length)];
 
@@ -425,55 +433,75 @@
             registerBlank('m2_ans', q.a);
         }
 
+        // 隨機產生含有 2位、3位 或 4位 小數點的題型
         function buildMode3(container) {
-            let raw = Math.floor(Math.random() * 99) + 1;
-            let decStr = (raw / 100).toString();
-            if (raw % 10 === 0) { decStr = (raw / 100).toFixed(1); }
-            if (raw < 10) { decStr = "0.0" + raw; }
+            let decType = Math.floor(Math.random() * 3); 
+            let raw, decStr, finalAns;
+
+            if (decType === 0) {
+                raw = Math.floor(Math.random() * 99) + 1;
+                decStr = (raw / 100).toString();
+                if (raw < 10) decStr = "0.0" + raw;
+                finalAns = raw;
+            } else if (decType === 1) {
+                raw = Math.floor(Math.random() * 899) + 100; // 100 ~ 999
+                decStr = "0." + raw;
+                finalAns = raw / 10;
+            } else {
+                raw = Math.floor(Math.random() * 8999) + 1000; // 1000 ~ 9999
+                decStr = "0." + raw;
+                finalAns = raw / 100;
+            }
 
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
-                        <div class="step-label">小數換成百分率 [cite: 15] </div>
+                        <div class="step-label">小數換成百分率 </div>
                         <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
-                            ${decStr} = ${createBlankHTML('m3_ans', raw)} <span class="static-symbol">%</span>
+                            ${decStr} = ${createBlankHTML('m3_ans', finalAns)} <span class="static-symbol">%</span>
                         </div>
                     </div>
                 </div>
             `;
-            registerBlank('m3_ans', raw);
+            registerBlank('m3_ans', finalAns);
         }
 
+        // 加入分母高達 400, 1000, 2000 的挑戰題
         function buildMode4(container) {
-            const dens = [20, 25, 50];
+            const dens = [20, 25, 50, 400, 1000, 2000];
             let den = dens[Math.floor(Math.random() * dens.length)];
-            let num = Math.floor(Math.random() * (den - 1)) + 1;
-            let finalAns = num * (100 / den);
+            let num, finalAns;
+
+            if (den <= 50) {
+                num = Math.floor(Math.random() * (den - 1)) + 1;
+                finalAns = num * (100 / den);
+            } else {
+                num = Math.floor(Math.random() * 150) + 11; // 產生 11 ~ 160 之間的分子
+                finalAns = (num * (100 / den));
+                finalAns = parseFloat(finalAns.toFixed(2)); // 去除浮點數誤差
+            }
 
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
-                        <div class="step-label">分數換成百分率 [cite: 18] </div>
+                        <div class="step-label">分數換成百分率 </div>
                         <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
                             <div class="fraction"><span style="margin-bottom: 5px;">${num}</span><div class="fraction-line"></div><span style="margin-top: 5px;">${den}</span></div> 
-                            = ${createFractionHTML('m4_num', finalAns, 'm4_den', 100)} 
                             = ${createBlankHTML('m4_ans', finalAns)} <span class="static-symbol">%</span>
                         </div>
                     </div>
                 </div>
             `;
-            registerBlank('m4_den', 100); registerBlank('m4_num', finalAns); registerBlank('m4_ans', finalAns);
+            registerBlank('m4_ans', finalAns);
         }
 
-        // 第五模式：擴充為 10 種應用題型隨機輪替
         function buildMode5(container) {
-            let type = Math.floor(Math.random() * 10); // 0 ~ 9
+            let type = Math.floor(Math.random() * 10);
             let step1_html = "";
             let n1, n2_str, decCount, finalAns;
             let useVerticalGrid = true;
 
             if (type === 0) { 
-                // 題型0：打折出售
                 let price = (Math.floor(Math.random() * 15) + 10) * 100;
                 let discountOptions = [7, 8, 9, 75, 85];
                 let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
@@ -483,7 +511,7 @@
 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售 [cite: 40] 。<br>請問打折後的售價是多少元？
+                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售。<br>請問打折後的售價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯折數</div>
@@ -495,7 +523,6 @@
                 registerBlank('m5_p1', percentage, 'blank', 1); registerBlank('m5_d1', discount, 'blank', 1);
 
             } else if (type === 1) { 
-                // 題型1：N% off 出售
                 let price = (Math.floor(Math.random() * 15) + 10) * 100;
                 let offOptions = [10, 20, 25, 30];
                 let off = offOptions[Math.floor(Math.random() * offOptions.length)];
@@ -505,7 +532,7 @@
 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span> [cite: 40] 。<br>請問特價後的售價是多少元？
+                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯 off 邏輯</div>
@@ -518,16 +545,15 @@
                 registerBlank('m5_p1', percentage, 'blank', 1);
 
             } else if (type === 2) { 
-                // 題型2：加 N 成定價
                 let costOptions = [500, 800, 1200, 2000];
                 n1 = costOptions[Math.floor(Math.random() * costOptions.length)];
-                let markup = Math.floor(Math.random() * 5) + 1; // 1~5成
+                let markup = Math.floor(Math.random() * 5) + 1;
                 let percentage = 100 + (markup * 10);
                 n2_str = `1.${markup}`; 
                 
                 step1_html = `
                     <div class="horizontal-problem">
-                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價 [cite: 40] 。<br>請問這雙球鞋的定價是多少元？
+                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？
                     </div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯加成邏輯</div>
@@ -540,9 +566,8 @@
                 registerBlank('m5_p1', markup * 10, 'blank', 1); registerBlank('m5_p2', percentage, 'blank', 1);
 
             } else if (type === 3) {
-                // 題型3：蒸發/減少剩下多少
-                n1 = Math.floor(Math.random() * 5 + 3) * 100; // 300~700
-                let off = Math.floor(Math.random() * 30 + 15); // 15~44
+                n1 = Math.floor(Math.random() * 5 + 3) * 100;
+                let off = Math.floor(Math.random() * 30 + 15);
                 let remain = 100 - off;
                 n2_str = remain < 10 ? `0.0${remain}` : `0.${remain}`;
                 
@@ -561,8 +586,7 @@
                 registerBlank('m5_p1', remain, 'blank', 1); registerBlank('m5_d1', remain, 'blank', 1);
 
             } else if (type === 4) {
-                // 題型4：便宜多少元
-                n1 = (Math.floor(Math.random() * 50) + 10) * 10; // 100~590
+                n1 = (Math.floor(Math.random() * 50) + 10) * 10;
                 let offOptions = [10, 15, 20, 25];
                 let off = offOptions[Math.floor(Math.random() * offOptions.length)];
                 n2_str = off < 10 ? `0.0${off}` : `0.${off}`;
@@ -582,9 +606,8 @@
                 registerBlank('m5_p1', off, 'blank', 1); registerBlank('m5_d1', off, 'blank', 1);
 
             } else if (type === 5) {
-                // 題型5：利潤N成求售價
-                n1 = Math.floor(Math.random() * 3 + 1) * 1000; // 1000, 2000, 3000
-                let markup = Math.floor(Math.random() * 3) + 2; // 2~4
+                n1 = Math.floor(Math.random() * 3 + 1) * 1000;
+                let markup = Math.floor(Math.random() * 3) + 2; 
                 let percentage = 100 + (markup * 10);
                 n2_str = `1.${markup}`;
                 
@@ -603,10 +626,9 @@
                 registerBlank('m5_p1', markup * 10, 'blank', 1); registerBlank('m5_p2', percentage, 'blank', 1);
 
             } else if (type === 6) {
-                // 題型6：合併比率
-                n1 = (Math.floor(Math.random() * 15) + 15) * 100; // 1500~2900
-                let p1 = Math.floor(Math.random() * 15) + 20; // 20~34
-                let p2 = Math.floor(Math.random() * 15) + 35; // 35~49
+                n1 = (Math.floor(Math.random() * 15) + 15) * 100;
+                let p1 = Math.floor(Math.random() * 15) + 20;
+                let p2 = Math.floor(Math.random() * 15) + 35;
                 let totalP = p1 + p2;
                 n2_str = `0.${totalP}`;
                 
@@ -625,9 +647,8 @@
                 registerBlank('m5_p1', totalP, 'blank', 1); registerBlank('m5_d1', totalP, 'blank', 1);
 
             } else if (type === 7) {
-                // 題型7：知道便宜多少求打幾折 (純橫式，無直式)
                 useVerticalGrid = false;
-                let price = (Math.floor(Math.random() * 25) + 15) * 20; // 300~780
+                let price = (Math.floor(Math.random() * 25) + 15) * 20; 
                 let offOptions = [10, 15, 20, 25];
                 let offP = offOptions[Math.floor(Math.random() * offOptions.length)];
                 let cheap = price * offP / 100;
@@ -665,9 +686,8 @@
                 if(finalDiscount2 !== 0) registerBlank('m5_d2', finalDiscount2, 'blank', 2);
 
             } else if (type === 8) {
-                // 題型8：占幾成 (純橫式，無直式)
                 useVerticalGrid = false;
-                let salary = (Math.floor(Math.random() * 20) + 25) * 1000; // 25000~44000
+                let salary = (Math.floor(Math.random() * 20) + 25) * 1000;
                 let rentP_options = [10, 20, 25, 30];
                 let rentP = rentP_options[Math.floor(Math.random() * rentP_options.length)];
                 let rent = salary * rentP / 100;
@@ -700,9 +720,8 @@
                 if(dec2 !== 0) registerBlank('m5_d2', dec2, 'blank', 2);
 
             } else if (type === 9) {
-                // 題型9：兩期數值關聯 (電費)
-                n1 = Math.floor(Math.random() * 10 + 10) * 100 + 50; // 1050 ~ 1950
-                let p = Math.floor(Math.random() * 15) + 85; // 85 ~ 99
+                n1 = Math.floor(Math.random() * 10 + 10) * 100 + 50; 
+                let p = Math.floor(Math.random() * 15) + 85; 
                 n2_str = `0.${p}`;
                 
                 step1_html = `
@@ -719,7 +738,6 @@
                 registerBlank('m5_d1', p, 'blank', 1);
             }
 
-            // 負責渲染直式計算的邏輯區塊
             if (useVerticalGrid) {
                 let vMath = createVerticalGridHtml(n1.toString(), n2_str, 'm5');
                 decCount = n2_str.includes('.') ? n2_str.split('.')[1].length : 0;
@@ -744,10 +762,8 @@
                     </div>
                 `;
 
-                // 註冊直式的每個輸入格
                 vMath.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 2); });
 
-                // 在作答順序的尾端加入結算動畫的指令
                 if (decCount > 0) {
                     state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}_2`);
                 } else {
@@ -803,7 +819,6 @@
                     }
                 }
             } else {
-                // 如果是無直式的題型(7、8)，順利填完所有空格後就會自然結算得分
                 playSound('success');
                 state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
                 setTimeout(nextQuestion, 1200);
@@ -834,7 +849,6 @@
                     setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
                 }
             } else { 
-                // 橫式填空防呆邏輯
                 let testStr = state.currentInputStr + num.toString();
                 if (targetAns.startsWith(testStr)) {
                     playSound('type');
@@ -859,6 +873,23 @@
                         el.classList.remove('error'); 
                     }, 400);
                 }
+            }
+        }
+
+        // 新增的倒退鍵邏輯
+        window.inputDelete = function() {
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) return; 
+
+            let targetData = state.blanksData[currentId];
+            let el = document.getElementById(currentId);
+            
+            // 倒退鍵只適用於能連續輸入的「橫式填空 (blank)」
+            if (targetData.type === 'blank' && state.currentInputStr.length > 0) {
+                playSound('type');
+                state.currentInputStr = state.currentInputStr.slice(0, -1);
+                el.innerText = state.currentInputStr;
+                el.classList.remove('error');
             }
         }
 
