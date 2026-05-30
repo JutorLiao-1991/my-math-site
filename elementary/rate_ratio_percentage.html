@@ -69,7 +69,7 @@
             border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; 
             color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; 
             font-family: 'Courier New', monospace; font-size: 2rem;
-            vertical-align: bottom; /* 確保底線對齊文字下緣 */
+            vertical-align: bottom; 
         }
         .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
         .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
@@ -151,7 +151,7 @@
 
         <div class="panel" id="controls-panel">
             <div class="controls-content">
-                <div class="menu-grid">
+                <div class="menu-grid" style="grid-template-columns: 1fr 1fr;">
                     <button class="menu-btn" id="btn-mode1" onclick="startGame('mode1')">1️⃣ 計算比率</button>
                     <button class="menu-btn" id="btn-mode2" onclick="startGame('mode2')">2️⃣ 必背百分率</button>
                     <button class="menu-btn" id="btn-mode3" onclick="startGame('mode3')">3️⃣ 小數轉百分率</button>
@@ -188,7 +188,6 @@
     </div>
 
     <script>
-        // === 防呆音效系統 ===
         let audioCtx = null;
         function initAudio() {
             try {
@@ -236,7 +235,8 @@
 
         let state = {
             mode: '', qIndex: 0, score: 0, timer: 600, timerInterval: null,
-            blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: ""
+            blanksData: {}, logicalOrder: [], focusIndex: 0, currentInputStr: "",
+            mistakesThisQuestion: 0 // 新增：追蹤單題錯誤次數
         };
 
         function startGame(mode) {
@@ -244,6 +244,7 @@
             if (state.timerInterval) clearInterval(state.timerInterval);
 
             state.mode = mode; state.qIndex = 0; state.score = 0; state.timer = 600;
+            document.getElementById('stat-score').innerText = '分數：' + state.score;
             
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
             document.getElementById('btn-' + mode).classList.add('active');
@@ -271,6 +272,7 @@
             if (state.qIndex >= 10) return endGame();
             state.qIndex++; 
             state.blanksData = {}; state.logicalOrder = []; state.focusIndex = 0; state.currentInputStr = "";
+            state.mistakesThisQuestion = 0; // 新增：切換下一題時重置扣分紀錄
             
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             generateProblem();
@@ -284,8 +286,6 @@
             updateFocusUI();
         }
 
-        // ================= 基礎渲染 =================
-
         function createFractionHTML(idNum, ansNum, idDen, ansDen) {
             return '<div class="fraction"><span class="blank" id="' + idNum + '" data-ans="' + ansNum + '"></span><div class="fraction-line"></div><span class="blank" id="' + idDen + '" data-ans="' + ansDen + '"></span></div>';
         }
@@ -298,8 +298,6 @@
             state.blanksData[id] = { ans: ans.toString(), type: type, step: step };
             state.logicalOrder.push(id);
         }
-
-        // ================= 直式運算引擎 =================
 
         function createVerticalGridHtml(n1Str, n2Str, stepPrefix) {
             let n1_clean = n1Str.replace('.', ''); let n2_clean = n2Str.replace('.', '');
@@ -444,7 +442,6 @@
             return { html, inputIds: order };
         }
 
-
         // ================= 題庫生成 =================
 
         function generateProblem() {
@@ -538,7 +535,6 @@
             registerBlank('m4_ans', finalAns);
         }
 
-        // ================= 第五模式：逐步解鎖版應用題 =================
         function buildMode5(container) {
             let type = Math.floor(Math.random() * 10);
             
@@ -695,7 +691,6 @@
             }
         }
 
-        // 將直式乘法附加到後面的輔助函式
         function appendVerticalGrid(container, n1, decStr, stepPrefix, stepNum) {
             let vMath = createVerticalGridHtml(n1.toString(), decStr, stepPrefix);
             let decCount = decStr.includes('.') ? decStr.split('.')[1].length : 0;
@@ -749,9 +744,9 @@
                 registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
             } else if (type === 4) {
                 let price = (Math.floor(Math.random() * 50) + 10) * 10; let offOptions = [10, 15, 20, 25]; let off = offOptions[Math.floor(Math.random() * offOptions.length)];
-                let decStr = (off / 100).toString(); let ans = Math.round(price * parseFloat(decStr));
+                let decStr = ((100 - off) / 100).toString(); let ans = Math.round(price * parseFloat(decStr));
                 
-                container.innerHTML = '<div class="step-obj" data-step="1"><div class="horizontal-problem">一支手錶原價 ' + price + ' 元，會員享有 <span style="color: var(--error);">' + off + '% off</span> 優惠。<br>請問媽媽以會員價購入，可以比原價「便宜」多少元？</div><div class="step-block"><div class="step-label">直接列式挑戰</div><div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">' + price + ' × ' + createBlankHTML('m6_d1', decStr) + ' = ' + createBlankHTML('m6_ans', ans) + ' 元</div></div></div>';
+                container.innerHTML = '<div class="step-obj" data-step="1"><div class="horizontal-problem">一支手錶原價 ' + price + ' 元，會員享有 <span style="color: var(--error);">' + off + '% off</span> 優惠。<br>請問媽媽以會員價購入，特價是多少元？</div><div class="step-block"><div class="step-label">直接列式挑戰</div><div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">' + price + ' × ' + createBlankHTML('m6_d1', decStr) + ' = ' + createBlankHTML('m6_ans', ans) + ' 元</div></div></div>';
                 registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
             } else if (type === 5) {
                 let cost = Math.floor(Math.random() * 3 + 1) * 1000; let markup = Math.floor(Math.random() * 3) + 2; 
@@ -832,7 +827,11 @@
                     let parts = currentId.split('_'); let finalAns = parts[parts.length - 2]; 
                     let elFinal = document.getElementById('m5_step2_final');
                     if(elFinal) { elFinal.innerText = "所以答案是 " + finalAns + " 元！"; elFinal.classList.remove('hidden'); }
-                    playSound('success'); state.score += 10; document.getElementById('stat-score').innerText = '分數：' + state.score;
+                    playSound('success'); 
+                    // 結算單題得分
+                    let earned = Math.max(0, 10 - state.mistakesThisQuestion);
+                    state.score += earned; 
+                    document.getElementById('stat-score').innerText = '分數：' + state.score;
                     setTimeout(nextQuestion, 1500);
                 } 
                 else if (currentId.startsWith('PROFIT_LOSS_CHECK_')) {
@@ -848,7 +847,11 @@
                     }
                 }
             } else {
-                playSound('success'); state.score += 10; document.getElementById('stat-score').innerText = '分數：' + state.score;
+                playSound('success'); 
+                // 結算單題得分
+                let earned = Math.max(0, 10 - state.mistakesThisQuestion);
+                state.score += earned; 
+                document.getElementById('stat-score').innerText = '分數：' + state.score;
                 setTimeout(nextQuestion, 1200);
             }
         }
@@ -865,7 +868,8 @@
                     playSound('move'); el.innerText = num; el.classList.remove('error', 'active'); el.classList.add('filled');
                     state.focusIndex++; updateFocusUI();
                 } else {
-                    playSound('wrong'); el.classList.add('error'); el.innerText = num;
+                    playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                    el.classList.add('error'); el.innerText = num;
                     setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
                 }
             } else { 
@@ -877,7 +881,8 @@
                         state.currentInputStr = ""; state.focusIndex++; updateFocusUI();
                     }
                 } else {
-                    playSound('wrong'); el.classList.add('error'); el.innerText = testStr; 
+                    playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                    el.classList.add('error'); el.innerText = testStr; 
                     setTimeout(() => { el.innerText = state.currentInputStr; el.classList.remove('error'); }, 400);
                 }
             }
@@ -904,7 +909,8 @@
                 document.getElementById('btn-earn').style.display = 'none'; 
                 state.focusIndex++; updateFocusUI();
             } else {
-                playSound('wrong'); let btnE = document.getElementById('btn-earn');
+                playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                let btnE = document.getElementById('btn-earn');
                 btnE.classList.add('error'); setTimeout(() => btnE.classList.remove('error'), 400);
             }
         }
@@ -932,10 +938,15 @@
                 gapBtns[index].replaceWith(dot); gapBtns.forEach(b => b.style.visibility = 'hidden');
                 let elFinal = document.getElementById('m5_step2_final');
                 if(elFinal) { elFinal.innerText = "所以答案是 " + finalAns + " 元！"; elFinal.classList.remove('hidden'); }
-                state.score += 10; document.getElementById('stat-score').innerText = '分數：' + state.score;
+                
+                // 結算單題得分
+                let earned = Math.max(0, 10 - state.mistakesThisQuestion);
+                state.score += earned; 
+                document.getElementById('stat-score').innerText = '分數：' + state.score;
                 setTimeout(nextQuestion, 1800);
             } else {
-                playSound('wrong'); gapBtns[index].style.background = 'var(--error)';
+                playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                gapBtns[index].style.background = 'var(--error)';
                 setTimeout(() => gapBtns[index].style.background = '', 400);
             }
         }
