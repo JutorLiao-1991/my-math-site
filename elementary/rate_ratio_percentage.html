@@ -67,7 +67,13 @@
 
         .static-symbol { font-weight: bold; color: var(--text-color); margin: 0 2px; font-size: 1.8rem;}
         
-        .blank { display: inline-block; min-width: 50px; height: 45px; line-height: 45px; border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; font-family: 'Courier New', monospace; font-size: 2rem; }
+        .blank { 
+            display: inline-block; min-width: 50px; height: 45px; line-height: 45px; 
+            border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; 
+            color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; 
+            font-family: 'Courier New', monospace; font-size: 2rem;
+            vertical-align: bottom; /* 修復底線飄浮問題 */
+        }
         .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
         .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
         .blank.error { color: var(--error); border-color: var(--error); }
@@ -80,7 +86,11 @@
         .input-cell.active { border-color: var(--accent); border-style: solid; background: #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); transform: scale(1.05); z-index: 5; }
         .input-cell.error { border-color: var(--error); background: #FFF0F0; border-style: solid; color: var(--error); }
         .input-cell.filled { border: 2px solid transparent; background: transparent; color: var(--text-color); }
+        
         .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; }
+        .div-line { border-bottom: 3px solid var(--text-color); grid-column: 2 / -1; margin: 2px 0; height: 0; }
+        .sub-line { border-bottom: 2px dashed #94A3B8; grid-column: 2 / -1; margin: 2px 0; height: 0; }
+        .paren { font-weight: lighter; transform: scaleY(1.5) translateY(-2px); }
         
         /* 小數點安插 */
         .decimal-hint { color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
@@ -102,7 +112,7 @@
         .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
         .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
 
-        /* === 全新 3x4 數字鍵盤樣式 === */
+        /* 全新 3x4 數字鍵盤樣式 */
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; max-width: 320px; margin-inline: auto; width: 100%; }
         .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
         .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
@@ -188,7 +198,7 @@
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
-            } catch (e) { console.warn("AudioContext init failed:", e); }
+            } catch (e) {}
         }
 
         function playSound(type) {
@@ -361,6 +371,144 @@
             return { html, inputIds, finalProd, n1Str, n2Str };
         }
 
+        // 全新直式除法生成器
+        function createVerticalDivHtml(dividend, divisor, stepPrefix) {
+            let Q_val = dividend / divisor;
+            let Q_str = Q_val.toString();
+            if (!Q_str.includes('.')) Q_str += '.0'; 
+
+            let q_dec_len = Q_str.includes('.') ? Q_str.split('.')[1].length : 0;
+            let D_str = dividend.toString();
+            if (q_dec_len > 0) {
+                D_str += '.';
+                D_str += '0'.repeat(q_dec_len);
+            }
+
+            let D_clean = D_str.replace('.', '');
+            let Q_clean = Q_str.replace('.', '');
+            let cols = 2 + D_str.length;
+            let html = `<div class="math-grid" style="grid-template-columns: repeat(${cols}, 42px); margin: 20px auto;">`;
+
+            let col_map = [];
+            let d_col = 2;
+            for (let i = 0; i < D_str.length; i++) {
+                if (D_str[i] !== '.') col_map.push(d_col);
+                d_col++;
+            }
+
+            let offset = D_clean.length - Q_clean.length;
+            let current_rem = parseInt(D_clean.substring(0, offset + 1));
+            let steps_data = [];
+            let inputIds = [];
+            let totalInputs = 0;
+
+            for (let i = 0; i < Q_clean.length; i++) {
+                let q_digit = parseInt(Q_clean[i]);
+                let pp = q_digit * divisor;
+                let end_idx = offset + i;
+
+                let step = {
+                    q_idx: i, q_char: Q_clean[i],
+                    pp_val: pp.toString(), pp_end: end_idx,
+                    rem_val: null, rem_end: null,
+                    q_id: null, pp_ids: [], rem_ids: []
+                };
+
+                current_rem -= pp;
+
+                if (i < Q_clean.length - 1) {
+                    let next_digit = D_clean[offset + i + 1];
+                    step.rem_val = parseInt(current_rem.toString() + next_digit).toString();
+                    step.rem_end = end_idx + 1;
+                    current_rem = parseInt(step.rem_val);
+                } else {
+                    step.rem_val = current_rem.toString();
+                    step.rem_end = end_idx;
+                }
+                steps_data.push(step);
+            }
+
+            let d_dec_idx = D_str.indexOf('.'); if (d_dec_idx === -1) d_dec_idx = D_str.length;
+            let q_dec_idx = Q_str.indexOf('.'); if (q_dec_idx === -1) q_dec_idx = Q_str.length;
+            let q_start_col = 2 + (d_dec_idx - q_dec_idx);
+
+            let q_col_map = [];
+            let q_col_iter = q_start_col;
+            for (let i = 0; i < Q_str.length; i++) {
+                if (Q_str[i] !== '.') q_col_map.push(q_col_iter);
+                q_col_iter++;
+            }
+
+            let q_row = Array(cols).fill(null);
+            for(let i=0; i<Q_clean.length; i++) { q_row[q_col_map[i]] = { type: 'q', idx: i, char: Q_clean[i] }; }
+            if (Q_str.includes('.')) q_row[q_start_col + Q_str.indexOf('.')] = { type: 'dot', char: '.' };
+
+            function getCellHtml(content, isInput = false, id = null) {
+                let cls = 'cell';
+                if (isInput) cls += ' input-cell';
+                if (content === ')') cls += ' paren';
+                let idAttr = id ? ` id="${id}"` : '';
+                let dataAns = isInput ? ` data-ans="${content}"` : '';
+                if (content === '.') return `<div class="${cls}"><span class="dot-marker" style="right: 15px; bottom: 0;">.</span></div>`;
+                return `<div class="${cls}"${idAttr}${dataAns}>${isInput ? '' : content}</div>`;
+            }
+
+            q_row.forEach(item => {
+                if (!item) html += getCellHtml('');
+                else if (item.type === 'dot') html += getCellHtml('.');
+                else {
+                    let id = `${stepPrefix}_v_${totalInputs++}`;
+                    html += getCellHtml(item.char, true, id);
+                    steps_data[item.idx].q_id = { id: id, ans: item.char };
+                }
+            });
+
+            html += `<div class="div-line"></div>`;
+
+            let d_row = Array(cols).fill('');
+            d_row[0] = divisor.toString(); d_row[1] = ')';
+            for(let i=0; i<D_str.length; i++) d_row[2+i] = D_str[i];
+            d_row.forEach(c => { html += getCellHtml(c); });
+
+            function addSubRow(val_str, end_d_idx) {
+                let rowCells = Array(cols).fill(null);
+                let d_idx = end_d_idx;
+                for (let i = val_str.length - 1; i >= 0; i--) {
+                    rowCells[col_map[d_idx]] = val_str[i];
+                    d_idx--;
+                }
+                let ids = [];
+                rowCells.forEach(content => {
+                    if (content === null) html += getCellHtml('');
+                    else {
+                        let id = `${stepPrefix}_v_${totalInputs++}`;
+                        html += getCellHtml(content, true, id);
+                        ids.push({ id: id, ans: content });
+                    }
+                });
+                return ids;
+            }
+
+            steps_data.forEach((step, idx) => {
+                step.pp_ids = addSubRow(step.pp_val, step.pp_end);
+                html += `<div class="sub-line"></div>`;
+                step.rem_ids = addSubRow(step.rem_val, step.rem_end);
+            });
+
+            html += `</div>`;
+
+            let order = [];
+            steps_data.forEach(step => {
+                if (step.q_id) order.push(step.q_id);
+                let rev_pp = [...step.pp_ids].reverse();
+                rev_pp.forEach(item => order.push(item));
+                let rev_rem = [...step.rem_ids].reverse();
+                rev_rem.forEach(item => order.push(item));
+            });
+
+            return { html, inputIds: order };
+        }
+
         // ===== 題型生成邏輯 =====
 
         function generateProblem() {
@@ -378,7 +526,8 @@
             const problemTypes = [
                 () => { 
                     let total = Math.floor(Math.random() * 20) + 20; let broken = Math.floor(Math.random() * 10) + 2; let safe = total - broken;
-                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">沒破掉的雞蛋</span>占全部的幾分之幾？`, ansNum: safe, ansDen: total, label: "沒破掉的雞蛋" };
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "沒破掉的雞蛋" : "破掉的雞蛋"; let targetAns = isPositive ? safe : broken;
+                    return { text: `媽媽買了 ${total} 個雞蛋，其中有 ${broken} 個破掉了。<br><br>請問：<span style="color: var(--error);">${targetLabel}</span>占全部的幾分之幾？`, ansNum: targetAns, ansDen: total, label: targetLabel };
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 10) + 25; let votes = Math.floor(Math.random() * 15) + 10; 
@@ -386,11 +535,28 @@
                 },
                 () => { 
                     let total = Math.floor(Math.random() * 5) + 28; let absent = Math.floor(Math.random() * 4) + 2; let present = total - absent;
-                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">出席率</span>用分數表示是多少？`, ansNum: present, ansDen: total, label: "出席人數" };
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "出席率" : "缺席率"; let targetAns = isPositive ? present : absent;
+                    return { text: `小莉班上有 ${total} 個人，今天有 ${absent} 個人請假。<br><br>請問：今天的<span style="color: var(--error);">${targetLabel}</span>用分數表示是多少？`, ansNum: targetAns, ansDen: total, label: isPositive ? "出席人數" : "缺席人數" };
                 },
                 () => { 
-                    let total = (Math.floor(Math.random() * 5) + 4) * 10; let pass = Math.floor(Math.random() * 10) + 5; 
-                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">錄取率</span>用分數表示是多少？`, ansNum: pass, ansDen: total, label: "錄取人數" };
+                    let total = (Math.floor(Math.random() * 5) + 4) * 10; let pass = Math.floor(Math.random() * 10) + 5; let fail = total - pass;
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "錄取率" : "未錄取的比率"; let targetAns = isPositive ? pass : fail;
+                    return { text: `參加全國環保尖兵選拔的總人數有 ${total} 人，最後錄取了 ${pass} 人。<br><br>請問：這次選拔的<span style="color: var(--error);">${targetLabel}</span>用分數表示是多少？`, ansNum: targetAns, ansDen: total, label: isPositive ? "錄取人數" : "未錄取人數" };
+                },
+                () => { 
+                    let total = Math.floor(Math.random() * 16) + 15; let hit = Math.floor(Math.random() * (total - 5)) + 3; let miss = total - hit;
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "命中率" : "沒有投進的比率"; let targetAns = isPositive ? hit : miss;
+                    return { text: `小明練習投籃，總共投了 ${total} 次，其中有 ${hit} 球投進。<br><br>請問：小明這次投籃的<span style="color: var(--error);">${targetLabel}</span>用分數表示是多少？`, ansNum: targetAns, ansDen: total, label: isPositive ? "命中球數" : "沒投進的球數" };
+                },
+                () => { 
+                    let total = Math.floor(Math.random() * 11) + 25; let pass = Math.floor(Math.random() * 11) + 15; let fail = total - pass;
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "85分以上的學生比率" : "未滿85分的學生比率"; let targetAns = isPositive ? pass : fail;
+                    return { text: `五年四班有 ${total} 個學生，這次數學小考 85 分以上的學生有 ${pass} 個。<br><br>請問：<span style="color: var(--error);">${targetLabel}</span>用分數表示是多少？`, ansNum: targetAns, ansDen: total, label: isPositive ? "85分以上的人數" : "未滿85分的人數" };
+                },
+                () => { 
+                    let total = (Math.floor(Math.random() * 5) + 6) * 10; let join = Math.floor(Math.random() * 21) + 40; let notJoin = total - join;
+                    let isPositive = Math.random() > 0.5; let targetLabel = isPositive ? "參加社團的比率" : "沒有參加社團的比率"; let targetAns = isPositive ? join : notJoin;
+                    return { text: `樂樂國小四年級的總人數有 ${total} 人，其中參加社團的人數有 ${join} 人。<br><br>請問：四年級學生<span style="color: var(--error);">${targetLabel}</span>用分數表示是多少？`, ansNum: targetAns, ansDen: total, label: isPositive ? "參加的人數" : "沒參加的人數" };
                 }
             ];
             let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
@@ -409,7 +575,6 @@
             registerBlank('m1_num', selected.ansNum); registerBlank('m1_den', selected.ansDen);
         }
 
-        // 新增 1/8, 3/8 等帶有小數點的常見百分率
         function buildMode2(container) {
             const pool = [
                 {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75},
@@ -433,7 +598,6 @@
             registerBlank('m2_ans', q.a);
         }
 
-        // 隨機產生含有 2位、3位 或 4位 小數點的題型
         function buildMode3(container) {
             let decType = Math.floor(Math.random() * 3); 
             let raw, decStr, finalAns;
@@ -444,11 +608,11 @@
                 if (raw < 10) decStr = "0.0" + raw;
                 finalAns = raw;
             } else if (decType === 1) {
-                raw = Math.floor(Math.random() * 899) + 100; // 100 ~ 999
+                raw = Math.floor(Math.random() * 899) + 100;
                 decStr = "0." + raw;
                 finalAns = raw / 10;
             } else {
-                raw = Math.floor(Math.random() * 8999) + 1000; // 1000 ~ 9999
+                raw = Math.floor(Math.random() * 8999) + 1000;
                 decStr = "0." + raw;
                 finalAns = raw / 100;
             }
@@ -466,7 +630,6 @@
             registerBlank('m3_ans', finalAns);
         }
 
-        // 加入分母高達 400, 1000, 2000 的挑戰題
         function buildMode4(container) {
             const dens = [20, 25, 50, 400, 1000, 2000];
             let den = dens[Math.floor(Math.random() * dens.length)];
@@ -476,9 +639,9 @@
                 num = Math.floor(Math.random() * (den - 1)) + 1;
                 finalAns = num * (100 / den);
             } else {
-                num = Math.floor(Math.random() * 150) + 11; // 產生 11 ~ 160 之間的分子
+                num = Math.floor(Math.random() * 150) + 11; 
                 finalAns = (num * (100 / den));
-                finalAns = parseFloat(finalAns.toFixed(2)); // 去除浮點數誤差
+                finalAns = parseFloat(finalAns.toFixed(2)); 
             }
 
             container.innerHTML = `
@@ -497,248 +660,184 @@
 
         function buildMode5(container) {
             let type = Math.floor(Math.random() * 10);
-            let step1_html = "";
-            let n1, n2_str, decCount, finalAns;
-            let useVerticalGrid = true;
+            let step1_html = ""; let n1, n2_str, decCount, finalAns;
+            let useVerticalGrid = true; let isDiv = false;
 
             if (type === 0) { 
                 let price = (Math.floor(Math.random() * 15) + 10) * 100;
                 let discountOptions = [7, 8, 9, 75, 85];
                 let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
                 let percentage = discount < 10 ? discount * 10 : discount; 
-                n1 = price;
-                n2_str = discount < 10 ? `0.${discount}` : `0.${discount}`;
+                n1 = price; n2_str = discount < 10 ? `0.${discount}` : `0.${discount}`;
 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售。<br>請問打折後的售價是多少元？
-                    </div>
+                    <div class="horizontal-problem">一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售。<br>請問打折後的售價是多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯折數</div>
-                        <div class="equation-line">
-                            打 ${discount} 折 = 原價的 ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span> = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', discount)}
-                        </div>
+                        <div class="equation-line">打 ${discount} 折 = 原價的 ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line">也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', discount)}</div>
                     </div>
                 `;
                 registerBlank('m5_p1', percentage, 'blank', 1); registerBlank('m5_d1', discount, 'blank', 1);
 
             } else if (type === 1) { 
                 let price = (Math.floor(Math.random() * 15) + 10) * 100;
-                let offOptions = [10, 20, 25, 30];
-                let off = offOptions[Math.floor(Math.random() * offOptions.length)];
-                let percentage = 100 - off;
-                n1 = price;
-                n2_str = `0.${percentage}`;
+                let offOptions = [10, 20, 25, 30]; let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let percentage = 100 - off; n1 = price; n2_str = `0.${percentage}`;
 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？
-                    </div>
+                    <div class="horizontal-problem">一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯 off 邏輯</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            ${off}% off 代表扣掉 ${off}%<br>
-                            所以要付的錢是原價的： 100% - ${off}% = ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span>
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">${off}% off 就是扣掉 ${off}%，代表要付原價的： 100% - ${off}% = ${createBlankHTML('m5_p1', percentage)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', percentage)}</div>
                     </div>
                 `;
-                registerBlank('m5_p1', percentage, 'blank', 1);
+                registerBlank('m5_p1', percentage, 'blank', 1); registerBlank('m5_d1', percentage, 'blank', 1);
 
             } else if (type === 2) { 
-                let costOptions = [500, 800, 1200, 2000];
-                n1 = costOptions[Math.floor(Math.random() * costOptions.length)];
-                let markup = Math.floor(Math.random() * 5) + 1;
-                let percentage = 100 + (markup * 10);
-                n2_str = `1.${markup}`; 
+                let costOptions = [500, 800, 1200, 2000]; n1 = costOptions[Math.floor(Math.random() * costOptions.length)];
+                let markup = Math.floor(Math.random() * 5) + 1; let percentage = 100 + (markup * 10); n2_str = `1.${markup}`; 
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？
-                    </div>
+                    <div class="horizontal-problem">一雙球鞋的成本是 ${n1} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯加成邏輯</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            加 ${markup} 成代表要多加成本的 ${createBlankHTML('m5_p1', markup * 10)} <span class="static-symbol">%</span><br>
-                            所以定價是成本的： 100% + ${markup * 10}% = ${createBlankHTML('m5_p2', percentage)} <span class="static-symbol">%</span>
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">加 ${markup} 成代表要多加成本的 ${createBlankHTML('m5_p1', markup * 10)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">所以定價是成本的： 100% + ${markup * 10}% = ${createBlankHTML('m5_p2', percentage)} <span class="static-symbol">%</span></div>
                     </div>
                 `;
                 registerBlank('m5_p1', markup * 10, 'blank', 1); registerBlank('m5_p2', percentage, 'blank', 1);
 
             } else if (type === 3) {
-                n1 = Math.floor(Math.random() * 5 + 3) * 100;
-                let off = Math.floor(Math.random() * 30 + 15);
-                let remain = 100 - off;
+                n1 = Math.floor(Math.random() * 5 + 3) * 100; let off = Math.floor(Math.random() * 30 + 15); let remain = 100 - off;
                 n2_str = remain < 10 ? `0.0${remain}` : `0.${remain}`;
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一杯水原本有 ${n1} 毫升，在太陽下<span style="color: var(--error);">蒸發掉 ${off}%</span> 後，<br>請問杯內還剩下多少毫升的水？
-                    </div>
+                    <div class="horizontal-problem">一杯水原本有 ${n1} 毫升，在太陽下<span style="color: var(--error);">蒸發掉 ${off}%</span> 後，<br>請問杯內還剩下多少毫升的水？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯剩下的比率</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            蒸發掉 ${off}%，代表剩下： 100% - ${off}% = ${createBlankHTML('m5_p1', remain)} <span class="static-symbol">%</span><br>
-                            ${remain}% = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', remain)}
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">蒸發掉 ${off}%，代表剩下： 100% - ${off}% = ${createBlankHTML('m5_p1', remain)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', remain)}</div>
                     </div>
                 `;
                 registerBlank('m5_p1', remain, 'blank', 1); registerBlank('m5_d1', remain, 'blank', 1);
 
             } else if (type === 4) {
-                n1 = (Math.floor(Math.random() * 50) + 10) * 10;
-                let offOptions = [10, 15, 20, 25];
-                let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                n1 = (Math.floor(Math.random() * 50) + 10) * 10; let offOptions = [10, 15, 20, 25]; let off = offOptions[Math.floor(Math.random() * offOptions.length)];
                 n2_str = off < 10 ? `0.0${off}` : `0.${off}`;
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一支手錶原價 ${n1} 元，會員享有 <span style="color: var(--error);">${off}% off</span> 優惠。<br>請問媽媽以會員價購入，可以比原價「便宜」多少元？
-                    </div>
+                    <div class="horizontal-problem">一支手錶原價 ${n1} 元，會員享有 <span style="color: var(--error);">${off}% off</span> 優惠。<br>請問媽媽以會員價購入，可以比原價「便宜」多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯 off 與便宜的關係</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            ${off}% off 就是扣掉 ${off}%，也就是便宜了原價的 ${createBlankHTML('m5_p1', off)} <span class="static-symbol">%</span><br>
-                            ${off}% = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', off)}
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">${off}% off 就是扣掉 ${off}%，也就是便宜了原價的 ${createBlankHTML('m5_p1', off)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', off)}</div>
                     </div>
                 `;
                 registerBlank('m5_p1', off, 'blank', 1); registerBlank('m5_d1', off, 'blank', 1);
 
             } else if (type === 5) {
-                n1 = Math.floor(Math.random() * 3 + 1) * 1000;
-                let markup = Math.floor(Math.random() * 3) + 2; 
-                let percentage = 100 + (markup * 10);
+                n1 = Math.floor(Math.random() * 3 + 1) * 1000; let markup = Math.floor(Math.random() * 3) + 2; let percentage = 100 + (markup * 10);
                 n2_str = `1.${markup}`;
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        一張電腦桌成本為 ${n1} 元，如果利潤是成本的<span style="color: var(--error);"> ${markup} 成</span>。<br>請問一張電腦桌要賣多少元？
-                    </div>
+                    <div class="horizontal-problem">一張電腦桌成本為 ${n1} 元，如果利潤是成本的<span style="color: var(--error);"> ${markup} 成</span>。<br>請問一張電腦桌要賣多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯利潤與售價</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            利潤 ${markup} 成代表要賺成本的 ${createBlankHTML('m5_p1', markup * 10)} <span class="static-symbol">%</span><br>
-                            所以售價是成本的： 100% + ${markup * 10}% = ${createBlankHTML('m5_p2', percentage)} <span class="static-symbol">%</span>
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">利潤 ${markup} 成代表要賺成本的 ${createBlankHTML('m5_p1', markup * 10)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">所以售價是成本的： 100% + ${markup * 10}% = ${createBlankHTML('m5_p2', percentage)} <span class="static-symbol">%</span></div>
                     </div>
                 `;
                 registerBlank('m5_p1', markup * 10, 'blank', 1); registerBlank('m5_p2', percentage, 'blank', 1);
 
             } else if (type === 6) {
-                n1 = (Math.floor(Math.random() * 15) + 15) * 100;
-                let p1 = Math.floor(Math.random() * 15) + 20;
-                let p2 = Math.floor(Math.random() * 15) + 35;
-                let totalP = p1 + p2;
+                n1 = (Math.floor(Math.random() * 15) + 15) * 100; let p1 = Math.floor(Math.random() * 15) + 20; let p2 = Math.floor(Math.random() * 15) + 35; let totalP = p1 + p2;
                 n2_str = `0.${totalP}`;
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        幸福村有 ${n1} 名村民，其中農夫的比率是 ${p1}%，勞工的比率是 ${p2}%。<br>請問幸福村的農夫和勞工共有多少人？
-                    </div>
+                    <div class="horizontal-problem">幸福村有 ${n1} 名村民，其中農夫的比率是 ${p1}%，勞工的比率是 ${p2}%。<br>請問幸福村的農夫和勞工共有多少人？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：計算合併比率</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            農夫和勞工合起來占全村的： ${p1}% + ${p2}% = ${createBlankHTML('m5_p1', totalP)} <span class="static-symbol">%</span><br>
-                            ${totalP}% = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', totalP)}
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">農夫和勞工合起來占全村的： ${p1}% + ${p2}% = ${createBlankHTML('m5_p1', totalP)} <span class="static-symbol">%</span></div>
+                        <div class="equation-line" style="font-size: 1.4rem;">也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', totalP)}</div>
                     </div>
                 `;
                 registerBlank('m5_p1', totalP, 'blank', 1); registerBlank('m5_d1', totalP, 'blank', 1);
 
             } else if (type === 7) {
-                useVerticalGrid = false;
-                let price = (Math.floor(Math.random() * 25) + 15) * 20; 
-                let offOptions = [10, 15, 20, 25];
-                let offP = offOptions[Math.floor(Math.random() * offOptions.length)];
-                let cheap = price * offP / 100;
-                let sellP = 100 - offP;
-                let finalDiscount1 = Math.floor(sellP / 10);
-                let finalDiscount2 = sellP % 10;
+                isDiv = true;
+                let price = (Math.floor(Math.random() * 25) + 15) * 20; let offOptions = [10, 15, 20, 25];
+                let offP = offOptions[Math.floor(Math.random() * offOptions.length)]; let cheap = price * offP / 100;
+                let sellP = 100 - offP; let finalDiscount1 = Math.floor(sellP / 10); let finalDiscount2 = sellP % 10;
+                let vDiv = createVerticalDivHtml(cheap, price, 'm5');
 
                 container.innerHTML = `
                     <div class="step-obj" data-step="1">
-                        <div class="horizontal-problem">
-                            一件衣服原價 ${price} 元，打完折後便宜了 ${cheap} 元。<br>請問這件衣服是<span style="color: var(--error);">打幾折</span>？
-                        </div>
+                        <div class="horizontal-problem">一件衣服原價 ${price} 元，打完折後便宜了 ${cheap} 元。<br>請問這件衣服是<span style="color: var(--error);">打幾折</span>？</div>
                         <div class="step-block">
-                            <div class="step-label">第一步：計算便宜的比率</div>
-                            <div class="equation-line">
-                                便宜的錢占原價的比率： ${cheap} ÷ ${price} = ${createBlankHTML('m5_p1', offP)} <span class="static-symbol">%</span>
-                            </div>
+                            <div class="step-label">第一步：直式計算比率</div>
+                            <div class="equation-line" style="color:#64748B;">請先計算便宜的錢占原價的比率： ${cheap} ÷ ${price}</div>
+                            <div id="m5_step1_div">${vDiv.html}</div>
                         </div>
                     </div>
                     <div class="step-obj hidden" data-step="2">
                         <div class="step-block">
                             <div class="step-label">第二步：換算成打幾折</div>
-                            <div class="equation-line" style="font-size: 1.4rem;">
-                                便宜 ${offP}%，代表售價是原價的： 100% - ${offP}% = ${createBlankHTML('m5_p2', sellP)} <span class="static-symbol">%</span>
-                            </div>
-                            <div class="equation-line" style="font-size: 1.4rem; margin-top: 15px;">
-                                ${sellP}% 就是打 ${createBlankHTML('m5_d1', finalDiscount1)} <span class="static-symbol" style="margin:0;"></span> ${finalDiscount2 === 0 ? '' : createBlankHTML('m5_d2', finalDiscount2)} 折
-                            </div>
+                            <div class="equation-line" style="font-size: 1.4rem;">0.${offP} = ${createBlankHTML('m5_p1', offP)} <span class="static-symbol">%</span></div>
+                            <div class="equation-line" style="font-size: 1.4rem; margin-top: 15px;">便宜 ${offP}%，代表售價是原價的： 100% - ${offP}% = ${createBlankHTML('m5_p2', sellP)} <span class="static-symbol">%</span></div>
+                            <div class="equation-line" style="font-size: 1.4rem; margin-top: 15px;">${sellP}% 就是打 ${createBlankHTML('m5_d1', finalDiscount1)} <span class="static-symbol" style="margin:0;"></span> ${finalDiscount2 === 0 ? '' : createBlankHTML('m5_d2', finalDiscount2)} 折</div>
                         </div>
                     </div>
                 `;
-                registerBlank('m5_p1', offP, 'blank', 1);
-                registerBlank('m5_p2', sellP, 'blank', 2);
-                registerBlank('m5_d1', finalDiscount1, 'blank', 2);
-                if(finalDiscount2 !== 0) registerBlank('m5_d2', finalDiscount2, 'blank', 2);
+                vDiv.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 1); });
+                registerBlank('m5_p1', offP, 'blank', 2); registerBlank('m5_p2', sellP, 'blank', 2);
+                registerBlank('m5_d1', finalDiscount1, 'blank', 2); if(finalDiscount2 !== 0) registerBlank('m5_d2', finalDiscount2, 'blank', 2);
 
             } else if (type === 8) {
-                useVerticalGrid = false;
-                let salary = (Math.floor(Math.random() * 20) + 25) * 1000;
-                let rentP_options = [10, 20, 25, 30];
-                let rentP = rentP_options[Math.floor(Math.random() * rentP_options.length)];
-                let rent = salary * rentP / 100;
-                let dec1 = Math.floor(rentP / 10);
-                let dec2 = rentP % 10;
+                isDiv = true;
+                let salary = (Math.floor(Math.random() * 20) + 25) * 1000; let rentP_options = [10, 20, 25, 30];
+                let rentP = rentP_options[Math.floor(Math.random() * rentP_options.length)]; let rent = salary * rentP / 100;
+                let dec1 = Math.floor(rentP / 10); let dec2 = rentP % 10;
+                let vDiv = createVerticalDivHtml(rent, salary, 'm5');
 
                 container.innerHTML = `
                     <div class="step-obj" data-step="1">
-                        <div class="horizontal-problem">
-                            小玫的月薪是 ${salary} 元，每月的房租是 ${rent} 元。<br>請問每月房租占薪水的<span style="color: var(--error);">幾成</span>？
-                        </div>
+                        <div class="horizontal-problem">小玫的月薪是 ${salary} 元，每月的房租是 ${rent} 元。<br>請問每月房租占薪水的<span style="color: var(--error);">幾成</span>？</div>
                         <div class="step-block">
-                            <div class="step-label">第一步：計算比率</div>
-                            <div class="equation-line">
-                                房租占薪水的比率： ${rent} ÷ ${salary} = ${createBlankHTML('m5_p1', rentP)} <span class="static-symbol">%</span>
-                            </div>
+                            <div class="step-label">第一步：直式計算比率</div>
+                            <div class="equation-line" style="color:#64748B;">請先計算房租占薪水的比率： ${rent} ÷ ${salary}</div>
+                            <div id="m5_step1_div">${vDiv.html}</div>
                         </div>
                     </div>
                     <div class="step-obj hidden" data-step="2">
                         <div class="step-block">
                             <div class="step-label">第二步：換算成幾成</div>
-                            <div class="equation-line" style="font-size: 1.4rem;">
-                                ${rentP}% = ${createBlankHTML('m5_d1', dec1)} ${dec2 === 0 ? '' : `<span class="static-symbol">.</span>` + createBlankHTML('m5_d2', dec2)} 成
-                            </div>
+                            <div class="equation-line" style="font-size: 1.4rem;">0.${rentP} = ${createBlankHTML('m5_p1', rentP)} <span class="static-symbol">%</span></div>
+                            <div class="equation-line" style="font-size: 1.4rem; margin-top: 15px;">${rentP}% = ${createBlankHTML('m5_d1', dec1)} ${dec2 === 0 ? '' : `<span class="static-symbol">.</span>` + createBlankHTML('m5_d2', dec2)} 成</div>
                         </div>
                     </div>
                 `;
-                registerBlank('m5_p1', rentP, 'blank', 1);
-                registerBlank('m5_d1', dec1, 'blank', 2);
+                vDiv.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 1); });
+                registerBlank('m5_p1', rentP, 'blank', 2); registerBlank('m5_d1', dec1, 'blank', 2);
                 if(dec2 !== 0) registerBlank('m5_d2', dec2, 'blank', 2);
 
             } else if (type === 9) {
-                n1 = Math.floor(Math.random() * 10 + 10) * 100 + 50; 
-                let p = Math.floor(Math.random() * 15) + 85; 
+                n1 = Math.floor(Math.random() * 10 + 10) * 100 + 50; let p = Math.floor(Math.random() * 15) + 85; 
                 n2_str = `0.${p}`;
                 
                 step1_html = `
-                    <div class="horizontal-problem">
-                        小綠家 7~8 月的電費是 ${n1} 元，9~10 月電費是 7~8 月電費的 <span style="color: var(--error);">${p}%</span>。<br>請問 9~10 月的電費是多少元？
-                    </div>
+                    <div class="horizontal-problem">小綠家 7~8 月的電費是 ${n1} 元，9~10 月電費是 7~8 月電費的 <span style="color: var(--error);">${p}%</span>。<br>請問 9~10 月的電費是多少元？</div>
                     <div class="step-block">
                         <div class="step-label">第一步：翻譯百分率</div>
-                        <div class="equation-line" style="font-size: 1.4rem;">
-                            ${p}% = 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', p)}
-                        </div>
+                        <div class="equation-line" style="font-size: 1.4rem;">${p}% 也就是 0.<span class="static-symbol" style="margin:0;"></span>${createBlankHTML('m5_d1', p)}</div>
                     </div>
                 `;
                 registerBlank('m5_d1', p, 'blank', 1);
             }
 
-            if (useVerticalGrid) {
+            // 一般直式乘法渲染
+            if (useVerticalGrid && !isDiv) {
                 let vMath = createVerticalGridHtml(n1.toString(), n2_str, 'm5');
                 decCount = n2_str.includes('.') ? n2_str.split('.')[1].length : 0;
                 finalAns = Math.round(n1 * parseFloat(n2_str)); 
@@ -748,9 +847,7 @@
                     <div class="step-obj hidden" data-step="2">
                         <div class="step-block">
                             <div class="step-label">第二步：直式計算</div>
-                            <div id="m5_step2_math">
-                                ${vMath.html}
-                            </div>
+                            <div id="m5_step2_math">${vMath.html}</div>
                             <div id="m5_step2_decimal" class="hidden">
                                 <p class="decimal-hint">✨ 數字全對了！請點擊正確的縫隙，放上小數點！</p>
                                 <div id="m5_gap_area" class="gap-container"></div>
@@ -763,12 +860,8 @@
                 `;
 
                 vMath.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 2); });
-
-                if (decCount > 0) {
-                    state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}_2`);
-                } else {
-                    state.logicalOrder.push(`SHOW_FINAL_${finalAns}_2`);
-                }
+                if (decCount > 0) state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}_2`);
+                else state.logicalOrder.push(`SHOW_FINAL_${finalAns}_2`);
             }
         }
 
@@ -789,8 +882,7 @@
             if (currentId) {
                 let currentStep = 1;
                 if (currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) {
-                    let parts = currentId.split('_');
-                    currentStep = parseInt(parts[parts.length - 1]);
+                    let parts = currentId.split('_'); currentStep = parseInt(parts[parts.length - 1]);
                 } else {
                     currentStep = state.blanksData[currentId].step || 1;
                 }
@@ -800,12 +892,10 @@
                     startDecimalPhase(currentId);
                 } 
                 else if (currentId.startsWith('SHOW_FINAL_')) {
-                    let parts = currentId.split('_');
-                    let finalAns = parts[parts.length - 2]; 
+                    let parts = currentId.split('_'); let finalAns = parts[parts.length - 2]; 
                     document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`;
                     document.getElementById('m5_step2_final').classList.remove('hidden');
-                    playSound('success');
-                    state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                    playSound('success'); state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
                     setTimeout(nextQuestion, 1500);
                 } 
                 else {
@@ -813,14 +903,12 @@
                     if (el) {
                         el.classList.add('active');
                         setTimeout(() => { 
-                            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-                            catch (e) { el.scrollIntoView(); }
+                            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { el.scrollIntoView(); }
                         }, 100);
                     }
                 }
             } else {
-                playSound('success');
-                state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
+                playSound('success'); state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
                 setTimeout(nextQuestion, 1200);
             }
         }
@@ -836,60 +924,37 @@
 
             if (targetData.type === 'cell') {
                 if (num.toString() === targetAns) {
-                    playSound('move'); 
-                    el.innerText = num;
-                    el.classList.remove('error', 'active');
-                    el.classList.add('filled');
-                    state.focusIndex++;
-                    updateFocusUI();
+                    playSound('move'); el.innerText = num;
+                    el.classList.remove('error', 'active'); el.classList.add('filled');
+                    state.focusIndex++; updateFocusUI();
                 } else {
-                    playSound('wrong');
-                    el.classList.add('error');
-                    el.innerText = num;
+                    playSound('wrong'); el.classList.add('error'); el.innerText = num;
                     setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
                 }
             } else { 
                 let testStr = state.currentInputStr + num.toString();
                 if (targetAns.startsWith(testStr)) {
-                    playSound('type');
-                    state.currentInputStr = testStr;
-                    el.innerText = state.currentInputStr;
-                    el.classList.remove('error');
-
+                    playSound('type'); state.currentInputStr = testStr; el.innerText = state.currentInputStr; el.classList.remove('error');
                     if (state.currentInputStr === targetAns) {
-                        playSound('correct');
-                        el.classList.remove('active');
-                        el.classList.add('filled');
-                        state.currentInputStr = "";
-                        state.focusIndex++;
-                        updateFocusUI();
+                        playSound('correct'); el.classList.remove('active'); el.classList.add('filled');
+                        state.currentInputStr = ""; state.focusIndex++; updateFocusUI();
                     }
                 } else {
-                    playSound('wrong');
-                    el.classList.add('error');
-                    el.innerText = testStr; 
-                    setTimeout(() => { 
-                        el.innerText = state.currentInputStr;
-                        el.classList.remove('error'); 
-                    }, 400);
+                    playSound('wrong'); el.classList.add('error'); el.innerText = testStr; 
+                    setTimeout(() => { el.innerText = state.currentInputStr; el.classList.remove('error'); }, 400);
                 }
             }
         }
 
-        // 新增的倒退鍵邏輯
         window.inputDelete = function() {
             let currentId = state.logicalOrder[state.focusIndex];
             if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) return; 
-
             let targetData = state.blanksData[currentId];
             let el = document.getElementById(currentId);
             
-            // 倒退鍵只適用於能連續輸入的「橫式填空 (blank)」
             if (targetData.type === 'blank' && state.currentInputStr.length > 0) {
-                playSound('type');
-                state.currentInputStr = state.currentInputStr.slice(0, -1);
-                el.innerText = state.currentInputStr;
-                el.classList.remove('error');
+                playSound('type'); state.currentInputStr = state.currentInputStr.slice(0, -1);
+                el.innerText = state.currentInputStr; el.classList.remove('error');
             }
         }
 
@@ -897,27 +962,17 @@
             playSound('correct'); 
             document.getElementById('m5_step2_decimal').classList.remove('hidden');
 
-            let parts = commandId.split('_');
-            let digits = parts[1].split('');
-            let decCount = parseInt(parts[2]);
-            let targetIndex = digits.length - decCount; 
-            let finalAns = parts[3];
+            let parts = commandId.split('_'); let digits = parts[1].split('');
+            let decCount = parseInt(parts[2]); let targetIndex = digits.length - decCount; let finalAns = parts[3];
 
-            const gapArea = document.getElementById('m5_gap_area');
-            gapArea.innerHTML = '';
-
+            const gapArea = document.getElementById('m5_gap_area'); gapArea.innerHTML = '';
             for (let i = 0; i <= digits.length; i++) {
-                let btn = document.createElement('button');
-                btn.className = 'gap-btn';
-                btn.onclick = () => checkDecimal(i, targetIndex, finalAns);
-                gapArea.appendChild(btn);
+                let btn = document.createElement('button'); btn.className = 'gap-btn';
+                btn.onclick = () => checkDecimal(i, targetIndex, finalAns); gapArea.appendChild(btn);
                 if (i < digits.length) {
-                    let span = document.createElement('span');
-                    span.innerText = digits[i];
-                    gapArea.appendChild(span);
+                    let span = document.createElement('span'); span.innerText = digits[i]; gapArea.appendChild(span);
                 }
             }
-            
             setTimeout(() => { 
                 try { document.getElementById('m5_step2_decimal').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
                 catch (e) { document.getElementById('m5_step2_decimal').scrollIntoView(); }
@@ -929,17 +984,12 @@
             if (index === targetIndex) {
                 playSound('success');
                 let dot = document.createElement('span'); dot.className = 'dot'; dot.innerText = '.';
-                gapBtns[index].replaceWith(dot);
-                gapBtns.forEach(b => b.style.visibility = 'hidden');
-
-                document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`;
-                document.getElementById('m5_step2_final').classList.remove('hidden');
-                
+                gapBtns[index].replaceWith(dot); gapBtns.forEach(b => b.style.visibility = 'hidden');
+                document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`; document.getElementById('m5_step2_final').classList.remove('hidden');
                 state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
                 setTimeout(nextQuestion, 1800);
             } else {
-                playSound('wrong');
-                gapBtns[index].style.background = 'var(--error)';
+                playSound('wrong'); gapBtns[index].style.background = 'var(--error)';
                 setTimeout(() => gapBtns[index].style.background = '', 400);
             }
         }
