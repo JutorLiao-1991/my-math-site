@@ -1246,13 +1246,13 @@ var jutorDB = {
         },
         {
           "en": "ago",
-          "ch": "前；以前",
-          "sentence": "He left two hours ago."
+          "ch": "前; 以前",
+          "sentence": "She left five minutes ago."
         },
         {
           "en": "visit",
           "ch": "拜訪",
-          "sentence": "I plan to visit my grandparents next week."
+          "sentence": "We plan to visit our relatives next month."
         },
         {
           "en": "island",
@@ -1313,6 +1313,156 @@ var jutorDB = {
           "en": "busy",
           "ch": "忙碌的",
           "sentence": "I am busy washing the dishes."
+        },
+        {
+          "en": "river",
+          "ch": "河流",
+          "sentence": "The river flows through the city."
+        },
+        {
+          "en": "lake",
+          "ch": "湖泊",
+          "sentence": "We sailed a boat on the lake."
+        },
+        {
+          "en": "hill",
+          "ch": "山丘",
+          "sentence": "They climbed to the top of the hill."
+        },
+        {
+          "en": "mountain",
+          "ch": "山",
+          "sentence": "Mount Everest is a very high mountain."
+        },
+        {
+          "en": "camp",
+          "ch": "露營; 紮營",
+          "sentence": "We will camp by the river tonight."
+        },
+        {
+          "en": "climb",
+          "ch": "爬 (山)",
+          "sentence": "It's fun to climb trees."
+        },
+        {
+          "en": "row a boat",
+          "ch": "划船",
+          "sentence": "Let's row a boat across the lake."
+        },
+        {
+          "en": "plant",
+          "ch": "種植; 植物",
+          "sentence": "She likes to plant flowers in her garden."
+        },
+        {
+          "en": "hike",
+          "ch": "健行",
+          "sentence": "They plan to hike in the national park."
+        },
+        {
+          "en": "picnic",
+          "ch": "野餐",
+          "sentence": "We had a picnic in the park yesterday."
+        },
+        {
+          "en": "last",
+          "ch": "上一個的",
+          "sentence": "What did you do last weekend?"
+        },
+        {
+          "en": "live",
+          "ch": "居住",
+          "sentence": "They live in a small apartment."
+        },
+        {
+          "en": "playground",
+          "ch": "遊樂場; 操場",
+          "sentence": "The children are playing happily in the playground."
+        },
+        {
+          "en": "everything",
+          "ch": "每樣事物",
+          "sentence": "Everything is ready for the party."
+        },
+        {
+          "en": "change",
+          "ch": "改變",
+          "sentence": "He wants to change his job."
+        },
+        {
+          "en": "burn",
+          "ch": "燃燒",
+          "sentence": "The candle burned slowly."
+        },
+        {
+          "en": "oil",
+          "ch": "油",
+          "sentence": "We use cooking oil to fry food."
+        },
+        {
+          "en": "sell",
+          "ch": "賣",
+          "sentence": "She wants to sell her old car."
+        },
+        {
+          "en": "make money",
+          "ch": "賺錢",
+          "sentence": "He works hard to make money for his family."
+        },
+        {
+          "en": "miss",
+          "ch": "想念",
+          "sentence": "I miss my friends who live far away."
+        },
+        {
+          "en": "little",
+          "ch": "小的",
+          "sentence": "She has a little puppy."
+        },
+        {
+          "en": "little by little",
+          "ch": "一點一點地; 逐漸地",
+          "sentence": "Little by little, he learned to speak English."
+        },
+        {
+          "en": "way",
+          "ch": "方式",
+          "sentence": "There is an easier way to solve this problem."
+        },
+        {
+          "en": "coral reef",
+          "ch": "珊瑚礁",
+          "sentence": "Many colorful fish live in the coral reef."
+        },
+        {
+          "en": "palm",
+          "ch": "棕櫚",
+          "sentence": "Palm trees are common in tropical areas."
+        },
+        {
+          "en": "company",
+          "ch": "公司",
+          "sentence": "He works for a technology company."
+        },
+        {
+          "en": "village",
+          "ch": "村莊",
+          "sentence": "My grandparents live in a quiet village."
+        },
+        {
+          "en": "adult",
+          "ch": "成人",
+          "sentence": "Children must be accompanied by an adult."
+        },
+        {
+          "en": "garbage",
+          "ch": "垃圾",
+          "sentence": "Don't throw garbage on the street."
+        },
+        {
+          "en": "burn the midnight oil",
+          "ch": "熬夜",
+          "sentence": "Students often burn the midnight oil before exams."
         }
       ],
       "Book 2 Unit 5 (句型)": [
