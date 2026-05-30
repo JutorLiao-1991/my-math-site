@@ -51,14 +51,12 @@
         
         .step-block { margin-bottom: 2.5rem; width: 100%; text-align: center; background: #F8FAFC; padding: 20px; border-radius: 12px; border: 1px dashed #CBD5E1;}
         
-        /* 步驟動畫專用 */
         .step-obj { width: 100%; animation: fadeIn 0.6s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
         
         .step-label { color: #475569; font-size: 1.3rem; font-weight: bold; margin-bottom: 1rem; border-bottom: 2px solid #E2E8F0; display: inline-block; padding-bottom: 5px;}
         .equation-line { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 15px;}
         
-        /* 橫式分數與填空 */
         .fraction { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 5px; }
         .fraction .blank { height: 40px; line-height: 40px; border: 2px dashed #94A3B8; border-bottom: 2px dashed #94A3B8; margin: 3px 0; border-radius: 6px; padding: 0 15px; min-width: 30px;}
         .fraction .blank.active { border: 2px solid var(--accent); background: rgba(245, 158, 11, 0.1); border-bottom: 2px solid var(--accent);}
@@ -72,13 +70,16 @@
             border-bottom: 3px solid #94A3B8; text-align: center; font-weight: bold; 
             color: var(--primary-color); margin: 0 5px; transition: 0.2s; padding: 0 10px; 
             font-family: 'Courier New', monospace; font-size: 2rem;
-            vertical-align: bottom; /* 修復底線飄浮問題 */
+            vertical-align: bottom; 
         }
         .blank.active { border-bottom: 4px solid var(--accent); background: rgba(245, 158, 11, 0.1); transform: scale(1.05); box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-radius: 6px 6px 0 0;}
         .blank.filled { border-bottom: 3px solid transparent; color: var(--text-color); }
         .blank.error { color: var(--error); border-color: var(--error); }
         
-        /* 直式計算 */
+        .choice-btn { padding: 10px 25px; font-size: 1.5rem; font-weight: bold; border-radius: 8px; border: 2px dashed #94A3B8; background: #fff; cursor: pointer; color: var(--text-color); margin: 0 10px; transition: 0.2s; }
+        .choice-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .choice-btn.error { border-color: var(--error); color: var(--error); background: #FEF2F2; animation: shake 0.3s; }
+
         .math-grid { display: grid; gap: 6px; font-family: 'Courier New', Courier, monospace; font-size: 2.2rem; justify-content: center; }
         .cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; font-weight: bold; position: relative; }
         .dot-marker { position: absolute; right: -6px; bottom: 2px; color: var(--text-color); font-weight: bold; font-size: 1.5rem; z-index: 10; pointer-events: none; }
@@ -86,20 +87,17 @@
         .input-cell.active { border-color: var(--accent); border-style: solid; background: #fff; box-shadow: 0 0 8px rgba(245, 158, 11, 0.3); transform: scale(1.05); z-index: 5; }
         .input-cell.error { border-color: var(--error); background: #FFF0F0; border-style: solid; color: var(--error); }
         .input-cell.filled { border: 2px solid transparent; background: transparent; color: var(--text-color); }
-        
         .math-line { border-bottom: 3px solid var(--text-color); grid-column: 1 / -1; margin: 2px 0; height: 0; }
         .div-line { border-bottom: 3px solid var(--text-color); grid-column: 2 / -1; margin: 2px 0; height: 0; }
         .sub-line { border-bottom: 2px dashed #94A3B8; grid-column: 2 / -1; margin: 2px 0; height: 0; }
         .paren { font-weight: lighter; transform: scaleY(1.5) translateY(-2px); }
         
-        /* 小數點安插 */
         .decimal-hint { color: var(--accent); font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; text-align: center; }
         .gap-container { display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-family: 'Courier New', monospace; font-weight: bold; }
         .gap-btn { width: 25px; height: 50px; background: rgba(245, 158, 11, 0.1); border: 2px dashed rgba(245, 158, 11, 0.3); cursor: pointer; border-radius: 8px; margin: 0 2px; transition: 0.2s;}
         .gap-btn:hover { background: var(--accent); border-style: solid; }
         .dot { color: var(--accent); margin: 0 5px; }
 
-        /* 面板與選單 */
         #controls-panel { flex: 1; min-width: 380px; max-width: 450px; }
         .controls-content { padding: 20px; overflow-y: auto; flex: 1; display: flex; flex-direction: column;}
         .menu-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 20px; }
@@ -112,11 +110,9 @@
         .timer-bar-container { width: 100%; height: 6px; background: #D1FAE5; border-radius: 3px; margin-bottom: 20px; overflow: hidden; }
         .timer-bar { height: 100%; background: var(--secondary-color); width: 100%; transition: width 1s linear; }
 
-        /* 全新 3x4 數字鍵盤樣式 */
         .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; max-width: 320px; margin-inline: auto; width: 100%; }
         .num-btn { background: #fff; border: 2px solid #E2E8F0; padding: 15px 0; border-radius: 12px; font-size: 1.5rem; cursor: pointer; font-weight: bold; color: var(--text-color); transition: 0.1s; box-shadow: 0 4px 0 #CBD5E1;}
         .num-btn:active { background: var(--bg-color); color: var(--primary-color); transform: translateY(4px); box-shadow: none; border-color: var(--primary-color);}
-        
         .num-btn.del-btn { background: #FEF2F2; color: var(--error); border-color: #FECACA;}
         .num-btn.del-btn:active { background: #FEE2E2; box-shadow: none; border-color: var(--error);}
 
@@ -156,12 +152,13 @@
 
         <div class="panel" id="controls-panel">
             <div class="controls-content">
-                <div class="menu-grid">
-                    <button class="menu-btn" id="btn-mode1" onclick="startGame('mode1')">1️⃣ 一、計算比率</button>
-                    <button class="menu-btn" id="btn-mode2" onclick="startGame('mode2')">2️⃣ 二、必背百分率</button>
-                    <button class="menu-btn" id="btn-mode3" onclick="startGame('mode3')">3️⃣ 三、小數轉換百分率</button>
-                    <button class="menu-btn" id="btn-mode4" onclick="startGame('mode4')">4️⃣ 四、分數轉換百分率</button>
-                    <button class="menu-btn" id="btn-mode5" onclick="startGame('mode5')">5️⃣ 五、百分率的應用</button>
+                <div class="menu-grid" style="grid-template-columns: 1fr 1fr;">
+                    <button class="menu-btn" id="btn-mode1" onclick="startGame('mode1')">1️⃣ 計算比率</button>
+                    <button class="menu-btn" id="btn-mode2" onclick="startGame('mode2')">2️⃣ 必背百分率</button>
+                    <button class="menu-btn" id="btn-mode3" onclick="startGame('mode3')">3️⃣ 小數轉百分率</button>
+                    <button class="menu-btn" id="btn-mode4" onclick="startGame('mode4')">4️⃣ 分數轉百分率</button>
+                    <button class="menu-btn" id="btn-mode5" onclick="startGame('mode5')">5️⃣ 百分率應用</button>
+                    <button class="menu-btn" id="btn-mode6" onclick="startGame('mode6')" style="background: linear-gradient(135deg, #F59E0B, #D97706); color: white; border-color: #D97706;">🔥 應用(Pro)</button>
                 </div>
 
                 <div class="step-container hidden" id="game-status">
@@ -288,16 +285,8 @@
             updateFocusUI();
         }
 
-        // ===== 輔助渲染與註冊 =====
-
         function createFractionHTML(idNum, ansNum, idDen, ansDen) {
-            return `
-                <div class="fraction">
-                    <span class="blank" id="${idNum}" data-ans="${ansNum}"></span>
-                    <div class="fraction-line"></div>
-                    <span class="blank" id="${idDen}" data-ans="${ansDen}"></span>
-                </div>
-            `;
+            return `<div class="fraction"><span class="blank" id="${idNum}" data-ans="${ansNum}"></span><div class="fraction-line"></div><span class="blank" id="${idDen}" data-ans="${ansDen}"></span></div>`;
         }
 
         function createBlankHTML(id, ans) { return `<span class="blank" id="${id}" data-ans="${ans}"></span>`; }
@@ -307,17 +296,16 @@
             state.logicalOrder.push(id);
         }
 
+        // ================= 直式運算引擎 =================
+
         function createVerticalGridHtml(n1Str, n2Str, stepPrefix) {
-            let n1_clean = n1Str.replace('.', '');
-            let n2_clean = n2Str.replace('.', '');
+            let n1_clean = n1Str.replace('.', ''); let n2_clean = n2Str.replace('.', '');
             let cols = Math.max(n1_clean.length, n2_clean.length + 1, (parseInt(n1_clean) * parseInt(n2_clean)).toString().length);
             let html = `<div class="math-grid" style="grid-template-columns: repeat(${cols}, 42px); margin: 20px auto;">`;
 
             function buildFactorRow(str, hasSymbol) {
-                let clean = str.replace('.', '');
-                let dotPos = str.includes('.') ? str.length - 1 - str.indexOf('.') : -1;
-                let rowHtml = '';
-                let empty = cols - clean.length - (hasSymbol ? 1 : 0);
+                let clean = str.replace('.', ''); let dotPos = str.includes('.') ? str.length - 1 - str.indexOf('.') : -1;
+                let rowHtml = ''; let empty = cols - clean.length - (hasSymbol ? 1 : 0);
                 for(let i=0; i<empty; i++) rowHtml += `<div class="cell"></div>`;
                 if(hasSymbol) rowHtml += `<div class="cell">×</div>`;
                 for(let i=0; i<clean.length; i++) {
@@ -328,9 +316,7 @@
                 return rowHtml;
             }
 
-            html += buildFactorRow(n1Str, false);
-            html += buildFactorRow(n2Str, true);
-            html += `<div class="math-line"></div>`;
+            html += buildFactorRow(n1Str, false); html += buildFactorRow(n2Str, true); html += `<div class="math-line"></div>`;
 
             let p_rows = [];
             for (let i = n2_clean.length - 1; i >= 0; i--) {
@@ -340,13 +326,9 @@
                 p_rows.push({ prod: prod, shift: n2_clean.length - 1 - i });
             }
 
-            let inputIds = [];
-            let totalInputs = 0;
-
+            let inputIds = []; let totalInputs = 0;
             function buildInputRow(answerStr, shift, prefixId) {
-                let rowHtml = '';
-                let empty = cols - answerStr.length - shift;
-                let tempIds = [];
+                let rowHtml = ''; let empty = cols - answerStr.length - shift; let tempIds = [];
                 for(let i=0; i<empty; i++) rowHtml += `<div class="cell"></div>`;
                 for(let i=0; i<answerStr.length; i++) {
                     let id = `${prefixId}_v_${totalInputs++}`;
@@ -354,7 +336,6 @@
                     tempIds.push({id: id, ans: answerStr[i]});
                 }
                 for(let i=0; i<shift; i++) rowHtml += `<div class="cell"></div>`;
-
                 for (let i = tempIds.length - 1; i >= 0; i--) inputIds.push(tempIds[i]);
                 return rowHtml;
             }
@@ -371,59 +352,34 @@
             return { html, inputIds, finalProd, n1Str, n2Str };
         }
 
-        // 全新直式除法生成器
         function createVerticalDivHtml(dividend, divisor, stepPrefix) {
-            let Q_val = dividend / divisor;
-            let Q_str = Q_val.toString();
+            let Q_val = dividend / divisor; let Q_str = Q_val.toString();
             if (!Q_str.includes('.')) Q_str += '.0'; 
 
             let q_dec_len = Q_str.includes('.') ? Q_str.split('.')[1].length : 0;
             let D_str = dividend.toString();
-            if (q_dec_len > 0) {
-                D_str += '.';
-                D_str += '0'.repeat(q_dec_len);
-            }
+            if (q_dec_len > 0) { D_str += '.'; D_str += '0'.repeat(q_dec_len); }
 
-            let D_clean = D_str.replace('.', '');
-            let Q_clean = Q_str.replace('.', '');
+            let D_clean = D_str.replace('.', ''); let Q_clean = Q_str.replace('.', '');
             let cols = 2 + D_str.length;
             let html = `<div class="math-grid" style="grid-template-columns: repeat(${cols}, 42px); margin: 20px auto;">`;
 
-            let col_map = [];
-            let d_col = 2;
-            for (let i = 0; i < D_str.length; i++) {
-                if (D_str[i] !== '.') col_map.push(d_col);
-                d_col++;
-            }
+            let col_map = []; let d_col = 2;
+            for (let i = 0; i < D_str.length; i++) { if (D_str[i] !== '.') col_map.push(d_col); d_col++; }
 
             let offset = D_clean.length - Q_clean.length;
             let current_rem = parseInt(D_clean.substring(0, offset + 1));
-            let steps_data = [];
-            let inputIds = [];
-            let totalInputs = 0;
+            let steps_data = []; let totalInputs = 0;
 
             for (let i = 0; i < Q_clean.length; i++) {
-                let q_digit = parseInt(Q_clean[i]);
-                let pp = q_digit * divisor;
-                let end_idx = offset + i;
-
-                let step = {
-                    q_idx: i, q_char: Q_clean[i],
-                    pp_val: pp.toString(), pp_end: end_idx,
-                    rem_val: null, rem_end: null,
-                    q_id: null, pp_ids: [], rem_ids: []
-                };
-
+                let q_digit = parseInt(Q_clean[i]); let pp = q_digit * divisor; let end_idx = offset + i;
+                let step = { q_idx: i, q_char: Q_clean[i], pp_val: pp.toString(), pp_end: end_idx, rem_val: null, rem_end: null, q_id: null, pp_ids: [], rem_ids: [] };
                 current_rem -= pp;
-
                 if (i < Q_clean.length - 1) {
                     let next_digit = D_clean[offset + i + 1];
-                    step.rem_val = parseInt(current_rem.toString() + next_digit).toString();
-                    step.rem_end = end_idx + 1;
-                    current_rem = parseInt(step.rem_val);
+                    step.rem_val = parseInt(current_rem.toString() + next_digit).toString(); step.rem_end = end_idx + 1; current_rem = parseInt(step.rem_val);
                 } else {
-                    step.rem_val = current_rem.toString();
-                    step.rem_end = end_idx;
+                    step.rem_val = current_rem.toString(); step.rem_end = end_idx;
                 }
                 steps_data.push(step);
             }
@@ -432,23 +388,16 @@
             let q_dec_idx = Q_str.indexOf('.'); if (q_dec_idx === -1) q_dec_idx = Q_str.length;
             let q_start_col = 2 + (d_dec_idx - q_dec_idx);
 
-            let q_col_map = [];
-            let q_col_iter = q_start_col;
-            for (let i = 0; i < Q_str.length; i++) {
-                if (Q_str[i] !== '.') q_col_map.push(q_col_iter);
-                q_col_iter++;
-            }
+            let q_col_map = []; let q_col_iter = q_start_col;
+            for (let i = 0; i < Q_str.length; i++) { if (Q_str[i] !== '.') q_col_map.push(q_col_iter); q_col_iter++; }
 
             let q_row = Array(cols).fill(null);
             for(let i=0; i<Q_clean.length; i++) { q_row[q_col_map[i]] = { type: 'q', idx: i, char: Q_clean[i] }; }
             if (Q_str.includes('.')) q_row[q_start_col + Q_str.indexOf('.')] = { type: 'dot', char: '.' };
 
             function getCellHtml(content, isInput = false, id = null) {
-                let cls = 'cell';
-                if (isInput) cls += ' input-cell';
-                if (content === ')') cls += ' paren';
-                let idAttr = id ? ` id="${id}"` : '';
-                let dataAns = isInput ? ` data-ans="${content}"` : '';
+                let cls = 'cell'; if (isInput) cls += ' input-cell'; if (content === ')') cls += ' paren';
+                let idAttr = id ? ` id="${id}"` : ''; let dataAns = isInput ? ` data-ans="${content}"` : '';
                 if (content === '.') return `<div class="${cls}"><span class="dot-marker" style="right: 15px; bottom: 0;">.</span></div>`;
                 return `<div class="${cls}"${idAttr}${dataAns}>${isInput ? '' : content}</div>`;
             }
@@ -456,35 +405,21 @@
             q_row.forEach(item => {
                 if (!item) html += getCellHtml('');
                 else if (item.type === 'dot') html += getCellHtml('.');
-                else {
-                    let id = `${stepPrefix}_v_${totalInputs++}`;
-                    html += getCellHtml(item.char, true, id);
-                    steps_data[item.idx].q_id = { id: id, ans: item.char };
-                }
+                else { let id = `${stepPrefix}_v_${totalInputs++}`; html += getCellHtml(item.char, true, id); steps_data[item.idx].q_id = { id: id, ans: item.char }; }
             });
 
             html += `<div class="div-line"></div>`;
-
-            let d_row = Array(cols).fill('');
-            d_row[0] = divisor.toString(); d_row[1] = ')';
+            let d_row = Array(cols).fill(''); d_row[0] = divisor.toString(); d_row[1] = ')';
             for(let i=0; i<D_str.length; i++) d_row[2+i] = D_str[i];
             d_row.forEach(c => { html += getCellHtml(c); });
 
             function addSubRow(val_str, end_d_idx) {
-                let rowCells = Array(cols).fill(null);
-                let d_idx = end_d_idx;
-                for (let i = val_str.length - 1; i >= 0; i--) {
-                    rowCells[col_map[d_idx]] = val_str[i];
-                    d_idx--;
-                }
+                let rowCells = Array(cols).fill(null); let d_idx = end_d_idx;
+                for (let i = val_str.length - 1; i >= 0; i--) { rowCells[col_map[d_idx]] = val_str[i]; d_idx--; }
                 let ids = [];
                 rowCells.forEach(content => {
                     if (content === null) html += getCellHtml('');
-                    else {
-                        let id = `${stepPrefix}_v_${totalInputs++}`;
-                        html += getCellHtml(content, true, id);
-                        ids.push({ id: id, ans: content });
-                    }
+                    else { let id = `${stepPrefix}_v_${totalInputs++}`; html += getCellHtml(content, true, id); ids.push({ id: id, ans: content }); }
                 });
                 return ids;
             }
@@ -496,32 +431,30 @@
             });
 
             html += `</div>`;
-
             let order = [];
             steps_data.forEach(step => {
                 if (step.q_id) order.push(step.q_id);
-                let rev_pp = [...step.pp_ids].reverse();
-                rev_pp.forEach(item => order.push(item));
-                let rev_rem = [...step.rem_ids].reverse();
-                rev_rem.forEach(item => order.push(item));
+                let rev_pp = [...step.pp_ids].reverse(); rev_pp.forEach(item => order.push(item));
+                let rev_rem = [...step.rem_ids].reverse(); rev_rem.forEach(item => order.push(item));
             });
 
             return { html, inputIds: order };
         }
 
-        // ===== 題型生成邏輯 =====
+
+        // ================= 題庫生成 =================
 
         function generateProblem() {
-            const workspace = document.getElementById('workspace');
-            workspace.innerHTML = ''; 
-
+            const workspace = document.getElementById('workspace'); workspace.innerHTML = ''; 
             if (state.mode === 'mode1') buildMode1(workspace);
             else if (state.mode === 'mode2') buildMode2(workspace);
             else if (state.mode === 'mode3') buildMode3(workspace);
             else if (state.mode === 'mode4') buildMode4(workspace);
             else if (state.mode === 'mode5') buildMode5(workspace);
+            else if (state.mode === 'mode6') buildMode6(workspace);
         }
 
+        // Mode 1: 計算比率
         function buildMode1(container) {
             const problemTypes = [
                 () => { 
@@ -560,15 +493,12 @@
                 }
             ];
             let selected = problemTypes[Math.floor(Math.random() * problemTypes.length)]();
-
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="horizontal-problem">${selected.text}</div>
                     <div class="step-block">
                         <div class="step-label">解題步驟</div>
-                        <div class="equation-line">
-                            ${selected.label}占全部的比率是： ${createFractionHTML('m1_num', selected.ansNum, 'm1_den', selected.ansDen)}
-                        </div>
+                        <div class="equation-line">${selected.label}占全部的比率是： ${createFractionHTML('m1_num', selected.ansNum, 'm1_den', selected.ansDen)}</div>
                     </div>
                 </div>
             `;
@@ -577,13 +507,10 @@
 
         function buildMode2(container) {
             const pool = [
-                {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75},
-                {n: 1, d: 5, a: 20}, {n: 2, d: 5, a: 40}, {n: 3, d: 5, a: 60}, {n: 4, d: 5, a: 80},
-                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30},
-                {n: 1, d: 8, a: 12.5}, {n: 3, d: 8, a: 37.5}, {n: 5, d: 8, a: 62.5}, {n: 7, d: 8, a: 87.5}
+                {n: 1, d: 2, a: 50}, {n: 1, d: 4, a: 25}, {n: 3, d: 4, a: 75}, {n: 1, d: 5, a: 20}, {n: 2, d: 5, a: 40}, {n: 3, d: 5, a: 60}, {n: 4, d: 5, a: 80},
+                {n: 1, d: 10, a: 10}, {n: 3, d: 10, a: 30}, {n: 1, d: 8, a: 12.5}, {n: 3, d: 8, a: 37.5}, {n: 5, d: 8, a: 62.5}, {n: 7, d: 8, a: 87.5}
             ];
             let q = pool[Math.floor(Math.random() * pool.length)];
-
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
@@ -599,31 +526,16 @@
         }
 
         function buildMode3(container) {
-            let decType = Math.floor(Math.random() * 3); 
-            let raw, decStr, finalAns;
-
-            if (decType === 0) {
-                raw = Math.floor(Math.random() * 99) + 1;
-                decStr = (raw / 100).toString();
-                if (raw < 10) decStr = "0.0" + raw;
-                finalAns = raw;
-            } else if (decType === 1) {
-                raw = Math.floor(Math.random() * 899) + 100;
-                decStr = "0." + raw;
-                finalAns = raw / 10;
-            } else {
-                raw = Math.floor(Math.random() * 8999) + 1000;
-                decStr = "0." + raw;
-                finalAns = raw / 100;
-            }
+            let decType = Math.floor(Math.random() * 3); let raw, decStr, finalAns;
+            if (decType === 0) { raw = Math.floor(Math.random() * 99) + 1; decStr = (raw / 100).toString(); if (raw < 10) decStr = "0.0" + raw; finalAns = raw; } 
+            else if (decType === 1) { raw = Math.floor(Math.random() * 899) + 100; decStr = "0." + raw; finalAns = raw / 10; } 
+            else { raw = Math.floor(Math.random() * 8999) + 1000; decStr = "0." + raw; finalAns = raw / 100; }
 
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
                     <div class="step-block">
                         <div class="step-label">小數換成百分率 </div>
-                        <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">
-                            ${decStr} = ${createBlankHTML('m3_ans', finalAns)} <span class="static-symbol">%</span>
-                        </div>
+                        <div class="equation-line" style="font-size: 2.5rem; margin-top: 20px;">${decStr} = ${createBlankHTML('m3_ans', finalAns)} <span class="static-symbol">%</span></div>
                     </div>
                 </div>
             `;
@@ -632,17 +544,9 @@
 
         function buildMode4(container) {
             const dens = [20, 25, 50, 400, 1000, 2000];
-            let den = dens[Math.floor(Math.random() * dens.length)];
-            let num, finalAns;
-
-            if (den <= 50) {
-                num = Math.floor(Math.random() * (den - 1)) + 1;
-                finalAns = num * (100 / den);
-            } else {
-                num = Math.floor(Math.random() * 150) + 11; 
-                finalAns = (num * (100 / den));
-                finalAns = parseFloat(finalAns.toFixed(2)); 
-            }
+            let den = dens[Math.floor(Math.random() * dens.length)]; let num, finalAns;
+            if (den <= 50) { num = Math.floor(Math.random() * (den - 1)) + 1; finalAns = num * (100 / den); } 
+            else { num = Math.floor(Math.random() * 150) + 11; finalAns = (num * (100 / den)); finalAns = parseFloat(finalAns.toFixed(2)); }
 
             container.innerHTML = `
                 <div class="step-obj" data-step="1">
@@ -665,10 +569,8 @@
 
             if (type === 0) { 
                 let price = (Math.floor(Math.random() * 15) + 10) * 100;
-                let discountOptions = [7, 8, 9, 75, 85];
-                let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
-                let percentage = discount < 10 ? discount * 10 : discount; 
-                n1 = price; n2_str = discount < 10 ? `0.${discount}` : `0.${discount}`;
+                let discountOptions = [7, 8, 9, 75, 85]; let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
+                let percentage = discount < 10 ? discount * 10 : discount; n1 = price; n2_str = discount < 10 ? `0.${discount}` : `0.${discount}`;
 
                 step1_html = `
                     <div class="horizontal-problem">一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售。<br>請問打折後的售價是多少元？</div>
@@ -836,14 +738,12 @@
                 registerBlank('m5_d1', p, 'blank', 1);
             }
 
-            // 一般直式乘法渲染
             if (useVerticalGrid && !isDiv) {
                 let vMath = createVerticalGridHtml(n1.toString(), n2_str, 'm5');
                 decCount = n2_str.includes('.') ? n2_str.split('.')[1].length : 0;
                 finalAns = Math.round(n1 * parseFloat(n2_str)); 
 
-                container.innerHTML = `
-                    <div class="step-obj" data-step="1">${step1_html}</div>
+                container.innerHTML += `
                     <div class="step-obj hidden" data-step="2">
                         <div class="step-block">
                             <div class="step-label">第二步：直式計算</div>
@@ -858,14 +758,110 @@
                         </div>
                     </div>
                 `;
-
                 vMath.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 2); });
                 if (decCount > 0) state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}_2`);
                 else state.logicalOrder.push(`SHOW_FINAL_${finalAns}_2`);
             }
         }
 
-        // ===== 核心互動邏輯與焦點切換 =====
+        // ================= 第六模式：百分率應用 (Pro) =================
+        function buildMode6(container) {
+            let type = Math.floor(Math.random() * 3); // 3 種進階 Pro 題型
+
+            if (type === 0) {
+                // 1. 大魔王：加成再打折 (三段解鎖)
+                let cost = (Math.floor(Math.random() * 5) + 5) * 100; // 500 ~ 900
+                let markup = 2; // 加 2 成 (1.2)
+                let discount = 8; // 打 8 折 (0.8)
+                let listPrice = cost * 1.2;
+                let sellPrice = listPrice * 0.8;
+                let diff = cost - sellPrice; 
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">
+                            【魔王挑戰】模型玩具成本 ${cost} 元，老闆加 ${markup} 成作為定價，後來賣不出去，只好再打 ${discount} 折出售。<br>請問最後售價是多少？老闆是賺還是賠？
+                        </div>
+                        <div class="step-block">
+                            <div class="step-label">第一關：算定價</div>
+                            <div class="equation-line" style="font-size: 1.6rem;">
+                                ${cost} × ${createBlankHTML('m6_d1', 1)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', markup)} = ${createBlankHTML('m6_p1', listPrice)} 元
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-obj hidden" data-step="2">
+                        <div class="step-block">
+                            <div class="step-label">第二關：算售價</div>
+                            <div class="equation-line" style="font-size: 1.6rem;">
+                                ${createBlankHTML('m6_p2', listPrice)} × ${createBlankHTML('m6_d3', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d4', discount)} = ${createBlankHTML('m6_p3', sellPrice)} 元
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-obj hidden" data-step="3">
+                        <div class="step-block">
+                            <div class="step-label">第三關：結論</div>
+                            <div class="equation-line" style="font-size: 1.6rem;">
+                                老闆 
+                                <button id="btn-earn" class="choice-btn" onclick="selectProfitLoss('earn')">賺</button> 
+                                <button id="btn-loss" class="choice-btn" onclick="selectProfitLoss('loss')">賠</button> 
+                                了 ${createBlankHTML('m6_ans', diff)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', 1, 'blank', 1); registerBlank('m6_d2', markup, 'blank', 1); registerBlank('m6_p1', listPrice, 'blank', 1);
+                registerBlank('m6_p2', listPrice, 'blank', 2); registerBlank('m6_d3', 0, 'blank', 2); registerBlank('m6_d4', discount, 'blank', 2); registerBlank('m6_p3', sellPrice, 'blank', 2);
+                
+                state.logicalOrder.push('PROFIT_LOSS_CHECK_3'); 
+                registerBlank('m6_ans', diff, 'blank', 3);
+
+            } else if (type === 1) {
+                // 2. 逆向求原價 (直接列式)
+                let price = (Math.floor(Math.random() * 10) + 10) * 100; // 1000 ~ 1900
+                let offP = 25; let sellP = 100 - offP; let discountDec = sellP / 100;
+                let sellPrice = price * discountDec;
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">
+                            一雙限量球鞋現在特價 ${offP}% off，折扣後的售價是 ${sellPrice} 元。<br>請問這雙球鞋的<span style="color: var(--error);">原價</span>是多少元？
+                        </div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：售價 ÷ 折數 = 原價</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${sellPrice} ÷ ${createBlankHTML('m6_d1', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', sellP)} = ${createBlankHTML('m6_ans', price)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', 0, 'blank', 1); registerBlank('m6_d2', sellP, 'blank', 1); registerBlank('m6_ans', price, 'blank', 1);
+
+            } else {
+                // 3. 直接綜合應用 (無翻譯鷹架)
+                let total = (Math.floor(Math.random() * 10) + 15) * 100; // 1500~2400
+                let p1 = Math.floor(Math.random() * 10) + 20; let p2 = Math.floor(Math.random() * 10) + 40;
+                let combined = p1 + p2; let ans = total * combined / 100; 
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">
+                            鎮上有 ${total} 人，其中男生占 ${p1}%，女生占 ${p2}%。<br>請問鎮上的男女生共有多少人？
+                        </div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：請自行在腦中合併比率！</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${total} × ${createBlankHTML('m6_d1', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', combined)} = ${createBlankHTML('m6_ans', ans)} 人
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', 0, 'blank', 1); registerBlank('m6_d2', combined, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            }
+        }
+
+        // ================= 核心互動邏輯與焦點切換 =================
 
         function updateStepVisibility(currentStep) {
             document.querySelectorAll('.step-obj').forEach(el => {
@@ -881,7 +877,7 @@
             
             if (currentId) {
                 let currentStep = 1;
-                if (currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) {
+                if (currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_') || currentId.startsWith('PROFIT_LOSS_CHECK_')) {
                     let parts = currentId.split('_'); currentStep = parseInt(parts[parts.length - 1]);
                 } else {
                     currentStep = state.blanksData[currentId].step || 1;
@@ -898,6 +894,14 @@
                     playSound('success'); state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
                     setTimeout(nextQuestion, 1500);
                 } 
+                else if (currentId.startsWith('PROFIT_LOSS_CHECK_')) {
+                    // 等待使用者點擊按鈕，給予稍微提示的視覺效果
+                    document.getElementById('btn-earn').style.borderColor = "var(--accent)";
+                    document.getElementById('btn-loss').style.borderColor = "var(--accent)";
+                    setTimeout(() => { 
+                        try { document.getElementById('btn-earn').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
+                    }, 100);
+                }
                 else {
                     let el = document.getElementById(currentId);
                     if (el) {
@@ -915,17 +919,14 @@
 
         window.inputDigit = function(num) {
             let currentId = state.logicalOrder[state.focusIndex];
-            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) return; 
+            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_') || currentId.startsWith('PROFIT_LOSS_CHECK_')) return; 
 
-            let targetData = state.blanksData[currentId];
-            let targetAns = targetData.ans;
-            let el = document.getElementById(currentId);
+            let targetData = state.blanksData[currentId]; let targetAns = targetData.ans; let el = document.getElementById(currentId);
             if (!el) return;
 
             if (targetData.type === 'cell') {
                 if (num.toString() === targetAns) {
-                    playSound('move'); el.innerText = num;
-                    el.classList.remove('error', 'active'); el.classList.add('filled');
+                    playSound('move'); el.innerText = num; el.classList.remove('error', 'active'); el.classList.add('filled');
                     state.focusIndex++; updateFocusUI();
                 } else {
                     playSound('wrong'); el.classList.add('error'); el.innerText = num;
@@ -948,9 +949,8 @@
 
         window.inputDelete = function() {
             let currentId = state.logicalOrder[state.focusIndex];
-            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_')) return; 
-            let targetData = state.blanksData[currentId];
-            let el = document.getElementById(currentId);
+            if (!currentId || currentId.startsWith('DECIMAL_') || currentId.startsWith('SHOW_FINAL_') || currentId.startsWith('PROFIT_LOSS_CHECK_')) return; 
+            let targetData = state.blanksData[currentId]; let el = document.getElementById(currentId);
             
             if (targetData.type === 'blank' && state.currentInputStr.length > 0) {
                 playSound('type'); state.currentInputStr = state.currentInputStr.slice(0, -1);
@@ -958,10 +958,28 @@
             }
         }
 
-        function startDecimalPhase(commandId) {
-            playSound('correct'); 
-            document.getElementById('m5_step2_decimal').classList.remove('hidden');
+        // 專為 Pro 模式：賺賠選擇的按鈕邏輯
+        window.selectProfitLoss = function(choice) {
+            let currentId = state.logicalOrder[state.focusIndex];
+            if (!currentId || !currentId.startsWith('PROFIT_LOSS_CHECK_')) return;
 
+            // 因為加 2 成 (1.2) 再打 8 折 (0.8)，1.2 * 0.8 = 0.96，永遠是賠錢的
+            if (choice === 'loss') { 
+                playSound('success');
+                let btnL = document.getElementById('btn-loss');
+                btnL.style.background = 'var(--accent)'; btnL.style.color = 'white'; btnL.style.borderColor = 'var(--accent)';
+                document.getElementById('btn-earn').style.display = 'none'; // 隱藏錯誤選項
+                state.focusIndex++; updateFocusUI();
+            } else {
+                playSound('wrong');
+                let btnE = document.getElementById('btn-earn');
+                btnE.classList.add('error');
+                setTimeout(() => btnE.classList.remove('error'), 400);
+            }
+        }
+
+        function startDecimalPhase(commandId) {
+            playSound('correct'); document.getElementById('m5_step2_decimal').classList.remove('hidden');
             let parts = commandId.split('_'); let digits = parts[1].split('');
             let decCount = parseInt(parts[2]); let targetIndex = digits.length - decCount; let finalAns = parts[3];
 
@@ -973,17 +991,13 @@
                     let span = document.createElement('span'); span.innerText = digits[i]; gapArea.appendChild(span);
                 }
             }
-            setTimeout(() => { 
-                try { document.getElementById('m5_step2_decimal').scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-                catch (e) { document.getElementById('m5_step2_decimal').scrollIntoView(); }
-            }, 100);
+            setTimeout(() => { try { document.getElementById('m5_step2_decimal').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }, 100);
         }
 
         function checkDecimal(index, targetIndex, finalAns) {
             const gapBtns = document.getElementById('m5_gap_area').querySelectorAll('.gap-btn');
             if (index === targetIndex) {
-                playSound('success');
-                let dot = document.createElement('span'); dot.className = 'dot'; dot.innerText = '.';
+                playSound('success'); let dot = document.createElement('span'); dot.className = 'dot'; dot.innerText = '.';
                 gapBtns[index].replaceWith(dot); gapBtns.forEach(b => b.style.visibility = 'hidden');
                 document.getElementById('m5_step2_final').innerText = `所以答案是 ${finalAns} 元！`; document.getElementById('m5_step2_final').classList.remove('hidden');
                 state.score += 10; document.getElementById('stat-score').innerText = `分數：${state.score}`;
@@ -995,10 +1009,8 @@
         }
 
         function endGame() {
-            clearInterval(state.timerInterval);
-            document.getElementById('workspace').classList.add('hidden');
-            document.getElementById('end-screen').classList.remove('hidden');
-            document.getElementById('final-score').innerText = state.score;
+            clearInterval(state.timerInterval); document.getElementById('workspace').classList.add('hidden');
+            document.getElementById('end-screen').classList.remove('hidden'); document.getElementById('final-score').innerText = state.score;
         }
     </script>
 </body>
