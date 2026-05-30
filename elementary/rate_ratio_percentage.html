@@ -444,17 +444,6 @@
 
         // ================= 題庫生成 =================
 
-        function generateProblem() {
-            const workspace = document.getElementById('workspace'); workspace.innerHTML = ''; 
-            if (state.mode === 'mode1') buildMode1(workspace);
-            else if (state.mode === 'mode2') buildMode2(workspace);
-            else if (state.mode === 'mode3') buildMode3(workspace);
-            else if (state.mode === 'mode4') buildMode4(workspace);
-            else if (state.mode === 'mode5') buildMode5(workspace);
-            else if (state.mode === 'mode6') buildMode6(workspace);
-        }
-
-        // Mode 1: 計算比率
         function buildMode1(container) {
             const problemTypes = [
                 () => { 
@@ -743,7 +732,8 @@
                 decCount = n2_str.includes('.') ? n2_str.split('.')[1].length : 0;
                 finalAns = Math.round(n1 * parseFloat(n2_str)); 
 
-                container.innerHTML += `
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">${step1_html}</div>
                     <div class="step-obj hidden" data-step="2">
                         <div class="step-block">
                             <div class="step-label">第二步：直式計算</div>
@@ -758,6 +748,7 @@
                         </div>
                     </div>
                 `;
+
                 vMath.inputIds.forEach(item => { registerBlank(item.id, item.ans, 'cell', 2); });
                 if (decCount > 0) state.logicalOrder.push(`DECIMAL_${vMath.finalProd}_${decCount}_${finalAns}_2`);
                 else state.logicalOrder.push(`SHOW_FINAL_${finalAns}_2`);
@@ -766,16 +757,195 @@
 
         // ================= 第六模式：百分率應用 (Pro) =================
         function buildMode6(container) {
-            let type = Math.floor(Math.random() * 3); // 3 種進階 Pro 題型
+            let type = Math.floor(Math.random() * 12); // 12 種無鷹架挑戰
 
-            if (type === 0) {
-                // 1. 大魔王：加成再打折 (三段解鎖)
-                let cost = (Math.floor(Math.random() * 5) + 5) * 100; // 500 ~ 900
-                let markup = 2; // 加 2 成 (1.2)
-                let discount = 8; // 打 8 折 (0.8)
-                let listPrice = cost * 1.2;
-                let sellPrice = listPrice * 0.8;
-                let diff = cost - sellPrice; 
+            if (type === 0) { 
+                let price = (Math.floor(Math.random() * 15) + 10) * 100;
+                let discountOptions = [7, 8, 9, 75, 85]; let discount = discountOptions[Math.floor(Math.random() * discountOptions.length)];
+                let percentage = discount < 10 ? discount * 10 : discount; 
+                let decStr = (percentage / 100).toString(); let ans = Math.round(price * parseFloat(decStr));
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一件外套定價 ${price} 元，現在全館<span style="color: var(--error);">打 ${discount} 折</span>出售。<br>請問打折後的售價是多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${price} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 1) { 
+                let price = (Math.floor(Math.random() * 15) + 10) * 100;
+                let offOptions = [10, 20, 25, 30]; let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let percentage = 100 - off; let decStr = (percentage / 100).toString(); let ans = Math.round(price * parseFloat(decStr));
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一雙球鞋定價 ${price} 元，現在特價<span style="color: var(--error);">${off}% off</span>。<br>請問特價後的售價是多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：請先在腦中計算實際支付的百分率！</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${price} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 2) { 
+                let costOptions = [500, 800, 1200, 2000]; let cost = costOptions[Math.floor(Math.random() * costOptions.length)];
+                let markup = Math.floor(Math.random() * 5) + 1; let decStr = (1 + markup / 10).toString(); let ans = Math.round(cost * parseFloat(decStr)); 
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一雙球鞋的成本是 ${cost} 元，老闆<span style="color: var(--error);">加 ${markup} 成</span>作為定價。<br>請問這雙球鞋的定價是多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${cost} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 3) {
+                let amount = Math.floor(Math.random() * 5 + 3) * 100; let off = Math.floor(Math.random() * 30 + 15);
+                let decStr = ((100 - off) / 100).toString(); let ans = Math.round(amount * parseFloat(decStr));
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一杯水原本有 ${amount} 毫升，在太陽下<span style="color: var(--error);">蒸發掉 ${off}%</span> 後，<br>請問杯內還剩下多少毫升的水？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${amount} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 毫升
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 4) {
+                let price = (Math.floor(Math.random() * 50) + 10) * 10; let offOptions = [10, 15, 20, 25]; let off = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let decStr = (off / 100).toString(); let ans = Math.round(price * parseFloat(decStr));
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一支手錶原價 ${price} 元，會員享有 <span style="color: var(--error);">${off}% off</span> 優惠。<br>請問媽媽以會員價購入，可以比原價「便宜」多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${price} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 5) {
+                let cost = Math.floor(Math.random() * 3 + 1) * 1000; let markup = Math.floor(Math.random() * 3) + 2; 
+                let decStr = (1 + markup / 10).toString(); let ans = Math.round(cost * parseFloat(decStr));
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一張電腦桌成本為 ${cost} 元，如果利潤是成本的<span style="color: var(--error);"> ${markup} 成</span>。<br>請問一張電腦桌要賣多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${cost} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 6) {
+                let total = (Math.floor(Math.random() * 15) + 15) * 100; let p1 = Math.floor(Math.random() * 15) + 20; let p2 = Math.floor(Math.random() * 15) + 35;
+                let decStr = ((p1 + p2) / 100).toString(); let ans = Math.round(total * parseFloat(decStr));
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">幸福村有 ${total} 名村民，其中農夫的比率是 ${p1}%，勞工的比率是 ${p2}%。<br>請問幸福村的農夫和勞工共有多少人？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：請先在腦中合併比率！</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${total} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 人
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 7) {
+                let price = (Math.floor(Math.random() * 25) + 15) * 20; let offOptions = [10, 15, 20, 25]; let offP = offOptions[Math.floor(Math.random() * offOptions.length)];
+                let cheap = price * offP / 100; let sellP = 100 - offP; let decStr = (offP / 100).toString();
+                let discountAns = (sellP % 10 === 0) ? (sellP / 10).toString() : sellP.toString();
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">一件衣服原價 ${price} 元，打完折後便宜了 ${cheap} 元。<br>請問這件衣服是<span style="color: var(--error);">打幾折</span>？</div>
+                        <div class="step-block">
+                            <div class="step-label">第一步：列出除法求比值</div>
+                            <div class="equation-line" style="font-size: 1.6rem;">
+                                ${cheap} ÷ ${price} = ${createBlankHTML('m6_p1', decStr)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-obj hidden" data-step="2">
+                        <div class="step-block">
+                            <div class="step-label">第二步：換算成折數</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：便宜的比例換算成售價比例，再寫成折數</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                這件衣服是打 ${createBlankHTML('m6_ans', discountAns)} 折
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_p1', decStr, 'blank', 1); registerBlank('m6_ans', discountAns, 'blank', 2);
+            } else if (type === 8) {
+                let salary = (Math.floor(Math.random() * 20) + 25) * 1000; let rentP_options = [10, 20, 25, 30]; let rentP = rentP_options[Math.floor(Math.random() * rentP_options.length)];
+                let rent = salary * rentP / 100; let decStr = (rentP / 100).toString(); let ratioAns = (rentP / 10).toString();
+
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">小玫的月薪是 ${salary} 元，每月的房租是 ${rent} 元。<br>請問每月房租占薪水的<span style="color: var(--error);">幾成</span>？</div>
+                        <div class="step-block">
+                            <div class="step-label">第一步：列出除法求比值</div>
+                            <div class="equation-line" style="font-size: 1.6rem;">
+                                ${rent} ÷ ${salary} = ${createBlankHTML('m6_p1', decStr)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-obj hidden" data-step="2">
+                        <div class="step-block">
+                            <div class="step-label">第二步：換算成幾成</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                每月房租占薪水的 ${createBlankHTML('m6_ans', ratioAns)} 成
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_p1', decStr, 'blank', 1); registerBlank('m6_ans', ratioAns, 'blank', 2);
+            } else if (type === 9) {
+                let n1 = Math.floor(Math.random() * 10 + 10) * 100 + 50; let p = Math.floor(Math.random() * 15) + 85; 
+                let decStr = (p / 100).toString(); let ans = Math.round(n1 * parseFloat(decStr));
+                
+                container.innerHTML = `
+                    <div class="step-obj" data-step="1">
+                        <div class="horizontal-problem">小綠家 7~8 月的電費是 ${n1} 元，9~10 月電費是 7~8 月電費的 <span style="color: var(--error);">${p}%</span>。<br>請問 9~10 月的電費是多少元？</div>
+                        <div class="step-block">
+                            <div class="step-label">直接列式挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
+                                ${n1} × ${createBlankHTML('m6_d1', decStr)} = ${createBlankHTML('m6_ans', ans)} 元
+                            </div>
+                        </div>
+                    </div>
+                `;
+                registerBlank('m6_d1', decStr, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+            } else if (type === 10) {
+                // 大魔王：加成再打折
+                let cost = (Math.floor(Math.random() * 5) + 5) * 100; let markup = 2; let discount = 8;
+                let listPrice = cost * 1.2; let sellPrice = listPrice * 0.8; let diff = cost - sellPrice; 
 
                 container.innerHTML = `
                     <div class="step-obj" data-step="1">
@@ -785,7 +955,7 @@
                         <div class="step-block">
                             <div class="step-label">第一關：算定價</div>
                             <div class="equation-line" style="font-size: 1.6rem;">
-                                ${cost} × ${createBlankHTML('m6_d1', 1)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', markup)} = ${createBlankHTML('m6_p1', listPrice)} 元
+                                ${cost} × ${createBlankHTML('m6_d1', "1.2")} = ${createBlankHTML('m6_p1', listPrice)} 元
                             </div>
                         </div>
                     </div>
@@ -793,7 +963,7 @@
                         <div class="step-block">
                             <div class="step-label">第二關：算售價</div>
                             <div class="equation-line" style="font-size: 1.6rem;">
-                                ${createBlankHTML('m6_p2', listPrice)} × ${createBlankHTML('m6_d3', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d4', discount)} = ${createBlankHTML('m6_p3', sellPrice)} 元
+                                ${createBlankHTML('m6_p2', listPrice)} × ${createBlankHTML('m6_d2', "0.8")} = ${createBlankHTML('m6_p3', sellPrice)} 元
                             </div>
                         </div>
                     </div>
@@ -809,17 +979,14 @@
                         </div>
                     </div>
                 `;
-                registerBlank('m6_d1', 1, 'blank', 1); registerBlank('m6_d2', markup, 'blank', 1); registerBlank('m6_p1', listPrice, 'blank', 1);
-                registerBlank('m6_p2', listPrice, 'blank', 2); registerBlank('m6_d3', 0, 'blank', 2); registerBlank('m6_d4', discount, 'blank', 2); registerBlank('m6_p3', sellPrice, 'blank', 2);
-                
+                registerBlank('m6_d1', "1.2", 'blank', 1); registerBlank('m6_p1', listPrice, 'blank', 1);
+                registerBlank('m6_p2', listPrice, 'blank', 2); registerBlank('m6_d2', "0.8", 'blank', 2); registerBlank('m6_p3', sellPrice, 'blank', 2);
                 state.logicalOrder.push('PROFIT_LOSS_CHECK_3'); 
                 registerBlank('m6_ans', diff, 'blank', 3);
-
-            } else if (type === 1) {
-                // 2. 逆向求原價 (直接列式)
-                let price = (Math.floor(Math.random() * 10) + 10) * 100; // 1000 ~ 1900
-                let offP = 25; let sellP = 100 - offP; let discountDec = sellP / 100;
-                let sellPrice = price * discountDec;
+            } else if (type === 11) {
+                // 逆向求原價
+                let original = (Math.floor(Math.random() * 10) + 10) * 100; let offP = 25; let sellP = 100 - offP; let discountDec = (sellP / 100).toString();
+                let sellPrice = original * (sellP / 100);
 
                 container.innerHTML = `
                     <div class="step-obj" data-step="1">
@@ -827,37 +994,15 @@
                             一雙限量球鞋現在特價 ${offP}% off，折扣後的售價是 ${sellPrice} 元。<br>請問這雙球鞋的<span style="color: var(--error);">原價</span>是多少元？
                         </div>
                         <div class="step-block">
-                            <div class="step-label">直接列式挑戰</div>
-                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：售價 ÷ 折數 = 原價</div>
+                            <div class="step-label">逆向推導挑戰</div>
+                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：售價 ÷ 折扣比值 = 原價</div>
                             <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
-                                ${sellPrice} ÷ ${createBlankHTML('m6_d1', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', sellP)} = ${createBlankHTML('m6_ans', price)} 元
+                                ${sellPrice} ÷ ${createBlankHTML('m6_d1', discountDec)} = ${createBlankHTML('m6_ans', original)} 元
                             </div>
                         </div>
                     </div>
                 `;
-                registerBlank('m6_d1', 0, 'blank', 1); registerBlank('m6_d2', sellP, 'blank', 1); registerBlank('m6_ans', price, 'blank', 1);
-
-            } else {
-                // 3. 直接綜合應用 (無翻譯鷹架)
-                let total = (Math.floor(Math.random() * 10) + 15) * 100; // 1500~2400
-                let p1 = Math.floor(Math.random() * 10) + 20; let p2 = Math.floor(Math.random() * 10) + 40;
-                let combined = p1 + p2; let ans = total * combined / 100; 
-
-                container.innerHTML = `
-                    <div class="step-obj" data-step="1">
-                        <div class="horizontal-problem">
-                            鎮上有 ${total} 人，其中男生占 ${p1}%，女生占 ${p2}%。<br>請問鎮上的男女生共有多少人？
-                        </div>
-                        <div class="step-block">
-                            <div class="step-label">直接列式挑戰</div>
-                            <div class="equation-line" style="font-size: 1.6rem; color:#64748B;">提示：請自行在腦中合併比率！</div>
-                            <div class="equation-line" style="font-size: 1.6rem; margin-top:15px;">
-                                ${total} × ${createBlankHTML('m6_d1', 0)}<span class="static-symbol" style="margin:0;">.</span>${createBlankHTML('m6_d2', combined)} = ${createBlankHTML('m6_ans', ans)} 人
-                            </div>
-                        </div>
-                    </div>
-                `;
-                registerBlank('m6_d1', 0, 'blank', 1); registerBlank('m6_d2', combined, 'blank', 1); registerBlank('m6_ans', ans, 'blank', 1);
+                registerBlank('m6_d1', discountDec, 'blank', 1); registerBlank('m6_ans', original, 'blank', 1);
             }
         }
 
@@ -895,20 +1040,15 @@
                     setTimeout(nextQuestion, 1500);
                 } 
                 else if (currentId.startsWith('PROFIT_LOSS_CHECK_')) {
-                    // 等待使用者點擊按鈕，給予稍微提示的視覺效果
                     document.getElementById('btn-earn').style.borderColor = "var(--accent)";
                     document.getElementById('btn-loss').style.borderColor = "var(--accent)";
-                    setTimeout(() => { 
-                        try { document.getElementById('btn-earn').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {}
-                    }, 100);
+                    setTimeout(() => { try { document.getElementById('btn-earn').scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) {} }, 100);
                 }
                 else {
                     let el = document.getElementById(currentId);
                     if (el) {
                         el.classList.add('active');
-                        setTimeout(() => { 
-                            try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { el.scrollIntoView(); }
-                        }, 100);
+                        setTimeout(() => { try { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { el.scrollIntoView(); } }, 100);
                     }
                 }
             } else {
@@ -958,23 +1098,18 @@
             }
         }
 
-        // 專為 Pro 模式：賺賠選擇的按鈕邏輯
         window.selectProfitLoss = function(choice) {
             let currentId = state.logicalOrder[state.focusIndex];
             if (!currentId || !currentId.startsWith('PROFIT_LOSS_CHECK_')) return;
 
-            // 因為加 2 成 (1.2) 再打 8 折 (0.8)，1.2 * 0.8 = 0.96，永遠是賠錢的
             if (choice === 'loss') { 
-                playSound('success');
-                let btnL = document.getElementById('btn-loss');
+                playSound('success'); let btnL = document.getElementById('btn-loss');
                 btnL.style.background = 'var(--accent)'; btnL.style.color = 'white'; btnL.style.borderColor = 'var(--accent)';
-                document.getElementById('btn-earn').style.display = 'none'; // 隱藏錯誤選項
+                document.getElementById('btn-earn').style.display = 'none'; 
                 state.focusIndex++; updateFocusUI();
             } else {
-                playSound('wrong');
-                let btnE = document.getElementById('btn-earn');
-                btnE.classList.add('error');
-                setTimeout(() => btnE.classList.remove('error'), 400);
+                playSound('wrong'); let btnE = document.getElementById('btn-earn');
+                btnE.classList.add('error'); setTimeout(() => btnE.classList.remove('error'), 400);
             }
         }
 
