@@ -868,9 +868,15 @@
                     playSound('move'); el.innerText = num; el.classList.remove('error', 'active'); el.classList.add('filled');
                     state.focusIndex++; updateFocusUI();
                 } else {
-                    playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                    playSound('wrong'); state.mistakesThisQuestion++; 
                     el.classList.add('error'); el.innerText = num;
-                    setTimeout(() => { el.innerText = ''; el.classList.remove('error'); }, 400);
+                    
+                    // 💡 安全鎖：確保 0.4 秒後，只有「依然是錯誤狀態」的格子兩才會被清空
+                    setTimeout(() => { 
+                        if (el.classList.contains('error')) {
+                            el.innerText = ''; el.classList.remove('error'); 
+                        }
+                    }, 400);
                 }
             } else { 
                 let testStr = state.currentInputStr + num.toString();
@@ -881,9 +887,15 @@
                         state.currentInputStr = ""; state.focusIndex++; updateFocusUI();
                     }
                 } else {
-                    playSound('wrong'); state.mistakesThisQuestion++; // 記錄錯誤
+                    playSound('wrong'); state.mistakesThisQuestion++; 
                     el.classList.add('error'); el.innerText = testStr; 
-                    setTimeout(() => { el.innerText = state.currentInputStr; el.classList.remove('error'); }, 400);
+                    
+                    // 💡 安全鎖：確保橫式填空也不會因為手速過快被誤刪
+                    setTimeout(() => { 
+                        if (el.classList.contains('error')) {
+                            el.innerText = state.currentInputStr; el.classList.remove('error'); 
+                        }
+                    }, 400);
                 }
             }
         }
