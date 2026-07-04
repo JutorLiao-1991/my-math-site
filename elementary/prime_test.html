@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>鳩特數理：質數大挑戰</title>
+<style>
+  :root { 
+    --main-color: #2196F3; 
+    --main-bg: #E3F2FD;
+    --bg-pattern: radial-gradient(#ccc 15%, transparent 16%) 0 0;
+  }
+
+  body, html {
+    margin: 0; padding: 0; width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+    background-color: #333;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+
+  /* === 倒數計時遮罩 === */
+  #countdown-overlay {
+      display: none;
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9); z-index: 2000;
+      flex-direction: column; justify-content: center; align-items: center;
+      color: white;
+  }
+  .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; }
+  .countdown-text { font-size: 2.5em; margin-bottom: 20px; font-weight: bold;}
+
+  @keyframes popIn { from {transform: scale(0.8);} to {transform: scale(1.1);} }
+
+  /* === 全局容器 === */
+  #main-wrapper { 
+    position: relative; width: 100%; height: 100%; 
+    display: flex; flex-direction: column; 
+    background-color: var(--main-bg); 
+    background-image: var(--bg-pattern); 
+    background-size: 20px 20px;
+  }
+
+  /* ==================== 1. 設定畫面 ==================== */
+  #setup-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: var(--main-bg); background-image: var(--bg-pattern); background-size: 20px 20px;
+    z-index: 1000; display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+  }
+  
+  .game-title {
+    font-size: 3em; font-weight: 900; color: #1565C0;
+    text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
+    margin-bottom: 30px; text-align: center;
+  }
+
+  .choose-title { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 20px; color: #333; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
+  
+  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px; }
+  .avatar-option {
+    font-size: 3em; width: 75px; height: 75px;
+    display: flex; justify-content: center; align-items: center;
+    background: white; border-radius: 50%; border: 4px solid transparent;
+    transition: transform 0.1s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: pointer;
+  }
+  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.15); box-shadow: 0 0 20px #FFD700; }
+
+  .start-btn {
+    background: #4CAF50; color: white; border: none; border-radius: 15px;
+    padding: 15px 50px; font-size: 1.5em; font-weight: bold;
+    box-shadow: 0 6px 0 #2E7D32; cursor: pointer; transition: 0.1s;
+  }
+  .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #2E7D32; }
+
+  /* ==================== 2. 遊戲主畫面 ==================== */
+  #game-container { display: none; flex-direction: column; height: 100%; width: 100%; position: relative; }
+
+  /* 頂部資訊列 (頭像、分數、題號) */
+  #top-bar {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px; background: rgba(255,255,255,0.8);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10;
+  }
+
+  .score-board {
+    font-size: 1.6em; font-weight: 900; color: #1565C0;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .streak-container {
+    font-size: 0.9em; display: flex; align-items: center; 
+    color: #FF9800; opacity: 0; transition: opacity 0.3s;
+    background: #FFF3E0; padding: 2px 10px; border-radius: 20px;
+  }
+  .streak-container.active { opacity: 1; }
+  .streak-icon { margin-right: 4px; animation: burn 0.5s infinite alternate; }
+  @keyframes burn { from {transform: scale(1);} to {transform: scale(1.3);} }
+
+  .progress-text {
+    font-size: 1.2em; font-weight: bold; color: #555;
+    background: #eee; padding: 5px 15px; border-radius: 20px;
+  }
+
+  /* 題目顯示區 */
+  .status-display-area {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;
+  }
+  
+  .question-label { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: -10px; }
+  
+  .question-text {
+      font-size: 8em; font-weight: 900; color: #333; 
+      text-shadow: 4px 4px 0px rgba(255,255,255,0.8);
+      animation: popInQ 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      text-align: center;
+  }
+  @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+  #feedback-msg {
+    font-size: 1.5em; font-weight: 900; margin-top: 20px; height: 35px;
+    animation: popIn 0.3s ease;
+  }
+  .msg-correct { color: #4CAF50; text-shadow: 1px 1px 0 #fff; }
+  .msg-wrong { color: #F44336; text-shadow: 1px 1px 0 #fff; }
+
+  /* 選項面板 */
+  .options-panel {
+    display: flex; flex-direction: column; width: 100%; align-items: center; gap: 15px; padding: 20px 0 40px 0;
+  }
+  
+  .opt-btn {
+    background: #fff; border: 3px solid #ddd; border-radius: 15px;
+    width: 85%; max-width: 400px; height: 75px; 
+    font-size: 2em; font-weight: bold; color: #444;
+    cursor: pointer; box-shadow: 0 6px 0 #ccc;
+    transition: all 0.1s; font-family: 'Segoe UI', sans-serif;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ccc; }
+  
+  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 6px 0 #81C784 !important;}
+  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 6px 0 #E57373 !important;}
+
+  /* 遊戲結束 */
+  .game-over-overlay {
+    display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center; animation: popInQ 0.5s ease;
+  }
+  .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; color: #333; }
+  .end-score { font-size: 6em; font-weight: 900; color: #FF9800; text-shadow: 3px 3px 0px #FFF3E0; margin-bottom: 10px;}
+  .end-comment { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: 30px;}
+
+  .restart-btn {
+    background: #2196F3; color: white; border: none; border-radius: 15px;
+    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    box-shadow: 0 6px 0 #1565C0; cursor: pointer; transition: 0.1s;
+  }
+  .restart-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #1565C0; }
+
+</style>
+</head>
+<body>
+
+  <div id="countdown-overlay">
+      <div class="countdown-text" id="cd-text">Ready</div>
+      <div class="countdown-number" id="cd-num">3</div>
+  </div>
+
+  <div id="main-wrapper">
+
+    <!-- 設定畫面 -->
+    <div id="setup-screen">
+      <div class="game-title">1~100<br>質數大挑戰</div>
+      <div class="choose-title">選擇你的挑戰者</div>
+      <div class="avatar-grid" id="avatar-grid"></div>
+      <button class="start-btn" onclick="startGame()">開始測驗</button>
+    </div>
+
+    <!-- 遊戲主畫面 -->
+    <div id="game-container">
+      
+      <div id="top-bar">
+        <div class="score-board">
+            <span id="player-avatar">🦊</span>
+            <span id="score-display">0</span> 分
+            <div id="streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num">0</span> 連對</div>
+        </div>
+        <div class="progress-text">題號：<span id="q-progress">1/20</span></div>
+      </div>
+
+      <div class="status-display-area">
+          <div class="question-label">這個數字是？</div>
+          <div class="question-text" id="q-text">100</div>
+          <div id="feedback-msg"></div>
+      </div>
+
+      <div class="options-panel">
+          <button class="opt-btn" id="btn-prime" onclick="checkAnswer('質數', this)">質數</button>
+          <button class="opt-btn" id="btn-comp" onclick="checkAnswer('合數', this)">合數</button>
+          <button class="opt-btn" id="btn-none" onclick="checkAnswer('都不是', this)">都不是</button>
+      </div>
+
+      <!-- 結算畫面 -->
+      <div id="game-over-overlay" class="game-over-overlay">
+          <div class="end-title">測驗結束！</div>
+          <div class="end-score" id="final-score">100</div>
+          <div class="end-comment" id="final-comment">太神啦！質數大師！</div>
+          <button class="restart-btn" onclick="resetGame()">再來一局 🔄</button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // 阻止雙擊放大與手勢
+    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
+    document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+
+    // 質數定義資料
+    const primesList = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
+    const compositesList = [];
+    for(let i=4; i<=100; i++) {
+        if(!primesList.includes(i)) compositesList.push(i);
+    }
+
+    // 變數
+    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
+    let selectedAvatar = '🦊'; 
+    let questionsPool = [];
+    let currentQIndex = 0;
+    let score = 0;
+    let streak = 0;
+    let isProcessingAnswer = false; 
+    
+    const TOTAL_QUESTIONS = 20;
+    const SCORE_PER_Q = 5; 
+
+    // DOM
+    const qText = document.getElementById('q-text');
+    const feedbackMsg = document.getElementById('feedback-msg');
+    const scoreDisplay = document.getElementById('score-display');
+    const qProgress = document.getElementById('q-progress');
+    const streakBox = document.getElementById('streak-box');
+    const streakNum = document.getElementById('streak-num');
+    
+    const btnPrime = document.getElementById('btn-prime');
+    const btnComp = document.getElementById('btn-comp');
+    const btnNone = document.getElementById('btn-none');
+
+    // 初始化選角
+    function initSetup() {
+      const container = document.getElementById('avatar-grid');
+      container.innerHTML = '';
+      emojiOptions.forEach(emoji => {
+          const div = document.createElement('div');
+          div.className = 'avatar-option'; div.innerText = emoji;
+          if(emoji === selectedAvatar) div.classList.add('selected');
+
+          div.onclick = () => {
+              const siblings = container.children;
+              for(let sib of siblings) sib.classList.remove('selected');
+              div.classList.add('selected');
+              selectedAvatar = emoji;
+          };
+          container.appendChild(div);
+      });
+    }
+
+    // 洗牌演算法
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // 準備20題題庫 (完美配題：保證 1 題"1" + 9題質數 + 10題合數)
+    function generateQuestions() {
+        let shuffledPrimes = shuffle([...primesList]).slice(0, 9);
+        let shuffledComposites = shuffle([...compositesList]).slice(0, 10);
+        let combined = [1, ...shuffledPrimes, ...shuffledComposites];
+        return shuffle(combined);
+    }
+
+    // === 開始遊戲 ===
+    function startGame() {
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('game-container').style.display = 'flex';
+        document.getElementById('player-avatar').innerText = selectedAvatar;
+
+        questionsPool = generateQuestions();
+        
+        runCountdown(3, "準備挑戰！", loadQuestion);
+    }
+
+    function runCountdown(seconds, label, callback) {
+        const cdOverlay = document.getElementById('countdown-overlay');
+        const cdText = document.getElementById('cd-text');
+        const cdNum = document.getElementById('cd-num');
+
+        cdOverlay.style.display = 'flex';
+        cdText.innerText = label;
+        let count = seconds;
+        cdNum.innerText = count;
+
+        const timer = setInterval(() => {
+            count--;
+            if (count > 0) {
+                cdNum.innerText = count;
+            } else {
+                clearInterval(timer);
+                cdOverlay.style.display = 'none';
+                if(callback) callback();
+            }
+        }, 1000);
+    }
+
+    // === 載入題目 ===
+    function loadQuestion() {
+        if(currentQIndex >= TOTAL_QUESTIONS) {
+            showGameOver();
+            return;
+        }
+
+        isProcessingAnswer = false;
+        feedbackMsg.innerText = "";
+        
+        // 重置按鈕狀態
+        [btnPrime, btnComp, btnNone].forEach(btn => {
+            btn.className = 'opt-btn';
+        });
+
+        // 更新文字
+        qText.innerText = questionsPool[currentQIndex];
+        qProgress.innerText = `${currentQIndex + 1} / ${TOTAL_QUESTIONS}`;
+        
+        // 觸發進場動畫
+        qText.style.animation = 'none';
+        qText.offsetHeight; /* trigger reflow */
+        qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    }
+
+    // 判斷正確答案字串
+    function getCorrectAnswerStr(num) {
+        if (num === 1) return '都不是';
+        if (primesList.includes(num)) return '質數';
+        return '合數';
+    }
+
+    // === 判斷答案 ===
+    function checkAnswer(userChoice, btnObj) {
+        if (isProcessingAnswer) return;
+        isProcessingAnswer = true;
+
+        const currentNum = questionsPool[currentQIndex];
+        const correctAns = getCorrectAnswerStr(currentNum);
+        const isCorrect = (userChoice === correctAns);
+
+        if (isCorrect) {
+            btnObj.classList.add('correct');
+            score += SCORE_PER_Q;
+            streak++;
+            
+            feedbackMsg.innerText = streak >= 3 ? `🔥 ${streak}連對！太強了！` : "⭕ 答對了！";
+            feedbackMsg.className = "msg-correct";
+        } else {
+            btnObj.classList.add('wrong');
+            streak = 0;
+            
+            feedbackMsg.innerText = "❌ 答錯了...";
+            feedbackMsg.className = "msg-wrong";
+            
+            // 標示出正確答案
+            if(correctAns === '質數') btnPrime.classList.add('correct');
+            else if(correctAns === '合數') btnComp.classList.add('correct');
+            else btnNone.classList.add('correct');
+        }
+
+        // 更新分數與連擊 UI
+        scoreDisplay.innerText = score;
+        streakNum.innerText = streak;
+        if(streak >= 3) streakBox.classList.add('active');
+        else streakBox.classList.remove('active');
+
+        // 前往下一題
+        currentQIndex++;
+        setTimeout(() => {
+            loadQuestion();
+        }, 1200); // 停頓1.2秒讓玩家看清楚結果
+    }
+
+    function showGameOver() {
+        const overlay = document.getElementById('game-over-overlay');
+        const finalScoreText = document.getElementById('final-score');
+        const finalComment = document.getElementById('final-comment');
+        
+        finalScoreText.innerText = score;
+
+        // 評價語
+        if (score === 100) {
+            finalComment.innerText = "滿分！你是真正的質數大師！🏆";
+            finalComment.style.color = "#FF9800";
+        } else if (score >= 80) {
+            finalComment.innerText = "非常優秀！只差一點點了！😎";
+            finalComment.style.color = "#4CAF50";
+        } else if (score >= 60) {
+            finalComment.innerText = "及格過關！基本功不錯哦！👍";
+            finalComment.style.color = "#2196F3";
+        } else {
+            finalComment.innerText = "再接再厲！把質數背熟再來挑戰！💪";
+            finalComment.style.color = "#F44336";
+        }
+
+        overlay.style.display = 'flex';
+    }
+
+    function resetGame() {
+        score = 0;
+        streak = 0;
+        currentQIndex = 0;
+        
+        scoreDisplay.innerText = 0;
+        streakNum.innerText = 0;
+        streakBox.classList.remove('active');
+        
+        document.getElementById('game-over-overlay').style.display = 'none';
+        document.getElementById('game-container').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'flex';
+    }
+
+    // 啟動畫面
+    initSetup();
+  </script>
+</body>
+</html>
