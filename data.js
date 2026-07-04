@@ -140,5 +140,13 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "試著在此精熟比率與百分率吧！"
+    },
+    {
+        title: "質數合數大挑戰",
+        category: "elementary", // 設定為國小區類別
+        url: "elementary/prime_test.html", // 依照您截圖的路徑
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "質數？合數？都不是？"
     }
 ];
