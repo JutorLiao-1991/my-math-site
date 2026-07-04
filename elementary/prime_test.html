@@ -28,7 +28,18 @@
   /* === 全局容器 === */
   #main-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: #fff; }
 
-  /* ==================== 共用：倒數計時遮罩 ==================== */
+  /* ==================== 共用按鈕與遮罩 ==================== */
+  /* 回主選單按鈕 */
+  .back-home-btn {
+    background: #fff; border: 2px solid #ddd; border-radius: 10px;
+    padding: 6px 12px; font-size: 1rem; font-weight: bold; color: #555;
+    cursor: pointer; box-shadow: 0 4px 0 #ccc;
+    display: flex; justify-content: center; align-items: center; gap: 5px; transition: 0.1s;
+  }
+  .back-home-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #ccc; }
+  .float-top-left { position: absolute; top: 15px; left: 15px; z-index: 1000; }
+
+  /* 倒數計時遮罩 */
   #countdown-overlay {
       display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.95); z-index: 2000;
@@ -116,7 +127,7 @@
   .pk-start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #880E4F; }
 
   /* ==================== 3. 雙人PK：遊戲畫面 ==================== */
-  #pk-container { display: none; flex-direction: column; height: 100%; width: 100%; }
+  #pk-container { display: none; flex-direction: column; height: 100%; width: 100%; position: relative; }
   .player-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; background-size: 20px 20px; transition: all 0.3s; }
   
   #player-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 2px solid #555; color: #D84315; }
@@ -197,16 +208,19 @@
     <!-- 1. 單人練習畫面 -->
     <div id="sp-container">
       <div id="sp-top-bar">
-        <div class="sp-score-board">
-            <span id="sp-score-display">0.0</span> 分
-            <div id="sp-streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="sp-streak-num">0</span> 連對</div>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <!-- 追加：單人模式左上角返回按鈕 -->
+            <button class="back-home-btn" onclick="returnToMenu()">🏠 返回</button>
+            <div class="sp-score-board">
+                <span id="sp-score-display">0.0</span> 分
+                <div id="sp-streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="sp-streak-num">0</span> 連對</div>
+            </div>
         </div>
         <div class="sp-progress-text">題號：<span id="sp-q-progress">0/20</span></div>
       </div>
 
       <div class="sp-display-area">
           <div class="sp-question-label">這個數字是？</div>
-          <!-- 預設為問號，避免一開始顯示 100 的卡頓感 -->
           <div class="sp-question-text" id="sp-q-text">?</div>
           
           <!-- 單人動態倒數計時條 -->
@@ -252,6 +266,10 @@
 
     <!-- 3. 雙人PK：遊戲主畫面 -->
     <div id="pk-container">
+      
+      <!-- 追加：雙人PK模式絕對左上角返回按鈕 -->
+      <button class="back-home-btn float-top-left" onclick="returnToMenu()">🏠 返回</button>
+
       <div id="player-top" class="player-area">
         <div class="pk-score-board">
             <span id="p1-avatar-display">🦊</span>&nbsp;<span id="score-top">0</span>
@@ -259,7 +277,6 @@
         </div>
         <div id="end-top" class="pk-end-overlay"><div class="end-emoji">🏆</div><div class="end-title">Winner</div></div>
         <div class="pk-display-area">
-            <!-- 預設改為問號 -->
             <div class="pk-question-text" id="pk-q-text-top">?</div>
             <div class="catchup-msg" id="catchup-top">別放棄！你現在一題40分！</div>
         </div>
@@ -283,7 +300,6 @@
         </div>
         <div id="end-bottom" class="pk-end-overlay"><div class="end-emoji">🏆</div><div class="end-title">Winner</div></div>
         <div class="pk-display-area">
-            <!-- 預設改為問號 -->
             <div class="pk-question-text" id="pk-q-text-bottom">?</div>
             <div class="catchup-msg" id="catchup-bottom">別放棄！你現在一題40分！</div>
         </div>
@@ -298,49 +314,96 @@
   </div>
 
   <script>
-    // === Web Audio API ===
+    // === 防當機：Audio API 安全封裝 ===
     let audioCtx = null;
     function initAudioAndGo(target) {
-        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext && !audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        } catch(e) {
+            console.log("Audio Context Error: ", e);
+        }
         
         if(target === 'sp') startSinglePlayer();
         else if(target === 'pk-setup') showPKSetup();
     }
 
     function playSound(type) {
-        if (!audioCtx) return;
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
-        const now = audioCtx.currentTime;
-        
-        if (type === 'tick') {
-            oscillator.type = 'triangle';
-            oscillator.frequency.setValueAtTime(800, now);
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.2, now + 0.02);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-            oscillator.start(now); oscillator.stop(now + 0.1);
-        } else if (type === 'correct') {
-            oscillator.type = 'sine';
-            oscillator.frequency.setValueAtTime(659.25, now); 
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
-            gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
-            oscillator.frequency.setValueAtTime(523.25, now + 0.2); 
-            gainNode.gain.linearRampToValueAtTime(0.4, now + 0.22);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
-            oscillator.start(now); oscillator.stop(now + 0.8);
-        } else if (type === 'wrong') {
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(300, now);
-            oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
-            gainNode.gain.setValueAtTime(0, now);
-            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-            oscillator.start(now); oscillator.stop(now + 0.3);
+        try {
+            if (!audioCtx) return;
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            
+            if (type === 'tick') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(800, now);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                oscillator.start(now); oscillator.stop(now + 0.1);
+            } else if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(659.25, now); 
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+                oscillator.frequency.setValueAtTime(523.25, now + 0.2); 
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.22);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+                oscillator.start(now); oscillator.stop(now + 0.8);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
+        } catch(e) {
+            console.log("Play Sound Error: ", e);
         }
+    }
+
+    // === 延遲計時器 (用於離開時的安全清除) ===
+    let spTimeout = null;
+    let pkTimeout = null;
+    let cdTimer = null;
+
+    function runCountdown(seconds, label, callback) {
+        const cdOverlay = document.getElementById('countdown-overlay');
+        const cdText = document.getElementById('cd-text');
+        const cdNum = document.getElementById('cd-num');
+
+        if(cdTimer) clearInterval(cdTimer);
+
+        cdOverlay.style.display = 'flex'; 
+        cdText.innerText = label;
+        let count = seconds; 
+        cdNum.innerText = count;
+        
+        playSound('tick'); 
+
+        cdTimer = setInterval(() => {
+            count--;
+            if (count > 0) { 
+                cdNum.innerText = count; 
+                playSound('tick'); 
+            } 
+            else {
+                clearInterval(cdTimer);
+                cdTimer = null;
+                cdOverlay.style.display = 'none';
+                if(callback) callback();
+            }
+        }, 1000);
     }
 
     // === 資料庫 ===
@@ -374,12 +437,10 @@
     let spIsProcessing = false;
     const SP_TOTAL_Q = 20;
     
-    // 倒數計時變數
     let spStartTime = 0;
     let spTimerFrame = null;
-    const SP_TIME_LIMIT = 5000; // 5秒
+    const SP_TIME_LIMIT = 5000; 
 
-    // 客製化：降低偶數配題演算法
     function generateSPQuestions() {
         const allEvens = [];
         for(let i=2; i<=100; i+=2) allEvens.push(i);
@@ -387,16 +448,13 @@
         const oddPrimes = primesList.filter(n => n !== 2);
         const oddComps = compositesList.filter(n => n % 2 !== 0);
 
-        // 嚴格限制：只抽 4 個偶數
         const selectedEvens = shuffle([...allEvens]).slice(0, 4);
-        
         const evenPrimesCount = selectedEvens.includes(2) ? 1 : 0;
         const evenCompsCount = selectedEvens.length - evenPrimesCount;
 
         const targetPrimes = 9;
         const targetComps = 10;
         
-        // 剩餘的從奇數池抽
         const selectedOddPrimes = shuffle([...oddPrimes]).slice(0, targetPrimes - evenPrimesCount);
         const selectedOddComps = shuffle([...oddComps]).slice(0, targetComps - evenCompsCount);
 
@@ -413,10 +471,8 @@
         document.getElementById('sp-streak-num').innerText = spStreak;
         document.getElementById('sp-streak-box').classList.remove('active');
 
-        // ==== 【修復重點】預先將畫面初始化為準備狀態 ====
         document.getElementById('sp-q-text').innerText = "?";
-        document.getElementById('sp-q-progress').innerText = `0 / ${SP_TOTAL_Q}`;
-        
+        document.getElementById('sp-q-progress').innerText = "0 / " + SP_TOTAL_Q;
         document.getElementById('sp-timer-text').innerText = "5.0s";
         document.getElementById('sp-timer-bar').style.width = '100%';
         document.getElementById('sp-timer-bar').style.backgroundColor = '#4CAF50';
@@ -446,7 +502,7 @@
 
         const qText = document.getElementById('sp-q-text');
         qText.innerText = spQuestionsPool[spCurrentQIndex];
-        document.getElementById('sp-q-progress').innerText = `${spCurrentQIndex + 1} / ${SP_TOTAL_Q}`;
+        document.getElementById('sp-q-progress').innerText = (spCurrentQIndex + 1) + " / " + SP_TOTAL_Q;
         
         qText.style.animation = 'none'; qText.offsetHeight; 
         qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -507,7 +563,8 @@
         document.getElementById('sp-streak-box').classList.remove('active');
         
         spCurrentQIndex++;
-        setTimeout(spLoadQuestion, 1200);
+        if(spTimeout) clearTimeout(spTimeout);
+        spTimeout = setTimeout(spLoadQuestion, 1200);
     }
 
     function spCheckAnswer(userChoice, btnObj) {
@@ -524,12 +581,11 @@
             playSound('correct');
             btnObj.classList.add('correct');
             
-            // 動態計分：0~0.5秒為滿分5分，超過則平滑遞減至0.1分
             let pts = 0;
-            if (dt <= 500) {
+            if (dt <= 1500) {
                 pts = 5.0;
             } else if (dt <= SP_TIME_LIMIT) {
-                pts = 5.0 - ((dt - 500) / 4500) * 4.9;
+                pts = 5.0 - ((dt - 1500) / 3500) * 4.9;
             }
             pts = Math.max(0.1, Math.round(pts * 10) / 10);
             
@@ -555,7 +611,8 @@
         else document.getElementById('sp-streak-box').classList.remove('active');
 
         spCurrentQIndex++;
-        setTimeout(spLoadQuestion, 1200);
+        if(spTimeout) clearTimeout(spTimeout);
+        spTimeout = setTimeout(spLoadQuestion, 1200);
     }
 
     function spShowGameOver() {
@@ -620,7 +677,6 @@
         pkUpdateUI();
         pkGameState = 'playing';
 
-        // ==== 【修復重點】預先將畫面初始化為準備狀態 ====
         document.getElementById('pk-q-text-top').innerText = "?";
         document.getElementById('pk-q-text-bottom').innerText = "?";
         document.getElementById('pk-status-text').innerText = "準備對決...";
@@ -633,7 +689,7 @@
         pkIsProcessing = false;
         
         document.querySelectorAll('.pk-opt-btn').forEach(btn => {
-            btn.classList.remove('correct', 'wrong');
+            btn.className = 'pk-opt-btn ' + (btn.parentElement.parentElement.id === 'player-top' ? 'pk-opt-top' : 'pk-opt-bottom');
         });
 
         let roll = Math.random();
@@ -698,8 +754,9 @@
 
         pkUpdateUI();
 
-        if (pkScores[player] >= PK_WIN_SCORE) setTimeout(() => pkShowGameOver(player), 1000);
-        else setTimeout(pkLoadQuestion, 1000); 
+        if(pkTimeout) clearTimeout(pkTimeout);
+        if (pkScores[player] >= PK_WIN_SCORE) pkTimeout = setTimeout(() => pkShowGameOver(player), 1000);
+        else pkTimeout = setTimeout(pkLoadQuestion, 1000); 
     }
 
     function pkUpdateUI() {
@@ -741,7 +798,7 @@
         document.getElementById('pk-restart-btn').style.display = 'block'; 
     }
 
-    // === UI 切換共用工具 ===
+    // === 穩定的 UI 切換與清理機制 ===
     function hideAllScreens() {
         document.getElementById('mode-select-screen').style.display = 'none';
         document.getElementById('sp-container').style.display = 'none';
@@ -750,36 +807,15 @@
     }
 
     function returnToMenu() {
+        // 安全中斷所有計時器與排程
         if(spTimerFrame) cancelAnimationFrame(spTimerFrame);
+        if(cdTimer) { clearInterval(cdTimer); cdTimer = null; }
+        if(spTimeout) { clearTimeout(spTimeout); spTimeout = null; }
+        if(pkTimeout) { clearTimeout(pkTimeout); pkTimeout = null; }
+        
+        document.getElementById('countdown-overlay').style.display = 'none';
         hideAllScreens();
         document.getElementById('mode-select-screen').style.display = 'flex';
-    }
-
-    // 升級版 3 秒倒數 (加入 tick 音效)
-    function runCountdown(seconds, label, callback) {
-        const cdOverlay = document.getElementById('countdown-overlay');
-        const cdText = document.getElementById('cd-text');
-        const cdNum = document.getElementById('cd-num');
-
-        cdOverlay.style.display = 'flex'; 
-        cdText.innerText = label;
-        let count = seconds; 
-        cdNum.innerText = count;
-        
-        playSound('tick'); // 開始的第 3 秒
-
-        const timer = setInterval(() => {
-            count--;
-            if (count > 0) { 
-                cdNum.innerText = count; 
-                playSound('tick'); // 2秒與1秒
-            } 
-            else {
-                clearInterval(timer);
-                cdOverlay.style.display = 'none';
-                if(callback) callback();
-            }
-        }, 1000);
     }
   </script>
 </body>
