@@ -2,12 +2,14 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<!-- ⚠️ 強制鎖定縮放比例，禁止使用者雙指或雙擊縮放 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>鳩特數理：質數大挑戰</title>
 <style>
   :root { 
-    --main-color: #2196F3; 
-    --main-bg: #E3F2FD;
+    --p1-color: #FF7043; --p1-bg: #FBE9E7;
+    --p2-color: #42A5F5; --p2-bg: #E3F2FD;
+    --sp-main: #2196F3;  --sp-bg: #E3F2FD;
     --bg-pattern: radial-gradient(#ccc 15%, transparent 16%) 0 0;
   }
 
@@ -16,152 +18,168 @@
     overflow: hidden;
     font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
     background-color: #333;
-    touch-action: none; user-select: none; -webkit-user-select: none;
+    touch-action: manipulation; /* 徹底停用雙擊放大，並消除點擊延遲 */
+    -webkit-user-select: none; user-select: none; 
   }
 
-  /* === 倒數計時遮罩 === */
+  button { touch-action: manipulation; font-family: inherit; }
+  .hidden { display: none !important; }
+
+  /* === 全局容器 === */
+  #main-wrapper { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; background: #fff; }
+
+  /* ==================== 共用：倒數計時遮罩 ==================== */
   #countdown-overlay {
-      display: none;
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(0,0,0,0.9); z-index: 2000;
-      flex-direction: column; justify-content: center; align-items: center;
-      color: white;
+      flex-direction: column; justify-content: center; align-items: center; color: white;
   }
   .countdown-number { font-size: 10em; font-weight: 900; color: #FFD700; animation: popIn 0.5s infinite alternate; }
   .countdown-text { font-size: 2.5em; margin-bottom: 20px; font-weight: bold;}
-
   @keyframes popIn { from {transform: scale(0.8);} to {transform: scale(1.1);} }
 
-  /* === 全局容器 === */
-  #main-wrapper { 
-    position: relative; width: 100%; height: 100%; 
-    display: flex; flex-direction: column; 
-    background-color: var(--main-bg); 
-    background-image: var(--bg-pattern); 
-    background-size: 20px 20px;
-  }
-
-  /* ==================== 1. 設定畫面 ==================== */
-  #setup-screen {
+  /* ==================== 0. 首頁模式選擇 ==================== */
+  #mode-select-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background-color: var(--main-bg); background-image: var(--bg-pattern); background-size: 20px 20px;
-    z-index: 1000; display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
+    background-color: var(--sp-bg); background-image: var(--bg-pattern); background-size: 20px 20px;
+    z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center;
   }
-  
   .game-title {
-    font-size: 3em; font-weight: 900; color: #1565C0;
-    text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
-    margin-bottom: 30px; text-align: center;
+    font-size: 3.5em; font-weight: 900; color: #1565C0;
+    text-shadow: 3px 3px 0px #fff, 6px 6px 0px rgba(0,0,0,0.1);
+    margin-bottom: 40px; text-align: center; line-height: 1.2;
   }
-
-  .choose-title { font-size: 1.2em; font-weight: bold; margin-bottom: 15px; background: rgba(255,255,255,0.9); padding: 8px 20px; border-radius: 20px; color: #333; box-shadow: 0 4px 0 rgba(0,0,0,0.1); }
-  
-  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 40px; }
-  .avatar-option {
-    font-size: 3em; width: 75px; height: 75px;
-    display: flex; justify-content: center; align-items: center;
-    background: white; border-radius: 50%; border: 4px solid transparent;
-    transition: transform 0.1s; box-shadow: 0 4px 8px rgba(0,0,0,0.1); cursor: pointer;
+  .mode-btn {
+    width: 80%; max-width: 300px; padding: 20px; margin-bottom: 20px;
+    font-size: 1.8em; font-weight: bold; border-radius: 15px; border: none; cursor: pointer;
+    transition: 0.1s; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;
   }
-  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.15); box-shadow: 0 0 20px #FFD700; }
+  .btn-sp { background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; }
+  .btn-sp:active { transform: translateY(6px); box-shadow: 0 0 0 #2E7D32; }
+  .btn-pk { background: #FF9800; box-shadow: 0 6px 0 #E65100; }
+  .btn-pk:active { transform: translateY(6px); box-shadow: 0 0 0 #E65100; }
 
-  .start-btn {
-    background: #4CAF50; color: white; border: none; border-radius: 15px;
-    padding: 15px 50px; font-size: 1.5em; font-weight: bold;
-    box-shadow: 0 6px 0 #2E7D32; cursor: pointer; transition: 0.1s;
-  }
-  .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #2E7D32; }
-
-  /* ==================== 2. 遊戲主畫面 ==================== */
-  #game-container { display: none; flex-direction: column; height: 100%; width: 100%; position: relative; }
-
-  /* 頂部資訊列 (頭像、分數、題號) */
-  #top-bar {
+  /* ==================== 1. 單人模式介面 ==================== */
+  #sp-container { display: none; flex-direction: column; height: 100%; width: 100%; position: relative; background-color: var(--sp-bg); background-image: var(--bg-pattern); background-size: 20px 20px; }
+  #sp-top-bar {
     display: flex; justify-content: space-between; align-items: center;
-    padding: 15px 20px; background: rgba(255,255,255,0.8);
+    padding: 15px 20px; background: rgba(255,255,255,0.9);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10;
   }
-
-  .score-board {
-    font-size: 1.6em; font-weight: 900; color: #1565C0;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .streak-container {
-    font-size: 0.9em; display: flex; align-items: center; 
-    color: #FF9800; opacity: 0; transition: opacity 0.3s;
-    background: #FFF3E0; padding: 2px 10px; border-radius: 20px;
-  }
-  .streak-container.active { opacity: 1; }
-  .streak-icon { margin-right: 4px; animation: burn 0.5s infinite alternate; }
-  @keyframes burn { from {transform: scale(1);} to {transform: scale(1.3);} }
-
-  .progress-text {
-    font-size: 1.2em; font-weight: bold; color: #555;
-    background: #eee; padding: 5px 15px; border-radius: 20px;
-  }
-
-  /* 題目顯示區 */
-  .status-display-area {
-      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;
-  }
+  .sp-score-board { font-size: 1.6em; font-weight: 900; color: #1565C0; display: flex; align-items: center; gap: 10px; }
+  .sp-progress-text { font-size: 1.2em; font-weight: bold; color: #555; background: #eee; padding: 5px 15px; border-radius: 20px; }
   
-  .question-label { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: -10px; }
-  
-  .question-text {
+  .sp-display-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+  .sp-question-label { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: -10px; }
+  .sp-question-text {
       font-size: 8em; font-weight: 900; color: #333; 
       text-shadow: 4px 4px 0px rgba(255,255,255,0.8);
-      animation: popInQ 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      text-align: center;
-  }
-  @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
-
-  #feedback-msg {
-    font-size: 1.5em; font-weight: 900; margin-top: 20px; height: 35px;
-    animation: popIn 0.3s ease;
-  }
-  .msg-correct { color: #4CAF50; text-shadow: 1px 1px 0 #fff; }
-  .msg-wrong { color: #F44336; text-shadow: 1px 1px 0 #fff; }
-
-  /* 選項面板 */
-  .options-panel {
-    display: flex; flex-direction: column; width: 100%; align-items: center; gap: 15px; padding: 20px 0 40px 0;
+      animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
   }
   
-  .opt-btn {
+  .sp-options-panel { display: flex; flex-direction: column; width: 100%; align-items: center; gap: 15px; padding: 20px 0 40px 0; }
+  .sp-opt-btn {
     background: #fff; border: 3px solid #ddd; border-radius: 15px;
     width: 85%; max-width: 400px; height: 75px; 
-    font-size: 2em; font-weight: bold; color: #444;
-    cursor: pointer; box-shadow: 0 6px 0 #ccc;
-    transition: all 0.1s; font-family: 'Segoe UI', sans-serif;
-    display: flex; justify-content: center; align-items: center;
+    font-size: 2em; font-weight: bold; color: #444; cursor: pointer; box-shadow: 0 6px 0 #ccc;
+    display: flex; justify-content: center; align-items: center; transition: 0.1s;
   }
-  .opt-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #ccc; }
+  .sp-opt-btn:active { transform: translateY(6px); box-shadow: none; }
   
-  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 6px 0 #81C784 !important;}
-  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 6px 0 #E57373 !important;}
-
-  /* 遊戲結束 */
-  .game-over-overlay {
+  /* 單人結算 */
+  .sp-end-overlay {
     display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column;
     justify-content: center; align-items: center; text-align: center; animation: popInQ 0.5s ease;
   }
-  .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; color: #333; }
-  .end-score { font-size: 6em; font-weight: 900; color: #FF9800; text-shadow: 3px 3px 0px #FFF3E0; margin-bottom: 10px;}
-  .end-comment { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: 30px;}
+  .sp-end-score { font-size: 6em; font-weight: 900; color: #FF9800; text-shadow: 3px 3px 0px #FFF3E0; margin-bottom: 10px;}
 
-  .restart-btn {
-    background: #2196F3; color: white; border: none; border-radius: 15px;
-    padding: 15px 40px; font-size: 1.5em; font-weight: bold;
-    box-shadow: 0 6px 0 #1565C0; cursor: pointer; transition: 0.1s;
+  /* ==================== 2. 雙人PK：選角畫面 ==================== */
+  #pk-setup-screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 1000; flex-direction: column; }
+  .setup-half { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; background-size: 20px 20px; position: relative; }
+  .setup-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 4px solid #aaa; }
+  .setup-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 4px solid #aaa; }
+  
+  .choose-title { font-size: 1.2em; font-weight: bold; margin-bottom: 10px; background: rgba(255,255,255,0.9); padding: 5px 15px; border-radius: 20px; box-shadow: 0 3px 5px rgba(0,0,0,0.1); }
+  .avatar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .avatar-option {
+    font-size: 2.5em; width: 60px; height: 60px; display: flex; justify-content: center; align-items: center;
+    background: white; border-radius: 50%; border: 3px solid transparent; transition: transform 0.1s; box-shadow: 0 3px 5px rgba(0,0,0,0.1); cursor: pointer;
   }
-  .restart-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #1565C0; }
+  .avatar-option.selected { border-color: #FFD700; background-color: #FFF8E1; transform: scale(1.1); box-shadow: 0 0 15px #FFD700; }
+  
+  #pk-start-btn-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1500; }
+  .pk-start-btn {
+    background: #E91E63; color: white; padding: 15px 40px; font-size: 1.5em; font-weight: bold;
+    border: none; border-radius: 30px; box-shadow: 0 6px 0 #880E4F, 0 0 20px rgba(233, 30, 99, 0.5); cursor: pointer; transition: 0.1s; border: 3px solid #fff;
+  }
+  .pk-start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #880E4F; }
+
+  /* ==================== 3. 雙人PK：遊戲畫面 ==================== */
+  #pk-container { display: none; flex-direction: column; height: 100%; width: 100%; }
+  .player-area { flex: 1; position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 10px; background-size: 20px 20px; transition: all 0.3s; }
+  
+  #player-top { background-color: var(--p1-bg); background-image: var(--bg-pattern); transform: rotate(180deg); border-bottom: 2px solid #555; color: #D84315; }
+  #player-bottom { background-color: var(--p2-bg); background-image: var(--bg-pattern); border-top: 2px solid #555; color: #0277BD; }
+  
+  .pk-score-board {
+    position: absolute; top: 15px; left: 15px; font-size: 1.6em; font-weight: 800; background: #fff; padding: 5px 15px; border-radius: 30px;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.1); display: flex; align-items: center; gap: 8px; z-index: 10;
+  }
+  #player-top .pk-score-board { color: #D84315; border: 3px solid #FFAB91; }
+  #player-bottom .pk-score-board { color: #0277BD; border: 3px solid #81D4FA; }
+
+  .streak-container { font-size: 0.8em; margin-left: 5px; display: flex; align-items: center; color: #FF9800; opacity: 0; transition: opacity 0.3s; }
+  .streak-container.active { opacity: 1; }
+  .streak-icon { margin-right: 2px; animation: burn 0.5s infinite alternate; }
+
+  .catchup-msg {
+    display: none; background: #FF5252; color: white; padding: 8px 20px; border-radius: 25px;
+    font-weight: 900; font-size: 1.1rem; margin-top: 15px; box-shadow: 0 0 10px rgba(255, 82, 82, 0.6);
+    animation: pulse-msg 0.8s infinite alternate;
+  }
+  @keyframes pulse-msg { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+  .pk-display-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+  .pk-question-text { font-size: 5em; font-weight: 900; color: #333; text-shadow: 3px 3px 0px rgba(255,255,255,0.5); animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
+  @keyframes popInQ { from {transform: scale(0); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+  .pk-options-panel { display: flex; width: 98%; justify-content: center; gap: 8px; padding: 5px; margin-bottom: 10px; }
+  .pk-opt-btn {
+    background: #fff; border: 3px solid #eee; border-radius: 12px;
+    width: 31%; height: 65px; font-size: 1.6em; font-weight: bold; color: #444;
+    cursor: pointer; box-shadow: 0 5px 0 #ddd; transition: all 0.1s; display: flex; justify-content: center; align-items: center;
+  }
+  .pk-opt-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #ddd; }
+  
+  /* 按鈕回饋共用 */
+  .correct { background-color: #C8E6C9 !important; border-color: #4CAF50 !important; color: #1B5E20 !important; box-shadow: 0 5px 0 #81C784 !important;}
+  .wrong { background-color: #FFCDD2 !important; border-color: #E57373 !important; color: #B71C1C !important; box-shadow: 0 5px 0 #E57373 !important;}
+
+  /* 遊戲結束(PK) */
+  .pk-end-overlay {
+    display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,0.95); z-index: 50; flex-direction: column; justify-content: center; align-items: center; text-align: center; animation: popIn 0.5s ease;
+  }
+  .end-title { font-size: 3em; font-weight: 900; margin-bottom: 10px; text-transform: uppercase; }
+  .end-emoji { font-size: 6em; margin-bottom: 20px; display: block; }
+  .winner-text { color: #FFD700; text-shadow: 2px 2px 0 #E65100; }
+  .loser-text { color: #78909C; }
+
+  /* PK 中控台 */
+  #pk-control-center { height: 50px; background-color: #333; display: flex; justify-content: space-between; align-items: center; z-index: 100; color: white; padding: 0 10px; flex-shrink: 0; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
+  #pk-status-text { font-size: 1.1em; font-weight: bold; text-align: center; color: #fff; flex: 1; }
+  .control-btn {
+    background: #555; color: white; border: 1px solid #777; padding: 5px 12px; border-radius: 20px;
+    font-size: 0.9rem; font-weight: bold; cursor: pointer; display: flex; align-items: center; text-decoration: none;
+  }
+  #pk-restart-btn, #sp-restart-btn { background: #FFEB3B; color: #333; border: none; box-shadow: 0 2px 0 #FBC02D; display: none; }
 
 </style>
 </head>
 <body>
 
+  <!-- 共用：倒數遮罩 -->
   <div id="countdown-overlay">
       <div class="countdown-text" id="cd-text">Ready</div>
       <div class="countdown-number" id="cd-num">3</div>
@@ -169,105 +187,157 @@
 
   <div id="main-wrapper">
 
-    <!-- 設定畫面 -->
-    <div id="setup-screen">
+    <!-- 0. 首頁模式選擇 -->
+    <div id="mode-select-screen">
       <div class="game-title">1~100<br>質數大挑戰</div>
-      <div class="choose-title">選擇你的挑戰者</div>
-      <div class="avatar-grid" id="avatar-grid"></div>
-      <button class="start-btn" onclick="startGame()">開始測驗</button>
+      <button class="mode-btn btn-sp" onclick="initAudioAndGo('sp')">👤 單人練習</button>
+      <button class="mode-btn btn-pk" onclick="initAudioAndGo('pk-setup')">⚔️ 雙人ＰＫ</button>
     </div>
 
-    <!-- 遊戲主畫面 -->
-    <div id="game-container">
-      
-      <div id="top-bar">
-        <div class="score-board">
-            <span id="player-avatar">🦊</span>
-            <span id="score-display">0</span> 分
-            <div id="streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num">0</span> 連對</div>
+    <!-- 1. 單人練習畫面 -->
+    <div id="sp-container">
+      <div id="sp-top-bar">
+        <div class="sp-score-board">
+            <span id="sp-score-display">0</span> 分
+            <div id="sp-streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="sp-streak-num">0</span> 連對</div>
         </div>
-        <div class="progress-text">題號：<span id="q-progress">1/20</span></div>
+        <div class="sp-progress-text">題號：<span id="sp-q-progress">1/20</span></div>
       </div>
 
-      <div class="status-display-area">
-          <div class="question-label">這個數字是？</div>
-          <div class="question-text" id="q-text">100</div>
-          <div id="feedback-msg"></div>
+      <div class="sp-display-area">
+          <div class="sp-question-label">這個數字是？</div>
+          <div class="sp-question-text" id="sp-q-text">100</div>
+          <div id="sp-feedback-msg" style="font-size: 1.5em; font-weight: 900; height: 35px; margin-top:20px;"></div>
       </div>
 
-      <div class="options-panel">
-          <button class="opt-btn" id="btn-prime" onclick="checkAnswer('質數', this)">質數</button>
-          <button class="opt-btn" id="btn-comp" onclick="checkAnswer('合數', this)">合數</button>
-          <button class="opt-btn" id="btn-none" onclick="checkAnswer('都不是', this)">都不是</button>
+      <div class="sp-options-panel">
+          <button class="sp-opt-btn" id="sp-btn-prime" onclick="spCheckAnswer('質數', this)">質數</button>
+          <button class="sp-opt-btn" id="sp-btn-comp" onclick="spCheckAnswer('合數', this)">合數</button>
+          <button class="sp-opt-btn" id="sp-btn-none" onclick="spCheckAnswer('都不是', this)">都不是</button>
       </div>
 
-      <!-- 結算畫面 -->
-      <div id="game-over-overlay" class="game-over-overlay">
-          <div class="end-title">測驗結束！</div>
-          <div class="end-score" id="final-score">100</div>
-          <div class="end-comment" id="final-comment">太神啦！質數大師！</div>
-          <button class="restart-btn" onclick="resetGame()">再來一局 🔄</button>
+      <!-- 單人結算 -->
+      <div id="sp-end-overlay" class="sp-end-overlay">
+          <div style="font-size: 3em; font-weight: 900; color: #333;">測驗結束！</div>
+          <div class="sp-end-score" id="sp-final-score">100</div>
+          <div id="sp-final-comment" style="font-size: 1.5em; font-weight: bold; margin-bottom: 30px;">太神啦！</div>
+          <button class="control-btn" style="background:#2196F3; padding:15px 40px; font-size:1.5em; border:none; box-shadow:0 6px 0 #1565C0;" onclick="returnToMenu()">⬅ 回主選單</button>
       </div>
-
     </div>
+
+    <!-- 2. 雙人PK：選角畫面 -->
+    <div id="pk-setup-screen">
+      <div id="pk-start-btn-container">
+        <button class="pk-start-btn" onclick="startPKGame()">開始對戰 ⚔️</button>
+      </div>
+      <div class="setup-half setup-top">
+        <div class="choose-title">Player 1 角色 (上方)</div>
+        <div class="avatar-grid" id="grid-top"></div>
+      </div>
+      <div class="setup-half setup-bottom">
+        <div class="choose-title">Player 2 角色 (下方)</div>
+        <div class="avatar-grid" id="grid-bottom"></div>
+      </div>
+    </div>
+
+    <!-- 3. 雙人PK：遊戲主畫面 -->
+    <div id="pk-container">
+      <!-- 上方玩家 (旋轉180度) -->
+      <div id="player-top" class="player-area">
+        <div class="pk-score-board">
+            <span id="p1-avatar-display">🦊</span>&nbsp;<span id="score-top">0</span>
+            <div id="streak-top" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num-top">0</span></div>
+        </div>
+        <div id="end-top" class="pk-end-overlay"><div class="end-emoji">🏆</div><div class="end-title">Winner</div></div>
+        <div class="pk-display-area">
+            <div class="pk-question-text" id="pk-q-text-top">100</div>
+            <div class="catchup-msg" id="catchup-top">別放棄！你現在一題40分！</div>
+        </div>
+        <div class="pk-options-panel">
+            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', '質數', this)">質數</button>
+            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', '合數', this)">合數</button>
+            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', '都不是', this)">都不是</button>
+        </div>
+      </div>
+
+      <!-- 中控台 -->
+      <div id="pk-control-center">
+        <button class="control-btn" onclick="returnToMenu()">⬅ 離開</button>
+        <div id="pk-status-text">搶答開始！率先 300 分獲勝</div>
+        <button id="pk-restart-btn" class="control-btn" onclick="returnToMenu()">再來一局 🔄</button>
+      </div>
+
+      <!-- 下方玩家 -->
+      <div id="player-bottom" class="player-area">
+        <div class="pk-score-board">
+            <span id="p2-avatar-display">🐰</span>&nbsp;<span id="score-bottom">0</span>
+            <div id="streak-bottom" class="streak-container"><span class="streak-icon">🔥</span><span id="streak-num-bottom">0</span></div>
+        </div>
+        <div id="end-bottom" class="pk-end-overlay"><div class="end-emoji">🏆</div><div class="end-title">Winner</div></div>
+        <div class="pk-display-area">
+            <div class="pk-question-text" id="pk-q-text-bottom">100</div>
+            <div class="catchup-msg" id="catchup-bottom">別放棄！你現在一題40分！</div>
+        </div>
+        <div class="pk-options-panel">
+            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', '質數', this)">質數</button>
+            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', '合數', this)">合數</button>
+            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', '都不是', this)">都不是</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
-    // 阻止雙擊放大與手勢
-    document.addEventListener('gesturestart', function (e) { e.preventDefault(); });
-    document.addEventListener('dblclick', function (e) { e.preventDefault(); }, { passive: false });
+    // === Web Audio API 音效生成器 (防止 iOS 靜音) ===
+    let audioCtx = null;
+    function initAudioAndGo(target) {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        if(target === 'sp') startSinglePlayer();
+        else if(target === 'pk-setup') showPKSetup();
+    }
 
-    // 質數定義資料
+    function playSound(type) {
+        if (!audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+        const now = audioCtx.currentTime;
+        
+        if (type === 'correct') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(659.25, now); // E5
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
+            gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.2);
+            oscillator.frequency.setValueAtTime(523.25, now + 0.2); // C5
+            gainNode.gain.linearRampToValueAtTime(0.4, now + 0.22);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.8);
+            oscillator.start(now); oscillator.stop(now + 0.8);
+        } else if (type === 'wrong') {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(300, now);
+            oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+            gainNode.gain.setValueAtTime(0, now);
+            gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            oscillator.start(now); oscillator.stop(now + 0.3);
+        }
+    }
+
+    // === 資料庫 ===
     const primesList = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97];
     const compositesList = [];
-    for(let i=4; i<=100; i++) {
-        if(!primesList.includes(i)) compositesList.push(i);
+    for(let i=4; i<=100; i++) { if(!primesList.includes(i)) compositesList.push(i); }
+    
+    function getCorrectAnswerStr(num) {
+        if (num === 1) return '都不是';
+        if (primesList.includes(num)) return '質數';
+        return '合數';
     }
 
-    // 變數
-    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
-    let selectedAvatar = '🦊'; 
-    let questionsPool = [];
-    let currentQIndex = 0;
-    let score = 0;
-    let streak = 0;
-    let isProcessingAnswer = false; 
-    
-    const TOTAL_QUESTIONS = 20;
-    const SCORE_PER_Q = 5; 
-
-    // DOM
-    const qText = document.getElementById('q-text');
-    const feedbackMsg = document.getElementById('feedback-msg');
-    const scoreDisplay = document.getElementById('score-display');
-    const qProgress = document.getElementById('q-progress');
-    const streakBox = document.getElementById('streak-box');
-    const streakNum = document.getElementById('streak-num');
-    
-    const btnPrime = document.getElementById('btn-prime');
-    const btnComp = document.getElementById('btn-comp');
-    const btnNone = document.getElementById('btn-none');
-
-    // 初始化選角
-    function initSetup() {
-      const container = document.getElementById('avatar-grid');
-      container.innerHTML = '';
-      emojiOptions.forEach(emoji => {
-          const div = document.createElement('div');
-          div.className = 'avatar-option'; div.innerText = emoji;
-          if(emoji === selectedAvatar) div.classList.add('selected');
-
-          div.onclick = () => {
-              const siblings = container.children;
-              for(let sib of siblings) sib.classList.remove('selected');
-              div.classList.add('selected');
-              selectedAvatar = emoji;
-          };
-          container.appendChild(div);
-      });
-    }
-
-    // 洗牌演算法
     function shuffle(array) {
         let currentIndex = array.length, randomIndex;
         while (currentIndex !== 0) {
@@ -278,162 +348,305 @@
         return array;
     }
 
-    // 準備20題題庫 (完美配題：保證 1 題"1" + 9題質數 + 10題合數)
-    function generateQuestions() {
+    // 介面切換邏輯
+    function hideAllScreens() {
+        document.getElementById('mode-select-screen').style.display = 'none';
+        document.getElementById('sp-container').style.display = 'none';
+        document.getElementById('pk-setup-screen').style.display = 'none';
+        document.getElementById('pk-container').style.display = 'none';
+    }
+
+    function returnToMenu() {
+        hideAllScreens();
+        document.getElementById('mode-select-screen').style.display = 'flex';
+    }
+
+    // ==========================================
+    //                 單人模式邏輯
+    // ==========================================
+    let spQuestionsPool = [];
+    let spCurrentQIndex = 0;
+    let spScore = 0;
+    let spStreak = 0;
+    let spIsProcessing = false;
+    const SP_TOTAL_Q = 20;
+
+    function startSinglePlayer() {
+        hideAllScreens();
+        document.getElementById('sp-container').style.display = 'flex';
+        document.getElementById('sp-end-overlay').style.display = 'none';
+        
+        spScore = 0; spStreak = 0; spCurrentQIndex = 0;
+        document.getElementById('sp-score-display').innerText = spScore;
+        document.getElementById('sp-streak-num').innerText = spStreak;
+        document.getElementById('sp-streak-box').classList.remove('active');
+
+        // 配題機制：保證1題"都不是"，9題質數，10題合數
         let shuffledPrimes = shuffle([...primesList]).slice(0, 9);
         let shuffledComposites = shuffle([...compositesList]).slice(0, 10);
-        let combined = [1, ...shuffledPrimes, ...shuffledComposites];
-        return shuffle(combined);
+        spQuestionsPool = shuffle([1, ...shuffledPrimes, ...shuffledComposites]);
+
+        runCountdown(3, "準備挑戰！", spLoadQuestion);
     }
 
-    // === 開始遊戲 ===
-    function startGame() {
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('game-container').style.display = 'flex';
-        document.getElementById('player-avatar').innerText = selectedAvatar;
-
-        questionsPool = generateQuestions();
+    function spLoadQuestion() {
+        if(spCurrentQIndex >= SP_TOTAL_Q) return spShowGameOver();
+        spIsProcessing = false;
         
-        runCountdown(3, "準備挑戰！", loadQuestion);
+        const fbMsg = document.getElementById('sp-feedback-msg');
+        fbMsg.innerText = "";
+        
+        ['sp-btn-prime', 'sp-btn-comp', 'sp-btn-none'].forEach(id => {
+            document.getElementById(id).className = 'sp-opt-btn';
+        });
+
+        const qText = document.getElementById('sp-q-text');
+        qText.innerText = spQuestionsPool[spCurrentQIndex];
+        document.getElementById('sp-q-progress').innerText = `${spCurrentQIndex + 1} / ${SP_TOTAL_Q}`;
+        
+        qText.style.animation = 'none'; qText.offsetHeight; 
+        qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     }
 
+    function spCheckAnswer(userChoice, btnObj) {
+        if (spIsProcessing) return;
+        spIsProcessing = true;
+
+        const currentNum = spQuestionsPool[spCurrentQIndex];
+        const correctAns = getCorrectAnswerStr(currentNum);
+        const fbMsg = document.getElementById('sp-feedback-msg');
+
+        if (userChoice === correctAns) {
+            playSound('correct');
+            btnObj.classList.add('correct');
+            spScore += 5; spStreak++;
+            fbMsg.innerText = spStreak >= 3 ? `🔥 ${spStreak}連對！太強了！` : "⭕ 答對了！";
+            fbMsg.style.color = "#4CAF50";
+        } else {
+            playSound('wrong');
+            btnObj.classList.add('wrong');
+            spStreak = 0;
+            fbMsg.innerText = "❌ 答錯了...";
+            fbMsg.style.color = "#F44336";
+            
+            if(correctAns === '質數') document.getElementById('sp-btn-prime').classList.add('correct');
+            else if(correctAns === '合數') document.getElementById('sp-btn-comp').classList.add('correct');
+            else document.getElementById('sp-btn-none').classList.add('correct');
+        }
+
+        document.getElementById('sp-score-display').innerText = spScore;
+        document.getElementById('sp-streak-num').innerText = spStreak;
+        if(spStreak >= 3) document.getElementById('sp-streak-box').classList.add('active');
+        else document.getElementById('sp-streak-box').classList.remove('active');
+
+        spCurrentQIndex++;
+        setTimeout(spLoadQuestion, 1200);
+    }
+
+    function spShowGameOver() {
+        const overlay = document.getElementById('sp-end-overlay');
+        document.getElementById('sp-final-score').innerText = spScore;
+        const comment = document.getElementById('sp-final-comment');
+        
+        if (spScore === 100) { comment.innerText = "滿分！你是真正的質數大師！🏆"; comment.style.color = "#FF9800"; }
+        else if (spScore >= 80) { comment.innerText = "非常優秀！只差一點點了！😎"; comment.style.color = "#4CAF50"; }
+        else if (spScore >= 60) { comment.innerText = "及格過關！基本功不錯哦！👍"; comment.style.color = "#2196F3"; }
+        else { comment.innerText = "再接再厲！把質數背熟再來挑戰！💪"; comment.style.color = "#F44336"; }
+
+        overlay.style.display = 'flex';
+    }
+
+
+    // ==========================================
+    //                 雙人PK邏輯
+    // ==========================================
+    const emojiOptions = ['🦊', '🐰', '🦁', '🐯', '🐹', '🐨', '🐼', '🐵'];
+    let p1Avatar = '🦊', p2Avatar = '🐰'; 
+    let pkScores = { top: 0, bottom: 0 }, pkStreaks = { top: 0, bottom: 0 };
+    let pkIsProcessing = false, pkCurrentTarget = 0, pkGameState = 'idle';
+    const PK_WIN_SCORE = 300; 
+
+    function showPKSetup() {
+        hideAllScreens();
+        document.getElementById('pk-setup-screen').style.display = 'flex';
+        renderGrid('grid-top', 'top');
+        renderGrid('grid-bottom', 'bottom');
+    }
+
+    function renderGrid(elementId, player) {
+      const container = document.getElementById(elementId);
+      container.innerHTML = '';
+      emojiOptions.forEach(emoji => {
+          const div = document.createElement('div');
+          div.className = 'avatar-option'; div.innerText = emoji;
+          if(player === 'top' && emoji === p1Avatar) div.classList.add('selected');
+          if(player === 'bottom' && emoji === p2Avatar) div.classList.add('selected');
+
+          div.onclick = () => {
+              const siblings = container.children;
+              for(let sib of siblings) sib.classList.remove('selected');
+              div.classList.add('selected');
+              if(player === 'top') p1Avatar = emoji; else p2Avatar = emoji;
+          };
+          container.appendChild(div);
+      });
+    }
+
+    function startPKGame() {
+        hideAllScreens();
+        document.getElementById('pk-container').style.display = 'flex';
+        document.getElementById('p1-avatar-display').innerText = p1Avatar;
+        document.getElementById('p2-avatar-display').innerText = p2Avatar;
+        
+        pkScores = { top: 0, bottom: 0 }; pkStreaks = { top: 0, bottom: 0 };
+        document.getElementById('end-top').style.display = 'none';
+        document.getElementById('end-bottom').style.display = 'none';
+        document.getElementById('pk-restart-btn').style.display = 'none';
+        pkUpdateUI();
+        pkGameState = 'playing';
+
+        runCountdown(3, "準備搶答！", pkLoadQuestion);
+    }
+
+    function pkLoadQuestion() {
+        if(pkGameState === 'ended') return;
+        pkIsProcessing = false;
+        
+        document.querySelectorAll('.pk-opt-btn').forEach(btn => {
+            btn.classList.remove('correct', 'wrong');
+        });
+
+        // 隨機出題 1~100 (稍微提高質數與1出現的機率)
+        let roll = Math.random();
+        if(roll < 0.1) pkCurrentTarget = 1; // 10% 機率出 1
+        else if (roll < 0.55) pkCurrentTarget = primesList[Math.floor(Math.random() * primesList.length)]; // 45% 質數
+        else pkCurrentTarget = compositesList[Math.floor(Math.random() * compositesList.length)]; // 45% 合數
+
+        const qTop = document.getElementById('pk-q-text-top');
+        const qBot = document.getElementById('pk-q-text-bottom');
+        qTop.innerText = pkCurrentTarget; qBot.innerText = pkCurrentTarget;
+        
+        document.getElementById('pk-status-text').innerText = "搶答開始！率先 300 分獲勝";
+
+        [qTop, qBot].forEach(el => {
+            el.style.animation = 'none'; el.offsetHeight;
+            el.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+        });
+    }
+
+    function pkCheckAnswer(player, selectedOpt, btnObj) {
+        if (pkIsProcessing) return;
+        pkIsProcessing = true; // 鎖定雙方，先搶先贏
+
+        const correctAns = getCorrectAnswerStr(pkCurrentTarget);
+        const isCorrect = (selectedOpt === correctAns);
+        const opponent = player === 'top' ? 'bottom' : 'top';
+        const gap = pkScores[opponent] - pkScores[player];
+        const isCatchingUp = gap > 100;
+        const statusText = document.getElementById('pk-status-text');
+
+        if (isCorrect) {
+            playSound('correct');
+            btnObj.classList.add('correct');
+            
+            let addScore = 10; 
+            if (isCatchingUp) {
+                addScore = 40;
+                statusText.innerText = "⚡ 逆轉衝刺！ +40";
+            } else {
+                pkStreaks[player]++;
+                if (pkStreaks[player] >= 3) {
+                    addScore = 20; 
+                    statusText.innerText = `🔥 ${(player==='top'?p1Avatar:p2Avatar)} 連對加分！`;
+                } else {
+                    statusText.innerText = "⭕ 答對了！";
+                }
+            }
+            pkScores[player] += addScore;
+
+        } else {
+            playSound('wrong');
+            btnObj.classList.add('wrong');
+            pkStreaks[player] = 0; 
+            pkScores[player] = Math.max(0, pkScores[player] - 10); 
+            statusText.innerText = "❌ 答錯了扣分！";
+            
+            // 標示出這半部的正確答案
+            const siblings = btnObj.parentElement.children;
+            for(let child of siblings) {
+                if(child.innerText === correctAns) child.classList.add('correct');
+            }
+        }
+
+        pkUpdateUI();
+
+        if (pkScores[player] >= PK_WIN_SCORE) {
+            setTimeout(() => pkShowGameOver(player), 1000);
+        } else {
+            setTimeout(pkLoadQuestion, 1000); 
+        }
+    }
+
+    function pkUpdateUI() {
+        document.getElementById('score-top').innerText = pkScores.top;
+        document.getElementById('score-bottom').innerText = pkScores.bottom;
+        
+        ['top', 'bottom'].forEach(p => {
+            const num = document.getElementById(`streak-num-${p}`);
+            const div = document.getElementById(`streak-${p}`);
+            num.innerText = pkStreaks[p];
+            if(pkStreaks[p] >= 3) div.classList.add('active');
+            else div.classList.remove('active');
+        });
+        
+        document.getElementById('catchup-top').style.display = (pkScores.bottom - pkScores.top > 100) ? 'block' : 'none';
+        document.getElementById('catchup-bottom').style.display = (pkScores.top - pkScores.bottom > 100) ? 'block' : 'none';
+    }
+
+    function pkShowGameOver(winner) {
+        pkGameState = 'ended';
+        const endTop = document.getElementById('end-top');
+        const endBottom = document.getElementById('end-bottom');
+        
+        function setupEnd(el, isWin) {
+            const title = el.querySelector('.end-title'), emoji = el.querySelector('.end-emoji');
+            if(isWin) { title.innerText = "Winner"; title.className = "end-title winner-text"; emoji.innerText = "🏆"; }
+            else { title.innerText = "Try Again"; title.className = "end-title loser-text"; emoji.innerText = "💪"; }
+        }
+
+        if(winner === 'top') {
+            setupEnd(endTop, true); setupEnd(endBottom, false);
+            document.getElementById('pk-status-text').innerText = `🏆 ${p1Avatar} 獲勝！`;
+        } else {
+            setupEnd(endBottom, true); setupEnd(endTop, false);
+            document.getElementById('pk-status-text').innerText = `🏆 ${p2Avatar} 獲勝！`;
+        }
+
+        endTop.style.display = 'flex'; endBottom.style.display = 'flex';
+        document.getElementById('pk-restart-btn').style.display = 'block'; 
+    }
+
+    // ==========================================
+    //                 共用工具
+    // ==========================================
     function runCountdown(seconds, label, callback) {
         const cdOverlay = document.getElementById('countdown-overlay');
         const cdText = document.getElementById('cd-text');
         const cdNum = document.getElementById('cd-num');
 
-        cdOverlay.style.display = 'flex';
-        cdText.innerText = label;
-        let count = seconds;
-        cdNum.innerText = count;
+        cdOverlay.style.display = 'flex'; cdText.innerText = label;
+        let count = seconds; cdNum.innerText = count;
 
         const timer = setInterval(() => {
             count--;
-            if (count > 0) {
-                cdNum.innerText = count;
-            } else {
+            if (count > 0) { cdNum.innerText = count; } 
+            else {
                 clearInterval(timer);
                 cdOverlay.style.display = 'none';
                 if(callback) callback();
             }
         }, 1000);
     }
-
-    // === 載入題目 ===
-    function loadQuestion() {
-        if(currentQIndex >= TOTAL_QUESTIONS) {
-            showGameOver();
-            return;
-        }
-
-        isProcessingAnswer = false;
-        feedbackMsg.innerText = "";
-        
-        // 重置按鈕狀態
-        [btnPrime, btnComp, btnNone].forEach(btn => {
-            btn.className = 'opt-btn';
-        });
-
-        // 更新文字
-        qText.innerText = questionsPool[currentQIndex];
-        qProgress.innerText = `${currentQIndex + 1} / ${TOTAL_QUESTIONS}`;
-        
-        // 觸發進場動畫
-        qText.style.animation = 'none';
-        qText.offsetHeight; /* trigger reflow */
-        qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-    }
-
-    // 判斷正確答案字串
-    function getCorrectAnswerStr(num) {
-        if (num === 1) return '都不是';
-        if (primesList.includes(num)) return '質數';
-        return '合數';
-    }
-
-    // === 判斷答案 ===
-    function checkAnswer(userChoice, btnObj) {
-        if (isProcessingAnswer) return;
-        isProcessingAnswer = true;
-
-        const currentNum = questionsPool[currentQIndex];
-        const correctAns = getCorrectAnswerStr(currentNum);
-        const isCorrect = (userChoice === correctAns);
-
-        if (isCorrect) {
-            btnObj.classList.add('correct');
-            score += SCORE_PER_Q;
-            streak++;
-            
-            feedbackMsg.innerText = streak >= 3 ? `🔥 ${streak}連對！太強了！` : "⭕ 答對了！";
-            feedbackMsg.className = "msg-correct";
-        } else {
-            btnObj.classList.add('wrong');
-            streak = 0;
-            
-            feedbackMsg.innerText = "❌ 答錯了...";
-            feedbackMsg.className = "msg-wrong";
-            
-            // 標示出正確答案
-            if(correctAns === '質數') btnPrime.classList.add('correct');
-            else if(correctAns === '合數') btnComp.classList.add('correct');
-            else btnNone.classList.add('correct');
-        }
-
-        // 更新分數與連擊 UI
-        scoreDisplay.innerText = score;
-        streakNum.innerText = streak;
-        if(streak >= 3) streakBox.classList.add('active');
-        else streakBox.classList.remove('active');
-
-        // 前往下一題
-        currentQIndex++;
-        setTimeout(() => {
-            loadQuestion();
-        }, 1200); // 停頓1.2秒讓玩家看清楚結果
-    }
-
-    function showGameOver() {
-        const overlay = document.getElementById('game-over-overlay');
-        const finalScoreText = document.getElementById('final-score');
-        const finalComment = document.getElementById('final-comment');
-        
-        finalScoreText.innerText = score;
-
-        // 評價語
-        if (score === 100) {
-            finalComment.innerText = "滿分！你是真正的質數大師！🏆";
-            finalComment.style.color = "#FF9800";
-        } else if (score >= 80) {
-            finalComment.innerText = "非常優秀！只差一點點了！😎";
-            finalComment.style.color = "#4CAF50";
-        } else if (score >= 60) {
-            finalComment.innerText = "及格過關！基本功不錯哦！👍";
-            finalComment.style.color = "#2196F3";
-        } else {
-            finalComment.innerText = "再接再厲！把質數背熟再來挑戰！💪";
-            finalComment.style.color = "#F44336";
-        }
-
-        overlay.style.display = 'flex';
-    }
-
-    function resetGame() {
-        score = 0;
-        streak = 0;
-        currentQIndex = 0;
-        
-        scoreDisplay.innerText = 0;
-        streakNum.innerText = 0;
-        streakBox.classList.remove('active');
-        
-        document.getElementById('game-over-overlay').style.display = 'none';
-        document.getElementById('game-container').style.display = 'none';
-        document.getElementById('setup-screen').style.display = 'flex';
-    }
-
-    // 啟動畫面
-    initSetup();
   </script>
 </body>
 </html>
