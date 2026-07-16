@@ -148,5 +148,13 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "質數？合數？都不是？"
+    },
+    {
+        title: "英文基礎文法練習",
+        category: "junior", // 設定為國中區類別
+        url: "junior/english/basic_grammar.html",
+        tagClass: "lang",
+        tagName: "國中英文",
+        desc: "基礎文法總匯"
     }
 ];
