@@ -74,11 +74,11 @@
     font-size: 1.8em; font-weight: bold; border-radius: 15px; border: none; cursor: pointer;
     transition: 0.1s; color: white; display: flex; align-items: center; justify-content: center; gap: 10px;
   }
-  .btn-pr { background: #9C27B0; box-shadow: 0 6px 0 #7B1FA2; } /* 練習模式：紫色 */
+  .btn-pr { background: #9C27B0; box-shadow: 0 6px 0 #7B1FA2; } 
   .btn-pr:active { transform: translateY(6px); box-shadow: 0 0 0 #7B1FA2; }
-  .btn-sp { background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; } /* 單人計時：綠色 */
+  .btn-sp { background: #4CAF50; box-shadow: 0 6px 0 #2E7D32; } 
   .btn-sp:active { transform: translateY(6px); box-shadow: 0 0 0 #2E7D32; }
-  .btn-pk { background: #FF9800; box-shadow: 0 6px 0 #E65100; } /* 雙人PK：橘色 */
+  .btn-pk { background: #FF9800; box-shadow: 0 6px 0 #E65100; } 
   .btn-pk:active { transform: translateY(6px); box-shadow: 0 0 0 #E65100; }
 
   /* ==================== 共用遊戲顯示區域 ==================== */
@@ -232,10 +232,10 @@
       <div class="topic-select-container">
         <select id="topic-select" class="topic-select">
             <option value="be_present">be動詞（現在簡單式）</option>
+            <option value="do_does">助動詞 Do/Does（示範2個選項）</option>
         </select>
       </div>
 
-      <!-- 新增：練習模式按鈕 -->
       <button class="mode-btn btn-pr" onclick="initAudioAndGo('pr')">📖 練習模式</button>
       <button class="mode-btn btn-sp" onclick="initAudioAndGo('sp')">👤 單人計時</button>
       <button class="mode-btn btn-pk" onclick="initAudioAndGo('pk-setup')">⚔️ 雙人ＰＫ</button>
@@ -259,11 +259,8 @@
           <button id="pr-next-btn" class="pr-next-btn" onclick="prNextQuestion()">下一題 ➡</button>
       </div>
 
-      <div class="options-panel" id="pr-options-panel">
-          <button class="opt-btn" id="pr-btn-0" onclick="prCheckAnswer(0, this)">選項1</button>
-          <button class="opt-btn" id="pr-btn-1" onclick="prCheckAnswer(1, this)">選項2</button>
-          <button class="opt-btn" id="pr-btn-2" onclick="prCheckAnswer(2, this)">選項3</button>
-      </div>
+      <!-- 改為動態容器，移除裡面的假按鈕 -->
+      <div class="options-panel" id="pr-options-panel"></div>
 
       <!-- 練習模式結算 -->
       <div id="pr-end-overlay" class="end-overlay">
@@ -301,11 +298,8 @@
           <div id="sp-feedback-msg" style="font-size: 1.3em; font-weight: 900; height: 30px; margin-top:5px;"></div>
       </div>
 
-      <div class="options-panel" id="sp-options-panel">
-          <button class="opt-btn" id="sp-btn-0" onclick="spCheckAnswer(0, this)">選項1</button>
-          <button class="opt-btn" id="sp-btn-1" onclick="spCheckAnswer(1, this)">選項2</button>
-          <button class="opt-btn" id="sp-btn-2" onclick="spCheckAnswer(2, this)">選項3</button>
-      </div>
+      <!-- 改為動態容器 -->
+      <div class="options-panel" id="sp-options-panel"></div>
 
       <!-- 單人結算 -->
       <div id="sp-end-overlay" class="end-overlay">
@@ -346,11 +340,8 @@
             <div class="pk-question-text" id="pk-q-text-top">?</div>
             <div class="catchup-msg" id="catchup-top">別放棄！你現在一題40分！</div>
         </div>
-        <div class="pk-options-panel" id="pk-options-top">
-            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', 0, this)"></button>
-            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', 1, this)"></button>
-            <button class="pk-opt-btn pk-opt-top" onclick="pkCheckAnswer('top', 2, this)"></button>
-        </div>
+        <!-- 改為動態容器 -->
+        <div class="pk-options-panel" id="pk-options-top"></div>
       </div>
 
       <!-- 中控台 -->
@@ -371,11 +362,8 @@
             <div class="pk-question-text" id="pk-q-text-bottom">?</div>
             <div class="catchup-msg" id="catchup-bottom">別放棄！你現在一題40分！</div>
         </div>
-        <div class="pk-options-panel" id="pk-options-bottom">
-            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', 0, this)"></button>
-            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', 1, this)"></button>
-            <button class="pk-opt-btn pk-opt-bottom" onclick="pkCheckAnswer('bottom', 2, this)"></button>
-        </div>
+        <!-- 改為動態容器 -->
+        <div class="pk-options-panel" id="pk-options-bottom"></div>
       </div>
     </div>
 
@@ -398,7 +386,7 @@
         }
         
         currentTopicData = grammarData[document.getElementById('topic-select').value];
-        setupButtons();
+        setupButtons(); // 這裡現在會自動依照題庫選項數量來「畫」按鈕
 
         if(target === 'pr') startPracticeMode();
         else if(target === 'sp') startSinglePlayer();
@@ -445,7 +433,7 @@
     }
 
     // ==========================================
-    //           文法資料庫 (擴充解析欄位)
+    //           文法資料庫
     // ==========================================
     const grammarData = {
         "be_present": {
@@ -478,19 +466,59 @@
                 { q: "The students ___ quiet.", a: "are", exp: "students 加上了s，是複數名詞，be動詞用 are。" },
                 { q: "Mary ___ a nurse.", a: "is", exp: "Mary 是一個人名，視為第三人稱單數，be動詞用 is。" }
             ]
+        },
+        // 幫你加入一個示範用的 2 個選項的單元
+        "do_does": {
+            title: "助動詞 Do/Does",
+            options: ["Do", "Does"],
+            pool: [
+                { q: "___ you like apples?", a: "Do", exp: "主詞是 You，助動詞用 Do。" },
+                { q: "___ he play baseball?", a: "Does", exp: "主詞是第三人稱單數 He，助動詞用 Does。" },
+                { q: "___ they live here?", a: "Do", exp: "主詞是 They，助動詞用 Do。" },
+                { q: "___ Mary have a cat?", a: "Does", exp: "Mary 是第三人稱單數，助動詞用 Does。" }
+            ]
         }
     };
 
     let currentTopicData = null;
 
+    // === 核心改寫：動態生成按鈕 ===
     function setupButtons() {
         const opts = currentTopicData.options;
-        for(let i=0; i<3; i++) {
-            document.getElementById(`pr-btn-${i}`).innerText = opts[i];
-            document.getElementById(`sp-btn-${i}`).innerText = opts[i];
-            document.querySelectorAll(`#pk-options-top button`)[i].innerText = opts[i];
-            document.querySelectorAll(`#pk-options-bottom button`)[i].innerText = opts[i];
-        }
+        
+        const prPanel = document.getElementById('pr-options-panel');
+        const spPanel = document.getElementById('sp-options-panel');
+        const pkTopPanel = document.getElementById('pk-options-top');
+        const pkBotPanel = document.getElementById('pk-options-bottom');
+        
+        prPanel.innerHTML = ''; spPanel.innerHTML = ''; 
+        pkTopPanel.innerHTML = ''; pkBotPanel.innerHTML = '';
+
+        const pkBtnWidth = opts.length === 2 ? '45%' : (opts.length === 3 ? '32%' : '23%');
+
+        opts.forEach((opt, index) => {
+            const btnPr = document.createElement('button');
+            btnPr.className = 'opt-btn'; btnPr.id = `pr-btn-${index}`; btnPr.innerText = opt;
+            btnPr.onclick = function() { prCheckAnswer(index, this); };
+            prPanel.appendChild(btnPr);
+
+            const btnSp = document.createElement('button');
+            btnSp.className = 'opt-btn'; btnSp.id = `sp-btn-${index}`; btnSp.innerText = opt;
+            btnSp.onclick = function() { spCheckAnswer(index, this); };
+            spPanel.appendChild(btnSp);
+
+            const btnPkTop = document.createElement('button');
+            btnPkTop.className = 'pk-opt-btn pk-opt-top'; btnPkTop.innerText = opt;
+            btnPkTop.style.width = pkBtnWidth;
+            btnPkTop.onclick = function() { pkCheckAnswer('top', index, this); };
+            pkTopPanel.appendChild(btnPkTop);
+
+            const btnPkBot = document.createElement('button');
+            btnPkBot.className = 'pk-opt-btn pk-opt-bottom'; btnPkBot.innerText = opt;
+            btnPkBot.style.width = pkBtnWidth;
+            btnPkBot.onclick = function() { pkCheckAnswer('bottom', index, this); };
+            pkBotPanel.appendChild(btnPkBot);
+        });
     }
 
     function shuffle(array) {
@@ -503,7 +531,7 @@
     }
 
     // ==========================================
-    //           練習模式邏輯 (新增)
+    //           練習模式邏輯
     // ==========================================
     let prQuestionsPool = [];
     let prCurrentQIndex = 0;
@@ -516,25 +544,26 @@
         
         prCurrentQIndex = 0;
         prQuestionsPool = shuffle([...currentTopicData.pool]).slice(0, PR_TOTAL_Q);
-        
         prLoadQuestion();
     }
 
     function prLoadQuestion() {
-        if(prCurrentQIndex >= PR_TOTAL_Q) {
+        // 如果題庫題數不足 20 題，會以實際題數為準
+        const totalQ = Math.min(PR_TOTAL_Q, currentTopicData.pool.length);
+        if(prCurrentQIndex >= totalQ) {
             document.getElementById('pr-end-overlay').style.display = 'flex';
             return;
         }
         
         const qText = document.getElementById('pr-q-text');
         qText.innerText = prQuestionsPool[prCurrentQIndex].q;
-        document.getElementById('pr-q-progress').innerText = (prCurrentQIndex + 1) + " / " + PR_TOTAL_Q;
+        document.getElementById('pr-q-progress').innerText = (prCurrentQIndex + 1) + " / " + totalQ;
         
         document.getElementById('pr-explanation-box').style.display = 'none';
         document.getElementById('pr-next-btn').style.display = 'none';
 
-        // 恢復按鈕狀態
-        for(let i=0; i<3; i++) {
+        // 恢復按鈕狀態 (彈性偵測數量)
+        for(let i = 0; i < currentTopicData.options.length; i++) {
             const btn = document.getElementById(`pr-btn-${i}`);
             btn.className = 'opt-btn';
             btn.disabled = false;
@@ -545,7 +574,6 @@
     }
 
     function prCheckAnswer(optIndex, btnObj) {
-        // 如果按鈕已經被鎖定，直接返回
         if(btnObj.disabled) return;
 
         const currentQ = prQuestionsPool[prCurrentQIndex];
@@ -561,12 +589,14 @@
             expBox.style.display = 'block';
             document.getElementById('pr-next-btn').style.display = 'block';
 
-            // 答對後鎖定所有按鈕，強迫按下一題
-            for(let i=0; i<3; i++) document.getElementById(`pr-btn-${i}`).disabled = true;
+            // 答對後鎖定所有按鈕
+            for(let i = 0; i < currentTopicData.options.length; i++) {
+                document.getElementById(`pr-btn-${i}`).disabled = true;
+            }
         } else {
             playSound('wrong');
             btnObj.classList.add('wrong');
-            btnObj.disabled = true; // 答錯的這個選項鎖定不能再按
+            btnObj.disabled = true; 
             
             expBox.innerHTML = `<span style="color:#D32F2F;">❌ 答錯囉！</span><br>${currentQ.exp}，再試一次！`;
             expBox.style.display = 'block';
@@ -579,7 +609,7 @@
     }
 
     // ==========================================
-    //           單人模式邏輯 (微調 Class 名稱)
+    //           單人模式邏輯
     // ==========================================
     let spQuestionsPool = [], spCurrentQIndex = 0, spScore = 0, spStreak = 0, spIsProcessing = false, spStartTime = 0, spTimerFrame = null;
     const SP_TOTAL_Q = 20, SP_TIME_LIMIT = 5000; 
@@ -591,23 +621,30 @@
         spScore = 0; spStreak = 0; spCurrentQIndex = 0;
         document.getElementById('sp-score-display').innerText = spScore.toFixed(1);
         document.getElementById('sp-streak-num').innerText = spStreak; document.getElementById('sp-streak-box').classList.remove('active');
-        document.getElementById('sp-q-progress').innerText = "0 / " + SP_TOTAL_Q;
+        
+        const totalQ = Math.min(SP_TOTAL_Q, currentTopicData.pool.length);
+        document.getElementById('sp-q-progress').innerText = "0 / " + totalQ;
         
         const fbMsg = document.getElementById('sp-feedback-msg');
         fbMsg.innerText = "準備開始..."; fbMsg.style.color = "#999";
         
-        spQuestionsPool = shuffle([...currentTopicData.pool]).slice(0, SP_TOTAL_Q);
+        spQuestionsPool = shuffle([...currentTopicData.pool]).slice(0, totalQ);
         runCountdown(3, "準備挑戰！", spLoadQuestion);
     }
 
     function spLoadQuestion() {
-        if(spCurrentQIndex >= SP_TOTAL_Q) return spShowGameOver();
+        const totalQ = Math.min(SP_TOTAL_Q, currentTopicData.pool.length);
+        if(spCurrentQIndex >= totalQ) return spShowGameOver();
         spIsProcessing = false; document.getElementById('sp-feedback-msg').innerText = "";
-        for(let i=0; i<3; i++) document.getElementById(`sp-btn-${i}`).className = 'opt-btn';
+        
+        // 恢復按鈕狀態 (彈性偵測數量)
+        for(let i = 0; i < currentTopicData.options.length; i++) {
+            document.getElementById(`sp-btn-${i}`).className = 'opt-btn';
+        }
 
         const qText = document.getElementById('sp-q-text');
         qText.innerText = spQuestionsPool[spCurrentQIndex].q;
-        document.getElementById('sp-q-progress').innerText = (spCurrentQIndex + 1) + " / " + SP_TOTAL_Q;
+        document.getElementById('sp-q-progress').innerText = (spCurrentQIndex + 1) + " / " + totalQ;
         qText.style.animation = 'none'; qText.offsetHeight; qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
         spStartTimer();
     }
