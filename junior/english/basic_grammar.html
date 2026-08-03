@@ -213,6 +213,7 @@
   #pk-restart-btn { background: #FFEB3B; color: #333; border: none; box-shadow: 0 2px 0 #FBC02D; display: none; }
 
 </style>
+
 </head>
 <body>
 
@@ -231,14 +232,13 @@
       <!-- 下拉式選單 -->
       <div class="topic-select-container">
         <select id="topic-select" class="topic-select">
-            <option value="be_present">be動詞（現在簡單式）</option>
-            <option value="do_does">助動詞 Do/Does（示範2個選項）</option>
+            <option>連線資料庫中...</option>
         </select>
       </div>
 
-      <button class="mode-btn btn-pr" onclick="initAudioAndGo('pr')">📖 練習模式</button>
-      <button class="mode-btn btn-sp" onclick="initAudioAndGo('sp')">👤 單人計時</button>
-      <button class="mode-btn btn-pk" onclick="initAudioAndGo('pk-setup')">⚔️ 雙人ＰＫ</button>
+      <button id="btn-pr" class="mode-btn btn-pr" onclick="initAudioAndGo('pr')" disabled style="opacity: 0.5;">📖 練習模式</button>
+      <button id="btn-sp" class="mode-btn btn-sp" onclick="initAudioAndGo('sp')" disabled style="opacity: 0.5;">👤 單人計時</button>
+      <button id="btn-pk" class="mode-btn btn-pk" onclick="initAudioAndGo('pk-setup')" disabled style="opacity: 0.5;">⚔️ 雙人ＰＫ</button>
     </div>
 
     <!-- 1. 練習模式畫面 (無計時) -->
@@ -259,7 +259,7 @@
           <button id="pr-next-btn" class="pr-next-btn" onclick="prNextQuestion()">下一題 ➡</button>
       </div>
 
-      <!-- 改為動態容器，移除裡面的假按鈕 -->
+      <!-- 改為動態容器 -->
       <div class="options-panel" id="pr-options-panel"></div>
 
       <!-- 練習模式結算 -->
@@ -369,7 +369,71 @@
 
   </div>
 
-  <script>
+  <script type="module">
+    // ⚡ 1. 匯入新版 Firebase 模組 (取代舊版的 CDN 標籤)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+  
+    // ⚡ 2. 初始化 Firebase (你的 Easy-Chat-TWN-JPN 設定)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUbEZpHlfYB0iEz56nJXudGQxbNQayEeA",
+      authDomain: "easy-chat-twn-jpn.firebaseapp.com",
+      projectId: "easy-chat-twn-jpn",
+      storageBucket: "easy-chat-twn-jpn.firebasestorage.app",
+      messagingSenderId: "211574656428",
+      appId: "1:211574656428:web:bfc278717875304156fe09"
+    };
+  
+    const app = initializeApp(firebaseConfig);
+    // 關鍵：明確告訴 Firebase 要連線到 "basic-grammar" 資料庫
+    const db = getFirestore(app, "basic-grammar");
+  
+    // ⚡ 3. 從資料庫讀取資料並建立選單
+    // 改成 window. 開頭，確保你下方的遊戲邏輯不會因為變成 module 而抓不到資料
+    window.grammarData = {};
+    window.currentTopicData = null;
+  
+    async function loadDataFromFirebase() {
+        const select = document.getElementById('topic-select');
+        
+        try {
+            // 新版讀取資料庫的寫法
+            const snapshot = await getDocs(collection(db, 'grammar_topics'));
+            
+            if (snapshot.empty) {
+                select.innerHTML = '<option>目前沒有題庫資料</option>';
+                return;
+            }
+  
+            select.innerHTML = ''; 
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                window.grammarData[doc.id] = data; 
+                
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.innerText = data.title;
+                select.appendChild(opt);
+            });
+  
+            // 解除按鈕封印
+            document.getElementById('btn-pr').disabled = false; document.getElementById('btn-pr').style.opacity = '1';
+            document.getElementById('btn-sp').disabled = false; document.getElementById('btn-sp').style.opacity = '1';
+            document.getElementById('btn-pk').disabled = false; document.getElementById('btn-pk').style.opacity = '1';
+  
+        } catch(error) {
+            console.error("讀取 Firebase 失敗:", error);
+            select.innerHTML = '<option>連線失敗，請檢查網路</option>';
+        }
+    }
+  
+    window.onload = loadDataFromFirebase;
+
+  // ==========================================
+  // 👇 下方請繼續保留你原本的「遊戲邏輯程式碼」 👇
+  // ==========================================
+
+
     // === 防當機：Audio API 安全封裝 ===
     let audioCtx = null;
     function initAudioAndGo(target) {
@@ -385,8 +449,9 @@
             console.log("Audio Context Error: ", e);
         }
         
+        // 從我們動態抓下來的 data 中取得使用者選的單元
         currentTopicData = grammarData[document.getElementById('topic-select').value];
-        setupButtons(); // 這裡現在會自動依照題庫選項數量來「畫」按鈕
+        setupButtons(); 
 
         if(target === 'pr') startPracticeMode();
         else if(target === 'sp') startSinglePlayer();
@@ -432,57 +497,7 @@
         }, 1000);
     }
 
-    // ==========================================
-    //           文法資料庫
-    // ==========================================
-    const grammarData = {
-        "be_present": {
-            title: "be動詞（現在簡單式）",
-            options: ["am", "are", "is"],
-            pool: [
-                { q: "I ___ a student.", a: "am", exp: "主詞是第一人稱單數 I，be動詞固定搭配 am。" },
-                { q: "You ___ my best friend.", a: "are", exp: "主詞是 You，be動詞搭配 are。" },
-                { q: "He ___ a good doctor.", a: "is", exp: "主詞 He 是第三人稱單數，be動詞用 is。" },
-                { q: "She ___ very tall.", a: "is", exp: "主詞 She 是第三人稱單數，be動詞用 is。" },
-                { q: "It ___ a cute dog.", a: "is", exp: "主詞 It 是第三人稱單數，be動詞用 is。" },
-                { q: "We ___ happy today.", a: "are", exp: "主詞 We 是第一人稱複數，be動詞用 are。" },
-                { q: "They ___ from Taiwan.", a: "are", exp: "主詞 They 是第三人稱複數，be動詞用 are。" },
-                { q: "My name ___ John.", a: "is", exp: "My name 視為第三人稱單數，be動詞用 is。" },
-                { q: "The apples ___ red.", a: "are", exp: "apples 是複數名詞，be動詞要用 are。" },
-                { q: "The cat ___ sleeping.", a: "is", exp: "cat 是一隻貓，屬於單數名詞，be動詞用 is。" },
-                { q: "I ___ not angry.", a: "am", exp: "主詞是第一人稱單數 I，be動詞固定搭配 am。" },
-                { q: "Lisa ___ ten years old.", a: "is", exp: "Lisa 是一個人名，視為第三人稱單數，be動詞用 is。" },
-                { q: "The books ___ on the desk.", a: "are", exp: "books 是複數名詞，be動詞要用 are。" },
-                { q: "Bob and I ___ brothers.", a: "are", exp: "Bob and I 是兩個人（複數），be動詞要用 are。" },
-                { q: "You and Tom ___ late.", a: "are", exp: "You and Tom 是兩個人（複數），be動詞要用 are。" },
-                { q: "The earth ___ round.", a: "is", exp: "earth（地球）是單一事物，視為第三人稱單數，用 is。" },
-                { q: "My dog ___ black.", a: "is", exp: "My dog 是單一動物，視為第三人稱單數，用 is。" },
-                { q: "The water ___ cold.", a: "is", exp: "water 是不可數名詞，一律視為單數，be動詞用 is。" },
-                { q: "This ___ an apple.", a: "is", exp: "This（這個）是單數指示代名詞，be動詞用 is。" },
-                { q: "These ___ my pens.", a: "are", exp: "These（這些）是複數指示代名詞，be動詞用 are。" },
-                { q: "That ___ a fast car.", a: "is", exp: "That（那個）是單數指示代名詞，be動詞用 is。" },
-                { q: "Those ___ birds.", a: "are", exp: "Those（那些）是複數指示代名詞，be動詞用 are。" },
-                { q: "I ___ sure about it.", a: "am", exp: "主詞是 I，be動詞固定搭配 am。" },
-                { q: "The students ___ quiet.", a: "are", exp: "students 加上了s，是複數名詞，be動詞用 are。" },
-                { q: "Mary ___ a nurse.", a: "is", exp: "Mary 是一個人名，視為第三人稱單數，be動詞用 is。" }
-            ]
-        },
-        // 幫你加入一個示範用的 2 個選項的單元
-        "do_does": {
-            title: "助動詞 Do/Does",
-            options: ["Do", "Does"],
-            pool: [
-                { q: "___ you like apples?", a: "Do", exp: "主詞是 You，助動詞用 Do。" },
-                { q: "___ he play baseball?", a: "Does", exp: "主詞是第三人稱單數 He，助動詞用 Does。" },
-                { q: "___ they live here?", a: "Do", exp: "主詞是 They，助動詞用 Do。" },
-                { q: "___ Mary have a cat?", a: "Does", exp: "Mary 是第三人稱單數，助動詞用 Does。" }
-            ]
-        }
-    };
-
-    let currentTopicData = null;
-
-    // === 核心改寫：動態生成按鈕 ===
+    // === 動態生成按鈕邏輯 ===
     function setupButtons() {
         const opts = currentTopicData.options;
         
@@ -548,7 +563,6 @@
     }
 
     function prLoadQuestion() {
-        // 如果題庫題數不足 20 題，會以實際題數為準
         const totalQ = Math.min(PR_TOTAL_Q, currentTopicData.pool.length);
         if(prCurrentQIndex >= totalQ) {
             document.getElementById('pr-end-overlay').style.display = 'flex';
@@ -562,7 +576,6 @@
         document.getElementById('pr-explanation-box').style.display = 'none';
         document.getElementById('pr-next-btn').style.display = 'none';
 
-        // 恢復按鈕狀態 (彈性偵測數量)
         for(let i = 0; i < currentTopicData.options.length; i++) {
             const btn = document.getElementById(`pr-btn-${i}`);
             btn.className = 'opt-btn';
@@ -575,37 +588,29 @@
 
     function prCheckAnswer(optIndex, btnObj) {
         if(btnObj.disabled) return;
-
         const currentQ = prQuestionsPool[prCurrentQIndex];
         const userChoice = currentTopicData.options[optIndex];
         const correctAns = currentQ.a;
         const expBox = document.getElementById('pr-explanation-box');
 
         if (userChoice === correctAns) {
-            playSound('correct');
-            btnObj.classList.add('correct');
-            
+            playSound('correct'); btnObj.classList.add('correct');
             expBox.innerHTML = `<span style="color:#2E7D32;">⭕ 答對了！</span><br>${currentQ.exp}`;
             expBox.style.display = 'block';
             document.getElementById('pr-next-btn').style.display = 'block';
 
-            // 答對後鎖定所有按鈕
             for(let i = 0; i < currentTopicData.options.length; i++) {
                 document.getElementById(`pr-btn-${i}`).disabled = true;
             }
         } else {
-            playSound('wrong');
-            btnObj.classList.add('wrong');
-            btnObj.disabled = true; 
-            
+            playSound('wrong'); btnObj.classList.add('wrong'); btnObj.disabled = true; 
             expBox.innerHTML = `<span style="color:#D32F2F;">❌ 答錯囉！</span><br>${currentQ.exp}，再試一次！`;
             expBox.style.display = 'block';
         }
     }
 
     function prNextQuestion() {
-        prCurrentQIndex++;
-        prLoadQuestion();
+        prCurrentQIndex++; prLoadQuestion();
     }
 
     // ==========================================
@@ -624,7 +629,6 @@
         
         const totalQ = Math.min(SP_TOTAL_Q, currentTopicData.pool.length);
         document.getElementById('sp-q-progress').innerText = "0 / " + totalQ;
-        
         const fbMsg = document.getElementById('sp-feedback-msg');
         fbMsg.innerText = "準備開始..."; fbMsg.style.color = "#999";
         
@@ -637,10 +641,7 @@
         if(spCurrentQIndex >= totalQ) return spShowGameOver();
         spIsProcessing = false; document.getElementById('sp-feedback-msg').innerText = "";
         
-        // 恢復按鈕狀態 (彈性偵測數量)
-        for(let i = 0; i < currentTopicData.options.length; i++) {
-            document.getElementById(`sp-btn-${i}`).className = 'opt-btn';
-        }
+        for(let i = 0; i < currentTopicData.options.length; i++) { document.getElementById(`sp-btn-${i}`).className = 'opt-btn'; }
 
         const qText = document.getElementById('sp-q-text');
         qText.innerText = spQuestionsPool[spCurrentQIndex].q;
@@ -650,9 +651,7 @@
     }
 
     function spStartTimer() {
-        spStartTime = performance.now();
-        if(spTimerFrame) cancelAnimationFrame(spTimerFrame);
-        spUpdateTimer();
+        spStartTime = performance.now(); if(spTimerFrame) cancelAnimationFrame(spTimerFrame); spUpdateTimer();
     }
 
     function spUpdateTimer() {
@@ -812,6 +811,13 @@
         if(spTimeout) { clearTimeout(spTimeout); spTimeout = null; } if(pkTimeout) { clearTimeout(pkTimeout); pkTimeout = null; }
         document.getElementById('countdown-overlay').style.display = 'none'; hideAllScreens(); document.getElementById('mode-select-screen').style.display = 'flex';
     }
+    // ==========================================
+    // ⚡ 關鍵修復：將 HTML 點擊會用到的 function 開放給全域
+    // ==========================================
+    window.initAudioAndGo = initAudioAndGo;
+    window.returnToMenu = returnToMenu;
+    window.prNextQuestion = prNextQuestion;
+    window.startPKGame = startPKGame;
   </script>
 </body>
 </html>
