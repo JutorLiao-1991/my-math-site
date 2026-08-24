@@ -1,6 +1,16 @@
-# 忽略 Streamlit 的機密檔案
-.streamlit/secrets.toml
+# 機密與本機設定
 .streamlit/
+**/.streamlit/
+.env
+.env.*
+!.env.example
+secrets.toml
+**/secrets.toml
+*firebase*key*.json
+*service-account*.json
+*.pem
+*.p12
+*.key
 
 # 忽略 Python 產生的暫存檔
 __pycache__/
