@@ -414,7 +414,8 @@
                 
                 const opt = document.createElement('option');
                 opt.value = doc.id;
-                opt.innerText = data.title;
+                const scope = [data.term, data.unit].filter(Boolean).join(' ');
+                opt.innerText = scope ? `${scope}｜${data.title}` : data.title;
                 select.appendChild(opt);
             });
   
