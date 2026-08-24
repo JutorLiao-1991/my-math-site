@@ -102,12 +102,12 @@ const lessonData = [
         desc: "來場元素JUNO吧！"
     },
     {
-        title: "鳩特數理‧國中單字練習",
-        category: "language",
-        url: "junior/english/vol_test.html",
+        title: "鳩特國中英文練習區",
+        category: "junior",
+        url: "junior/english/index.html",
         tagClass: "lang",
         tagName: "國中英文",
-        desc: "單字是根本中的根本，請好好來紮根。"
+        desc: "整合單字、句型與基礎文法練習，依年級學期與教材範圍開始挑戰。"
     },
     {
         title: "單位換算特訓",
@@ -148,13 +148,5 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "質數？合數？都不是？"
-    },
-    {
-        title: "英文基礎文法練習",
-        category: "junior", // 設定為國中區類別
-        url: "junior/english/basic_grammar.html",
-        tagClass: "lang",
-        tagName: "國中英文",
-        desc: "基礎文法總匯"
     }
 ];
