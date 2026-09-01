@@ -26,6 +26,30 @@ class EnglishStaticSecurityTests(unittest.TestCase):
         for term in ["國一上", "國一下", "國二上", "國二下", "國三上", "國三下"]:
             self.assertIn(term, source)
 
+    def test_vocabulary_self_study_uses_local_browser_progress(self):
+        source = (ROOT / "junior/english/vol_test.html").read_text(encoding="utf-8")
+        for marker in [
+            'id="study-screen"',
+            "開始單字自習",
+            "只複習還不熟",
+            "播放單字",
+            "🐇 一般朗讀",
+            "🐢 分段慢讀",
+            "speakStudySentenceChunked()",
+            "const SLOW_PHRASE_PAUSE_MS = 450",
+            "const SLOW_PHRASE_WORDS = 2",
+            "還不熟，稍後再來",
+            "✅ 會了",
+            'const STUDY_STORAGE_KEY = "jutor_vocab_study_v1"',
+            "localStorage.setItem",
+        ]:
+            self.assertIn(marker, source)
+
+    def test_existing_practice_and_exam_entries_remain_available(self):
+        source = (ROOT / "junior/english/vol_test.html").read_text(encoding="utf-8")
+        self.assertIn("startQuiz('practice')", source)
+        self.assertIn("startQuiz('exam')", source)
+
 
 if __name__ == "__main__":
     unittest.main()
