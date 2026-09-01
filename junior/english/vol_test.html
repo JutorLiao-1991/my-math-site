@@ -144,8 +144,8 @@
                 <div id="studyMeaning" class="study-meaning"></div>
                 <div id="studySentence" class="study-example"></div>
                 <div id="studySentenceAudioGroup" class="study-sentence-audio">
-                    <button class="study-audio" onclick="speakStudySentence(1)">🐇 例句 1.0×</button>
-                    <button class="study-audio" onclick="speakStudySentence(0.4)">🐢 例句 0.4×</button>
+                    <button class="study-audio" onclick="speakStudySentence()">🐇 一般朗讀</button>
+                    <button class="study-audio" onclick="speakStudySentenceSlow()">🐢 逐字慢讀</button>
                 </div>
             </div>
             <div id="studySummary" class="study-summary"></div>
@@ -252,8 +252,10 @@
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
     let isSubmitted = false;
     const STUDY_STORAGE_KEY = "jutor_vocab_study_v1";
+    const SLOW_WORD_PAUSE_MS = 350;
     let studyList = [], studyIndex = 0, studyScopeKey = "", studyScopeItems = [], studyOnlyLearning = false;
     let studyStorageWarned = false;
+    let studySpeechSession = 0;
 
     const legacyRangeNames = {
         "Book 1": "國一上", "Book 2": "國一下", "Book 3": "國二上",
@@ -406,9 +408,14 @@
         document.getElementById('studySummary').textContent = "此範圍：會了 " + counts.known + "・還不熟 " + counts.learning + "・未標記 " + counts.fresh;
     }
 
+    function cancelStudySpeech() {
+        studySpeechSession++;
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
     function speakStudyText(text, rate = 0.8) {
         if (!text || !('speechSynthesis' in window)) return alert("此瀏覽器目前不支援語音播放。");
-        window.speechSynthesis.cancel();
+        cancelStudySpeech();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
         utterance.rate = rate;
@@ -419,13 +426,43 @@
         if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].en);
     }
 
-    function speakStudySentence(rate) {
-        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence, rate);
+    function speakStudySentence() {
+        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence, 1);
+    }
+
+    function speakStudySentenceSlow() {
+        const item = studyList[studyIndex];
+        if (!item || !item.sentence) return;
+        if (!('speechSynthesis' in window)) return alert("此瀏覽器目前不支援語音播放。");
+
+        const words = item.sentence.trim().split(/\s+/).filter(Boolean);
+        if (words.length === 0) return;
+
+        cancelStudySpeech();
+        const session = studySpeechSession;
+        let wordIndex = 0;
+
+        function speakNextWord() {
+            if (session !== studySpeechSession || wordIndex >= words.length) return;
+            const utterance = new SpeechSynthesisUtterance(words[wordIndex]);
+            utterance.lang = "en-US";
+            utterance.rate = 0.8;
+            wordIndex++;
+            utterance.onend = () => {
+                setTimeout(() => {
+                    if (session === studySpeechSession) speakNextWord();
+                }, SLOW_WORD_PAUSE_MS);
+            };
+            window.speechSynthesis.speak(utterance);
+        }
+
+        speakNextWord();
     }
 
     function markStudy(status) {
         const item = studyList[studyIndex];
         if (!item || (status !== "known" && status !== "learning")) return;
+        cancelStudySpeech();
 
         const store = readStudyStore();
         if (!store.scopes[studyScopeKey]) store.scopes[studyScopeKey] = { items: {} };
@@ -451,7 +488,7 @@
     }
 
     function leaveStudy() {
-        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        cancelStudySpeech();
         document.getElementById('study-screen').classList.add('hidden');
         document.getElementById('study-active').classList.remove('hidden');
         document.getElementById('study-complete').classList.add('hidden');
