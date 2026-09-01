@@ -6,7 +6,7 @@
     <title>英語單字與句型測驗 - 鳩特數理</title>
     <script src="database.js"></script> 
     <style>
-        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --error: #e74c3c; --exam: #e67e22; }
+        :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --error: #e74c3c; --exam: #e67e22; --study: #8e44ad; --learning: #f39c12; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #f4f6f9; display: flex; justify-content: center; min-height: 100vh; margin: 0; padding-top: 20px; -webkit-tap-highlight-color: transparent; }
         .container { background: white; padding: 1.5rem; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); width: 95%; max-width: 600px; text-align: center; box-sizing: border-box; }
         
@@ -55,6 +55,27 @@
         .practice-settings label { font-size: 0.9rem; color: #555; font-weight: bold; margin-right: 5px;}
         .practice-settings select { margin: 0; padding: 8px; font-size: 1rem; flex: 1; min-width: 120px; }
         .english-home-link { display:inline-block; color:#2563eb; text-decoration:none; font-weight:700; margin-bottom:12px; }
+        .learning-path { margin-top: 16px; padding: 10px; border-radius: 10px; background: #f5eef8; color: #633974; font-weight: 700; }
+        .btn-study { background: var(--study); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-review { background: #fff7e6; color: #9a5b00; border: 2px solid var(--learning); font-weight: bold; cursor: pointer; }
+        .study-card { background: linear-gradient(145deg, #ffffff, #f7f1fa); border: 2px solid #e8daef; border-radius: 18px; padding: 24px 18px; min-height: 300px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 8px 20px rgba(142, 68, 173, 0.08); }
+        .study-status { align-self: center; padding: 5px 12px; border-radius: 999px; background: #edf0f2; color: #5d6d7e; font-size: 0.85rem; font-weight: 800; }
+        .study-status.known { background: #d5f5e3; color: #196f3d; }
+        .study-status.learning { background: #fef5e7; color: #9c640c; }
+        .study-word { margin: 18px 0 8px; color: var(--primary); font-size: clamp(2rem, 9vw, 3.3rem); font-weight: 800; line-height: 1.15; word-break: break-word; }
+        .study-meaning { margin-top: 16px; color: #633974; font-size: 1.5rem; font-weight: 700; }
+        .study-example { margin-top: 18px; padding: 14px; border-radius: 10px; background: white; color: #4d5656; font-size: 1.1rem; line-height: 1.55; min-height: 1.5em; }
+        .study-audio { width: auto; align-self: center; padding: 8px 14px; background: white; color: var(--study); border: 1px solid #d7bde2; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .study-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+        .study-actions button { margin: 0; }
+        .btn-learning { background: var(--learning); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .btn-known { background: var(--success); color: white; border: none; font-weight: bold; cursor: pointer; }
+        .study-summary { margin: 14px 0 4px; color: #566573; font-size: 0.95rem; font-weight: 700; }
+        .btn-back { background: transparent; color: #68737d; border: 1px solid #c9d1d9; font-weight: 700; cursor: pointer; }
+        @media (max-width: 420px) {
+            .study-actions { grid-template-columns: 1fr; }
+            .study-card { padding: 20px 14px; }
+        }
     </style>
 </head>
 <body>
@@ -91,7 +112,10 @@
             </div>
         </div>
 
+        <div class="learning-path">建議順序：自習 → 練習 → 考試</div>
         <div style="margin-top: 10px; display: flex; gap: 10px; flex-direction: column;">
+            <button class="btn-study" onclick="startStudy(false)">📚 開始單字自習</button>
+            <button class="btn-review" onclick="startStudy(true)">🔁 只複習還不熟</button>
             <button class="btn-primary" onclick="startQuiz('practice')">💪 開始練習</button>
             <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混合20題)</button>
         </div>
@@ -101,6 +125,38 @@
         </div>
 
         <p style="font-size: 0.8rem; color: #999; margin-top: 10px;">System: <span id="dataVer">Checking...</span></p>
+    </div>
+
+    <div id="study-screen" class="hidden">
+        <div style="background:#eee; height:8px; border-radius:4px; margin-bottom:10px;"><div id="studyProgressBar" style="width:0%; height:100%; background:var(--study); border-radius:4px; transition:0.3s;"></div></div>
+        <div class="score-board">
+            <span id="studyScopeLabel"></span>
+            <span id="studyProgressText"></span>
+        </div>
+
+        <div id="study-active">
+            <div class="study-card">
+                <div id="studyStatusBadge" class="study-status">未標記</div>
+                <div id="studyWord" class="study-word"></div>
+                <button class="study-audio" onclick="speakStudyWord()">🔊 播放單字</button>
+                <div id="studyMeaning" class="study-meaning"></div>
+                <div id="studySentence" class="study-example"></div>
+                <button id="studySentenceAudio" class="study-audio" onclick="speakStudySentence()">🔊 播放例句</button>
+            </div>
+            <div id="studySummary" class="study-summary"></div>
+            <div class="study-actions">
+                <button class="btn-learning" onclick="markStudy('learning')">😵 還不熟，稍後再來</button>
+                <button class="btn-known" onclick="markStudy('known')">✅ 會了</button>
+            </div>
+            <button class="btn-back" onclick="leaveStudy()">← 返回選擇</button>
+        </div>
+
+        <div id="study-complete" class="hidden">
+            <h2 style="color:var(--study);">這輪自習完成！</h2>
+            <p id="studyCompleteSummary" style="line-height:1.8; color:#566573;"></p>
+            <button class="btn-review" onclick="startStudy(true)">🔁 再複習還不熟</button>
+            <button class="btn-primary" onclick="leaveStudy()">回選擇頁</button>
+        </div>
     </div>
 
     <div id="quiz-screen" class="hidden">
@@ -190,6 +246,9 @@
 
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
     let isSubmitted = false;
+    const STUDY_STORAGE_KEY = "jutor_vocab_study_v1";
+    let studyList = [], studyIndex = 0, studyScopeKey = "", studyScopeItems = [], studyOnlyLearning = false;
+    let studyStorageWarned = false;
 
     const legacyRangeNames = {
         "Book 1": "國一上", "Book 2": "國一下", "Book 3": "國二上",
@@ -248,6 +307,150 @@
                 .sort((a, b) => a.localeCompare(b, "zh-Hant"))
                 .forEach(r => rSelect.add(new Option(displayRangeName(r), r)));
         }
+    }
+
+    function readStudyStore() {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(STUDY_STORAGE_KEY) || "{}");
+            if (!parsed || typeof parsed !== "object") return { scopes: {} };
+            if (!parsed.scopes || typeof parsed.scopes !== "object") parsed.scopes = {};
+            return parsed;
+        } catch (error) {
+            return { scopes: {} };
+        }
+    }
+
+    function writeStudyStore(store) {
+        try {
+            localStorage.setItem(STUDY_STORAGE_KEY, JSON.stringify(store));
+            return true;
+        } catch (error) {
+            if (!studyStorageWarned) {
+                studyStorageWarned = true;
+                alert("目前瀏覽器無法儲存自習進度；本輪仍可繼續，但重新整理後紀錄不會保留。");
+            }
+            return false;
+        }
+    }
+
+    function getStudyItemKey(item) {
+        return String(item.en || "").trim().toLowerCase() + "|" + String(item.ch || "").trim();
+    }
+
+    function getStudyStatus(item) {
+        const store = readStudyStore();
+        const scope = store.scopes[studyScopeKey];
+        const record = scope && scope.items ? scope.items[getStudyItemKey(item)] : null;
+        return record && (record.status === "known" || record.status === "learning") ? record.status : "new";
+    }
+
+    function getStudyCounts() {
+        const counts = { known: 0, learning: 0, fresh: 0 };
+        studyScopeItems.forEach(item => {
+            const status = getStudyStatus(item);
+            if (status === "known") counts.known++;
+            else if (status === "learning") counts.learning++;
+            else counts.fresh++;
+        });
+        return counts;
+    }
+
+    function startStudy(onlyLearning) {
+        const g = document.getElementById('gradeSelect').value;
+        const v = document.getElementById('versionSelect').value;
+        const r = document.getElementById('rangeSelect').value;
+        if (!g || !v || !r) return alert("請完整選擇年級、版本與範圍！");
+
+        studyScopeKey = [g, v, r].join("::");
+        studyScopeItems = Array.isArray(jutorDB[g][v][r]) ? [...jutorDB[g][v][r]] : [];
+        studyOnlyLearning = Boolean(onlyLearning);
+        studyList = studyOnlyLearning
+            ? studyScopeItems.filter(item => getStudyStatus(item) === "learning")
+            : [...studyScopeItems];
+
+        if (studyScopeItems.length === 0) return alert("此範圍尚無單字資料！");
+        if (studyList.length === 0) return alert("這個範圍目前沒有標記為「還不熟」的單字。先完成一輪單字自習吧！");
+
+        studyIndex = 0;
+        document.getElementById('studyScopeLabel').textContent = displayRangeName(r) + (studyOnlyLearning ? "・還不熟" : "・全部單字");
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('study-screen').classList.remove('hidden');
+        document.getElementById('study-active').classList.remove('hidden');
+        document.getElementById('study-complete').classList.add('hidden');
+        renderStudyCard();
+    }
+
+    function renderStudyCard() {
+        if (studyIndex >= studyList.length) return finishStudy();
+        const item = studyList[studyIndex];
+        const status = getStudyStatus(item);
+        const badge = document.getElementById('studyStatusBadge');
+
+        badge.className = "study-status" + (status === "new" ? "" : " " + status);
+        badge.textContent = status === "known" ? "已會了" : (status === "learning" ? "還不熟" : "未標記");
+        document.getElementById('studyWord').textContent = item.en || "";
+        document.getElementById('studyMeaning').textContent = item.ch || "尚無中文解釋";
+        document.getElementById('studySentence').textContent = item.sentence || "這個單字目前沒有例句。";
+        document.getElementById('studySentenceAudio').classList.toggle('hidden', !item.sentence);
+        document.getElementById('studyProgressText').textContent = (studyIndex + 1) + " / " + studyList.length;
+        document.getElementById('studyProgressBar').style.width = ((studyIndex / studyList.length) * 100) + "%";
+
+        const counts = getStudyCounts();
+        document.getElementById('studySummary').textContent = "此範圍：會了 " + counts.known + "・還不熟 " + counts.learning + "・未標記 " + counts.fresh;
+    }
+
+    function speakStudyText(text) {
+        if (!text || !('speechSynthesis' in window)) return alert("此瀏覽器目前不支援語音播放。");
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = "en-US";
+        utterance.rate = 0.8;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function speakStudyWord() {
+        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].en);
+    }
+
+    function speakStudySentence() {
+        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence);
+    }
+
+    function markStudy(status) {
+        const item = studyList[studyIndex];
+        if (!item || (status !== "known" && status !== "learning")) return;
+
+        const store = readStudyStore();
+        if (!store.scopes[studyScopeKey]) store.scopes[studyScopeKey] = { items: {} };
+        if (!store.scopes[studyScopeKey].items) store.scopes[studyScopeKey].items = {};
+        store.scopes[studyScopeKey].items[getStudyItemKey(item)] = {
+            status: status,
+            updatedAt: new Date().toISOString()
+        };
+        store.scopes[studyScopeKey].updatedAt = new Date().toISOString();
+        writeStudyStore(store);
+
+        studyIndex++;
+        renderStudyCard();
+    }
+
+    function finishStudy() {
+        const counts = getStudyCounts();
+        document.getElementById('studyProgressBar').style.width = "100%";
+        document.getElementById('studyProgressText').textContent = studyList.length + " / " + studyList.length;
+        document.getElementById('study-active').classList.add('hidden');
+        document.getElementById('study-complete').classList.remove('hidden');
+        document.getElementById('studyCompleteSummary').textContent = "會了 " + counts.known + " 個，還不熟 " + counts.learning + " 個，未標記 " + counts.fresh + " 個。進度只儲存在這台裝置的瀏覽器中。";
+    }
+
+    function leaveStudy() {
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+        document.getElementById('study-screen').classList.add('hidden');
+        document.getElementById('study-active').classList.remove('hidden');
+        document.getElementById('study-complete').classList.add('hidden');
+        document.getElementById('setup-screen').classList.remove('hidden');
     }
 
     function startQuiz(mode) {
