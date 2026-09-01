@@ -66,6 +66,8 @@
         .study-meaning { margin-top: 16px; color: #633974; font-size: 1.5rem; font-weight: 700; }
         .study-example { margin-top: 18px; padding: 14px; border-radius: 10px; background: white; color: #4d5656; font-size: 1.1rem; line-height: 1.55; min-height: 1.5em; }
         .study-audio { width: auto; align-self: center; padding: 8px 14px; background: white; color: var(--study); border: 1px solid #d7bde2; font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+        .study-sentence-audio { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .study-sentence-audio .study-audio { width: 100%; margin: 0; }
         .study-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
         .study-actions button { margin: 0; }
         .btn-learning { background: var(--learning); color: white; border: none; font-weight: bold; cursor: pointer; }
@@ -141,7 +143,10 @@
                 <button class="study-audio" onclick="speakStudyWord()">🔊 播放單字</button>
                 <div id="studyMeaning" class="study-meaning"></div>
                 <div id="studySentence" class="study-example"></div>
-                <button id="studySentenceAudio" class="study-audio" onclick="speakStudySentence()">🔊 播放例句</button>
+                <div id="studySentenceAudioGroup" class="study-sentence-audio">
+                    <button class="study-audio" onclick="speakStudySentence(1)">🐇 例句 1.0×</button>
+                    <button class="study-audio" onclick="speakStudySentence(0.4)">🐢 例句 0.4×</button>
+                </div>
             </div>
             <div id="studySummary" class="study-summary"></div>
             <div class="study-actions">
@@ -393,7 +398,7 @@
         document.getElementById('studyWord').textContent = item.en || "";
         document.getElementById('studyMeaning').textContent = item.ch || "尚無中文解釋";
         document.getElementById('studySentence').textContent = item.sentence || "這個單字目前沒有例句。";
-        document.getElementById('studySentenceAudio').classList.toggle('hidden', !item.sentence);
+        document.getElementById('studySentenceAudioGroup').classList.toggle('hidden', !item.sentence);
         document.getElementById('studyProgressText').textContent = (studyIndex + 1) + " / " + studyList.length;
         document.getElementById('studyProgressBar').style.width = ((studyIndex / studyList.length) * 100) + "%";
 
@@ -401,12 +406,12 @@
         document.getElementById('studySummary').textContent = "此範圍：會了 " + counts.known + "・還不熟 " + counts.learning + "・未標記 " + counts.fresh;
     }
 
-    function speakStudyText(text) {
+    function speakStudyText(text, rate = 0.8) {
         if (!text || !('speechSynthesis' in window)) return alert("此瀏覽器目前不支援語音播放。");
         window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = "en-US";
-        utterance.rate = 0.8;
+        utterance.rate = rate;
         window.speechSynthesis.speak(utterance);
     }
 
@@ -414,8 +419,8 @@
         if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].en);
     }
 
-    function speakStudySentence() {
-        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence);
+    function speakStudySentence(rate) {
+        if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence, rate);
     }
 
     function markStudy(status) {
