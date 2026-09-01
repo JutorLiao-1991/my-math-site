@@ -103,7 +103,7 @@ const lessonData = [
     },
     {
         title: "鳩特國中英文練習區",
-        category: "junior",
+        category: "language",
         url: "junior/english/index.html",
         tagClass: "lang",
         tagName: "國中英文",
