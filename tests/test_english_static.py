@@ -15,6 +15,9 @@ class EnglishStaticSecurityTests(unittest.TestCase):
     def test_homepage_uses_one_english_hub(self):
         source = (ROOT / "data.js").read_text(encoding="utf-8")
         self.assertIn('url: "junior/english/index.html"', source)
+        hub_start = source.index('title: "鳩特國中英文練習區"')
+        hub_block = source[hub_start:source.index("}", hub_start)]
+        self.assertIn('category: "language"', hub_block)
         self.assertNotIn('url: "junior/english/vol_test.html"', source)
         self.assertNotIn('url: "junior/english/basic_grammar.html"', source)
 
