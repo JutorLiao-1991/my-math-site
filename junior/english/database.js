@@ -1,14 +1,14 @@
 var jutorDB = {
   "國一": {
     "翰林版": {
-      "Book 1 Unit 1": [
+      "國一上 Unit 1": [
         {
           "en": "student",
           "ch": "學生",
           "sentence": "I am a student."
         }
       ],
-      "Book 1 Unit 5": [
+      "國一上 Unit 5": [
         {
           "en": "What date is today?",
           "ch": "今天幾月幾號？",
@@ -230,7 +230,7 @@ var jutorDB = {
           "sentence": "Don't cry out in the class."
         }
       ],
-      "Book 1 Unit 6": [
+      "國一上 Unit 6": [
         {
           "en": "lion",
           "ch": "獅子",
@@ -402,7 +402,7 @@ var jutorDB = {
           "sentence": "The hotel provides free Wi-Fi."
         }
       ],
-      "Book 2 Unit 1": [
+      "國一下 Unit 1": [
         {
           "en": "like",
           "ch": "喜歡; 像...",
@@ -634,7 +634,7 @@ var jutorDB = {
           "sentence": "The book is on the top of the shelf."
         }
       ],
-      "Book 2 Unit 1 (句型)": [
+      "國一下 Unit 1 (句型)": [
         {
           "en": "How tall are you?",
           "ch": "你多高？",
@@ -656,7 +656,7 @@ var jutorDB = {
           "sentence": "A is different from B."
         }
       ],
-      "Book 2 Unit 2": [
+      "國一下 Unit 2": [
         {
           "en": "early",
           "ch": "早的 / 早",
@@ -768,14 +768,14 @@ var jutorDB = {
           "sentence": "First, finish your work, then you can play."
         }
       ],
-      "Book 2 Unit 2 (句型)": [
+      "國一下 Unit 2 (句型)": [
         {
           "en": "I can't help it.",
           "ch": "我沒辦法。 / 我控制不了。",
           "sentence": "I can't help it."
         }
       ],
-      "Book 2 Unit 3": [
+      "國一下 Unit 3": [
         {
           "en": "painting",
           "ch": "畫作",
@@ -977,14 +977,14 @@ var jutorDB = {
           "sentence": "He lost his balance and fell down."
         }
       ],
-      "Book 2 Unit 3 (句型)": [
+      "國一下 Unit 3 (句型)": [
         {
           "en": "Here you are.",
           "ch": "給你。",
           "sentence": "Here you are."
         }
       ],
-      "Book 2 Unit 4": [
+      "國一下 Unit 4": [
         {
           "en": "why",
           "ch": "為什麼",
@@ -1216,7 +1216,7 @@ var jutorDB = {
           "sentence": "Mix all the ingredients well."
         }
       ],
-      "Book 2 Unit 4 (句型)": [
+      "國一下 Unit 4 (句型)": [
         {
           "en": "Why is the baby crying?",
           "ch": "那個寶寶為什麼在哭？",
@@ -1228,7 +1228,7 @@ var jutorDB = {
           "sentence": "She's hungry."
         }
       ],
-      "Book 2 Unit 5": [
+      "國一下 Unit 5": [
         {
           "en": "yesterday",
           "ch": "昨天",
@@ -1465,7 +1465,7 @@ var jutorDB = {
           "sentence": "Students often burn the midnight oil before exams."
         }
       ],
-      "Book 2 Unit 5 (句型)": [
+      "國一下 Unit 5 (句型)": [
         {
           "en": "What happened to you?",
           "ch": "你發生什麼事？",
@@ -1479,7 +1479,7 @@ var jutorDB = {
       ]
     },
     "南一版": {
-      "Book 2 Unit 1": [
+      "國一下 Unit 1": [
         {
           "en": "Wednesday",
           "ch": "星期三",
@@ -1676,7 +1676,7 @@ var jutorDB = {
           "sentence": "He visits his family once in a blue moon."
         }
       ],
-      "Book 2 Unit 3": [
+      "國一下 Unit 3": [
         {
           "en": "excuse me",
           "ch": "抱歉；打擾",
@@ -1888,7 +1888,7 @@ var jutorDB = {
           "sentence": "Let's start the meeting now."
         }
       ],
-      "Book 2 Unit 3 (句型)": [
+      "國一下 Unit 3 (句型)": [
         {
           "en": "I get it.",
           "ch": "我懂了。",
@@ -1899,7 +1899,7 @@ var jutorDB = {
   },
   "國二": {
     "康軒版": {
-      "Book 3 Unit 5": [
+      "國二上 Unit 5": [
         {
           "en": "temple",
           "ch": "寺廟",
@@ -2106,7 +2106,7 @@ var jutorDB = {
           "sentence": "We had a wonderful time at the party."
         }
       ],
-      "Book 3 Unit 6": [
+      "國二上 Unit 6": [
         {
           "en": "airplane (plane)",
           "ch": "飛機",
@@ -2278,14 +2278,14 @@ var jutorDB = {
           "sentence": "Do you prefer chicken or beef?"
         }
       ],
-      "Book 3 Unit 6 (句型)": [
+      "國二上 Unit 6 (句型)": [
         {
           "en": "Excuse me.",
           "ch": "不好意思。",
           "sentence": "Excuse me. Could you tell me the way to the station?"
         }
       ],
-      "Book 4 Unit 1": [
+      "國二下 Unit 1": [
         {
           "en": "price",
           "ch": "價格;代價",
@@ -2607,14 +2607,14 @@ var jutorDB = {
           "sentence": "Could you take a look at my report?"
         }
       ],
-      "Book 4 Unit 1 (句型)": [
+      "國二下 Unit 1 (句型)": [
         {
           "en": "You can say that again.",
           "ch": "妳說的沒錯。",
           "sentence": "You can say that again."
         }
       ],
-      "Book 4 Unit 3": [
+      "國二下 Unit 3": [
         {
           "en": "salad",
           "ch": "沙拉",
@@ -2801,7 +2801,7 @@ var jutorDB = {
           "sentence": "The people in this town are very friendly."
         }
       ],
-      "Book 4 Unit 4": [
+      "國二下 Unit 4": [
         {
           "en": "set up",
           "ch": "搭建；建立",
@@ -3030,7 +3030,7 @@ var jutorDB = {
       ]
     },
     "翰林版": {
-      "Book 4 Unit 1": [
+      "國二下 Unit 1": [
         {
           "en": "foreign",
           "ch": "外國的",
@@ -3262,14 +3262,14 @@ var jutorDB = {
           "sentence": "The hotel room has a great view of the ocean."
         }
       ],
-      "Book 4 Unit 1 (句型)": [
+      "國二下 Unit 1 (句型)": [
         {
           "en": "Henry is as tall as his brother.",
           "ch": "亨利和他的兄弟一樣高。",
           "sentence": "Henry is as tall as his brother."
         }
       ],
-      "Book 4 Unit 4": [
+      "國二下 Unit 4": [
         {
           "en": "typhoon",
           "ch": "颱風",
@@ -3501,14 +3501,14 @@ var jutorDB = {
           "sentence": "She was the only survivor of the plane crash."
         }
       ],
-      "Book 4 Unit 4 (句型)": [
+      "國二下 Unit 4 (句型)": [
         {
           "en": "We'll go on a picnic if it's sunny tomorrow.",
           "ch": "如果明天天氣好，我們就去野餐。",
           "sentence": "We'll go on a picnic if it's sunny tomorrow."
         }
       ],
-      "Book 4 Unit 5": [
+      "國二下 Unit 5": [
         {
           "en": "although",
           "ch": "雖然",
@@ -3720,7 +3720,7 @@ var jutorDB = {
           "sentence": "Blood flows through our veins."
         }
       ],
-      "Book 4 Unit 6": [
+      "國二下 Unit 6": [
         {
           "en": "pass",
           "ch": "傳遞；通過",
@@ -3945,6 +3945,225 @@ var jutorDB = {
           "en": "record",
           "ch": "紀錄；記載",
           "sentence": "She broke the world record in the long jump."
+        }
+      ],
+      "國二上 Unit 1": [
+        {
+          "en": "summer vacation",
+          "ch": "暑假",
+          "sentence": "I went to Australia during summer vacation in August."
+        },
+        {
+          "en": "weather",
+          "ch": "天氣",
+          "sentence": "The weather in Africa is usually hot."
+        },
+        {
+          "en": "Taiwan",
+          "ch": "臺灣",
+          "sentence": "Taiwan is an island with a lot of yummy food."
+        },
+        {
+          "en": "fun",
+          "ch": "樂趣；有趣的",
+          "sentence": "Was it fun at the park last Sunday?"
+        },
+        {
+          "en": "snow",
+          "ch": "下雪；雪",
+          "sentence": "Does it snow in Taiwan?"
+        },
+        {
+          "en": "send",
+          "ch": "寄；送",
+          "sentence": "Did you send your mom a Christmas card?"
+        },
+        {
+          "en": "postcard",
+          "ch": "明信片",
+          "sentence": "I sent my brother a postcard from Poland."
+        },
+        {
+          "en": "borrow",
+          "ch": "借（入）",
+          "sentence": "Sabrina is borrowing an umbrella from her friend."
+        },
+        {
+          "en": "lend",
+          "ch": "借（出）",
+          "sentence": "Can you lend these new books to me?"
+        },
+        {
+          "en": "glove",
+          "ch": "手套",
+          "sentence": "My father bought me new gloves for winter."
+        },
+        {
+          "en": "kind",
+          "ch": "親切的；有同情心的",
+          "sentence": "Michelle is a kind teacher. Her students like her very much."
+        },
+        {
+          "en": "lovely",
+          "ch": "可愛的；美好的",
+          "sentence": "Mark is a lovely person, so he has many friends."
+        },
+        {
+          "en": "jacket",
+          "ch": "夾克",
+          "sentence": "Tyler, can I borrow your jacket, please? I am cold."
+        },
+        {
+          "en": "give",
+          "ch": "給予",
+          "sentence": "Can you give me a glass of water, please?"
+        },
+        {
+          "en": "hate",
+          "ch": "討厭",
+          "sentence": "I hate milk; I never drink it."
+        },
+        {
+          "en": "heavy",
+          "ch": "厚重的；大量的",
+          "sentence": "We had heavy snow last week."
+        },
+        {
+          "en": "season",
+          "ch": "季節",
+          "sentence": "Many people visit the island during the holiday season."
+        },
+        {
+          "en": "spring",
+          "ch": "春天",
+          "sentence": "I like spring because the weather is warm."
+        },
+        {
+          "en": "cloud",
+          "ch": "雲",
+          "sentence": "It's a beautiful day. There's not a cloud in the sky."
+        },
+        {
+          "en": "sun",
+          "ch": "太陽",
+          "sentence": "Don't sit in the sun; it's too hot."
+        },
+        {
+          "en": "autumn",
+          "ch": "秋天",
+          "sentence": "Autumn is the season between summer and winter."
+        },
+        {
+          "en": "wind",
+          "ch": "風",
+          "sentence": "The winds are so strong today."
+        },
+        {
+          "en": "winter",
+          "ch": "冬天",
+          "sentence": "Mom doesn't like winter because the weather is too cold for her."
+        },
+        {
+          "en": "sunny",
+          "ch": "陽光普照的",
+          "sentence": "It's sunny today. Let's take a walk in the park."
+        },
+        {
+          "en": "snowy",
+          "ch": "有雪的；下雪的",
+          "sentence": "We had a snowy winter last year."
+        },
+        {
+          "en": "rainy",
+          "ch": "有雨的；下雨的",
+          "sentence": "Don't you have an umbrella with you on a rainy day?"
+        },
+        {
+          "en": "cloudy",
+          "ch": "多雲的",
+          "sentence": "Is it warm and sunny in Taipei now? No. It's cloudy."
+        },
+        {
+          "en": "windy",
+          "ch": "風大的",
+          "sentence": "It's very windy. Please go inside the house."
+        },
+        {
+          "en": "cool",
+          "ch": "涼爽的",
+          "sentence": "I took my dog to the beach on a cool evening."
+        },
+        {
+          "en": "speak",
+          "ch": "講話",
+          "sentence": "Many people in Taiwan can speak English."
+        },
+        {
+          "en": "mad",
+          "ch": "生氣的",
+          "sentence": "I was late for school again today, so my teacher was mad."
+        },
+        {
+          "en": "in fact",
+          "ch": "事實上",
+          "sentence": "In fact, she's sad these days because her cat died last week."
+        },
+        {
+          "en": "mean",
+          "ch": "意指",
+          "sentence": "What does the sign mean?"
+        },
+        {
+          "en": "another",
+          "ch": "另一（的）",
+          "sentence": "Can I have another cup of green tea? It's so good."
+        },
+        {
+          "en": "order",
+          "ch": "點餐；訂購",
+          "sentence": "Tim ordered a pizza and a milkshake."
+        },
+        {
+          "en": "strange",
+          "ch": "奇怪的；陌生的",
+          "sentence": "There's a strange man at the door."
+        },
+        {
+          "en": "soon",
+          "ch": "很快地",
+          "sentence": "Good-bye, everybody. See you soon."
+        },
+        {
+          "en": "Rd.",
+          "ch": "路（Road 的縮寫）",
+          "sentence": "On a postcard, \"Rd.\" stands for \"Road.\""
+        },
+        {
+          "en": "ROC",
+          "ch": "中華民國",
+          "sentence": "ROC is another name for Taiwan."
+        }
+      ],
+      "國二上 Unit 1 (句型)": [
+        {
+          "en": "Was it fun at the park last Sunday? No. It was rainy all day.",
+          "ch": "上週日在公園好玩嗎？不好玩。整天都在下雨。",
+          "sentence": "Was it fun at the park last Sunday? No. It was rainy all day."
+        },
+        {
+          "en": "Does it snow in Taiwan? Yes, but it only snows in the mountains.",
+          "ch": "臺灣會下雪嗎？會，但只在山上會下雪。",
+          "sentence": "Does it snow in Taiwan? Yes, but it only snows in the mountains."
+        },
+        {
+          "en": "Can you lend these new books to me? Sure.",
+          "ch": "你能把這些新書借給我嗎？當然可以。",
+          "sentence": "Can you lend these new books to me? Sure."
+        },
+        {
+          "en": "Don't open the door! Let's get some help.",
+          "ch": "別開門！我們去求助吧。",
+          "sentence": "Don't open the door! Let's get some help."
         }
       ]
     }
