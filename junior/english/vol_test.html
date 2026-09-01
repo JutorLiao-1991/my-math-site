@@ -145,7 +145,7 @@
                 <div id="studySentence" class="study-example"></div>
                 <div id="studySentenceAudioGroup" class="study-sentence-audio">
                     <button class="study-audio" onclick="speakStudySentence()">🐇 一般朗讀</button>
-                    <button class="study-audio" onclick="speakStudySentenceSlow()">🐢 逐字慢讀</button>
+                    <button class="study-audio" onclick="speakStudySentenceChunked()">🐢 分段慢讀</button>
                 </div>
             </div>
             <div id="studySummary" class="study-summary"></div>
@@ -252,7 +252,8 @@
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
     let isSubmitted = false;
     const STUDY_STORAGE_KEY = "jutor_vocab_study_v1";
-    const SLOW_WORD_PAUSE_MS = 350;
+    const SLOW_PHRASE_PAUSE_MS = 450;
+    const SLOW_PHRASE_WORDS = 2;
     let studyList = [], studyIndex = 0, studyScopeKey = "", studyScopeItems = [], studyOnlyLearning = false;
     let studyStorageWarned = false;
     let studySpeechSession = 0;
@@ -430,33 +431,37 @@
         if (studyList[studyIndex]) speakStudyText(studyList[studyIndex].sentence, 1);
     }
 
-    function speakStudySentenceSlow() {
+    function speakStudySentenceChunked() {
         const item = studyList[studyIndex];
         if (!item || !item.sentence) return;
         if (!('speechSynthesis' in window)) return alert("此瀏覽器目前不支援語音播放。");
 
         const words = item.sentence.trim().split(/\s+/).filter(Boolean);
         if (words.length === 0) return;
+        const phrases = [];
+        for (let index = 0; index < words.length; index += SLOW_PHRASE_WORDS) {
+            phrases.push(words.slice(index, index + SLOW_PHRASE_WORDS).join(" "));
+        }
 
         cancelStudySpeech();
         const session = studySpeechSession;
-        let wordIndex = 0;
+        let phraseIndex = 0;
 
-        function speakNextWord() {
-            if (session !== studySpeechSession || wordIndex >= words.length) return;
-            const utterance = new SpeechSynthesisUtterance(words[wordIndex]);
+        function speakNextPhrase() {
+            if (session !== studySpeechSession || phraseIndex >= phrases.length) return;
+            const utterance = new SpeechSynthesisUtterance(phrases[phraseIndex]);
             utterance.lang = "en-US";
             utterance.rate = 0.8;
-            wordIndex++;
+            phraseIndex++;
             utterance.onend = () => {
                 setTimeout(() => {
-                    if (session === studySpeechSession) speakNextWord();
-                }, SLOW_WORD_PAUSE_MS);
+                    if (session === studySpeechSession) speakNextPhrase();
+                }, SLOW_PHRASE_PAUSE_MS);
             };
             window.speechSynthesis.speak(utterance);
         }
 
-        speakNextWord();
+        speakNextPhrase();
     }
 
     function markStudy(status) {
