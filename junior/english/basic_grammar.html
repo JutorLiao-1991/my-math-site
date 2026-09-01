@@ -60,6 +60,7 @@
   }
   
   .topic-select-container { margin-bottom: 30px; width: 80%; max-width: 350px; }
+  .english-home-link { color:#1565C0; text-decoration:none; font-weight:800; background:#fff; padding:8px 14px; border-radius:999px; margin-bottom:14px; box-shadow:0 3px 0 rgba(21,101,192,.25); }
   .topic-select {
     width: 100%; padding: 15px; font-size: 1.4em; font-weight: bold; color: #333;
     border: 3px solid #1565C0; border-radius: 15px; background: #fff;
@@ -227,6 +228,7 @@
 
     <!-- 0. 首頁模式選擇 -->
     <div id="mode-select-screen">
+      <a class="english-home-link" href="index.html">← 國中英文練習區</a>
       <div class="game-title">鳩特英文<br>基礎文法挑戰</div>
       
       <!-- 下拉式選單 -->
@@ -412,7 +414,8 @@
                 
                 const opt = document.createElement('option');
                 opt.value = doc.id;
-                opt.innerText = data.title;
+                const scope = [data.term, data.unit].filter(Boolean).join(' ');
+                opt.innerText = scope ? `${scope}｜${data.title}` : data.title;
                 select.appendChild(opt);
             });
   

@@ -54,12 +54,14 @@
         .practice-settings { display: flex; align-items: center; gap: 5px; margin-top: 10px; background: #f0f3f5; padding: 10px; border-radius: 8px; flex-wrap: wrap;}
         .practice-settings label { font-size: 0.9rem; color: #555; font-weight: bold; margin-right: 5px;}
         .practice-settings select { margin: 0; padding: 8px; font-size: 1rem; flex: 1; min-width: 120px; }
+        .english-home-link { display:inline-block; color:#2563eb; text-decoration:none; font-weight:700; margin-bottom:12px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="setup-screen">
+        <a class="english-home-link" href="index.html">← 國中英文練習區</a>
         <div class="brand-logo">鳩特數理</div>
         <h1 style="color: var(--primary); margin-top: 5px;">英語單字與句型測驗</h1>
         
@@ -189,8 +191,39 @@
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
     let isSubmitted = false;
 
+    const legacyRangeNames = {
+        "Book 1": "國一上", "Book 2": "國一下", "Book 3": "國二上",
+        "Book 4": "國二下", "Book 5": "國三上", "Book 6": "國三下"
+    };
+
+    function displayRangeName(name) {
+        for (const [legacy, current] of Object.entries(legacyRangeNames)) {
+            if (name === legacy || name.startsWith(legacy + " ")) {
+                return current + name.slice(legacy.length);
+            }
+        }
+        return name;
+    }
+
+    function mergeLegacyRangeNames() {
+        Object.values(jutorDB).forEach(versions => {
+            Object.values(versions).forEach(ranges => {
+                Object.keys(ranges).forEach(oldName => {
+                    const newName = displayRangeName(oldName);
+                    if (newName === oldName) return;
+                    const existing = Array.isArray(ranges[newName]) ? ranges[newName] : [];
+                    const byEnglish = new Map(existing.map(item => [String(item.en || "").trim().toLowerCase(), item]));
+                    ranges[oldName].forEach(item => byEnglish.set(String(item.en || "").trim().toLowerCase(), item));
+                    ranges[newName] = [...byEnglish.values()];
+                    delete ranges[oldName];
+                });
+            });
+        });
+    }
+
     window.onload = function() {
         if (typeof jutorDB === 'undefined') return;
+        mergeLegacyRangeNames();
         const gradeSelect = document.getElementById('gradeSelect');
         Object.keys(jutorDB).forEach(g => gradeSelect.add(new Option(g, g)));
         document.getElementById('spellingInput').addEventListener('keypress', (e) => { if(e.key==='Enter') checkSpelling(); });
@@ -209,7 +242,12 @@
         const ver = document.getElementById('versionSelect').value;
         const rSelect = document.getElementById('rangeSelect');
         rSelect.innerHTML = '<option value="">-- 3. 選擇範圍 --</option>';
-        if (grade && ver && jutorDB[grade][ver]) Object.keys(jutorDB[grade][ver]).forEach(r => rSelect.add(new Option(r, r)));
+        if (grade && ver && jutorDB[grade][ver]) {
+            Object.keys(jutorDB[grade][ver])
+                .filter(r => !r.endsWith(" (句型)"))
+                .sort((a, b) => a.localeCompare(b, "zh-Hant"))
+                .forEach(r => rSelect.add(new Option(displayRangeName(r), r)));
+        }
     }
 
     function startQuiz(mode) {
