@@ -2672,6 +2672,185 @@ var jutorDB = {
           "ch": "你猜怎麼著？",
           "sentence": "Guess what? We won the game!"
         }
+      ],
+      "國一上 Unit 5": [
+        {
+          "en": "week",
+          "ch": "星期",
+          "sentence": "There are seven days in a week."
+        },
+        {
+          "en": "Monday",
+          "ch": "星期一",
+          "sentence": "We have a meeting on Monday."
+        },
+        {
+          "en": "Tuesday",
+          "ch": "星期二",
+          "sentence": "Is Tuesday good for you?"
+        },
+        {
+          "en": "Wednesday",
+          "ch": "星期三",
+          "sentence": "Our art class is on Wednesday."
+        },
+        {
+          "en": "basketball",
+          "ch": "籃球",
+          "sentence": "They play basketball after school."
+        },
+        {
+          "en": "Thursday",
+          "ch": "星期四",
+          "sentence": "Thursday is my busy day."
+        },
+        {
+          "en": "Friday",
+          "ch": "星期五",
+          "sentence": "Friday is my favorite day of the week."
+        },
+        {
+          "en": "Saturday",
+          "ch": "星期六",
+          "sentence": "We can go to the park this Saturday."
+        },
+        {
+          "en": "birthday",
+          "ch": "生日",
+          "sentence": "Today is my brother's birthday."
+        },
+        {
+          "en": "party",
+          "ch": "派對",
+          "sentence": "Welcome to my birthday party!"
+        },
+        {
+          "en": "Sunday",
+          "ch": "星期日",
+          "sentence": "They go to the library on Sunday."
+        },
+        {
+          "en": "day",
+          "ch": "日",
+          "sentence": "Have a nice day!"
+        },
+        {
+          "en": "weekend",
+          "ch": "週末",
+          "sentence": "What do you do on the weekend?"
+        },
+        {
+          "en": "noon",
+          "ch": "中午",
+          "sentence": "We eat lunch at noon."
+        },
+        {
+          "en": "wake up",
+          "ch": "醒來",
+          "sentence": "I usually wake up at 6:30 a.m."
+        },
+        {
+          "en": "look for",
+          "ch": "尋找",
+          "sentence": "He is looking for his basketball."
+        },
+        {
+          "en": "by the way",
+          "ch": "順帶一提",
+          "sentence": "By the way, what time is the party tonight?"
+        },
+        {
+          "en": "join",
+          "ch": "參加；加入",
+          "sentence": "Can I join your group?"
+        },
+        {
+          "en": "group",
+          "ch": "團體",
+          "sentence": "We work together in a group."
+        },
+        {
+          "en": "chat",
+          "ch": "談話",
+          "sentence": "They chat with each other after dinner."
+        },
+        {
+          "en": "tonight",
+          "ch": "今晚",
+          "sentence": "Let's watch a movie tonight."
+        },
+        {
+          "en": "meeting",
+          "ch": "會議",
+          "sentence": "The teacher is in a meeting now."
+        },
+        {
+          "en": "p.m.",
+          "ch": "下午；晚上",
+          "sentence": "The basketball game starts at 3:00 p.m."
+        },
+        {
+          "en": "life",
+          "ch": "生活",
+          "sentence": "Life in the city is busy."
+        },
+        {
+          "en": "prepare",
+          "ch": "準備",
+          "sentence": "Mom is preparing dinner in the kitchen."
+        },
+        {
+          "en": "o'clock",
+          "ch": "……點鐘",
+          "sentence": "It is eight o'clock in the morning."
+        },
+        {
+          "en": "everyone",
+          "ch": "每個人；各位",
+          "sentence": "Everyone is ready for the party."
+        },
+        {
+          "en": "a.m.",
+          "ch": "上午；凌晨",
+          "sentence": "I get up at 6:00 a.m. every day."
+        },
+        {
+          "en": "city",
+          "ch": "城市",
+          "sentence": "Taipei is a big city."
+        },
+        {
+          "en": "say",
+          "ch": "說",
+          "sentence": "What did the teacher say?"
+        },
+        {
+          "en": "sun",
+          "ch": "太陽",
+          "sentence": "The sun is hot today."
+        },
+        {
+          "en": "rise",
+          "ch": "上升",
+          "sentence": "The sun rises in the east."
+        },
+        {
+          "en": "shine",
+          "ch": "照耀；發光",
+          "sentence": "The stars shine at night."
+        },
+        {
+          "en": "dinner",
+          "ch": "晚餐",
+          "sentence": "What do you want for dinner?"
+        }
+      ],
+      "國一上 Unit 5 (句型)": [
+        {
+          "en": "Hurry up.",
+          "ch": "快一點。",
+          "sentence": "Hurry up, or we will be late for the meeting."
+        }
       ]
     }
   },
