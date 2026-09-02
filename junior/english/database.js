@@ -2085,6 +2085,198 @@ var jutorDB = {
           "ch": "很高興認識你。",
           "sentence": "Nice to meet you."
         }
+      ],
+      "國一上 Unit 2": [
+        {
+          "en": "monkey",
+          "ch": "猴子",
+          "sentence": "The monkey is climbing the tree."
+        },
+        {
+          "en": "fox",
+          "ch": "狐狸",
+          "sentence": "A fox is running in the woods."
+        },
+        {
+          "en": "sheep",
+          "ch": "綿羊",
+          "sentence": "There are five sheep on the farm."
+        },
+        {
+          "en": "tiger",
+          "ch": "老虎",
+          "sentence": "The tiger is a strong animal."
+        },
+        {
+          "en": "zebra",
+          "ch": "斑馬",
+          "sentence": "A zebra has black and white stripes."
+        },
+        {
+          "en": "lion",
+          "ch": "獅子",
+          "sentence": "The lion is sleeping under the tree."
+        },
+        {
+          "en": "mouse",
+          "ch": "老鼠",
+          "sentence": "The cat is chasing a small mouse."
+        },
+        {
+          "en": "bear",
+          "ch": "熊",
+          "sentence": "The big bear is catching fish."
+        },
+        {
+          "en": "movie theater",
+          "ch": "電影院",
+          "sentence": "We can watch a film at the movie theater."
+        },
+        {
+          "en": "Chinese",
+          "ch": "中國的；中國人；中文",
+          "sentence": "She can speak English and Chinese."
+        },
+        {
+          "en": "animal",
+          "ch": "動物",
+          "sentence": "Dogs and cats are common animals."
+        },
+        {
+          "en": "sign",
+          "ch": "符號",
+          "sentence": "What is your Chinese zodiac sign?"
+        },
+        {
+          "en": "rat",
+          "ch": "大老鼠",
+          "sentence": "A rat is hiding behind the box."
+        },
+        {
+          "en": "ox",
+          "ch": "(公)牛",
+          "sentence": "The farmer has an ox on the farm."
+        },
+        {
+          "en": "rabbit",
+          "ch": "兔子",
+          "sentence": "The white rabbit has long ears."
+        },
+        {
+          "en": "dragon",
+          "ch": "龍",
+          "sentence": "The dragon is a special animal in Chinese culture."
+        },
+        {
+          "en": "snake",
+          "ch": "蛇",
+          "sentence": "Be careful! There is a snake in the grass."
+        },
+        {
+          "en": "horse",
+          "ch": "馬",
+          "sentence": "He can ride a horse very well."
+        },
+        {
+          "en": "goat",
+          "ch": "山羊",
+          "sentence": "The goat is eating green grass."
+        },
+        {
+          "en": "rooster",
+          "ch": "公雞",
+          "sentence": "The rooster crows every morning."
+        },
+        {
+          "en": "smart",
+          "ch": "聰明的",
+          "sentence": "The smart boy answered all the questions."
+        },
+        {
+          "en": "energetic",
+          "ch": "充滿活力的",
+          "sentence": "The energetic kids are playing in the park."
+        },
+        {
+          "en": "true",
+          "ch": "真的；真實的",
+          "sentence": "Is that story true?"
+        },
+        {
+          "en": "no wonder",
+          "ch": "難怪",
+          "sentence": "You didn't eat lunch; no wonder you are hungry."
+        },
+        {
+          "en": "people",
+          "ch": "人們",
+          "sentence": "There are many people on the street."
+        },
+        {
+          "en": "What about...?",
+          "ch": "……怎麼樣？",
+          "sentence": "I like apples. What about you?"
+        },
+        {
+          "en": "people person",
+          "ch": "人緣好的人",
+          "sentence": "Tom is friendly and kind; he is a people person."
+        },
+        {
+          "en": "picture",
+          "ch": "照片；圖畫",
+          "sentence": "Let's take a picture together."
+        },
+        {
+          "en": "elephant",
+          "ch": "大象",
+          "sentence": "The elephant has a very long nose."
+        },
+        {
+          "en": "or",
+          "ch": "或者",
+          "sentence": "Do you want milk or tea?"
+        },
+        {
+          "en": "size",
+          "ch": "尺寸",
+          "sentence": "What size is this T-shirt?"
+        },
+        {
+          "en": "different",
+          "ch": "不同的",
+          "sentence": "They go to different schools."
+        },
+        {
+          "en": "very",
+          "ch": "很；非常",
+          "sentence": "This cat is very cute."
+        },
+        {
+          "en": "their",
+          "ch": "牠們的；他們的",
+          "sentence": "The birds are in their nest."
+        },
+        {
+          "en": "meter",
+          "ch": "公尺",
+          "sentence": "The tree is about ten meters tall."
+        },
+        {
+          "en": "but",
+          "ch": "但是",
+          "sentence": "He is small, but he is strong."
+        },
+        {
+          "en": "only",
+          "ch": "僅僅；只",
+          "sentence": "I have only one pencil."
+        },
+        {
+          "en": "lifespan",
+          "ch": "壽命",
+          "sentence": "The lifespan of a dog is about twelve years."
+        }
       ]
     }
   },
