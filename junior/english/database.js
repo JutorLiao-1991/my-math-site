@@ -2851,6 +2851,188 @@ var jutorDB = {
           "ch": "快一點。",
           "sentence": "Hurry up, or we will be late for the meeting."
         }
+      ],
+      "國一上 Unit 6": [
+        {
+          "en": "gate",
+          "ch": "大門",
+          "sentence": "Let's meet at the school gate."
+        },
+        {
+          "en": "sports field",
+          "ch": "運動場；操場",
+          "sentence": "The students are running on the sports field."
+        },
+        {
+          "en": "basketball court",
+          "ch": "籃球場",
+          "sentence": "They are playing basketball on the basketball court."
+        },
+        {
+          "en": "restroom",
+          "ch": "廁所",
+          "sentence": "Where is the restroom?"
+        },
+        {
+          "en": "library",
+          "ch": "圖書館",
+          "sentence": "We can read books in the library."
+        },
+        {
+          "en": "playground",
+          "ch": "遊樂場",
+          "sentence": "The children are having fun in the playground."
+        },
+        {
+          "en": "swing",
+          "ch": "鞦韆",
+          "sentence": "The girl is playing on the swing."
+        },
+        {
+          "en": "slide",
+          "ch": "滑梯",
+          "sentence": "There is a tall slide in the park."
+        },
+        {
+          "en": "garden",
+          "ch": "花園",
+          "sentence": "My grandmother grows flowers in the garden."
+        },
+        {
+          "en": "seesaw",
+          "ch": "蹺蹺板",
+          "sentence": "They are playing on the seesaw together."
+        },
+        {
+          "en": "basket",
+          "ch": "籃子",
+          "sentence": "There are some apples in the basket."
+        },
+        {
+          "en": "rest",
+          "ch": "休息",
+          "sentence": "You look tired. Let's take a rest."
+        },
+        {
+          "en": "show... around",
+          "ch": "帶……參觀",
+          "sentence": "I can show you around our school."
+        },
+        {
+          "en": "building",
+          "ch": "建築物",
+          "sentence": "That is a very tall building."
+        },
+        {
+          "en": "gym",
+          "ch": "體育館",
+          "sentence": "We have PE class in the gym today."
+        },
+        {
+          "en": "work out",
+          "ch": "鍛鍊身體",
+          "sentence": "He likes to work out after school."
+        },
+        {
+          "en": "after school",
+          "ch": "放學後",
+          "sentence": "What do you do after school?"
+        },
+        {
+          "en": "large",
+          "ch": "大的；大量的",
+          "sentence": "They have a large dog in their house."
+        },
+        {
+          "en": "classmate",
+          "ch": "同班同學",
+          "sentence": "Leo is my new classmate."
+        },
+        {
+          "en": "put",
+          "ch": "放置",
+          "sentence": "Please put your bag on the desk."
+        },
+        {
+          "en": "shelf",
+          "ch": "架子",
+          "sentence": "There are many books on the shelf."
+        },
+        {
+          "en": "outside",
+          "ch": "在……外面；在室外",
+          "sentence": "It is cold outside, so wear a jacket."
+        },
+        {
+          "en": "worry",
+          "ch": "擔心",
+          "sentence": "Don't worry about the test."
+        },
+        {
+          "en": "wear",
+          "ch": "穿；戴",
+          "sentence": "She likes to wear glasses."
+        },
+        {
+          "en": "still",
+          "ch": "仍然",
+          "sentence": "He is still doing his homework."
+        },
+        {
+          "en": "find",
+          "ch": "找到；發現",
+          "sentence": "I can't find my pencil."
+        },
+        {
+          "en": "feet",
+          "ch": "腳（複數）",
+          "sentence": "Wash your feet before you go to bed."
+        },
+        {
+          "en": "hungry",
+          "ch": "飢餓的",
+          "sentence": "I am hungry. Let's eat lunch."
+        },
+        {
+          "en": "sandwich",
+          "ch": "三明治",
+          "sentence": "I have an egg sandwich for breakfast."
+        },
+        {
+          "en": "find one's feet",
+          "ch": "適應新環境",
+          "sentence": "It takes time for new students to find their feet."
+        },
+        {
+          "en": "meaning",
+          "ch": "意思；意義",
+          "sentence": "What is the meaning of this word?"
+        },
+        {
+          "en": "think",
+          "ch": "想起；思考；認為",
+          "sentence": "I think this book is very interesting."
+        },
+        {
+          "en": "a lot of",
+          "ch": "許多的",
+          "sentence": "There are a lot of students in the gym."
+        },
+        {
+          "en": "thing",
+          "ch": "事；物",
+          "sentence": "Put your things in the basket."
+        },
+        {
+          "en": "however",
+          "ch": "然而",
+          "sentence": "He likes sports; however, he is not good at basketball."
+        },
+        {
+          "en": "friendly",
+          "ch": "友善的",
+          "sentence": "Our new teacher is very friendly."
+        }
       ]
     }
   },
