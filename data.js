@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年5月5日 23:58" // 已更新為最新時間
+    lastUpdated: "2026年9月2日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -60,6 +60,14 @@ const lessonData = [
         tagClass: "math", // 藍色標籤
         tagName: "國中數學",
         desc: "透過鳩特精心設計的步驟，一步一步用尺規作圖完成指定三角形"
+    },
+    {
+        title: "乘法公式基礎練習",
+        category: "junior",
+        url: "junior/math/multiplication_formulas.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "逐步練習和的平方、差的平方與平方差，並挑戰五分鐘十題考試。"
     },
     {
         title: "平面族示意動畫",
