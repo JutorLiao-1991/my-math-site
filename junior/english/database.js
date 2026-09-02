@@ -2090,22 +2090,22 @@ var jutorDB = {
         {
           "en": "monkey",
           "ch": "猴子",
-          "sentence": "The monkey is climbing the tree."
+          "sentence": "The monkey is jumping in the tree."
         },
         {
           "en": "fox",
           "ch": "狐狸",
-          "sentence": "A fox is running in the woods."
+          "sentence": "A fox is looking for food in the forest."
         },
         {
           "en": "sheep",
           "ch": "綿羊",
-          "sentence": "There are five sheep on the farm."
+          "sentence": "There are twenty sheep on the farm."
         },
         {
           "en": "tiger",
           "ch": "老虎",
-          "sentence": "The tiger is a strong animal."
+          "sentence": "The tiger is strong and fast."
         },
         {
           "en": "zebra",
@@ -2115,7 +2115,7 @@ var jutorDB = {
         {
           "en": "lion",
           "ch": "獅子",
-          "sentence": "The lion is sleeping under the tree."
+          "sentence": "The lion is the king of animals."
         },
         {
           "en": "mouse",
@@ -2125,12 +2125,12 @@ var jutorDB = {
         {
           "en": "bear",
           "ch": "熊",
-          "sentence": "The big bear is catching fish."
+          "sentence": "A big brown bear is sleeping under the tree."
         },
         {
           "en": "movie theater",
           "ch": "電影院",
-          "sentence": "We can watch a film at the movie theater."
+          "sentence": "We can watch movies at the movie theater."
         },
         {
           "en": "Chinese",
@@ -2140,7 +2140,7 @@ var jutorDB = {
         {
           "en": "animal",
           "ch": "動物",
-          "sentence": "Dogs and cats are common animals."
+          "sentence": "The elephant is a very big animal."
         },
         {
           "en": "sign",
@@ -2150,12 +2150,12 @@ var jutorDB = {
         {
           "en": "rat",
           "ch": "大老鼠",
-          "sentence": "A rat is hiding behind the box."
+          "sentence": "There is a rat in the kitchen."
         },
         {
           "en": "ox",
           "ch": "(公)牛",
-          "sentence": "The farmer has an ox on the farm."
+          "sentence": "The farmer has an ox and two horses."
         },
         {
           "en": "rabbit",
@@ -2170,17 +2170,17 @@ var jutorDB = {
         {
           "en": "snake",
           "ch": "蛇",
-          "sentence": "Be careful! There is a snake in the grass."
+          "sentence": "Some people are afraid of snakes."
         },
         {
           "en": "horse",
           "ch": "馬",
-          "sentence": "He can ride a horse very well."
+          "sentence": "Can you ride a horse?"
         },
         {
           "en": "goat",
           "ch": "山羊",
-          "sentence": "The goat is eating green grass."
+          "sentence": "The goat is eating grass on the hill."
         },
         {
           "en": "rooster",
@@ -2190,12 +2190,12 @@ var jutorDB = {
         {
           "en": "smart",
           "ch": "聰明的",
-          "sentence": "The smart boy answered all the questions."
+          "sentence": "The boy is very smart and helpful."
         },
         {
           "en": "energetic",
           "ch": "充滿活力的",
-          "sentence": "The energetic kids are playing in the park."
+          "sentence": "The kids are very energetic today."
         },
         {
           "en": "true",
@@ -2205,12 +2205,12 @@ var jutorDB = {
         {
           "en": "no wonder",
           "ch": "難怪",
-          "sentence": "You didn't eat lunch; no wonder you are hungry."
+          "sentence": "He didn't eat breakfast; no wonder he is hungry."
         },
         {
           "en": "people",
           "ch": "人們",
-          "sentence": "There are many people on the street."
+          "sentence": "There are many people in the park."
         },
         {
           "en": "What about...?",
@@ -2220,47 +2220,47 @@ var jutorDB = {
         {
           "en": "people person",
           "ch": "人緣好的人",
-          "sentence": "Tom is friendly and kind; he is a people person."
+          "sentence": "Jenny is friendly and she is a people person."
         },
         {
           "en": "picture",
           "ch": "照片；圖畫",
-          "sentence": "Let's take a picture together."
+          "sentence": "Look at this picture of my family."
         },
         {
           "en": "elephant",
           "ch": "大象",
-          "sentence": "The elephant has a very long nose."
+          "sentence": "An elephant has a long nose and big ears."
         },
         {
           "en": "or",
           "ch": "或者",
-          "sentence": "Do you want milk or tea?"
+          "sentence": "Do you want tea or milk?"
         },
         {
           "en": "size",
           "ch": "尺寸",
-          "sentence": "What size is this T-shirt?"
+          "sentence": "These shoes are not the right size for me."
         },
         {
           "en": "different",
           "ch": "不同的",
-          "sentence": "They go to different schools."
+          "sentence": "We go to different schools."
         },
         {
           "en": "very",
           "ch": "很；非常",
-          "sentence": "This cat is very cute."
+          "sentence": "The dog is very cute."
         },
         {
           "en": "their",
           "ch": "牠們的；他們的",
-          "sentence": "The birds are in their nest."
+          "sentence": "The students are doing their homework."
         },
         {
           "en": "meter",
           "ch": "公尺",
-          "sentence": "The tree is about ten meters tall."
+          "sentence": "The wall is two meters high."
         },
         {
           "en": "but",
@@ -2270,12 +2270,19 @@ var jutorDB = {
         {
           "en": "only",
           "ch": "僅僅；只",
-          "sentence": "I have only one pencil."
+          "sentence": "I have only one brother."
         },
         {
           "en": "lifespan",
           "ch": "壽命",
-          "sentence": "The lifespan of a dog is about twelve years."
+          "sentence": "The lifespan of a dog is about ten to fifteen years."
+        }
+      ],
+      "國一上 Unit 2 (句型)": [
+        {
+          "en": "What about...?",
+          "ch": "……怎麼樣？",
+          "sentence": "I like dogs. What about you?"
         }
       ]
     }
