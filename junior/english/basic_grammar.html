@@ -91,10 +91,10 @@
   .display-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 0 10px; box-sizing: border-box; }
   .question-label { font-size: 1.5em; font-weight: bold; color: #666; margin-bottom: 5px; }
   .question-text {
-      font-size: 3.5em; font-weight: 900; color: #333; line-height: 1.3;
+      font-size: clamp(1.7rem, 6vw, 3.5rem); font-weight: 900; color: #333; line-height: 1.3;
       text-shadow: 3px 3px 0px rgba(255,255,255,0.8);
       animation: popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center;
-      word-break: keep-all; width: 100%; max-width: 600px;
+      word-break: normal; overflow-wrap: anywhere; width: 100%; max-width: 760px;
   }
 
   .options-panel { display: flex; flex-direction: column; width: 100%; align-items: center; gap: 15px; padding: 10px 0 30px 0; }
@@ -239,7 +239,7 @@
       </div>
 
       <button id="btn-pr" class="mode-btn btn-pr" onclick="initAudioAndGo('pr')" disabled style="opacity: 0.5;">📖 練習模式</button>
-      <button id="btn-sp" class="mode-btn btn-sp" onclick="initAudioAndGo('sp')" disabled style="opacity: 0.5;">👤 單人計時</button>
+      <button id="btn-sp" class="mode-btn btn-sp" onclick="initAudioAndGo('sp')" disabled style="opacity: 0.5;">📝 文法考試（10 題）</button>
       <button id="btn-pk" class="mode-btn btn-pk" onclick="initAudioAndGo('pk-setup')" disabled style="opacity: 0.5;">⚔️ 雙人ＰＫ</button>
     </div>
 
@@ -273,17 +273,17 @@
       </div>
     </div>
 
-    <!-- 2. 單人計時畫面 -->
+    <!-- 2. 文法考試畫面 -->
     <div id="sp-container" class="game-container">
       <div class="top-bar">
         <div style="display: flex; align-items: center; gap: 10px;">
             <button class="back-home-btn" onclick="returnToMenu()">🏠 返回</button>
             <div class="score-board">
-                <span id="sp-score-display">0.0</span> 分
+                <span id="sp-score-display">0</span> 分
                 <div id="sp-streak-box" class="streak-container"><span class="streak-icon">🔥</span><span id="sp-streak-num">0</span> 連對</div>
             </div>
         </div>
-        <div class="progress-text">題號：<span id="sp-q-progress">0/20</span></div>
+        <div class="progress-text">題號：<span id="sp-q-progress">0/10</span></div>
       </div>
 
       <div class="display-area">
@@ -291,7 +291,7 @@
           <div class="question-text" id="sp-q-text">?</div>
           
           <div style="display: flex; align-items: center; justify-content: center; width: 85%; max-width: 400px; margin: 15px 0 5px 0; gap: 15px;">
-              <div id="sp-timer-text" style="font-size: 1.5em; font-weight: bold; color: #555; width: 60px; text-align: right; font-family: monospace;">5.0s</div>
+              <div id="sp-timer-text" style="font-size: 1.5em; font-weight: bold; color: #555; width: 70px; text-align: right; font-family: monospace;">10:00</div>
               <div style="flex:1; height: 16px; background: #ddd; border-radius: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
                   <div id="sp-timer-bar" style="height: 100%; background: #4CAF50; width: 100%; transition: background-color 0.3s;"></div>
               </div>
@@ -305,7 +305,7 @@
 
       <!-- 單人結算 -->
       <div id="sp-end-overlay" class="end-overlay">
-          <div style="font-size: 3em; font-weight: 900; color: #333;">測驗結束！</div>
+          <div id="sp-end-title" style="font-size: 3em; font-weight: 900; color: #333;">考試完成！</div>
           <div class="end-score" id="sp-final-score">100.0</div>
           <div id="sp-final-comment" style="font-size: 1.5em; font-weight: bold; margin-bottom: 30px;">太神啦！</div>
           <button class="control-btn" style="background:#2196F3; padding:15px 40px; font-size:1.5em; border:none; box-shadow:0 6px 0 #1565C0;" onclick="returnToMenu()">⬅ 回主選單</button>
@@ -454,6 +454,10 @@
         
         // 從我們動態抓下來的 data 中取得使用者選的單元
         currentTopicData = grammarData[document.getElementById('topic-select').value];
+        if (target === 'sp' && currentTopicData.pool.length < 10) {
+            alert("這個文法題庫尚未滿 10 題，請先請老師補充題庫後再考試。");
+            return;
+        }
         setupButtons(); 
 
         if(target === 'pr') startPracticeMode();
@@ -619,15 +623,16 @@
     // ==========================================
     //           單人模式邏輯
     // ==========================================
-    let spQuestionsPool = [], spCurrentQIndex = 0, spScore = 0, spStreak = 0, spIsProcessing = false, spStartTime = 0, spTimerFrame = null;
-    const SP_TOTAL_Q = 20, SP_TIME_LIMIT = 5000; 
+    let spQuestionsPool = [], spCurrentQIndex = 0, spScore = 0, spStreak = 0, spIsProcessing = false, spExamDeadline = 0, spTimerFrame = null, spExamFinished = false;
+    const SP_TOTAL_Q = 10;
+    const SP_EXAM_SECONDS = 10 * 60;
 
     function startSinglePlayer() {
         hideAllScreens();
         document.getElementById('sp-container').style.display = 'flex';
         document.getElementById('sp-end-overlay').style.display = 'none';
-        spScore = 0; spStreak = 0; spCurrentQIndex = 0;
-        document.getElementById('sp-score-display').innerText = spScore.toFixed(1);
+        spScore = 0; spStreak = 0; spCurrentQIndex = 0; spExamFinished = false;
+        document.getElementById('sp-score-display').innerText = spScore;
         document.getElementById('sp-streak-num').innerText = spStreak; document.getElementById('sp-streak-box').classList.remove('active');
         
         const totalQ = Math.min(SP_TOTAL_Q, currentTopicData.pool.length);
@@ -636,12 +641,17 @@
         fbMsg.innerText = "準備開始..."; fbMsg.style.color = "#999";
         
         spQuestionsPool = shuffle([...currentTopicData.pool]).slice(0, totalQ);
-        runCountdown(3, "準備挑戰！", spLoadQuestion);
+        runCountdown(3, "準備考試！", () => {
+            spExamDeadline = Date.now() + SP_EXAM_SECONDS * 1000;
+            spUpdateTimer();
+            spLoadQuestion();
+        });
     }
 
     function spLoadQuestion() {
-        const totalQ = Math.min(SP_TOTAL_Q, currentTopicData.pool.length);
-        if(spCurrentQIndex >= totalQ) return spShowGameOver();
+        if (spExamFinished) return;
+        const totalQ = SP_TOTAL_Q;
+        if(spCurrentQIndex >= totalQ) return spShowGameOver(false);
         spIsProcessing = false; document.getElementById('sp-feedback-msg').innerText = "";
         
         for(let i = 0; i < currentTopicData.options.length; i++) { document.getElementById(`sp-btn-${i}`).className = 'opt-btn'; }
@@ -650,62 +660,52 @@
         qText.innerText = spQuestionsPool[spCurrentQIndex].q;
         document.getElementById('sp-q-progress').innerText = (spCurrentQIndex + 1) + " / " + totalQ;
         qText.style.animation = 'none'; qText.offsetHeight; qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        spStartTimer();
-    }
-
-    function spStartTimer() {
-        spStartTime = performance.now(); if(spTimerFrame) cancelAnimationFrame(spTimerFrame); spUpdateTimer();
     }
 
     function spUpdateTimer() {
-        if(spIsProcessing) return;
-        let dt = performance.now() - spStartTime, bar = document.getElementById('sp-timer-bar'), text = document.getElementById('sp-timer-text');
-        if (dt >= SP_TIME_LIMIT) {
-            bar.style.width = '0%'; text.innerText = '0.0s'; spHandleTimeUp();
-        } else {
-            let pct = Math.max(0, 100 - (dt / SP_TIME_LIMIT) * 100); bar.style.width = pct + '%';
-            text.innerText = (Math.max(0, SP_TIME_LIMIT - dt) / 1000).toFixed(1) + 's';
-            bar.style.backgroundColor = pct < 25 ? '#F44336' : pct < 50 ? '#FF9800' : '#4CAF50';
-            spTimerFrame = requestAnimationFrame(spUpdateTimer);
-        }
-    }
-
-    function spHandleTimeUp() {
-        if (spIsProcessing) return; spIsProcessing = true; playSound('wrong'); spStreak = 0;
-        const fbMsg = document.getElementById('sp-feedback-msg');
-        fbMsg.innerText = "⏰ 時間到！ (+0.0)"; fbMsg.style.color = "#F44336";
-        const correctAns = spQuestionsPool[spCurrentQIndex].a, correctIndex = currentTopicData.options.indexOf(correctAns);
-        if(correctIndex !== -1) document.getElementById(`sp-btn-${correctIndex}`).classList.add('correct');
-        document.getElementById('sp-streak-num').innerText = spStreak; document.getElementById('sp-streak-box').classList.remove('active');
-        spCurrentQIndex++; if(spTimeout) clearTimeout(spTimeout); spTimeout = setTimeout(spLoadQuestion, 1200);
+        if (spExamFinished) return;
+        const remainingMs = Math.max(0, spExamDeadline - Date.now());
+        const remainingSeconds = Math.ceil(remainingMs / 1000);
+        const minutes = Math.floor(remainingSeconds / 60);
+        const seconds = String(remainingSeconds % 60).padStart(2, '0');
+        const pct = (remainingMs / (SP_EXAM_SECONDS * 1000)) * 100;
+        const bar = document.getElementById('sp-timer-bar');
+        document.getElementById('sp-timer-text').innerText = `${minutes}:${seconds}`;
+        bar.style.width = pct + '%';
+        bar.style.backgroundColor = pct < 20 ? '#F44336' : pct < 50 ? '#FF9800' : '#4CAF50';
+        if (remainingMs <= 0) spShowGameOver(true);
+        else spTimerFrame = requestAnimationFrame(spUpdateTimer);
     }
 
     function spCheckAnswer(optIndex, btnObj) {
-        if (spIsProcessing) return; spIsProcessing = true; if (spTimerFrame) cancelAnimationFrame(spTimerFrame);
-        let dt = performance.now() - spStartTime, currentQ = spQuestionsPool[spCurrentQIndex], userChoice = currentTopicData.options[optIndex], correctAns = currentQ.a, fbMsg = document.getElementById('sp-feedback-msg');
+        if (spIsProcessing || spExamFinished) return; spIsProcessing = true;
+        let currentQ = spQuestionsPool[spCurrentQIndex], userChoice = currentTopicData.options[optIndex], correctAns = currentQ.a, fbMsg = document.getElementById('sp-feedback-msg');
 
         if (userChoice === correctAns) {
             playSound('correct'); btnObj.classList.add('correct');
-            let pts = dt <= 1500 ? 5.0 : dt <= SP_TIME_LIMIT ? 5.0 - ((dt - 1500) / 3500) * 4.9 : 0;
-            pts = Math.max(0.1, Math.round(pts * 10) / 10); spScore += pts; spStreak++;
-            fbMsg.innerText = spStreak >= 3 ? `🔥 ${spStreak}連對！ (+${pts.toFixed(1)})` : `⭕ 答對了！ (+${pts.toFixed(1)})`; fbMsg.style.color = "#4CAF50";
+            spScore += 10; spStreak++;
+            fbMsg.innerText = spStreak >= 3 ? `🔥 ${spStreak}連對！ (+10)` : `⭕ 答對了！ (+10)`; fbMsg.style.color = "#4CAF50";
         } else {
             playSound('wrong'); btnObj.classList.add('wrong'); spStreak = 0;
-            fbMsg.innerText = "❌ 答錯了... (+0.0)"; fbMsg.style.color = "#F44336";
+            fbMsg.innerText = "❌ 答錯了... (+0)"; fbMsg.style.color = "#F44336";
             const correctIndex = currentTopicData.options.indexOf(correctAns);
             if(correctIndex !== -1) document.getElementById(`sp-btn-${correctIndex}`).classList.add('correct');
         }
-        document.getElementById('sp-score-display').innerText = spScore.toFixed(1); document.getElementById('sp-streak-num').innerText = spStreak;
+        document.getElementById('sp-score-display').innerText = spScore; document.getElementById('sp-streak-num').innerText = spStreak;
         spStreak >= 3 ? document.getElementById('sp-streak-box').classList.add('active') : document.getElementById('sp-streak-box').classList.remove('active');
         spCurrentQIndex++; if(spTimeout) clearTimeout(spTimeout); spTimeout = setTimeout(spLoadQuestion, 1200);
     }
 
-    function spShowGameOver() {
+    function spShowGameOver(timedOut) {
+        if (spExamFinished) return;
+        spExamFinished = true;
+        if (spTimerFrame) cancelAnimationFrame(spTimerFrame);
         const overlay = document.getElementById('sp-end-overlay'), comment = document.getElementById('sp-final-comment');
-        document.getElementById('sp-final-score').innerText = spScore.toFixed(1);
-        if (spScore >= 95) { comment.innerText = "神反應！你是文法大師！🏆"; comment.style.color = "#FF9800"; }
-        else if (spScore >= 75) { comment.innerText = "非常優秀！速度與準度兼具！😎"; comment.style.color = "#4CAF50"; }
-        else if (spScore >= 50) { comment.innerText = "及格過關！反應可以再快一點哦！👍"; comment.style.color = "#2196F3"; }
+        document.getElementById('sp-end-title').innerText = timedOut ? "時間到！" : "考試完成！";
+        document.getElementById('sp-final-score').innerText = spScore;
+        if (spScore >= 90) { comment.innerText = "太厲害了！你是文法大師！🏆"; comment.style.color = "#FF9800"; }
+        else if (spScore >= 70) { comment.innerText = "非常優秀！觀念掌握得很好！😎"; comment.style.color = "#4CAF50"; }
+        else if (spScore >= 60) { comment.innerText = "及格過關！再複習錯題會更穩！👍"; comment.style.color = "#2196F3"; }
         else { comment.innerText = "再接再厲！把文法規則背熟再來挑戰！💪"; comment.style.color = "#F44336"; }
         overlay.style.display = 'flex';
     }
@@ -810,6 +810,7 @@
     }
 
     function returnToMenu() {
+        spExamFinished = true;
         if(spTimerFrame) cancelAnimationFrame(spTimerFrame); if(cdTimer) { clearInterval(cdTimer); cdTimer = null; }
         if(spTimeout) { clearTimeout(spTimeout); spTimeout = null; } if(pkTimeout) { clearTimeout(pkTimeout); pkTimeout = null; }
         document.getElementById('countdown-overlay').style.display = 'none'; hideAllScreens(); document.getElementById('mode-select-screen').style.display = 'flex';

@@ -115,7 +115,7 @@ const lessonData = [
         url: "junior/english/index.html",
         tagClass: "lang",
         tagName: "國中英文",
-        desc: "整合單字、句型與基礎文法練習，依年級學期與教材範圍開始挑戰。"
+        desc: "整合單字自習、單字測驗與基礎文法練習，依年級學期與教材範圍開始挑戰。"
     },
     {
         title: "單位換算特訓",
