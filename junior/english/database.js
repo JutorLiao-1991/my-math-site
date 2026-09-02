@@ -2284,6 +2284,210 @@ var jutorDB = {
           "ch": "……怎麼樣？",
           "sentence": "I like dogs. What about you?"
         }
+      ],
+      "國一上 Unit 3": [
+        {
+          "en": "living room",
+          "ch": "客廳",
+          "sentence": "My family is watching TV in the living room."
+        },
+        {
+          "en": "bedroom",
+          "ch": "臥室",
+          "sentence": "My bedroom is small but cozy."
+        },
+        {
+          "en": "bathroom",
+          "ch": "浴室",
+          "sentence": "Please wash your hands in the bathroom."
+        },
+        {
+          "en": "dining room",
+          "ch": "飯廳",
+          "sentence": "We eat dinner together in the dining room every evening."
+        },
+        {
+          "en": "behind",
+          "ch": "在……後面",
+          "sentence": "The cat is hiding behind the sofa."
+        },
+        {
+          "en": "in front of",
+          "ch": "在……前面",
+          "sentence": "There is a tall tree in front of our house."
+        },
+        {
+          "en": "between",
+          "ch": "在……中間",
+          "sentence": "The ball is between the two boxes."
+        },
+        {
+          "en": "next to",
+          "ch": "在……旁邊",
+          "sentence": "The convenience store is next to the school."
+        },
+        {
+          "en": "near",
+          "ch": "在……附近",
+          "sentence": "Is there a bus stop near here?"
+        },
+        {
+          "en": "please",
+          "ch": "請",
+          "sentence": "Please close the door quietly."
+        },
+        {
+          "en": "house",
+          "ch": "房子",
+          "sentence": "They live in a beautiful house."
+        },
+        {
+          "en": "quiet",
+          "ch": "安靜的",
+          "sentence": "Please keep quiet in the library."
+        },
+        {
+          "en": "style",
+          "ch": "風格；款式",
+          "sentence": "I really like the style of this room."
+        },
+        {
+          "en": "idea",
+          "ch": "想法；點子",
+          "sentence": "That sounds like a great idea!"
+        },
+        {
+          "en": "let's...",
+          "ch": "我們一起……吧",
+          "sentence": "Let's clean the bedroom together."
+        },
+        {
+          "en": "get",
+          "ch": "獲得",
+          "sentence": "You can get more information online."
+        },
+        {
+          "en": "some",
+          "ch": "一些的；一些",
+          "sentence": "There are some apples on the table."
+        },
+        {
+          "en": "tool",
+          "ch": "工具",
+          "sentence": "A dictionary is a useful tool for learning English."
+        },
+        {
+          "en": "smartphone",
+          "ch": "智慧型手機",
+          "sentence": "Don't use your smartphone during class."
+        },
+        {
+          "en": "step",
+          "ch": "步驟；一步",
+          "sentence": "Follow each step carefully to make the model."
+        },
+        {
+          "en": "upload",
+          "ch": "上傳",
+          "sentence": "Can you upload the photo to the group?"
+        },
+        {
+          "en": "photo",
+          "ch": "相片",
+          "sentence": "Let's take a photo in front of the gate."
+        },
+        {
+          "en": "choose",
+          "ch": "選擇",
+          "sentence": "You can choose your favorite color."
+        },
+        {
+          "en": "type",
+          "ch": "種類",
+          "sentence": "What type of house do you like?"
+        },
+        {
+          "en": "theme",
+          "ch": "主題",
+          "sentence": "The theme of the party is superheroes."
+        },
+        {
+          "en": "wait",
+          "ch": "等待",
+          "sentence": "Please wait for me at the bus stop."
+        },
+        {
+          "en": "expensive",
+          "ch": "昂貴的",
+          "sentence": "That smartphone is too expensive for me."
+        },
+        {
+          "en": "with",
+          "ch": "對……來說；和",
+          "sentence": "He is playing games with his brother."
+        },
+        {
+          "en": "question",
+          "ch": "問題",
+          "sentence": "I have a question about the homework."
+        },
+        {
+          "en": "soft",
+          "ch": "柔軟的",
+          "sentence": "The pillow is very soft and comfortable."
+        },
+        {
+          "en": "hard",
+          "ch": "硬的",
+          "sentence": "The chair is too hard to sit on for long."
+        },
+        {
+          "en": "in fact",
+          "ch": "事實上",
+          "sentence": "In fact, I already know the answer."
+        },
+        {
+          "en": "around",
+          "ch": "圍繞；到處",
+          "sentence": "They want to travel around the world."
+        },
+        {
+          "en": "world",
+          "ch": "世界",
+          "sentence": "There are many different cultures in the world."
+        },
+        {
+          "en": "kitchen",
+          "ch": "廚房",
+          "sentence": "Dad is cooking dinner in the kitchen."
+        },
+        {
+          "en": "beside",
+          "ch": "在……旁邊",
+          "sentence": "Come and sit beside me."
+        },
+        {
+          "en": "ice",
+          "ch": "冰",
+          "sentence": "Please put some ice in my water."
+        },
+        {
+          "en": "inside",
+          "ch": "在……裡面；在室內",
+          "sentence": "It is raining outside, so let's stay inside."
+        },
+        {
+          "en": "blanket",
+          "ch": "毛毯",
+          "sentence": "Cover yourself with a warm blanket."
+        }
+      ],
+      "國一上 Unit 3 (句型)": [
+        {
+          "en": "I see.",
+          "ch": "我了解了。",
+          "sentence": "A: The meeting is at three. B: I see."
+        }
       ]
     }
   },
