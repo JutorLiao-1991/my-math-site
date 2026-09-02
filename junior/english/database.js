@@ -2090,22 +2090,22 @@ var jutorDB = {
         {
           "en": "monkey",
           "ch": "猴子",
-          "sentence": "The monkey is jumping in the tree."
+          "sentence": "The monkey is climbing up the tree."
         },
         {
           "en": "fox",
           "ch": "狐狸",
-          "sentence": "A fox is looking for food in the forest."
+          "sentence": "The clever fox is looking for food."
         },
         {
           "en": "sheep",
           "ch": "綿羊",
-          "sentence": "There are twenty sheep on the farm."
+          "sentence": "There are ten sheep on the grass."
         },
         {
           "en": "tiger",
           "ch": "老虎",
-          "sentence": "The tiger is strong and fast."
+          "sentence": "The tiger is running very fast."
         },
         {
           "en": "zebra",
@@ -2120,42 +2120,42 @@ var jutorDB = {
         {
           "en": "mouse",
           "ch": "老鼠",
-          "sentence": "The cat is chasing a small mouse."
+          "sentence": "The cat is chasing a little mouse."
         },
         {
           "en": "bear",
           "ch": "熊",
-          "sentence": "A big brown bear is sleeping under the tree."
+          "sentence": "A big bear is sleeping near the river."
         },
         {
           "en": "movie theater",
           "ch": "電影院",
-          "sentence": "We can watch movies at the movie theater."
+          "sentence": "We are watching a film at the movie theater."
         },
         {
           "en": "Chinese",
           "ch": "中國的；中國人；中文",
-          "sentence": "She can speak English and Chinese."
+          "sentence": "Chinese culture is very interesting."
         },
         {
           "en": "animal",
           "ch": "動物",
-          "sentence": "The elephant is a very big animal."
+          "sentence": "What is your favorite animal?"
         },
         {
           "en": "sign",
           "ch": "符號",
-          "sentence": "What is your Chinese zodiac sign?"
+          "sentence": "What does this zodiac sign mean?"
         },
         {
           "en": "rat",
           "ch": "大老鼠",
-          "sentence": "There is a rat in the kitchen."
+          "sentence": "The rat is the first animal in the Chinese zodiac."
         },
         {
           "en": "ox",
           "ch": "(公)牛",
-          "sentence": "The farmer has an ox and two horses."
+          "sentence": "An ox is working on the farm."
         },
         {
           "en": "rabbit",
@@ -2165,7 +2165,7 @@ var jutorDB = {
         {
           "en": "dragon",
           "ch": "龍",
-          "sentence": "The dragon is a special animal in Chinese culture."
+          "sentence": "The dragon is a special animal in Chinese stories."
         },
         {
           "en": "snake",
@@ -2175,12 +2175,12 @@ var jutorDB = {
         {
           "en": "horse",
           "ch": "馬",
-          "sentence": "Can you ride a horse?"
+          "sentence": "He can ride a horse very well."
         },
         {
           "en": "goat",
           "ch": "山羊",
-          "sentence": "The goat is eating grass on the hill."
+          "sentence": "The goat is eating green grass."
         },
         {
           "en": "rooster",
@@ -2190,47 +2190,47 @@ var jutorDB = {
         {
           "en": "smart",
           "ch": "聰明的",
-          "sentence": "The boy is very smart and helpful."
+          "sentence": "The smart boy answered all the questions."
         },
         {
           "en": "energetic",
           "ch": "充滿活力的",
-          "sentence": "The kids are very energetic today."
+          "sentence": "The puppy is energetic and loves to play."
         },
         {
           "en": "true",
           "ch": "真的；真實的",
-          "sentence": "Is that story true?"
+          "sentence": "Is that story really true?"
         },
         {
           "en": "no wonder",
           "ch": "難怪",
-          "sentence": "He didn't eat breakfast; no wonder he is hungry."
+          "sentence": "You did not sleep last night; no wonder you are tired."
         },
         {
           "en": "people",
           "ch": "人們",
-          "sentence": "There are many people in the park."
+          "sentence": "Many people are waiting for the bus."
         },
         {
           "en": "What about...?",
           "ch": "……怎麼樣？",
-          "sentence": "I like apples. What about you?"
+          "sentence": "I like cats. What about you?"
         },
         {
           "en": "people person",
           "ch": "人緣好的人",
-          "sentence": "Jenny is friendly and she is a people person."
+          "sentence": "Lisa is friendly and she is a real people person."
         },
         {
           "en": "picture",
           "ch": "照片；圖畫",
-          "sentence": "Look at this picture of my family."
+          "sentence": "This is a picture of my family."
         },
         {
           "en": "elephant",
           "ch": "大象",
-          "sentence": "An elephant has a long nose and big ears."
+          "sentence": "The elephant has a very long nose."
         },
         {
           "en": "or",
@@ -2240,22 +2240,22 @@ var jutorDB = {
         {
           "en": "size",
           "ch": "尺寸",
-          "sentence": "These shoes are not the right size for me."
+          "sentence": "These two shoes are not the same size."
         },
         {
           "en": "different",
           "ch": "不同的",
-          "sentence": "We go to different schools."
+          "sentence": "They have different opinions about the movie."
         },
         {
           "en": "very",
           "ch": "很；非常",
-          "sentence": "The dog is very cute."
+          "sentence": "It is very cold outside today."
         },
         {
           "en": "their",
           "ch": "牠們的；他們的",
-          "sentence": "The students are doing their homework."
+          "sentence": "The tigers are eating their food."
         },
         {
           "en": "meter",
@@ -2265,17 +2265,17 @@ var jutorDB = {
         {
           "en": "but",
           "ch": "但是",
-          "sentence": "He is small, but he is strong."
+          "sentence": "He is young, but he is very strong."
         },
         {
           "en": "only",
           "ch": "僅僅；只",
-          "sentence": "I have only one brother."
+          "sentence": "There is only one apple left on the table."
         },
         {
           "en": "lifespan",
           "ch": "壽命",
-          "sentence": "The lifespan of a dog is about ten to fifteen years."
+          "sentence": "The average lifespan of a dog is about twelve years."
         }
       ],
       "國一上 Unit 2 (句型)": [
