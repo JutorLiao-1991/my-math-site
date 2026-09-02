@@ -56,6 +56,34 @@ class MultiplicationFormulasStaticTests(unittest.TestCase):
         self.assertIn('nextRow.classList.remove("hidden")', self.html)
         self.assertIn("state.practiceCompleted++", self.html)
 
+    def test_numbers_make_the_formula_a_shortcut(self):
+        for lecture_example in (
+            "{ a: value(200), b: value(3) }",
+            "{ a: value(100), b: value(2) }",
+            "{ a: value(498), b: value(302) }",
+            "{ x: value(300), y: value(4) }",
+            "{ x: value(52), y: value(48) }",
+        ):
+            self.assertIn(lecture_example, self.html)
+        self.assertIn("squareSeeds[kind].direct.forEach", self.html)
+        self.assertIn("squareSeeds[kind].reverse.forEach", self.html)
+        self.assertIn("differenceSeeds.direct.forEach", self.html)
+        self.assertIn("differenceSeeds.reverse.forEach", self.html)
+        self.assertNotIn("differenceSeeds.forEach", self.html)
+        self.assertNotIn("(100) × (4)", self.html)
+
+    def test_negative_answers_can_be_entered_on_the_touch_keypad(self):
+        self.assertIn("onclick=\"typeKey('-')\"", self.html)
+        self.assertIn('>−</button>', self.html)
+
+    def test_formula_reference_only_appears_in_practice(self):
+        self.assertIn('id="practice-formula"', self.html)
+        self.assertIn('if (state.mode === "practice")', self.html)
+        self.assertIn('formulaReference.classList.remove("hidden")', self.html)
+        self.assertIn('formulaReference.classList.add("hidden")', self.html)
+        self.assertIn('formulaReference.innerHTML = ""', self.html)
+        self.assertIn('? "綜合挑戰"', self.html)
+
     def test_runs_locally_without_ai_or_cloud_data_calls(self):
         lowered = self.html.lower()
         for forbidden in ("fetch(", "firebase", "gemini", "apikey", "generatecontent"):
