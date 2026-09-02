@@ -213,8 +213,14 @@
             font-family: Georgia, "Times New Roman", serif;
             font-size: clamp(1.18rem, 4vw, 1.55rem);
         }
-        .answer-input {
+        .answer-field {
+            position: relative;
+            display: inline-flex;
             width: clamp(58px, 10vw, 86px);
+            min-height: 44px;
+        }
+        .answer-input {
+            width: 100%;
             min-height: 44px;
             padding: 6px 7px;
             border: 2px dashed #d9aebb;
@@ -231,6 +237,41 @@
         .answer-input:focus { outline: none; border-style: solid; border-color: var(--primary-deep); box-shadow: 0 0 0 4px rgba(255,139,167,0.16); }
         .answer-input.correct { border-style: solid; border-color: var(--success); background: var(--success-soft); color: #176c42; }
         .answer-input.wrong { border-style: solid; border-color: var(--error); background: var(--error-soft); color: var(--error); animation: shake 0.24s linear 1; }
+        .answer-field.fraction-mode .answer-input { color: transparent; caret-color: transparent; }
+        .fraction-preview {
+            position: absolute;
+            inset: 3px 7px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--ink);
+            pointer-events: none;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 0.92rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .answer-field.fraction-mode .fraction-preview { display: flex; }
+        .answer-input.correct + .fraction-preview { color: #176c42; }
+        .answer-input.wrong + .fraction-preview { color: var(--error); }
+        .fraction-whole:empty { display: none; }
+        .fraction-stack, .inline-fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: center;
+            min-width: 1.2em;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 1.05;
+        }
+        .fraction-numerator, .inline-fraction > span:first-child {
+            padding: 0 0.15em 0.08em;
+            border-bottom: 1.5px solid currentColor;
+        }
+        .fraction-denominator, .inline-fraction > span:last-child { padding: 0.08em 0.15em 0; }
+        .inline-fraction { margin: 0 0.1em; font-size: 0.82em; }
         @keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 
         .solution-box {
@@ -345,7 +386,7 @@
             cursor: pointer;
         }
         .key-btn:active { background: var(--primary); color: white; transform: scale(0.96); }
-        .key-btn.wide { grid-column: span 2; font-size: 1rem; }
+        .key-btn.mixed-key { font-size: 0.82rem; }
 
         .end-card { margin: auto; width: min(540px, 100%); text-align: center; }
         .end-icon { font-size: 3.3rem; }
@@ -372,7 +413,8 @@
             .question-prompt { padding: 14px 8px; }
             .step-row { padding: 12px 8px; }
             .equation-line { gap: 3px; }
-            .answer-input { width: 62px; min-height: 42px; }
+            .answer-field { width: 62px; min-height: 42px; }
+            .answer-input { width: 100%; min-height: 42px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -457,8 +499,9 @@
                 <div class="rules-card">
                     <strong>輸入方式</strong>
                     <ul>
-                        <li>可用下方鍵盤或直接打字。</li>
-                        <li>分數可輸入 <code>1/4</code>，等值小數也會接受。</li>
+                        <li>手機與平板使用下方鍵盤；桌機也可直接打字。</li>
+                        <li>按「／」後會顯示成上下分數；帶分數先按「帶分數」。</li>
+                        <li>等值的分數、小數與帶分數都會接受。</li>
                         <li>按 Enter 等同「檢查本列」。</li>
                     </ul>
                 </div>
@@ -488,7 +531,8 @@
                     <button class="key-btn" type="button" onclick="typeKey('2')">2</button>
                     <button class="key-btn" type="button" onclick="typeKey('3')">3</button>
                     <button class="key-btn" type="button" onclick="typeKey('-')">−</button>
-                    <button class="key-btn wide" type="button" onclick="typeKey('0')">0</button>
+                    <button class="key-btn" type="button" onclick="typeKey('0')">0</button>
+                    <button class="key-btn mixed-key" type="button" onclick="typeKey('mixed')">帶分數</button>
                     <button class="key-btn" type="button" onclick="typeKey('backspace')">⌫</button>
                     <button class="key-btn" type="button" onclick="typeKey('clear')">清除</button>
                 </div>
@@ -561,10 +605,36 @@
             if (denominator === 1) {
                 return String(Number((r.n / r.d).toFixed(6)));
             }
-            return `${r.n}/${r.d}`;
+            const sign = r.n < 0 ? "−" : "";
+            const absoluteNumerator = Math.abs(r.n);
+            const whole = Math.floor(absoluteNumerator / r.d);
+            const numerator = absoluteNumerator % r.d;
+            return stackedFractionMarkup(sign, whole, numerator, r.d);
         }
 
-        function displayValue(v) { return v.label || formatRational(v.r); }
+        function stackedFractionMarkup(sign, whole, numerator, denominator) {
+            const wholeText = whole ? `${sign}${whole}` : sign;
+            return `${wholeText}<span class="inline-fraction"><span>${numerator}</span><span>${denominator}</span></span>`;
+        }
+
+        function formatNumberLabel(label) {
+            const text = String(label).trim().replace(/−/g, "-");
+            const mixed = text.match(/^([+-]?\d+)\s+(\d+)\/(\d+)$/);
+            if (mixed) {
+                const whole = Number(mixed[1]);
+                const sign = whole < 0 ? "−" : "";
+                return stackedFractionMarkup(sign, Math.abs(whole), Number(mixed[2]), Number(mixed[3]));
+            }
+            const fraction = text.match(/^([+-]?\d+)\/(\d+)$/);
+            if (fraction) {
+                const numerator = Number(fraction[1]);
+                const sign = numerator < 0 ? "−" : "";
+                return stackedFractionMarkup(sign, 0, Math.abs(numerator), Number(fraction[2]));
+            }
+            return label;
+        }
+
+        function displayValue(v) { return v.label ? formatNumberLabel(v.label) : formatRational(v.r); }
         function answer(r) { return { n: r.n, d: r.d }; }
 
         function parseRational(raw) {
@@ -669,7 +739,7 @@
             const a = seed.a.r;
             const b = seed.b.r;
             const target = isPlus ? add(a, b) : subtract(a, b);
-            const targetText = seed.targetLabel || formatRational(target);
+            const targetText = seed.targetLabel ? formatNumberLabel(seed.targetLabel) : formatRational(target);
             const middle = multiply(rational(2), multiply(a, b));
             const result = square(target);
             const aText = displayValue(seed.a);
@@ -712,8 +782,8 @@
             const result = subtract(square(x), square(y));
             const xText = displayValue(seed.x);
             const yText = displayValue(seed.y);
-            const sumText = seed.sumLabel || formatRational(sum);
-            const differenceText = seed.differenceLabel || formatRational(difference);
+            const sumText = seed.sumLabel ? formatNumberLabel(seed.sumLabel) : formatRational(sum);
+            const differenceText = seed.differenceLabel ? formatNumberLabel(seed.differenceLabel) : formatRational(difference);
 
             if (reverse) {
                 return {
@@ -888,23 +958,61 @@
 
                 const input = document.createElement("input");
                 input.type = "text";
-                input.inputMode = "decimal";
+                const touchKeypadOnly = usesTouchKeypadOnly();
+                input.inputMode = touchKeypadOnly ? "none" : "decimal";
+                input.readOnly = touchKeypadOnly;
                 input.autocomplete = "off";
                 input.className = "answer-input";
                 input.dataset.inputIndex = String(inputIndex);
                 input.setAttribute("aria-label", `${row.label}第 ${inputIndex + 1} 格`);
                 input.addEventListener("focus", () => state.activeInput = input);
-                input.addEventListener("input", () => input.classList.remove("wrong"));
+                input.addEventListener("input", () => {
+                    input.classList.remove("wrong");
+                    updateAnswerVisual(input);
+                });
                 input.addEventListener("keydown", event => {
                     if (event.key === "Enter") { event.preventDefault(); checkCurrentRow(); }
                 });
-                line.appendChild(input);
+                const answerField = document.createElement("span");
+                answerField.className = "answer-field";
+                answerField.appendChild(input);
+
+                const fractionPreview = document.createElement("span");
+                fractionPreview.className = "fraction-preview";
+                fractionPreview.setAttribute("aria-hidden", "true");
+                fractionPreview.innerHTML = '<span class="fraction-whole"></span><span class="fraction-stack"><span class="fraction-numerator"></span><span class="fraction-denominator"></span></span>';
+                answerField.appendChild(fractionPreview);
+                line.appendChild(answerField);
             });
             const after = document.createElement("span");
             after.innerHTML = row.parts[row.parts.length - 1];
             line.appendChild(after);
             wrapper.appendChild(line);
             return wrapper;
+        }
+
+        function usesTouchKeypadOnly() {
+            return window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+        }
+
+        function fractionInputParts(raw) {
+            const text = String(raw || "").trim();
+            const mixed = text.match(/^([+-]?\d+)\s+(\d*)\/(\d*)$/);
+            if (mixed) return { whole: mixed[1], numerator: mixed[2], denominator: mixed[3] };
+            const fraction = text.match(/^([+-]?\d*)\/(\d*)$/);
+            if (fraction) return { whole: "", numerator: fraction[1], denominator: fraction[2] };
+            return null;
+        }
+
+        function updateAnswerVisual(input) {
+            const field = input.closest(".answer-field");
+            if (!field) return;
+            const parts = fractionInputParts(input.value);
+            field.classList.toggle("fraction-mode", Boolean(parts));
+            if (!parts) return;
+            field.querySelector(".fraction-whole").textContent = parts.whole;
+            field.querySelector(".fraction-numerator").textContent = parts.numerator || " ";
+            field.querySelector(".fraction-denominator").textContent = parts.denominator || " ";
         }
 
         function checkCurrentRow() {
@@ -1010,8 +1118,13 @@
             if (!input || input.disabled || state.finished) return;
             if (key === "backspace") input.value = input.value.slice(0, -1);
             else if (key === "clear") input.value = "";
+            else if (key === "mixed") {
+                if (!input.value || /[\s/.]/.test(input.value)) return;
+                input.value += " ";
+            }
             else input.value += key;
             input.classList.remove("wrong");
+            updateAnswerVisual(input);
             input.focus();
         }
 
