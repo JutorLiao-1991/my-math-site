@@ -458,8 +458,6 @@
             alert("這個文法題庫尚未滿 10 題，請先請老師補充題庫後再考試。");
             return;
         }
-        setupButtons(); 
-
         if(target === 'pr') startPracticeMode();
         else if(target === 'sp') startSinglePlayer();
         else if(target === 'pk-setup') showPKSetup();
@@ -505,8 +503,15 @@
     }
 
     // === 動態生成按鈕邏輯 ===
-    function setupButtons() {
-        const opts = currentTopicData.options;
+    function getQuestionOptions(question) {
+        if (question && Array.isArray(question.options) && question.options.length) {
+            return question.options;
+        }
+        return Array.isArray(currentTopicData.options) ? currentTopicData.options : [];
+    }
+
+    function setupButtons(question) {
+        const opts = getQuestionOptions(question);
         
         const prPanel = document.getElementById('pr-options-panel');
         const spPanel = document.getElementById('sp-options-panel');
@@ -576,18 +581,14 @@
             return;
         }
         
+        const currentQ = prQuestionsPool[prCurrentQIndex];
+        setupButtons(currentQ);
         const qText = document.getElementById('pr-q-text');
-        qText.innerText = prQuestionsPool[prCurrentQIndex].q;
+        qText.innerText = currentQ.q;
         document.getElementById('pr-q-progress').innerText = (prCurrentQIndex + 1) + " / " + totalQ;
         
         document.getElementById('pr-explanation-box').style.display = 'none';
         document.getElementById('pr-next-btn').style.display = 'none';
-
-        for(let i = 0; i < currentTopicData.options.length; i++) {
-            const btn = document.getElementById(`pr-btn-${i}`);
-            btn.className = 'opt-btn';
-            btn.disabled = false;
-        }
 
         qText.style.animation = 'none'; qText.offsetHeight; 
         qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
@@ -596,7 +597,8 @@
     function prCheckAnswer(optIndex, btnObj) {
         if(btnObj.disabled) return;
         const currentQ = prQuestionsPool[prCurrentQIndex];
-        const userChoice = currentTopicData.options[optIndex];
+        const options = getQuestionOptions(currentQ);
+        const userChoice = options[optIndex];
         const correctAns = currentQ.a;
         const expBox = document.getElementById('pr-explanation-box');
 
@@ -606,7 +608,7 @@
             expBox.style.display = 'block';
             document.getElementById('pr-next-btn').style.display = 'block';
 
-            for(let i = 0; i < currentTopicData.options.length; i++) {
+            for(let i = 0; i < options.length; i++) {
                 document.getElementById(`pr-btn-${i}`).disabled = true;
             }
         } else {
@@ -654,10 +656,10 @@
         if(spCurrentQIndex >= totalQ) return spShowGameOver(false);
         spIsProcessing = false; document.getElementById('sp-feedback-msg').innerText = "";
         
-        for(let i = 0; i < currentTopicData.options.length; i++) { document.getElementById(`sp-btn-${i}`).className = 'opt-btn'; }
-
+        const currentQ = spQuestionsPool[spCurrentQIndex];
+        setupButtons(currentQ);
         const qText = document.getElementById('sp-q-text');
-        qText.innerText = spQuestionsPool[spCurrentQIndex].q;
+        qText.innerText = currentQ.q;
         document.getElementById('sp-q-progress').innerText = (spCurrentQIndex + 1) + " / " + totalQ;
         qText.style.animation = 'none'; qText.offsetHeight; qText.style.animation = 'popInQ 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
     }
@@ -679,7 +681,7 @@
 
     function spCheckAnswer(optIndex, btnObj) {
         if (spIsProcessing || spExamFinished) return; spIsProcessing = true;
-        let currentQ = spQuestionsPool[spCurrentQIndex], userChoice = currentTopicData.options[optIndex], correctAns = currentQ.a, fbMsg = document.getElementById('sp-feedback-msg');
+        let currentQ = spQuestionsPool[spCurrentQIndex], options = getQuestionOptions(currentQ), userChoice = options[optIndex], correctAns = currentQ.a, fbMsg = document.getElementById('sp-feedback-msg');
 
         if (userChoice === correctAns) {
             playSound('correct'); btnObj.classList.add('correct');
@@ -688,7 +690,7 @@
         } else {
             playSound('wrong'); btnObj.classList.add('wrong'); spStreak = 0;
             fbMsg.innerText = "❌ 答錯了... (+0)"; fbMsg.style.color = "#F44336";
-            const correctIndex = currentTopicData.options.indexOf(correctAns);
+            const correctIndex = options.indexOf(correctAns);
             if(correctIndex !== -1) document.getElementById(`sp-btn-${correctIndex}`).classList.add('correct');
         }
         document.getElementById('sp-score-display').innerText = spScore; document.getElementById('sp-streak-num').innerText = spStreak;
@@ -746,8 +748,8 @@
 
     function pkLoadQuestion() {
         if(pkGameState === 'ended') return; pkIsProcessing = false;
-        document.querySelectorAll('.pk-opt-btn').forEach(btn => { btn.className = 'pk-opt-btn ' + (btn.closest('.player-area').id === 'player-top' ? 'pk-opt-top' : 'pk-opt-bottom'); });
         const pool = currentTopicData.pool; pkCurrentQ = pool[Math.floor(Math.random() * pool.length)];
+        setupButtons(pkCurrentQ);
         const qTop = document.getElementById('pk-q-text-top'), qBot = document.getElementById('pk-q-text-bottom');
         qTop.innerText = pkCurrentQ.q; qBot.innerText = pkCurrentQ.q;
         document.getElementById('pk-status-text').innerText = "搶答開始！率先 300 分獲勝";
@@ -756,7 +758,7 @@
 
     function pkCheckAnswer(player, optIndex, btnObj) {
         if (pkIsProcessing) return; pkIsProcessing = true; 
-        const selectedOpt = currentTopicData.options[optIndex], correctAns = pkCurrentQ.a, isCorrect = (selectedOpt === correctAns), opponent = player === 'top' ? 'bottom' : 'top', isCatchingUp = (pkScores[opponent] - pkScores[player]) > 100, statusText = document.getElementById('pk-status-text');
+        const options = getQuestionOptions(pkCurrentQ), selectedOpt = options[optIndex], correctAns = pkCurrentQ.a, isCorrect = (selectedOpt === correctAns), opponent = player === 'top' ? 'bottom' : 'top', isCatchingUp = (pkScores[opponent] - pkScores[player]) > 100, statusText = document.getElementById('pk-status-text');
 
         if (isCorrect) {
             playSound('correct'); btnObj.classList.add('correct');
@@ -770,7 +772,7 @@
             pkScores[player] += addScore;
         } else {
             playSound('wrong'); btnObj.classList.add('wrong'); pkStreaks[player] = 0; pkScores[player] = Math.max(0, pkScores[player] - 10); statusText.innerText = "❌ 答錯了扣分！";
-            const correctIndex = currentTopicData.options.indexOf(correctAns);
+            const correctIndex = options.indexOf(correctAns);
             if(correctIndex !== -1) btnObj.parentElement.children[correctIndex].classList.add('correct');
         }
         pkUpdateUI();
