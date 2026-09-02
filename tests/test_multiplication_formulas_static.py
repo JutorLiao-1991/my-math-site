@@ -41,7 +41,7 @@ class MultiplicationFormulasStaticTests(unittest.TestCase):
 
     def test_exam_rules_are_fixed(self):
         self.assertRegex(self.html, r"const EXAM_QUESTION_COUNT\s*=\s*10;")
-        self.assertRegex(self.html, r"const EXAM_SECONDS\s*=\s*5\s*\*\s*60;")
+        self.assertRegex(self.html, r"const EXAM_SECONDS\s*=\s*10\s*\*\s*60;")
         self.assertRegex(self.html, r"const POINTS_PER_QUESTION\s*=\s*10;")
         self.assertIn(
             "state.currentQuestionPoints = Math.max(0, state.currentQuestionPoints - wrongCount);",
@@ -49,6 +49,17 @@ class MultiplicationFormulasStaticTests(unittest.TestCase):
         )
         self.assertIn("state.earnedScore += state.currentQuestionPoints;", self.html)
         self.assertIn("未完成題目不計分", self.html)
+
+    def test_page_uses_unit_convert_blue_gray_palette(self):
+        for color_token in (
+            "--primary: #4a90e2;",
+            "--bg: #f4f7f6;",
+            "--nav: rgba(30, 41, 59, 0.95);",
+            "--border: #e1e4e8;",
+            "--accent: #38bdf8;",
+        ):
+            self.assertIn(color_token, self.html)
+        self.assertNotIn("--primary: #ff8ba7;", self.html)
 
     def test_practice_requires_each_row_to_be_correct(self):
         self.assertIn('onclick="startPractice()"', self.html)

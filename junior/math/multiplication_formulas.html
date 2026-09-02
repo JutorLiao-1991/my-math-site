@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="和平方、差平方與平方差的逐步基礎練習與五分鐘考試。">
+    <meta name="description" content="和平方、差平方與平方差的逐步基礎練習與十分鐘考試。">
     <title>鳩特數理｜乘法公式基礎練習</title>
     <style>
         :root {
-            --primary: #ff8ba7;
-            --primary-deep: #e85d7f;
-            --secondary: #ffb86c;
-            --bg: #faeee7;
-            --ink: #594a4e;
-            --muted: #8d7b80;
+            --primary: #4a90e2;
+            --primary-deep: #2563a6;
+            --secondary: #f5a623;
+            --bg: #f4f7f6;
+            --ink: #333333;
+            --muted: #64748b;
             --panel: #ffffff;
-            --nav: rgba(89, 74, 78, 0.97);
-            --border: #f0d9de;
-            --success: #2e9d63;
-            --success-soft: #e7f7ef;
-            --error: #d94b64;
-            --error-soft: #fff0f3;
-            --exam: #8e5cc7;
-            --shadow: 0 8px 26px rgba(89, 74, 78, 0.12);
+            --nav: rgba(30, 41, 59, 0.95);
+            --border: #e1e4e8;
+            --accent: #38bdf8;
+            --success: #4caf50;
+            --success-soft: #e8f5e9;
+            --error: #e74c3c;
+            --error-soft: #fff0f0;
+            --exam: #334155;
+            --shadow: 0 8px 26px rgba(30, 41, 59, 0.11);
         }
 
         * { box-sizing: border-box; }
@@ -31,8 +32,8 @@
             color: var(--ink);
             background-color: var(--bg);
             background-image:
-                linear-gradient(rgba(255, 139, 167, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 139, 167, 0.1) 1px, transparent 1px);
+                linear-gradient(rgba(74, 144, 226, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 144, 226, 0.07) 1px, transparent 1px);
             background-size: 20px 20px;
             font-family: "Microsoft JhengHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.5;
@@ -58,15 +59,15 @@
         }
 
         .back-btn {
-            color: #ffd2dc;
+            color: var(--accent);
             text-decoration: none;
             font-weight: 800;
-            border: 1px solid #ffd2dc;
+            border: 1px solid var(--accent);
             border-radius: 999px;
             padding: 6px 13px;
             white-space: nowrap;
         }
-        .back-btn:hover, .back-btn:focus-visible { background: #ffd2dc; color: var(--ink); }
+        .back-btn:hover, .back-btn:focus-visible { background: var(--accent); color: #0f172a; }
         .page-title { margin: 0; text-align: center; font-size: clamp(1.05rem, 3vw, 1.3rem); }
         .mode-pill {
             min-width: 76px;
@@ -109,7 +110,7 @@
             position: absolute;
             right: 22px;
             bottom: 14px;
-            color: rgba(255, 139, 167, 0.16);
+            color: rgba(30, 41, 59, 0.08);
             font-family: Georgia, serif;
             font-style: italic;
             font-size: 1.25rem;
@@ -124,7 +125,7 @@
             padding: 16px 12px;
             border: 2px solid var(--border);
             border-radius: 14px;
-            background: linear-gradient(145deg, #fff, #fff8fa);
+            background: linear-gradient(145deg, #fff, #f3f7fb);
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -138,10 +139,10 @@
         .start-note {
             margin-top: 18px;
             padding: 14px 16px;
-            border-left: 5px solid var(--secondary);
+            border-left: 5px solid var(--primary);
             border-radius: 8px;
-            background: #fff8ed;
-            color: #7d5a35;
+            background: #eef6fc;
+            color: #334155;
         }
 
         .question-head {
@@ -154,9 +155,9 @@
         .practice-formula {
             margin: 0 0 14px;
             padding: 12px 16px;
-            border: 2px solid #f4c5d1;
+            border: 2px solid #b9d7f5;
             border-radius: 12px;
-            background: #fff7f9;
+            background: #eef6fc;
             color: var(--primary-deep);
             text-align: center;
             font-family: Georgia, "Times New Roman", serif;
@@ -174,7 +175,7 @@
             display: inline-block;
             padding: 5px 11px;
             border-radius: 999px;
-            background: #fff0f4;
+            background: #e8f2fc;
             color: var(--primary-deep);
             font-weight: 900;
             font-size: 0.88rem;
@@ -200,7 +201,7 @@
             background: #fff;
             transition: opacity 0.25s, transform 0.25s, background 0.25s;
         }
-        .step-row.current { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(255,139,167,0.12); }
+        .step-row.current { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74,144,226,0.14); }
         .step-row.solved { border-color: #9ed7b8; background: var(--success-soft); }
         .step-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 0.84rem; font-weight: 800; }
         .equation-line {
@@ -223,9 +224,9 @@
             width: 100%;
             min-height: 44px;
             padding: 6px 7px;
-            border: 2px dashed #d9aebb;
+            border: 2px dashed #9fb8d0;
             border-radius: 9px;
-            background: #fffafb;
+            background: #f8fbff;
             color: var(--ink);
             text-align: center;
             font-family: "Microsoft JhengHei", sans-serif;
@@ -234,7 +235,7 @@
             user-select: text;
             transition: 0.15s;
         }
-        .answer-input:focus { outline: none; border-style: solid; border-color: var(--primary-deep); box-shadow: 0 0 0 4px rgba(255,139,167,0.16); }
+        .answer-input:focus { outline: none; border-style: solid; border-color: var(--primary-deep); box-shadow: 0 0 0 4px rgba(74,144,226,0.16); }
         .answer-input.correct { border-style: solid; border-color: var(--success); background: var(--success-soft); color: #176c42; }
         .answer-input.wrong { border-style: solid; border-color: var(--error); background: var(--error-soft); color: var(--error); animation: shake 0.24s linear 1; }
         .answer-field.fraction-mode .answer-input { color: transparent; caret-color: transparent; }
@@ -297,7 +298,7 @@
             cursor: pointer;
             transition: 0.18s;
         }
-        .mode-btn:hover, .mode-btn:focus-visible { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 7px 16px rgba(89,74,78,0.1); }
+        .mode-btn:hover, .mode-btn:focus-visible { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 7px 16px rgba(30,41,59,0.1); }
         .mode-btn strong { display: block; margin-bottom: 4px; font-size: 1.08rem; }
         .mode-btn small { color: var(--muted); line-height: 1.5; }
         .mode-btn.practice strong { color: var(--primary-deep); }
@@ -320,8 +321,8 @@
             margin-top: 18px;
             padding: 14px;
             border-radius: 10px;
-            background: #fff8ed;
-            color: #76542f;
+            background: #eef6fc;
+            color: #334155;
             font-size: 0.94rem;
         }
         .rules-card ul { margin: 8px 0 0; padding-left: 1.3rem; }
@@ -335,13 +336,13 @@
         .stat {
             padding: 10px;
             border-radius: 10px;
-            background: #fff7f9;
+            background: #f3f7fb;
             border: 1px solid var(--border);
             text-align: center;
         }
         .stat span { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 800; }
         .stat strong { display: block; margin-top: 2px; color: var(--primary-deep); font-size: 1.15rem; }
-        .timer-wrap { height: 8px; margin: 2px 0 14px; border-radius: 999px; background: #eadfe2; overflow: hidden; }
+        .timer-wrap { height: 8px; margin: 2px 0 14px; border-radius: 999px; background: #dbe4ee; overflow: hidden; }
         .timer-bar { height: 100%; width: 100%; background: var(--exam); transition: width 0.3s linear, background 0.3s; }
 
         .feedback {
@@ -349,7 +350,7 @@
             margin: 4px 0 12px;
             padding: 11px 12px;
             border-radius: 9px;
-            background: #f7f4f5;
+            background: #f1f5f9;
             color: var(--muted);
             font-weight: 800;
         }
@@ -364,10 +365,10 @@
             cursor: pointer;
             font-weight: 900;
         }
-        .check-btn { color: white; background: var(--primary-deep); box-shadow: 0 4px 0 #bd3f60; }
-        .check-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #bd3f60; }
+        .check-btn { color: white; background: var(--primary-deep); box-shadow: 0 4px 0 #1f4f82; }
+        .check-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1f4f82; }
         .check-btn:disabled { background: #cbbfc2; box-shadow: none; cursor: not-allowed; transform: none; }
-        .secondary-btn { margin-top: 10px; color: var(--ink); background: #f3edef; border: 1px solid var(--border); }
+        .secondary-btn { margin-top: 10px; color: var(--ink); background: #e2e8f0; border: 1px solid var(--border); }
 
         .numpad {
             display: grid;
@@ -484,7 +485,7 @@
                     </button>
                     <button class="mode-btn exam" type="button" onclick="startExam()">
                         <strong>📝 考試模式</strong>
-                        <small>隨機 10 題、限時 5 分鐘；每題 10 分，每個錯誤空格扣 1 分。</small>
+                        <small>隨機 10 題、限時 10 分鐘；每題 10 分，每個錯誤空格扣 1 分。</small>
                     </button>
                 </div>
                 <div class="formula-selector">
@@ -549,7 +550,7 @@
         "use strict";
 
         const EXAM_QUESTION_COUNT = 10;
-        const EXAM_SECONDS = 5 * 60;
+        const EXAM_SECONDS = 10 * 60;
         const POINTS_PER_QUESTION = 10;
 
         const FORMULA_REFERENCE = {
