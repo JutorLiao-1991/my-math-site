@@ -70,6 +70,17 @@ class EnglishStaticSecurityTests(unittest.TestCase):
         self.assertNotIn("spStartTimer", source)
         self.assertIn("這個文法題庫尚未滿 10 題", source)
 
+    def test_grammar_uses_each_questions_options_with_legacy_fallback(self):
+        source = (ROOT / "junior/english/basic_grammar.html").read_text(encoding="utf-8")
+        self.assertIn("function getQuestionOptions(question)", source)
+        self.assertIn("Array.isArray(question.options) && question.options.length", source)
+        self.assertIn("Array.isArray(currentTopicData.options) ? currentTopicData.options : []", source)
+        self.assertIn("setupButtons(currentQ)", source)
+        self.assertIn("setupButtons(pkCurrentQ)", source)
+        self.assertIn("const options = getQuestionOptions(currentQ)", source)
+        self.assertIn("const options = getQuestionOptions(pkCurrentQ)", source)
+        self.assertEqual(source.count("currentTopicData.options"), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
