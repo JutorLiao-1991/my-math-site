@@ -1895,6 +1895,197 @@ var jutorDB = {
           "sentence": "I get it."
         }
       ]
+    },
+    "康軒版": {
+      "國一上 Unit 1": [
+        {
+          "en": "family",
+          "ch": "家人；家庭",
+          "sentence": "I love my family very much."
+        },
+        {
+          "en": "husband",
+          "ch": "丈夫",
+          "sentence": "Mr. Lin is Mrs. Lin's husband."
+        },
+        {
+          "en": "wife",
+          "ch": "妻子",
+          "sentence": "She is a good wife and mother."
+        },
+        {
+          "en": "uncle",
+          "ch": "叔(伯)父；姑(姨)丈；舅舅",
+          "sentence": "My uncle is a doctor in Taipei."
+        },
+        {
+          "en": "aunt",
+          "ch": "嬸嬸；伯母；姑(姨)媽；舅媽",
+          "sentence": "Aunt Polly is my mother's sister."
+        },
+        {
+          "en": "cousin",
+          "ch": "堂(表)兄弟姐妹",
+          "sentence": "Tom and I are cousins."
+        },
+        {
+          "en": "son",
+          "ch": "兒子",
+          "sentence": "They have a son and a daughter."
+        },
+        {
+          "en": "daughter",
+          "ch": "女兒",
+          "sentence": "Their daughter is ten years old."
+        },
+        {
+          "en": "parent",
+          "ch": "雙親之一",
+          "sentence": "Every parent loves their children."
+        },
+        {
+          "en": "child",
+          "ch": "孩子",
+          "sentence": "The child is playing with a ball."
+        },
+        {
+          "en": "young",
+          "ch": "年輕的",
+          "sentence": "The young girl is my sister."
+        },
+        {
+          "en": "man",
+          "ch": "男人",
+          "sentence": "Who is that tall man over there?"
+        },
+        {
+          "en": "handsome",
+          "ch": "英俊的",
+          "sentence": "The actor is very handsome."
+        },
+        {
+          "en": "our",
+          "ch": "我們的",
+          "sentence": "This is our new English teacher."
+        },
+        {
+          "en": "PE",
+          "ch": "體育",
+          "sentence": "We have PE class on Friday."
+        },
+        {
+          "en": "really",
+          "ch": "真地",
+          "sentence": "It is really hot today."
+        },
+        {
+          "en": "classroom",
+          "ch": "教室",
+          "sentence": "The students are in the classroom."
+        },
+        {
+          "en": "same",
+          "ch": "一樣的",
+          "sentence": "We are in the same class."
+        },
+        {
+          "en": "class",
+          "ch": "班級；課程",
+          "sentence": "There are thirty students in my class."
+        },
+        {
+          "en": "again",
+          "ch": "再一次",
+          "sentence": "Please read the sentence again."
+        },
+        {
+          "en": "too",
+          "ch": "也；太",
+          "sentence": "I am a student, too."
+        },
+        {
+          "en": "news",
+          "ch": "消息；新聞",
+          "sentence": "The good news makes everyone happy."
+        },
+        {
+          "en": "problem",
+          "ch": "問題",
+          "sentence": "No problem! I can help you."
+        },
+        {
+          "en": "strict",
+          "ch": "嚴格的",
+          "sentence": "Our teacher is strict but nice."
+        },
+        {
+          "en": "junior high school",
+          "ch": "國民中學",
+          "sentence": "I am a junior high school student."
+        },
+        {
+          "en": "warm",
+          "ch": "溫暖的",
+          "sentence": "The weather is nice and warm."
+        },
+        {
+          "en": "farmer",
+          "ch": "農夫",
+          "sentence": "My grandfather is a hard-working farmer."
+        },
+        {
+          "en": "cook",
+          "ch": "廚師；煮",
+          "sentence": "My father is a great cook."
+        },
+        {
+          "en": "nurse",
+          "ch": "護理師；護士",
+          "sentence": "The nurse takes care of sick people."
+        },
+        {
+          "en": "beautiful",
+          "ch": "漂亮的；美麗的",
+          "sentence": "She is a beautiful woman."
+        },
+        {
+          "en": "woman",
+          "ch": "女人",
+          "sentence": "That woman is our music teacher."
+        },
+        {
+          "en": "doctor",
+          "ch": "醫生",
+          "sentence": "He wants to be a doctor in the future."
+        },
+        {
+          "en": "senior high school",
+          "ch": "高級中學",
+          "sentence": "My brother goes to senior high school."
+        },
+        {
+          "en": "pet",
+          "ch": "寵物",
+          "sentence": "Do you have a pet at home?"
+        },
+        {
+          "en": "cute",
+          "ch": "可愛的",
+          "sentence": "Look at that cute puppy!"
+        },
+        {
+          "en": "nice",
+          "ch": "好的；好心的",
+          "sentence": "It is nice of you to help me."
+        }
+      ],
+      "國一上 Unit 1 (句型)": [
+        {
+          "en": "Nice to meet you.",
+          "ch": "很高興認識你。",
+          "sentence": "Nice to meet you."
+        }
+      ]
     }
   },
   "國二": {
