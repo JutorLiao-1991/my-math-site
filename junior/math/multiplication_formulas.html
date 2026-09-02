@@ -151,6 +151,25 @@
             align-items: flex-start;
             margin-bottom: 16px;
         }
+        .practice-formula {
+            margin: 0 0 14px;
+            padding: 12px 16px;
+            border: 2px solid #f4c5d1;
+            border-radius: 12px;
+            background: #fff7f9;
+            color: var(--primary-deep);
+            text-align: center;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.1rem, 3vw, 1.45rem);
+            font-weight: 800;
+        }
+        .practice-formula small {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--muted);
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-size: 0.82rem;
+        }
         .topic-badge {
             display: inline-block;
             padding: 5px 11px;
@@ -394,6 +413,7 @@
             </div>
 
             <div id="question-screen" class="hidden">
+                <div id="practice-formula" class="practice-formula hidden" aria-label="本題適用公式"></div>
                 <div class="question-head">
                     <div><span id="topic-badge" class="topic-badge"></span></div>
                     <div id="question-number" class="question-number"></div>
@@ -467,9 +487,10 @@
                     <button class="key-btn" type="button" onclick="typeKey('1')">1</button>
                     <button class="key-btn" type="button" onclick="typeKey('2')">2</button>
                     <button class="key-btn" type="button" onclick="typeKey('3')">3</button>
-                    <button class="key-btn" type="button" onclick="typeKey('backspace')">⌫</button>
+                    <button class="key-btn" type="button" onclick="typeKey('-')">−</button>
                     <button class="key-btn wide" type="button" onclick="typeKey('0')">0</button>
-                    <button class="key-btn wide" type="button" onclick="typeKey('clear')">清除</button>
+                    <button class="key-btn" type="button" onclick="typeKey('backspace')">⌫</button>
+                    <button class="key-btn" type="button" onclick="typeKey('clear')">清除</button>
                 </div>
             </div>
 
@@ -486,6 +507,12 @@
         const EXAM_QUESTION_COUNT = 10;
         const EXAM_SECONDS = 5 * 60;
         const POINTS_PER_QUESTION = 10;
+
+        const FORMULA_REFERENCE = {
+            plus: "(a + b)<sup>2</sup> = a<sup>2</sup> + 2ab + b<sup>2</sup>",
+            minus: "(a − b)<sup>2</sup> = a<sup>2</sup> − 2ab + b<sup>2</sup>",
+            difference: "a<sup>2</sup> − b<sup>2</sup> = (a + b)(a − b)"
+        };
 
         const state = {
             mode: null,
@@ -574,33 +601,66 @@
             return Boolean(a && b && a.n === b.n && a.d === b.d);
         }
 
+        // 正向題與反向題使用不同數字：每次套公式後，都必須比原式更容易心算。
         const squareSeeds = {
-            plus: [
-                { a: value(100), b: value(5) },
-                { a: value(8), b: value(1, 2, "0.5") },
-                { a: value(10), b: value(1, 4, "1/4"), targetLabel: "10 1/4" },
-                { a: value(20), b: value(3) },
-                { a: value(50), b: value(2) },
-                { a: value(9), b: value(3, 4, "0.75") }
-            ],
-            minus: [
-                { a: value(100), b: value(1) },
-                { a: value(10), b: value(1, 2, "0.5") },
-                { a: value(20), b: value(1, 4, "0.25") },
-                { a: value(50), b: value(2) },
-                { a: value(30), b: value(3) },
-                { a: value(12), b: value(3, 4, "0.75") }
-            ]
+            plus: {
+                direct: [
+                    { a: value(200), b: value(3) },
+                    { a: value(30), b: value(1, 2, "0.5") },
+                    { a: value(12), b: value(1, 3, "1/3"), targetLabel: "12 1/3" },
+                    { a: value(1000), b: value(2) },
+                    { a: value(25), b: value(1, 5, "0.2") },
+                    { a: value(16), b: value(1, 4, "1/4"), targetLabel: "16 1/4" }
+                ],
+                reverse: [
+                    { a: value(498), b: value(302) },
+                    { a: value(38), b: value(52) },
+                    { a: value(199), b: value(1) },
+                    { a: value(19, 2, "9.5"), b: value(1, 2, "0.5") },
+                    { a: value(57), b: value(43) },
+                    { a: value(76), b: value(14) }
+                ]
+            },
+            minus: {
+                direct: [
+                    { a: value(100), b: value(2) },
+                    { a: value(20), b: value(1, 2, "0.5") },
+                    { a: value(10), b: value(1, 5, "1/5"), targetLabel: "9 4/5" },
+                    { a: value(1000), b: value(3) },
+                    { a: value(50), b: value(1, 5, "0.2") },
+                    { a: value(18), b: value(1, 3, "1/3"), targetLabel: "17 2/3" }
+                ],
+                reverse: [
+                    { a: value(393), b: value(333) },
+                    { a: value(68), b: value(18) },
+                    { a: value(82), b: value(2) },
+                    { a: value(37), b: value(17) },
+                    { a: value(61, 2, "30.5"), b: value(1, 2, "0.5") },
+                    { a: value(93), b: value(13) }
+                ]
+            }
         };
 
-        const differenceSeeds = [
-            { x: value(75), y: value(25) },
-            { x: value(52), y: value(48) },
-            { x: value(10), y: value(2) },
-            { x: value(20), y: value(5) },
-            { x: value(8, 1, "8"), y: value(1, 2, "0.5") },
-            { x: value(15), y: value(5) }
-        ];
+        const differenceSeeds = {
+            // 原式是平方差；分解後會得到整十、整百乘上小數字。
+            direct: [
+                { x: value(52), y: value(48) },
+                { x: value(104), y: value(96) },
+                { x: value(15), y: value(45) },
+                { x: value(75), y: value(25) },
+                { x: value(68), y: value(18) },
+                { x: value(304), y: value(296) }
+            ],
+            // 原式是以整十、整百、整千為中心的一和一差。
+            reverse: [
+                { x: value(300), y: value(4) },
+                { x: value(20), y: value(1, 2, "0.5") },
+                { x: value(10), y: value(2, 5, "0.4") },
+                { x: value(1000), y: value(2) },
+                { x: value(9), y: value(1, 5, "0.2") },
+                { x: value(15), y: value(1, 3, "1/3"), sumLabel: "15 1/3", differenceLabel: "14 2/3" }
+            ]
+        };
 
         function makeSquareQuestion(kind, seed, reverse, index) {
             const isPlus = kind === "plus";
@@ -652,17 +712,19 @@
             const result = subtract(square(x), square(y));
             const xText = displayValue(seed.x);
             const yText = displayValue(seed.y);
+            const sumText = seed.sumLabel || formatRational(sum);
+            const differenceText = seed.differenceLabel || formatRational(difference);
 
             if (reverse) {
                 return {
                     id: `difference-${index}-reverse`, kind: "difference", topicTitle: "平方差", variant: "反向辨識",
-                    prompt: `(${formatRational(sum)}) × (${formatRational(difference)})`,
+                    prompt: `(${sumText}) × (${differenceText})`,
                     rows: [
                         { label: "看成一和一差", parts: ["= (", " + ", ") × (", " − ", ")"], answers: [answer(x), answer(y), answer(x), answer(y)] },
                         { label: "還原平方差", parts: ["= ", "<sup>2</sup> − ", "<sup>2</sup>"], answers: [answer(x), answer(y)] },
                         { label: "得到答案", parts: ["= ", ""], answers: [answer(result)] }
                     ],
-                    solution: `${formatRational(sum)} × ${formatRational(difference)} = (${xText} + ${yText})(${xText} − ${yText}) = ${xText}<sup>2</sup> − ${yText}<sup>2</sup> = ${formatRational(result)}`
+                    solution: `${sumText} × ${differenceText} = (${xText} + ${yText})(${xText} − ${yText}) = ${xText}<sup>2</sup> − ${yText}<sup>2</sup> = ${formatRational(result)}`
                 };
             }
 
@@ -681,13 +743,17 @@
         function buildQuestionPool() {
             const pool = [];
             ["plus", "minus"].forEach(kind => {
-                squareSeeds[kind].forEach((seed, index) => {
-                    pool.push(makeSquareQuestion(kind, seed, false, index));
-                    pool.push(makeSquareQuestion(kind, seed, true, index));
-                });
+                squareSeeds[kind].direct.forEach((seed, index) =>
+                    pool.push(makeSquareQuestion(kind, seed, false, index))
+                );
+                squareSeeds[kind].reverse.forEach((seed, index) =>
+                    pool.push(makeSquareQuestion(kind, seed, true, index))
+                );
             });
-            differenceSeeds.forEach((seed, index) => {
+            differenceSeeds.direct.forEach((seed, index) => {
                 pool.push(makeDifferenceQuestion(seed, false, index));
+            });
+            differenceSeeds.reverse.forEach((seed, index) => {
                 pool.push(makeDifferenceQuestion(seed, true, index));
             });
             return pool;
@@ -777,7 +843,17 @@
             state.currentQuestionPoints = POINTS_PER_QUESTION;
             state.activeInput = null;
 
-            document.getElementById("topic-badge").textContent = `${question.topicTitle}・${question.variant}`;
+            document.getElementById("topic-badge").textContent = state.mode === "exam"
+                ? "綜合挑戰"
+                : `${question.topicTitle}・${question.variant}`;
+            const formulaReference = document.getElementById("practice-formula");
+            if (state.mode === "practice") {
+                formulaReference.innerHTML = `<small>本題適用公式</small>${FORMULA_REFERENCE[question.kind]}`;
+                formulaReference.classList.remove("hidden");
+            } else {
+                formulaReference.innerHTML = "";
+                formulaReference.classList.add("hidden");
+            }
             document.getElementById("question-number").textContent = state.mode === "exam"
                 ? `第 ${state.questionIndex + 1} / ${EXAM_QUESTION_COUNT} 題`
                 : `練習第 ${state.practiceCompleted + 1} 題`;
