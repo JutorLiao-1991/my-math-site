@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>英語單字與句型測驗 - 鳩特數理</title>
+    <title>英語單字學習與測驗 - 鳩特數理</title>
     <script src="database.js"></script> 
     <style>
         :root { --primary: #2c3e50; --accent: #3498db; --success: #27ae60; --error: #e74c3c; --exam: #e67e22; --study: #8e44ad; --learning: #f39c12; }
@@ -86,21 +86,13 @@
     <div id="setup-screen">
         <a class="english-home-link" href="index.html">← 國中英文練習區</a>
         <div class="brand-logo">鳩特數理</div>
-        <h1 style="color: var(--primary); margin-top: 5px;">英語單字與句型測驗</h1>
+        <h1 style="color: var(--primary); margin-top: 5px;">英語單字學習與測驗</h1>
         
         <select id="gradeSelect" onchange="updateVersions()"><option value="">-- 1. 選擇年級 --</option></select>
         <select id="versionSelect" onchange="updateRanges()"><option value="">-- 2. 選擇版本 --</option></select>
         <select id="rangeSelect"><option value="">-- 3. 選擇範圍 --</option></select>
         
         <div class="practice-settings">
-            <div style="flex: 100%; display: flex; align-items: center; margin-bottom: 5px;">
-                <label>練習內容:</label>
-                <select id="practiceType">
-                    <option value="mixed">混合 (單字+句型)</option>
-                    <option value="word">只練單字</option>
-                    <option value="sentence">只練句型</option>
-                </select>
-            </div>
             <div style="flex: 100%; display: flex; align-items: center;">
                 <label>練習題數:</label>
                 <select id="practiceCount">
@@ -119,7 +111,7 @@
             <button class="btn-study" onclick="startStudy(false)">📚 開始單字自習</button>
             <button class="btn-review" onclick="startStudy(true)">🔁 只複習還不熟</button>
             <button class="btn-primary" onclick="startQuiz('practice')">💪 開始練習</button>
-            <button class="btn-exam" onclick="startQuiz('exam')">📝 考試模式 (混合20題)</button>
+            <button class="btn-exam" onclick="startQuiz('exam')">📝 單字考試（20 題）</button>
         </div>
         
         <div style="margin-top: 20px;">
@@ -199,7 +191,7 @@
         <div id="examResult" class="hidden">
             <p style="color:#666;">本次得分</p>
             <h1 id="finalScore" style="color:var(--exam); font-size:4rem; margin: 10px 0;"></h1>
-            <p style="font-size:0.9rem; color:#888;">(單字3分 / 句型5分)</p>
+            <p style="font-size:0.9rem; color:#888;">（每題 5 分，共 100 分）</p>
         </div>
         <div id="practiceResult" class="hidden">
             <h1 style="color:var(--success);">練習完成！</h1>
@@ -504,32 +496,20 @@
         const g = document.getElementById('gradeSelect').value;
         const v = document.getElementById('versionSelect').value;
         const r = document.getElementById('rangeSelect').value;
-        const pType = document.getElementById('practiceType').value;
         const pCount = document.getElementById('practiceCount').value;
 
         if (!g || !v || !r) return alert("請完整選擇年級、版本與範圍！");
 
         quizMode = mode;
         let wordList = [...jutorDB[g][v][r]];
-        let sentenceListName = r + " (句型)";
-        let sentenceList = jutorDB[g][v][sentenceListName] ? [...jutorDB[g][v][sentenceListName]] : [];
 
         if (mode === 'exam') {
             wordList.sort(() => Math.random() - 0.5);
-            sentenceList.sort(() => Math.random() - 0.5);
-            let finalSentences = sentenceList.length > 0 ? sentenceList.slice(0, 5) : [];
-            let finalWords = wordList.slice(0, 20 - finalSentences.length);
-            currentList = [...finalSentences, ...finalWords];
-            currentList.sort(() => Math.random() - 0.5);
+            currentList = wordList.slice(0, 20);
             document.getElementById('scoreDisplay').classList.remove('hidden');
             document.getElementById('currentScore').textContent = '0';
         } else {
-            if (pType === 'word') currentList = wordList;
-            else if (pType === 'sentence') {
-                if (sentenceList.length === 0) return alert("此範圍目前沒有句型資料喔！");
-                currentList = sentenceList;
-            } else currentList = [...sentenceList, ...wordList];
-            
+            currentList = wordList;
             currentList.sort(() => Math.random() - 0.5);
             let limit = (pCount === 'all') ? currentList.length : parseInt(pCount);
             if (currentList.length < limit) { /* 不做動作，接受 */ }
@@ -549,7 +529,7 @@
         currentWordObj = currentList[currentIndex];
         spellingAttempts = 0;
         isSubmitted = false; 
-        isSentenceMode = currentWordObj.en.includes(' ');
+        isSentenceMode = false;
 
         document.getElementById('step-spelling').classList.remove('hidden');
         document.getElementById('step-meaning').classList.add('hidden');
