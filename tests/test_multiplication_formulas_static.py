@@ -84,6 +84,23 @@ class MultiplicationFormulasStaticTests(unittest.TestCase):
         self.assertIn('formulaReference.innerHTML = ""', self.html)
         self.assertIn('? "綜合挑戰"', self.html)
 
+    def test_touch_devices_use_only_the_page_keypad(self):
+        self.assertIn('window.matchMedia("(pointer: coarse)").matches', self.html)
+        self.assertIn('navigator.maxTouchPoints > 0', self.html)
+        self.assertIn('input.inputMode = touchKeypadOnly ? "none" : "decimal"', self.html)
+        self.assertIn('input.readOnly = touchKeypadOnly', self.html)
+
+    def test_fractions_render_vertically_and_support_mixed_numbers(self):
+        self.assertIn('class="inline-fraction"', self.html)
+        self.assertIn('className = "fraction-preview"', self.html)
+        self.assertIn('function stackedFractionMarkup(', self.html)
+        self.assertIn('function formatNumberLabel(label)', self.html)
+        self.assertIn('function fractionInputParts(raw)', self.html)
+        self.assertIn('onclick="typeKey(\'mixed\')"', self.html)
+        self.assertIn('>帶分數</button>', self.html)
+        self.assertIn('updateAnswerVisual(input)', self.html)
+        self.assertNotIn('return `${r.n}/${r.d}`;', self.html)
+
     def test_runs_locally_without_ai_or_cloud_data_calls(self):
         lowered = self.html.lower()
         for forbidden in ("fetch(", "firebase", "gemini", "apikey", "generatecontent"):
