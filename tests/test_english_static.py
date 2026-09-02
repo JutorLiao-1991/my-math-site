@@ -50,6 +50,26 @@ class EnglishStaticSecurityTests(unittest.TestCase):
         self.assertIn("startQuiz('practice')", source)
         self.assertIn("startQuiz('exam')", source)
 
+    def test_sentence_quiz_is_removed_but_word_examples_remain(self):
+        source = (ROOT / "junior/english/vol_test.html").read_text(encoding="utf-8")
+        self.assertNotIn('id="practiceType"', source)
+        self.assertNotIn('sentenceListName', source)
+        self.assertNotIn('r + " (句型)"', source)
+        self.assertIn("單字考試（20 題）", source)
+        self.assertIn("currentList = wordList.slice(0, 20)", source)
+        self.assertIn("每題 5 分，共 100 分", source)
+        self.assertIn("currentWordObj.sentence", source)
+
+    def test_grammar_exam_is_ten_questions_and_one_hundred_points(self):
+        source = (ROOT / "junior/english/basic_grammar.html").read_text(encoding="utf-8")
+        self.assertIn("const SP_TOTAL_Q = 10", source)
+        self.assertIn("const SP_EXAM_SECONDS = 10 * 60", source)
+        self.assertIn("spQuestionsPool = shuffle([...currentTopicData.pool]).slice(0, totalQ)", source)
+        self.assertIn("spScore += 10", source)
+        self.assertNotIn("SP_TIME_LIMIT", source)
+        self.assertNotIn("spStartTimer", source)
+        self.assertIn("這個文法題庫尚未滿 10 題", source)
+
 
 if __name__ == "__main__":
     unittest.main()
