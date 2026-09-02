@@ -2488,6 +2488,190 @@ var jutorDB = {
           "ch": "我了解了。",
           "sentence": "A: The meeting is at three. B: I see."
         }
+      ],
+      "國一上 Unit 4": [
+        {
+          "en": "listen",
+          "ch": "聽",
+          "sentence": "Please listen to the teacher carefully."
+        },
+        {
+          "en": "voice",
+          "ch": "聲音；歌喉",
+          "sentence": "She has a very sweet voice."
+        },
+        {
+          "en": "stand up",
+          "ch": "站起來",
+          "sentence": "Stand up and answer the question, please."
+        },
+        {
+          "en": "sit down",
+          "ch": "坐下",
+          "sentence": "You may sit down now."
+        },
+        {
+          "en": "take a photo",
+          "ch": "拍照",
+          "sentence": "Can you take a photo for us?"
+        },
+        {
+          "en": "make",
+          "ch": "製造",
+          "sentence": "Don't make any noise in the library."
+        },
+        {
+          "en": "any",
+          "ch": "任何(的)",
+          "sentence": "Do you have any questions?"
+        },
+        {
+          "en": "noise",
+          "ch": "噪音",
+          "sentence": "The loud noise woke the baby up."
+        },
+        {
+          "en": "can't",
+          "ch": "不能；不會；不可以",
+          "sentence": "I can't find my pencil case."
+        },
+        {
+          "en": "talk",
+          "ch": "講話",
+          "sentence": "Don't talk during the test."
+        },
+        {
+          "en": "noisy",
+          "ch": "吵鬧的",
+          "sentence": "The classroom is very noisy."
+        },
+        {
+          "en": "late",
+          "ch": "晚的；遲到的",
+          "sentence": "Don't be late for school."
+        },
+        {
+          "en": "early",
+          "ch": "早的；初期的",
+          "sentence": "He gets up early every morning."
+        },
+        {
+          "en": "sidewalk",
+          "ch": "人行道",
+          "sentence": "Please walk on the sidewalk."
+        },
+        {
+          "en": "song",
+          "ch": "歌曲",
+          "sentence": "This is my favorite English song."
+        },
+        {
+          "en": "check out",
+          "ch": "查看",
+          "sentence": "Let's check out that new bookstore."
+        },
+        {
+          "en": "cross",
+          "ch": "跨越",
+          "sentence": "Look both ways before you cross the street."
+        },
+        {
+          "en": "road",
+          "ch": "道路",
+          "sentence": "There are many cars on the road."
+        },
+        {
+          "en": "watch out",
+          "ch": "小心；注意",
+          "sentence": "Watch out! A car is coming."
+        },
+        {
+          "en": "real",
+          "ch": "真的；真實的",
+          "sentence": "Is that a real diamond?"
+        },
+        {
+          "en": "all the time",
+          "ch": "一直",
+          "sentence": "He is on his cellphone all the time."
+        },
+        {
+          "en": "traffic lights",
+          "ch": "紅綠燈",
+          "sentence": "Stop when the traffic lights are red."
+        },
+        {
+          "en": "ground",
+          "ch": "地面",
+          "sentence": "Don't throw trash on the ground."
+        },
+        {
+          "en": "design",
+          "ch": "設計",
+          "sentence": "They want to design a new robot."
+        },
+        {
+          "en": "user",
+          "ch": "使用者",
+          "sentence": "This app is helpful for every user."
+        },
+        {
+          "en": "download",
+          "ch": "下載",
+          "sentence": "You can download the game for free."
+        },
+        {
+          "en": "warn",
+          "ch": "警告",
+          "sentence": "The signs warn people not to swim here."
+        },
+        {
+          "en": "oncoming",
+          "ch": "迎面而來的",
+          "sentence": "Watch out for oncoming traffic."
+        },
+        {
+          "en": "crosswalk",
+          "ch": "斑馬線",
+          "sentence": "Always use the crosswalk to cross the road."
+        },
+        {
+          "en": "also",
+          "ch": "而且；也",
+          "sentence": "She speaks English, and she also speaks French."
+        },
+        {
+          "en": "the USA",
+          "ch": "美國",
+          "sentence": "They are going to visit the USA this summer."
+        },
+        {
+          "en": "special",
+          "ch": "特別的",
+          "sentence": "Today is a special day for our family."
+        },
+        {
+          "en": "lane",
+          "ch": "小路；小巷",
+          "sentence": "Cars cannot go into this narrow lane."
+        },
+        {
+          "en": "way",
+          "ch": "方式；方法；路",
+          "sentence": "Do you know the way to the train station?"
+        },
+        {
+          "en": "other",
+          "ch": "其他的",
+          "sentence": "Do you have any other questions?"
+        }
+      ],
+      "國一上 Unit 4 (句型)": [
+        {
+          "en": "Guess what?",
+          "ch": "你猜怎麼著？",
+          "sentence": "Guess what? We won the game!"
+        }
       ]
     }
   },
