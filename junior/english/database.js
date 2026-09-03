@@ -5566,6 +5566,223 @@ var jutorDB = {
           "ch": "客座的；賓客",
           "sentence": "We welcomed the special guest to our school."
         }
+      ],
+      "國二上 Unit 3": [
+        {
+          "en": "someone",
+          "ch": "某人",
+          "sentence": "Someone is knocking at the door."
+        },
+        {
+          "en": "break",
+          "ch": "打破；損壞",
+          "sentence": "Be careful not to break the glass."
+        },
+        {
+          "en": "do the dishes",
+          "ch": "洗碗盤",
+          "sentence": "I usually help my mom do the dishes after dinner."
+        },
+        {
+          "en": "half",
+          "ch": "一半；二分之一",
+          "sentence": "It is half past ten now."
+        },
+        {
+          "en": "past",
+          "ch": "經過；過去（的）",
+          "sentence": "He walked past me without saying a word."
+        },
+        {
+          "en": "leave",
+          "ch": "離開",
+          "sentence": "What time will you leave home tomorrow?"
+        },
+        {
+          "en": "quarter",
+          "ch": "十五分鐘；四分之一",
+          "sentence": "The movie starts at a quarter to eight."
+        },
+        {
+          "en": "remember",
+          "ch": "記得",
+          "sentence": "Please remember to bring your textbook tomorrow."
+        },
+        {
+          "en": "take it easy",
+          "ch": "放輕鬆",
+          "sentence": "Don't worry too much, just take it easy."
+        },
+        {
+          "en": "cool down",
+          "ch": "冷靜一下",
+          "sentence": "Take a deep breath and cool down."
+        },
+        {
+          "en": "close",
+          "ch": "靠近的",
+          "sentence": "My school is very close to my house."
+        },
+        {
+          "en": "feed",
+          "ch": "餵養",
+          "sentence": "Don't forget to feed the dog this evening."
+        },
+        {
+          "en": "pet",
+          "ch": "寵物",
+          "sentence": "Do you have any pets at home?"
+        },
+        {
+          "en": "sweep",
+          "ch": "掃",
+          "sentence": "Please sweep the floor before the guests arrive."
+        },
+        {
+          "en": "floor",
+          "ch": "地板；樓層",
+          "sentence": "He sat on the floor and read a book."
+        },
+        {
+          "en": "fix",
+          "ch": "修理；解決",
+          "sentence": "My dad knows how to fix the broken bicycle."
+        },
+        {
+          "en": "drawer",
+          "ch": "抽屜",
+          "sentence": "I put the keys in the desk drawer."
+        },
+        {
+          "en": "mop",
+          "ch": "拖地；拖把",
+          "sentence": "She used a mop to clean the kitchen floor."
+        },
+        {
+          "en": "stairs",
+          "ch": "樓梯",
+          "sentence": "Be careful when you walk down the stairs."
+        },
+        {
+          "en": "wipe",
+          "ch": "擦拭",
+          "sentence": "Please wipe the table with a clean cloth."
+        },
+        {
+          "en": "window",
+          "ch": "窗戶",
+          "sentence": "Could you please open the window?"
+        },
+        {
+          "en": "dry",
+          "ch": "（使）乾燥；乾的",
+          "sentence": "Hang your wet clothes outside to dry."
+        },
+        {
+          "en": "hang",
+          "ch": "吊；掛",
+          "sentence": "Hang your jacket behind the door."
+        },
+        {
+          "en": "clothes",
+          "ch": "衣服",
+          "sentence": "She bought some new clothes for the party."
+        },
+        {
+          "en": "move",
+          "ch": "搬遷；移動",
+          "sentence": "They will move to a new apartment next month."
+        },
+        {
+          "en": "city",
+          "ch": "城市",
+          "sentence": "Taipei is a very busy city."
+        },
+        {
+          "en": "dream",
+          "ch": "夢；夢想（的）",
+          "sentence": "My dream is to become a doctor."
+        },
+        {
+          "en": "almost",
+          "ch": "幾乎",
+          "sentence": "I have almost finished my homework."
+        },
+        {
+          "en": "fall asleep",
+          "ch": "睡著",
+          "sentence": "He was so tired that he fell asleep quickly."
+        },
+        {
+          "en": "scared",
+          "ch": "害怕的",
+          "sentence": "The little boy is scared of the dark."
+        },
+        {
+          "en": "problem",
+          "ch": "問題",
+          "sentence": "No problem, I can help you with your math."
+        },
+        {
+          "en": "tip",
+          "ch": "訣竅",
+          "sentence": "Here are some useful tips for learning English."
+        },
+        {
+          "en": "however",
+          "ch": "然而",
+          "sentence": "He studied hard; however, he didn't pass the exam."
+        },
+        {
+          "en": "nothing",
+          "ch": "沒什麼；無事；無物",
+          "sentence": "There is nothing inside the box."
+        },
+        {
+          "en": "catch",
+          "ch": "捉；接",
+          "sentence": "He ran fast to catch the ball."
+        },
+        {
+          "en": "through",
+          "ch": "穿越；從頭到尾",
+          "sentence": "We walked through the forest this morning."
+        },
+        {
+          "en": "finally",
+          "ch": "終於；最後",
+          "sentence": "After a long wait, the bus finally arrived."
+        },
+        {
+          "en": "save",
+          "ch": "拯救",
+          "sentence": "The brave fireman saved the cat from the tree."
+        },
+        {
+          "en": "terrible",
+          "ch": "糟糕的；可怕的",
+          "sentence": "The weather was terrible yesterday."
+        },
+        {
+          "en": "monitor",
+          "ch": "監視器",
+          "sentence": "The security guard watched the monitor carefully."
+        },
+        {
+          "en": "sleepwalk",
+          "ch": "夢遊",
+          "sentence": "The little boy tends to sleepwalk at night."
+        },
+        {
+          "en": "web",
+          "ch": "網子",
+          "sentence": "There is a spider web in the corner of the room."
+        },
+        {
+          "en": "hole",
+          "ch": "洞",
+          "sentence": "There is a small hole in my sock."
+        }
       ]
     }
   },
