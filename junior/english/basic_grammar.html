@@ -51,24 +51,42 @@
   #mode-select-screen {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
     background-color: var(--sp-bg); background-image: var(--bg-pattern); background-size: 20px 20px;
-    z-index: 1500; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 1500; display: flex; flex-direction: column; justify-content: flex-start; align-items: center;
+    overflow-y: auto; box-sizing: border-box; padding: 22px 12px 30px;
   }
   .game-title {
-    font-size: 3.5em; font-weight: 900; color: #1565C0;
+    font-size: clamp(2.15rem, 8vw, 3.5rem); font-weight: 900; color: #1565C0;
     text-shadow: 3px 3px 0px #fff, 6px 6px 0px rgba(0,0,0,0.1);
-    margin-bottom: 20px; text-align: center; line-height: 1.2;
+    margin-bottom: 18px; text-align: center; line-height: 1.2;
   }
   
-  .topic-select-container { margin-bottom: 30px; width: 80%; max-width: 350px; }
+  .selection-card {
+    width: min(92%, 620px); margin-bottom: 18px; padding: 14px;
+    background: rgba(255,255,255,.94); border: 2px solid #90CAF9; border-radius: 20px;
+    box-shadow: 0 7px 0 rgba(21,101,192,.22);
+  }
+  .selection-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .selection-tab {
+    padding: 12px 8px; border: 2px solid #90CAF9; border-radius: 13px; background: #E3F2FD;
+    color: #1565C0; font-size: 1.08rem; font-weight: 900; cursor: pointer;
+  }
+  .selection-tab.active { color: #fff; background: #1565C0; border-color: #1565C0; }
+  .selector-panel { display: block; }
+  .selector-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .selector-field { min-width: 0; }
+  .selector-field.full { grid-column: 1 / -1; }
+  .selector-label { display: block; margin: 0 0 5px 4px; color: #455A64; font-size: .88rem; font-weight: 800; }
   .english-home-link { color:#1565C0; text-decoration:none; font-weight:800; background:#fff; padding:8px 14px; border-radius:999px; margin-bottom:14px; box-shadow:0 3px 0 rgba(21,101,192,.25); }
   .topic-select {
-    width: 100%; padding: 15px; font-size: 1.4em; font-weight: bold; color: #333;
-    border: 3px solid #1565C0; border-radius: 15px; background: #fff;
-    cursor: pointer; outline: none; box-shadow: 0 4px 0 #1565C0;
+    width: 100%; min-width: 0; padding: 12px 36px 12px 10px; font-size: 1rem; font-weight: bold; color: #333;
+    border: 2px solid #64B5F6; border-radius: 12px; background-color: #fff;
+    cursor: pointer; outline: none; box-shadow: 0 3px 0 #90CAF9;
     appearance: none; -webkit-appearance: none; text-align: center;
     background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%231565C0%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
     background-repeat: no-repeat; background-position: right 15px top 50%; background-size: 15px auto;
   }
+  .topic-select:disabled { color: #90A4AE; background-color: #ECEFF1; cursor: not-allowed; }
+  .selection-summary { min-height: 1.4em; margin-top: 13px; color: #1565C0; font-size: .95rem; font-weight: 800; line-height: 1.45; text-align: center; }
 
   .mode-btn {
     width: 80%; max-width: 300px; padding: 20px; margin-bottom: 20px;
@@ -213,6 +231,15 @@
   }
   #pk-restart-btn { background: #FFEB3B; color: #333; border: none; box-shadow: 0 2px 0 #FBC02D; display: none; }
 
+  @media (max-width: 520px) {
+    #mode-select-screen { padding-top: 14px; }
+    .game-title { margin-bottom: 12px; }
+    .selection-card { width: 96%; padding: 11px; }
+    .selector-grid { grid-template-columns: 1fr; gap: 8px; }
+    .selector-field.full { grid-column: auto; }
+    .mode-btn { width: 88%; padding: 15px; margin-bottom: 13px; font-size: 1.35rem; }
+  }
+
 </style>
 
 </head>
@@ -231,11 +258,48 @@
       <a class="english-home-link" href="index.html">← 國中英文練習區</a>
       <div class="game-title">鳩特英文<br>基礎文法挑戰</div>
       
-      <!-- 下拉式選單 -->
-      <div class="topic-select-container">
-        <select id="topic-select" class="topic-select">
-            <option>連線資料庫中...</option>
-        </select>
+      <div class="selection-card">
+        <div class="selection-tabs" role="tablist" aria-label="文法題庫選擇方式">
+          <button id="tab-topic" class="selection-tab active" type="button" onclick="switchSelectionMode('topic')">選主題</button>
+          <button id="tab-version" class="selection-tab" type="button" onclick="switchSelectionMode('version')">選版本</button>
+        </div>
+
+        <div id="topic-selector-panel" class="selector-panel">
+          <label class="selector-label" for="topic-select">文法觀念</label>
+          <select id="topic-select" class="topic-select" onchange="handleTopicSelection()" disabled>
+              <option value="">連線資料庫中...</option>
+          </select>
+        </div>
+
+        <div id="version-selector-panel" class="selector-panel hidden">
+          <div class="selector-grid">
+            <div class="selector-field">
+              <label class="selector-label" for="grade-select">1. 年級</label>
+              <select id="grade-select" class="topic-select" onchange="updateSemesterOptions()" disabled>
+                <option value="">-- 選擇年級 --</option>
+              </select>
+            </div>
+            <div class="selector-field">
+              <label class="selector-label" for="semester-select">2. 學期</label>
+              <select id="semester-select" class="topic-select" onchange="updateVersionOptions()" disabled>
+                <option value="">-- 選擇學期 --</option>
+              </select>
+            </div>
+            <div class="selector-field">
+              <label class="selector-label" for="version-select">3. 版本</label>
+              <select id="version-select" class="topic-select" onchange="updateUnitOptions()" disabled>
+                <option value="">-- 選擇版本 --</option>
+              </select>
+            </div>
+            <div class="selector-field">
+              <label class="selector-label" for="unit-select">4. 單元</label>
+              <select id="unit-select" class="topic-select" onchange="handleVersionSelection()" disabled>
+                <option value="">-- 選擇單元 --</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div id="selection-summary" class="selection-summary">正在讀取文法題庫…</div>
       </div>
 
       <button id="btn-pr" class="mode-btn btn-pr" onclick="initAudioAndGo('pr')" disabled style="opacity: 0.5;">📖 練習模式</button>
@@ -390,43 +454,217 @@
     // 關鍵：明確告訴 Firebase 要連線到 "basic-grammar" 資料庫
     const db = getFirestore(app, "basic-grammar");
   
-    // ⚡ 3. 從資料庫讀取資料並建立選單
-    // 改成 window. 開頭，確保你下方的遊戲邏輯不會因為變成 module 而抓不到資料
-    window.grammarData = {};
+    // ⚡ 3. 一次讀取題庫後，在瀏覽器內建立「選主題／選版本」兩種索引
+    window.grammarDocuments = [];
     window.currentTopicData = null;
+    window.grammarSelectionMode = 'topic';
+
+    function cleanText(value) {
+        return String(value || '').trim().replace(/\s+/g, ' ');
+    }
+
+    function sortLabels(values) {
+        return [...new Set(values.filter(Boolean))].sort((a, b) =>
+            a.localeCompare(b, 'zh-Hant', { numeric: true })
+        );
+    }
+
+    function normalizeGrammarDocument(id, data) {
+        const term = cleanText(data.term);
+        const grade = cleanText(data.grade) || term.replace(/[上下]$/, '');
+        const sharedOptions = Array.isArray(data.options) ? data.options : [];
+        const pool = (Array.isArray(data.pool) ? data.pool : []).map(question => {
+            const normalized = { ...question };
+            if (!Array.isArray(normalized.options) || normalized.options.length === 0) {
+                normalized.options = [...sharedOptions];
+            }
+            return normalized;
+        });
+        return {
+            id,
+            title: cleanText(data.title) || '未命名文法',
+            term,
+            grade,
+            version: cleanText(data.version),
+            unit: cleanText(data.unit),
+            pool
+        };
+    }
+
+    function mergeGrammarDocuments(documents, title) {
+        const seen = new Set();
+        const pool = [];
+        documents.forEach(documentData => {
+            documentData.pool.forEach(question => {
+                const key = JSON.stringify([cleanText(question.q), cleanText(question.a)]);
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    pool.push(question);
+                }
+            });
+        });
+        return {
+            title,
+            pool,
+            options: [],
+            sourceCount: documents.length,
+            topicCount: new Set(documents.map(item => item.title)).size
+        };
+    }
+
+    function setSelectOptions(selectId, placeholder, values, labelForValue = value => value) {
+        const select = document.getElementById(selectId);
+        select.innerHTML = '';
+        select.add(new Option(placeholder, ''));
+        values.forEach(value => select.add(new Option(labelForValue(value), value)));
+        select.disabled = values.length === 0;
+    }
+
+    function setGameButtonsEnabled(enabled) {
+        ['btn-pr', 'btn-sp', 'btn-pk'].forEach(id => {
+            const button = document.getElementById(id);
+            button.disabled = !enabled;
+            button.style.opacity = enabled ? '1' : '0.5';
+        });
+    }
+
+    function setCurrentSelection(data, summary) {
+        window.currentTopicData = data && data.pool.length ? data : null;
+        document.getElementById('selection-summary').innerText = window.currentTopicData
+            ? summary
+            : '這個條件目前沒有可用題目。';
+        setGameButtonsEnabled(Boolean(window.currentTopicData));
+    }
+
+    function populateTopicOptions() {
+        const titles = sortLabels(grammarDocuments.map(item => item.title));
+        setSelectOptions('topic-select', '-- 選擇文法主題 --', titles);
+    }
+
+    function populateGradeOptions() {
+        const scopedDocuments = grammarDocuments.filter(item =>
+            item.grade && item.term && item.version && item.unit
+        );
+        const grades = sortLabels(scopedDocuments.map(item => item.grade));
+        setSelectOptions('grade-select', '-- 選擇年級 --', grades);
+        setSelectOptions('semester-select', '-- 選擇學期 --', []);
+        setSelectOptions('version-select', '-- 選擇版本 --', []);
+        setSelectOptions('unit-select', '-- 選擇單元 --', []);
+    }
+
+    function semesterLabel(term, grade) {
+        const semester = term.startsWith(grade) ? term.slice(grade.length) : term;
+        if (semester === '上') return '上學期';
+        if (semester === '下') return '下學期';
+        return semester || term;
+    }
+
+    function switchSelectionMode(mode) {
+        window.grammarSelectionMode = mode === 'version' ? 'version' : 'topic';
+        const byTopic = window.grammarSelectionMode === 'topic';
+        document.getElementById('tab-topic').classList.toggle('active', byTopic);
+        document.getElementById('tab-version').classList.toggle('active', !byTopic);
+        document.getElementById('topic-selector-panel').classList.toggle('hidden', !byTopic);
+        document.getElementById('version-selector-panel').classList.toggle('hidden', byTopic);
+        if (byTopic) handleTopicSelection();
+        else handleVersionSelection();
+    }
+
+    function handleTopicSelection() {
+        const title = document.getElementById('topic-select').value;
+        if (!title) {
+            setCurrentSelection(null, '');
+            document.getElementById('selection-summary').innerText = '請選擇一個文法觀念。';
+            return;
+        }
+        const documents = grammarDocuments.filter(item => item.title === title);
+        const merged = mergeGrammarDocuments(documents, title);
+        setCurrentSelection(
+            merged,
+            `已選：${title}（合併 ${merged.sourceCount} 個範圍，共 ${merged.pool.length} 題）`
+        );
+    }
+
+    function updateSemesterOptions() {
+        const grade = document.getElementById('grade-select').value;
+        const terms = sortLabels(grammarDocuments
+            .filter(item => item.grade === grade && item.term && item.version && item.unit)
+            .map(item => item.term));
+        setSelectOptions('semester-select', '-- 選擇學期 --', terms, term => semesterLabel(term, grade));
+        setSelectOptions('version-select', '-- 選擇版本 --', []);
+        setSelectOptions('unit-select', '-- 選擇單元 --', []);
+        setCurrentSelection(null, '');
+        document.getElementById('selection-summary').innerText = grade ? '請繼續選擇學期。' : '請先選擇年級。';
+    }
+
+    function updateVersionOptions() {
+        const grade = document.getElementById('grade-select').value;
+        const term = document.getElementById('semester-select').value;
+        const versions = sortLabels(grammarDocuments
+            .filter(item => item.grade === grade && item.term === term && item.version && item.unit)
+            .map(item => item.version));
+        setSelectOptions('version-select', '-- 選擇版本 --', versions);
+        setSelectOptions('unit-select', '-- 選擇單元 --', []);
+        setCurrentSelection(null, '');
+        document.getElementById('selection-summary').innerText = term ? '請繼續選擇版本。' : '請先選擇學期。';
+    }
+
+    function updateUnitOptions() {
+        const grade = document.getElementById('grade-select').value;
+        const term = document.getElementById('semester-select').value;
+        const version = document.getElementById('version-select').value;
+        const units = sortLabels(grammarDocuments
+            .filter(item => item.grade === grade && item.term === term && item.version === version && item.unit)
+            .map(item => item.unit));
+        setSelectOptions('unit-select', '-- 選擇單元 --', units);
+        setCurrentSelection(null, '');
+        document.getElementById('selection-summary').innerText = version ? '請繼續選擇單元。' : '請先選擇版本。';
+    }
+
+    function handleVersionSelection() {
+        const grade = document.getElementById('grade-select').value;
+        const term = document.getElementById('semester-select').value;
+        const version = document.getElementById('version-select').value;
+        const unit = document.getElementById('unit-select').value;
+        if (!grade || !term || !version || !unit) {
+            setCurrentSelection(null, '');
+            document.getElementById('selection-summary').innerText = '請依序選擇年級、學期、版本與單元。';
+            return;
+        }
+        const documents = grammarDocuments.filter(item =>
+            item.grade === grade && item.term === term && item.version === version && item.unit === unit
+        );
+        const label = `${term}／${version}／${unit}`;
+        const merged = mergeGrammarDocuments(documents, label);
+        setCurrentSelection(
+            merged,
+            `已選：${label}（${merged.topicCount} 個主題，共 ${merged.pool.length} 題）`
+        );
+    }
   
     async function loadDataFromFirebase() {
-        const select = document.getElementById('topic-select');
-        
         try {
-            // 新版讀取資料庫的寫法
             const snapshot = await getDocs(collection(db, 'grammar_topics'));
             
             if (snapshot.empty) {
-                select.innerHTML = '<option>目前沒有題庫資料</option>';
+                document.getElementById('topic-select').innerHTML = '<option>目前沒有題庫資料</option>';
+                document.getElementById('selection-summary').innerText = '目前沒有題庫資料。';
                 return;
             }
   
-            select.innerHTML = ''; 
             snapshot.forEach(doc => {
-                const data = doc.data();
-                window.grammarData[doc.id] = data; 
-                
-                const opt = document.createElement('option');
-                opt.value = doc.id;
-                const scope = [data.term, data.unit].filter(Boolean).join(' ');
-                opt.innerText = scope ? `${scope}｜${data.title}` : data.title;
-                select.appendChild(opt);
+                const normalized = normalizeGrammarDocument(doc.id, doc.data());
+                if (normalized.pool.length) window.grammarDocuments.push(normalized);
             });
-  
-            // 解除按鈕封印
-            document.getElementById('btn-pr').disabled = false; document.getElementById('btn-pr').style.opacity = '1';
-            document.getElementById('btn-sp').disabled = false; document.getElementById('btn-sp').style.opacity = '1';
-            document.getElementById('btn-pk').disabled = false; document.getElementById('btn-pk').style.opacity = '1';
+            populateTopicOptions();
+            populateGradeOptions();
+            setGameButtonsEnabled(false);
+            document.getElementById('selection-summary').innerText = '請選擇一個文法觀念。';
   
         } catch(error) {
             console.error("讀取 Firebase 失敗:", error);
-            select.innerHTML = '<option>連線失敗，請檢查網路</option>';
+            document.getElementById('topic-select').innerHTML = '<option>連線失敗，請檢查網路</option>';
+            document.getElementById('selection-summary').innerText = '連線失敗，請稍後再試。';
         }
     }
   
@@ -452,8 +690,10 @@
             console.log("Audio Context Error: ", e);
         }
         
-        // 從我們動態抓下來的 data 中取得使用者選的單元
-        currentTopicData = grammarData[document.getElementById('topic-select').value];
+        if (!currentTopicData || !Array.isArray(currentTopicData.pool) || currentTopicData.pool.length === 0) {
+            alert("請先選擇文法主題或課本範圍。");
+            return;
+        }
         if (target === 'sp' && currentTopicData.pool.length < 10) {
             alert("這個文法題庫尚未滿 10 題，請先請老師補充題庫後再考試。");
             return;
@@ -824,6 +1064,12 @@
     window.returnToMenu = returnToMenu;
     window.prNextQuestion = prNextQuestion;
     window.startPKGame = startPKGame;
+    window.switchSelectionMode = switchSelectionMode;
+    window.handleTopicSelection = handleTopicSelection;
+    window.updateSemesterOptions = updateSemesterOptions;
+    window.updateVersionOptions = updateVersionOptions;
+    window.updateUnitOptions = updateUnitOptions;
+    window.handleVersionSelection = handleVersionSelection;
   </script>
 </body>
 </html>
