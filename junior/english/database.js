@@ -5314,6 +5314,258 @@ var jutorDB = {
           "ch": "別開門！我們去求助吧。",
           "sentence": "Don't open the door! Let's get some help."
         }
+      ],
+      "國二上 Unit 2": [
+        {
+          "en": "club",
+          "ch": "社團",
+          "sentence": "Sandy joined the basketball club this year."
+        },
+        {
+          "en": "make up one's mind",
+          "ch": "下定決心",
+          "sentence": "He couldn't make up his mind about which club to join."
+        },
+        {
+          "en": "interesting",
+          "ch": "有趣的",
+          "sentence": "Science is an interesting subject for me."
+        },
+        {
+          "en": "science",
+          "ch": "科學",
+          "sentence": "We did a fun experiment in science class."
+        },
+        {
+          "en": "subject",
+          "ch": "學科；主題",
+          "sentence": "What is your favorite school subject?"
+        },
+        {
+          "en": "hear",
+          "ch": "聽見",
+          "sentence": "Did you hear that strange noise outside?"
+        },
+        {
+          "en": "same",
+          "ch": "相同的",
+          "sentence": "Ken and I are in the same class."
+        },
+        {
+          "en": "call",
+          "ch": "打電話；呼叫",
+          "sentence": "Please call me when you get home."
+        },
+        {
+          "en": "tell",
+          "ch": "告訴",
+          "sentence": "Can you tell me about your new school?"
+        },
+        {
+          "en": "pull one's leg",
+          "ch": "開玩笑",
+          "sentence": "Don't be angry; he is just pulling your leg."
+        },
+        {
+          "en": "poor",
+          "ch": "不佳的；貧窮的",
+          "sentence": "My math grades were poor last semester."
+        },
+        {
+          "en": "end",
+          "ch": "結尾；結束",
+          "sentence": "The movie has a happy end."
+        },
+        {
+          "en": "whose",
+          "ch": "誰的（東西）",
+          "sentence": "Whose jacket is this on the chair?"
+        },
+        {
+          "en": "camera",
+          "ch": "相機",
+          "sentence": "She took many photos with her new camera."
+        },
+        {
+          "en": "mine",
+          "ch": "我的（東西）",
+          "sentence": "This bag is mine, not yours."
+        },
+        {
+          "en": "What's up?",
+          "ch": "怎麼了？",
+          "sentence": "Hey, What's up? You look worried."
+        },
+        {
+          "en": "when",
+          "ch": "當⋯",
+          "sentence": "I was eating dinner when you called."
+        },
+        {
+          "en": "back",
+          "ch": "返回",
+          "sentence": "When did you come back from Taipei?"
+        },
+        {
+          "en": "sign up",
+          "ch": "報名參加",
+          "sentence": "Many students want to sign up for the guitar club."
+        },
+        {
+          "en": "wrong",
+          "ch": "錯誤的",
+          "sentence": "You gave me the wrong phone number."
+        },
+        {
+          "en": "hold on",
+          "ch": "稍候",
+          "sentence": "Hold on a second, please. I'll get him."
+        },
+        {
+          "en": "math",
+          "ch": "數學",
+          "sentence": "Math is difficult for many students."
+        },
+        {
+          "en": "soccer",
+          "ch": "足球",
+          "sentence": "Let's play soccer in the park after school."
+        },
+        {
+          "en": "Chinese",
+          "ch": "中國的；中國人；中文",
+          "sentence": "We practice speaking Chinese every day."
+        },
+        {
+          "en": "history",
+          "ch": "歷史",
+          "sentence": "We learned about ancient Egypt in history class."
+        },
+        {
+          "en": "violin",
+          "ch": "小提琴",
+          "sentence": "She has played the violin for five years."
+        },
+        {
+          "en": "robot",
+          "ch": "機器人",
+          "sentence": "The engineer built a smart robot."
+        },
+        {
+          "en": "health",
+          "ch": "健康",
+          "sentence": "Eating vegetables is good for your health."
+        },
+        {
+          "en": "PE",
+          "ch": "體育",
+          "sentence": "We played basketball in PE class today."
+        },
+        {
+          "en": "look for",
+          "ch": "尋找",
+          "sentence": "I'm looking for my lost keys."
+        },
+        {
+          "en": "Ms.",
+          "ch": "女士",
+          "sentence": "Ms. Lin is our new English teacher."
+        },
+        {
+          "en": "engineer",
+          "ch": "工程師",
+          "sentence": "His dream is to become a computer engineer."
+        },
+        {
+          "en": "lesson",
+          "ch": "課；課程",
+          "sentence": "We have an English lesson every Monday."
+        },
+        {
+          "en": "difficult",
+          "ch": "困難的",
+          "sentence": "This science test was really difficult."
+        },
+        {
+          "en": "teach",
+          "ch": "教導",
+          "sentence": "Mr. Brown teaches us history."
+        },
+        {
+          "en": "own",
+          "ch": "自己的；擁有",
+          "sentence": "I want to have my own bedroom."
+        },
+        {
+          "en": "finish",
+          "ch": "完成；結束",
+          "sentence": "Did you finish your homework yet?"
+        },
+        {
+          "en": "festival",
+          "ch": "節慶",
+          "sentence": "The Moon Festival is coming soon."
+        },
+        {
+          "en": "start",
+          "ch": "開始",
+          "sentence": "The movie will start at seven o'clock."
+        },
+        {
+          "en": "choice",
+          "ch": "選擇",
+          "sentence": "You have to make a choice between the two clubs."
+        },
+        {
+          "en": "not... at all",
+          "ch": "一點也不⋯",
+          "sentence": "This test is not difficult at all."
+        },
+        {
+          "en": "free",
+          "ch": "免費的",
+          "sentence": "The tickets to the concert are free."
+        },
+        {
+          "en": "show",
+          "ch": "表演；節目",
+          "sentence": "We enjoyed the magic show very much."
+        },
+        {
+          "en": "miss out",
+          "ch": "錯過機會",
+          "sentence": "Don't miss out on the school festival!"
+        },
+        {
+          "en": "design",
+          "ch": "設計",
+          "sentence": "They want to design a new website for the club."
+        },
+        {
+          "en": "swimmer",
+          "ch": "泳者",
+          "sentence": "He is the fastest swimmer on our team."
+        },
+        {
+          "en": "underwater",
+          "ch": "水下的",
+          "sentence": "They took many amazing underwater photos."
+        },
+        {
+          "en": "winner",
+          "ch": "獲勝者",
+          "sentence": "The winner of the race received a gold medal."
+        },
+        {
+          "en": "contest",
+          "ch": "競賽",
+          "sentence": "She won first prize in the speech contest."
+        },
+        {
+          "en": "guest",
+          "ch": "客座的；賓客",
+          "sentence": "We welcomed the special guest to our school."
+        }
       ]
     }
   },
