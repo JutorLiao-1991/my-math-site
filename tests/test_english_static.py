@@ -96,6 +96,29 @@ class EnglishStaticSecurityTests(unittest.TestCase):
         self.assertIn("const options = getQuestionOptions(pkCurrentQ)", source)
         self.assertEqual(source.count("currentTopicData.options"), 2)
 
+    def test_grammar_can_be_selected_by_topic_or_textbook_scope(self):
+        source = (ROOT / "junior/english/basic_grammar.html").read_text(encoding="utf-8")
+        for marker in [
+            "選主題",
+            "選版本",
+            'id="grade-select"',
+            'id="semester-select"',
+            'id="version-select"',
+            'id="unit-select"',
+            "function mergeGrammarDocuments(documents, title)",
+            "function handleTopicSelection()",
+            "function handleVersionSelection()",
+            "item.title === title",
+            "item.grade === grade && item.term === term && item.version === version && item.unit === unit",
+        ]:
+            self.assertIn(marker, source)
+
+    def test_grammar_browser_reuses_one_firestore_read(self):
+        source = (ROOT / "junior/english/basic_grammar.html").read_text(encoding="utf-8")
+        self.assertEqual(source.count("getDocs(collection(db, 'grammar_topics'))"), 1)
+        self.assertIn("window.grammarDocuments = []", source)
+        self.assertNotIn("grammarData[document.getElementById('topic-select').value]", source)
+
 
 if __name__ == "__main__":
     unittest.main()
