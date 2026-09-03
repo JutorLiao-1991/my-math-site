@@ -52,12 +52,24 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("roundedAnswer", self.page)
 
     def test_decimal_move_is_required_before_long_division(self):
-        self.assertIn("state.phase = 'move-divisor'", self.page)
-        self.assertIn("state.phase = 'move-dividend'", self.page)
-        self.assertIn("state.phase = 'ready'", self.page)
-        self.assertIn("function selectDecimalPosition", self.page)
-        self.assertIn("const targetIndex = startIndex + shift", self.page)
-        self.assertIn("讓被除數也向右移", self.page)
+        self.assertIn("state.phase = 'shift-decimals'", self.page)
+        self.assertIn("function moveDecimalsRight()", self.page)
+        self.assertIn("state.decimalShiftCount++", self.page)
+        self.assertIn("shiftDecimalString(state.problem.originalDivisor, state.decimalShiftCount)", self.page)
+        self.assertIn("shiftDecimalString(state.problem.originalDividend, state.decimalShiftCount)", self.page)
+        self.assertIn("if (shiftedDivisor.includes('.'))", self.page)
+        self.assertIn("除數、被除數同時移動", self.page)
+
+    def test_quotient_decimal_point_is_checked_before_digit_entry(self):
+        self.assertIn("第 2 步｜判斷商的小數點", self.page)
+        self.assertIn("function prepareQuotientPointPlacement()", self.page)
+        self.assertIn("function renderQuotientPointSelector()", self.page)
+        self.assertIn("function selectQuotientPosition(selectedIndex, button)", self.page)
+        self.assertIn("const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : -1", self.page)
+        self.assertIn("state.phase = 'ready-digits'", self.page)
+        self.assertIn("if (state.phase !== 'ready-digits') return", self.page)
+        self.assertIn("商是整數", self.page)
+        self.assertIn("state.hasErroredThisQuestion = true", self.page)
 
     def test_keeps_existing_challenge_rules_and_touch_numpad(self):
         self.assertIn("state.qIndex >= 10", self.page)
