@@ -115,6 +115,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
             font: 700 clamp(1.5rem, 4vw, 2rem) "Courier New", monospace;
         }
+        .problem-instruction { display: block; margin-top: 7px; color: #806f74; font: 800 0.98rem "Segoe UI", "Microsoft JhengHei", sans-serif; text-align: center; }
 
         .move-panel { width: min(680px, 100%); padding: 18px; border: 2px solid var(--border); border-radius: 14px; background: var(--soft); }
         .move-title { margin: 0 0 6px; color: var(--primary-dark); text-align: center; font-size: 1.25rem; }
@@ -154,12 +155,15 @@
         .input-cell.active { border-style: solid; border-color: var(--primary); background: #fff; box-shadow: 0 0 8px rgba(255, 139, 167, 0.35); transform: scale(1.05); z-index: 5; }
         .input-cell.error { border-style: solid; border-color: var(--error); color: var(--error); background: #fff0f0; }
         .input-cell.filled { border-color: transparent; color: var(--text); background: transparent; cursor: default; }
+        .input-cell.skipped { visibility: hidden; pointer-events: none; }
         .div-line { grid-column: 2 / -1; height: 0; margin: 2px 0; border-bottom: 3px solid var(--text); }
         .sub-line { grid-column: 2 / -1; height: 0; margin: 2px 0; border-bottom: 2px solid var(--border); }
         .paren { font-weight: 400; transform: scaleY(1.8) translateY(-2px); }
 
         .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+        .menu-title { grid-column: 1 / -1; margin-top: 4px; color: #806f74; font-size: 0.92rem; font-weight: 800; letter-spacing: 0.08em; }
         .menu-btn { min-height: 68px; padding: 10px 8px; border: 2px solid #ddd; border-radius: 9px; background: #f5f5f5; color: #666; cursor: pointer; font-weight: 800; line-height: 1.35; }
+        .menu-btn.wide { grid-column: 1 / -1; }
         .menu-btn:hover { border-color: var(--primary); }
         .menu-btn.active { color: #fff; border-color: var(--primary); background: var(--primary); }
         .step-container { flex: 1; display: flex; flex-direction: column; padding: 15px; border-left: 5px solid var(--primary); border-radius: 6px; background: #fffafb; }
@@ -167,9 +171,24 @@
         .timer-bar-container { width: 100%; height: 6px; margin-bottom: 18px; overflow: hidden; border-radius: 3px; background: #ddd; }
         .timer-bar { height: 100%; width: 100%; background: var(--primary); transition: width 1s linear; }
         .phase-note { margin-bottom: 14px; color: #806f74; text-align: center; font-weight: 700; }
+        .round-stop-btn { width: 100%; margin-bottom: 14px; padding: 14px 10px; border: 2px solid var(--primary-dark); border-radius: 12px; color: #fff; background: var(--primary-dark); cursor: pointer; font-weight: 900; }
+        .round-stop-btn:active { transform: scale(0.98); }
+        .round-stop-btn.ready { box-shadow: 0 0 0 5px rgba(255, 139, 167, 0.2); animation: readyPulse 0.9s ease-in-out infinite alternate; }
+        .round-stop-btn.error { border-color: var(--error); background: var(--error); }
+        @keyframes readyPulse { to { transform: scale(1.025); } }
         .numpad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: auto; }
         .num-btn { min-height: 58px; padding: 10px 0; border: 2px solid var(--border); border-radius: 12px; color: var(--text); background: #fff; cursor: pointer; font-size: 1.5rem; font-weight: 800; }
         .num-btn:active { color: #fff; background: var(--primary); transform: scale(0.95); }
+        .answer-panel { width: min(680px, 100%); margin-top: 18px; padding: 16px; border: 2px solid var(--border); border-radius: 14px; background: var(--soft); text-align: center; }
+        .answer-title { margin: 0 0 10px; color: var(--primary-dark); font-size: 1.15rem; }
+        .answer-hint { min-height: 1.5em; margin: 8px 0 0; color: #806f74; font-weight: 700; }
+        .final-answer-row { display: flex; justify-content: center; align-items: center; min-height: 62px; gap: 4px; }
+        .final-answer-cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--border); border-radius: 8px; background: #fff; color: var(--primary-dark); font: 800 2rem "Courier New", monospace; }
+        .final-answer-cell.active { border-style: solid; border-color: var(--primary); box-shadow: 0 0 8px rgba(255, 139, 167, 0.35); }
+        .final-answer-cell.filled { border-color: transparent; color: var(--text); background: transparent; }
+        .final-answer-cell.error { border-style: solid; border-color: var(--error); color: var(--error); background: #fff0f0; }
+        .final-answer-dot { width: 18px; color: var(--text); font: 900 2rem "Courier New", monospace; }
+        .remainder-equation { margin-top: 12px; color: #256b2b; font-size: 1.08rem; font-weight: 800; }
         .end-screen { position: absolute; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; background: rgba(255, 255, 255, 0.96); text-align: center; }
         .score-display { margin: 18px 0; color: var(--primary-dark); font-size: 5rem; font-weight: 900; }
 
@@ -187,6 +206,9 @@
             .decimal-gap { flex-basis: 22px; width: 22px; }
             .math-grid { font-size: clamp(1.35rem, 6vw, 2rem); gap: 3px; }
             .cell { width: clamp(29px, 8vw, 42px); height: 45px; }
+            .menu-btn { min-height: 62px; }
+            .answer-panel { padding: 12px 8px; }
+            .final-answer-cell { width: 36px; height: 46px; font-size: 1.7rem; }
         }
     </style>
 </head>
@@ -227,6 +249,19 @@
                 </div>
 
                 <div class="math-grid hidden" id="math-vertical"></div>
+
+                <div class="answer-panel hidden" id="remainder-panel">
+                    <h2 class="answer-title">最後一步｜放好餘數的小數點</h2>
+                    <p class="answer-hint">直式裡的餘數還要回到原題的小數位值，請點選正確位置。</p>
+                    <div class="gap-number" id="remainder-selector"></div>
+                    <div class="remainder-equation hidden" id="remainder-equation"></div>
+                </div>
+
+                <div class="answer-panel hidden" id="round-answer-panel">
+                    <h2 class="answer-title" id="round-answer-title">寫出取概數後的商</h2>
+                    <div class="final-answer-row" id="round-answer-row"></div>
+                    <p class="answer-hint" id="round-answer-hint">使用右側數字鍵依序輸入。</p>
+                </div>
             </div>
 
             <div class="watermark">Presented by Jutor</div>
@@ -241,10 +276,15 @@
         <aside class="panel" id="controls-panel">
             <div class="controls-content">
                 <div class="menu-grid">
+                    <div class="menu-title">基本除法</div>
                     <button class="menu-btn" id="btn-int-one" onclick="startGame('int-one')">整數 ÷ 小數<br>一位小數</button>
                     <button class="menu-btn" id="btn-int-two" onclick="startGame('int-two')">整數 ÷ 小數<br>兩位小數</button>
                     <button class="menu-btn" id="btn-decimal-one" onclick="startGame('decimal-one')">小數 ÷ 小數<br>一位小數</button>
                     <button class="menu-btn" id="btn-decimal-two" onclick="startGame('decimal-two')">小數 ÷ 小數<br>兩位小數</button>
+                    <div class="menu-title">進階題型</div>
+                    <button class="menu-btn" id="btn-remainder-whole" onclick="startGame('remainder-whole')">商取到整數<br>再寫餘數</button>
+                    <button class="menu-btn" id="btn-remainder-tenth" onclick="startGame('remainder-tenth')">商取到小數第一位<br>再寫餘數</button>
+                    <button class="menu-btn wide" id="btn-rounding" onclick="startGame('rounding')">四捨五入取概數</button>
                 </div>
 
                 <div class="step-container hidden" id="game-status">
@@ -255,6 +295,8 @@
                     </div>
                     <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
                     <div class="phase-note" id="phase-note">先完成左側的小數點移動</div>
+
+                    <button class="round-stop-btn hidden" id="round-stop-btn" type="button" onclick="requestRounding()">我要取概數了！</button>
 
                     <div class="numpad hidden" id="numpad">
                         <button class="num-btn" onclick="inputDigit(1)">1</button>
@@ -275,17 +317,22 @@
 
     <script>
         const MODE_CONFIG = {
-            'int-one': { dividendType: 'int', shift: 1 },
-            'int-two': { dividendType: 'int', shift: 2 },
-            'decimal-one': { dividendType: 'decimal', shift: 1 },
-            'decimal-two': { dividendType: 'decimal', shift: 2 }
+            'int-one': { kind: 'exact', dividendType: 'int', shift: 1 },
+            'int-two': { kind: 'exact', dividendType: 'int', shift: 2 },
+            'decimal-one': { kind: 'exact', dividendType: 'decimal', shift: 1 },
+            'decimal-two': { kind: 'exact', dividendType: 'decimal', shift: 2 },
+            'remainder-whole': { kind: 'remainder', quotientPlaces: 0 },
+            'remainder-tenth': { kind: 'remainder', quotientPlaces: 1 },
+            'rounding': { kind: 'rounding' }
         };
 
         let audioCtx = null;
         let state = {
             mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
             problem: null, questions: [], phase: 'idle', hasErroredThisQuestion: false,
-            totalInputs: 0, filledCount: 0, logicalOrder: [], cellAnswers: {}, focusId: null
+            totalInputs: 0, filledCount: 0, logicalOrder: [], cellAnswers: {}, focusId: null,
+            quotientInputIds: [], completedQuotientDigits: 0,
+            finalAnswerOrder: [], finalAnswerAnswers: {}, finalFocusId: null
         };
 
         function formatFixedInteger(value, places) {
@@ -297,6 +344,13 @@
             const whole = Math.floor(value / 100);
             const fraction = String(value % 100).padStart(2, '0').replace(/0+$/, '');
             return fraction ? `${whole}.${fraction}` : String(whole);
+        }
+
+        function formatScaled(value, places, keepTrailingZeros = false) {
+            if (places === 0) return String(value);
+            const fixed = formatFixedInteger(value, places);
+            if (keepTrailingZeros) return fixed;
+            return fixed.replace(/0+$/, '').replace(/\.$/, '');
         }
 
         function decimalPlaces(value) {
@@ -320,9 +374,9 @@
             return `${dividend}${dividend.includes('.') ? '' : '.'}${'0'.repeat(quotientPlaces - dividendPlaces)}`;
         }
 
-        function buildProblemBanks() {
+        function buildExactProblemBanks() {
             const banks = { 'int-one': [], 'int-two': [], 'decimal-one': [], 'decimal-two': [] };
-            Object.entries(MODE_CONFIG).forEach(([mode, config]) => {
+            Object.entries(MODE_CONFIG).filter(([, config]) => config.kind === 'exact').forEach(([mode, config]) => {
                 const divisorStart = config.shift === 1 ? 2 : 11;
                 const divisorEnd = config.shift === 1 ? 95 : 99;
                 const seen = new Set();
@@ -348,6 +402,7 @@
 
                         const shiftedDividend = shiftDecimalString(originalDividend, config.shift);
                         banks[mode].push({
+                            kind: 'exact',
                             originalDividend,
                             originalDivisor,
                             shift: config.shift,
@@ -361,6 +416,108 @@
                 }
             });
             return banks;
+        }
+
+        function buildWholeRemainderProblems() {
+            const problems = [];
+            for (const shift of [1, 2]) {
+                let addedForShift = 0;
+                const divisorStart = shift === 1 ? 3 : 11;
+                for (let divisor = divisorStart; divisor <= 99 && addedForShift < 140; divisor++) {
+                    if (divisor % 10 === 0) continue;
+                    for (let quotient = 2; quotient <= 999 && addedForShift < 140; quotient += 7) {
+                        const remainder = 1 + ((divisor * 7 + quotient * 11) % (divisor - 1));
+                        if (remainder % 10 === 0) continue;
+                        const shiftedDividendValue = divisor * quotient + remainder;
+                        const originalDividend = formatScaled(shiftedDividendValue, shift);
+                        const originalDivisor = formatFixedInteger(divisor, shift);
+                        const remainderAnswer = formatScaled(remainder, shift);
+                        problems.push({
+                            kind: 'remainder', quotientPlaces: 0,
+                            originalDividend, originalDivisor, shift,
+                            divisor: String(divisor), shiftedDividend: String(shiftedDividendValue),
+                            dividend: String(shiftedDividendValue), answer: String(quotient),
+                            answerDigits: String(quotient).split(''), rawRemainder: String(remainder),
+                            remainderScale: shift, remainderAnswer
+                        });
+                        addedForShift++;
+                    }
+                }
+            }
+            return problems;
+        }
+
+        function buildTenthRemainderProblems() {
+            const problems = [];
+            for (let divisor = 3; divisor <= 99 && problems.length < 280; divisor++) {
+                if (divisor % 10 === 0) continue;
+                for (let quotientTenths = 11; quotientTenths <= 999 && problems.length < 280; quotientTenths += 7) {
+                    let remainder = (10 - (divisor * quotientTenths) % 10) % 10;
+                    if (remainder === 0) remainder = 10;
+                    const extraChoices = Math.floor((divisor - 1 - remainder) / 10);
+                    if (extraChoices >= 1) remainder += 10 * ((divisor + quotientTenths) % (extraChoices + 1));
+                    if (remainder <= 0 || remainder >= divisor || remainder > 99) continue;
+                    const scaledDividendTenths = divisor * quotientTenths + remainder;
+                    if (scaledDividendTenths % 10 !== 0) continue;
+                    const shiftedDividendValue = scaledDividendTenths / 10;
+                    const originalDividend = formatScaled(shiftedDividendValue, 1);
+                    const answer = formatFixedInteger(quotientTenths, 1);
+                    problems.push({
+                        kind: 'remainder', quotientPlaces: 1,
+                        originalDividend, originalDivisor: formatFixedInteger(divisor, 1), shift: 1,
+                        divisor: String(divisor), shiftedDividend: String(shiftedDividendValue),
+                        dividend: `${shiftedDividendValue}.0`, answer,
+                        answerDigits: answer.replace('.', '').split(''), rawRemainder: String(remainder),
+                        remainderScale: 2, remainderAnswer: formatScaled(remainder, 2)
+                    });
+                }
+            }
+            return problems;
+        }
+
+        function buildRoundingProblems() {
+            const problems = [];
+            for (const targetPlaces of [0, 1, 2]) {
+                let addedForTarget = 0;
+                for (const shift of [1, 2]) {
+                    const divisorStart = shift === 1 ? 3 : 11;
+                    for (let divisor = divisorStart; divisor <= 99 && addedForTarget < 240; divisor++) {
+                        if (divisor % 10 === 0) continue;
+                        for (let wholePart = 0; wholePart <= 120 && addedForTarget < 240; wholePart += 3) {
+                            const fractionalPart = 1 + ((divisor * 5 + wholePart * 7 + targetPlaces) % (divisor - 1));
+                            const shiftedDividendValue = divisor * wholePart + fractionalPart;
+                            const guardPlaces = targetPlaces + 1;
+                            const guardFactor = 10 ** guardPlaces;
+                            const quotientWithGuard = Math.floor(shiftedDividendValue * guardFactor / divisor);
+                            const remainderAfterGuard = shiftedDividendValue * guardFactor - divisor * quotientWithGuard;
+                            if (remainderAfterGuard === 0) continue;
+                            const roundedScaled = Math.floor((quotientWithGuard + 5) / 10);
+                            if (roundedScaled === 0) continue;
+                            const answer = formatFixedInteger(quotientWithGuard, guardPlaces);
+                            const originalDividend = formatScaled(shiftedDividendValue, shift);
+                            problems.push({
+                                kind: 'rounding', targetPlaces,
+                                originalDividend, originalDivisor: formatFixedInteger(divisor, shift), shift,
+                                divisor: String(divisor), shiftedDividend: String(shiftedDividendValue),
+                                dividend: padDividendForQuotient(String(shiftedDividendValue), answer),
+                                answer, answerDigits: answer.replace('.', '').split(''),
+                                roundedAnswer: formatScaled(roundedScaled, targetPlaces, true)
+                            });
+                            addedForTarget++;
+                        }
+                    }
+                }
+            }
+            return problems;
+        }
+
+        function buildProblemBanks() {
+            return {
+                ...buildExactProblemBanks(),
+                'remainder-whole': buildWholeRemainderProblems(),
+                'remainder-tenth': buildTenthRemainderProblems(),
+                'rounding': buildRoundingProblems()
+            };
         }
 
         const PROBLEM_BANKS = buildProblemBanks();
@@ -392,6 +549,28 @@
             return result;
         }
 
+        function questionsForMode(mode) {
+            if (mode !== 'rounding') return shuffled(PROBLEM_BANKS[mode]).slice(0, 10);
+            const byTarget = [0, 1, 2].map(target =>
+                shuffled(PROBLEM_BANKS.rounding.filter(problem => problem.targetPlaces === target))
+            );
+            return shuffled([...byTarget[0].slice(0, 3), ...byTarget[1].slice(0, 3), ...byTarget[2].slice(0, 4)]);
+        }
+
+        function placeLabel(places) {
+            if (places === 0) return '個位';
+            const names = ['', '一', '二', '三', '四'];
+            return `小數第${names[places] || places}位`;
+        }
+
+        function problemInstruction(problem) {
+            if (problem.kind === 'remainder') {
+                return problem.quotientPlaces === 0 ? '商取到整數後，寫出餘數' : '商取到小數第一位後，寫出餘數';
+            }
+            if (problem.kind === 'rounding') return `用四捨五入法將商取概數到${placeLabel(problem.targetPlaces)}`;
+            return '算出正確的商';
+        }
+
         function startGame(mode) {
             if (!MODE_CONFIG[mode]) return;
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -401,7 +580,7 @@
             state.qIndex = 0;
             state.score = 0;
             state.timer = 300;
-            state.questions = shuffled(PROBLEM_BANKS[mode]).slice(0, 10);
+            state.questions = questionsForMode(mode);
             document.querySelectorAll('.menu-btn').forEach(button => button.classList.remove('active'));
             document.getElementById(`btn-${mode}`).classList.add('active');
             document.getElementById('welcome-msg').classList.add('hidden');
@@ -436,14 +615,25 @@
             state.logicalOrder = [];
             state.cellAnswers = {};
             state.focusId = null;
+            state.quotientInputIds = [];
+            state.completedQuotientDigits = 0;
+            state.finalAnswerOrder = [];
+            state.finalAnswerAnswers = {};
+            state.finalFocusId = null;
 
             state.problem = state.questions[state.qIndex - 1];
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             document.getElementById('stat-score').innerText = `分數：${state.score}`;
-            document.getElementById('horizontal-problem').innerText = `${state.problem.originalDividend} ÷ ${state.problem.originalDivisor} = ?`;
+            document.getElementById('horizontal-problem').innerHTML = `${state.problem.originalDividend} ÷ ${state.problem.originalDivisor} = ?<span class="problem-instruction">${problemInstruction(state.problem)}</span>`;
             document.getElementById('move-panel').classList.remove('hidden');
             document.getElementById('math-vertical').classList.add('hidden');
             document.getElementById('numpad').classList.add('hidden');
+            document.getElementById('round-stop-btn').classList.add('hidden');
+            document.getElementById('round-stop-btn').classList.remove('ready', 'error');
+            document.getElementById('remainder-panel').classList.add('hidden');
+            document.getElementById('round-answer-panel').classList.add('hidden');
+            document.getElementById('remainder-equation').classList.add('hidden');
+            document.getElementById('remainder-equation').innerText = '';
             document.getElementById('continue-btn').classList.add('hidden');
             document.getElementById('converted-problem').classList.add('hidden');
             document.getElementById('divisor-result').innerText = '';
@@ -531,7 +721,10 @@
             document.getElementById('move-panel').classList.add('hidden');
             document.getElementById('math-vertical').classList.remove('hidden');
             document.getElementById('numpad').classList.remove('hidden');
-            document.getElementById('phase-note').innerText = '依照閃爍位置完成直式計算';
+            document.getElementById('phase-note').innerText = state.problem.kind === 'rounding'
+                ? `先算到${placeLabel(state.problem.targetPlaces + 1)}，再自己決定何時取概數`
+                : '依照閃爍位置完成直式計算';
+            document.getElementById('round-stop-btn').classList.toggle('hidden', state.problem.kind !== 'rounding');
             renderVerticalDivision();
             findNextFocus();
         }
@@ -613,6 +806,7 @@
                 cell.onclick = () => setFocus(id);
                 grid.appendChild(cell);
                 state.cellAnswers[id] = item.char;
+                state.quotientInputIds.push(id);
                 steps[item.index].quotientId = id;
             });
 
@@ -678,9 +872,27 @@
         function setFocus(id) {
             const cell = document.getElementById(id);
             if (cell && !cell.classList.contains('filled')) {
+                if (state.problem?.kind === 'rounding') {
+                    const stopId = state.quotientInputIds[state.quotientInputIds.length - 1];
+                    if (state.logicalOrder.indexOf(id) > state.logicalOrder.indexOf(stopId)) {
+                        playSound('wrong');
+                        state.hasErroredThisQuestion = true;
+                        document.getElementById('phase-note').innerText = '這一列不必再算；請在判斷位完成時取概數';
+                        return;
+                    }
+                }
                 state.focusId = id;
                 updateFocusUI();
             }
+        }
+
+        function roundingReady() {
+            if (state.problem?.kind !== 'rounding' || !state.quotientInputIds.length) return false;
+            const stopId = state.quotientInputIds[state.quotientInputIds.length - 1];
+            const stopIndex = state.logicalOrder.indexOf(stopId);
+            return state.logicalOrder.slice(0, stopIndex + 1).every(id =>
+                document.getElementById(id)?.classList.contains('filled')
+            );
         }
 
         function findNextFocus() {
@@ -698,6 +910,7 @@
         }
 
         window.inputDigit = function inputDigit(number) {
+            if (state.phase === 'round-answer') return inputFinalAnswerDigit(number);
             if (state.phase !== 'digits' || !state.focusId) return;
             const cell = document.getElementById(state.focusId);
             if (String(number) !== state.cellAnswers[state.focusId]) {
@@ -714,9 +927,153 @@
             cell.classList.remove('error');
             cell.classList.add('filled');
             state.filledCount++;
-            if (state.filledCount >= state.totalInputs) return finishQuestion();
+            if (state.quotientInputIds.includes(state.focusId)) {
+                state.completedQuotientDigits++;
+            }
+            if (roundingReady()) {
+                state.focusId = null;
+                updateFocusUI();
+                document.getElementById('phase-note').innerText = `判斷用的${placeLabel(state.problem.targetPlaces + 1)}已經算出，現在要做什麼？`;
+                document.getElementById('round-stop-btn').classList.add('ready');
+                playSound('correct');
+                return;
+            }
+            if (state.filledCount >= state.totalInputs) return completeLongDivision();
             findNextFocus();
         };
+
+        function completeLongDivision() {
+            if (state.problem.kind === 'remainder') return startRemainderPlacement();
+            finishQuestion();
+        }
+
+        function startRemainderPlacement() {
+            state.phase = 'remainder-point';
+            state.focusId = null;
+            updateFocusUI();
+            document.getElementById('numpad').classList.add('hidden');
+            document.getElementById('remainder-panel').classList.remove('hidden');
+            document.getElementById('phase-note').innerText = '直式算完了，最後確認餘數的小數點位置';
+
+            const raw = state.problem.rawRemainder;
+            const scale = state.problem.remainderScale;
+            const digits = raw.padStart(scale + 1, '0').split('');
+            const targetIndex = digits.length - scale;
+            const selector = document.getElementById('remainder-selector');
+            selector.innerHTML = '';
+            for (let index = 0; index <= digits.length; index++) {
+                const gap = document.createElement('button');
+                gap.type = 'button';
+                gap.className = 'decimal-gap';
+                gap.setAttribute('aria-label', `餘數小數點位置 ${index}`);
+                gap.onclick = () => selectRemainderPosition(index, targetIndex, gap);
+                selector.appendChild(gap);
+                if (index < digits.length) {
+                    const digit = document.createElement('span');
+                    digit.className = 'move-digit';
+                    digit.innerText = digits[index];
+                    selector.appendChild(digit);
+                }
+            }
+        }
+
+        function selectRemainderPosition(selectedIndex, targetIndex, button) {
+            if (state.phase !== 'remainder-point') return;
+            if (selectedIndex !== targetIndex) {
+                playSound('wrong');
+                state.hasErroredThisQuestion = true;
+                button.classList.add('wrong');
+                setTimeout(() => button.classList.remove('wrong'), 420);
+                return;
+            }
+
+            playSound('correct');
+            button.classList.add('correct');
+            button.parentElement.querySelectorAll('button').forEach(gap => { gap.disabled = true; });
+            const p = state.problem;
+            const equation = document.getElementById('remainder-equation');
+            equation.innerText = `商 ${p.answer}，餘數 ${p.remainderAnswer}　✓ ${p.originalDividend} = ${p.originalDivisor} × ${p.answer} + ${p.remainderAnswer}`;
+            equation.classList.remove('hidden');
+            state.phase = 'complete';
+            setTimeout(finishQuestion, 1500);
+        }
+
+        function requestRounding() {
+            if (state.problem?.kind !== 'rounding' || state.phase !== 'digits') return;
+            if (!roundingReady()) {
+                playSound('wrong');
+                state.hasErroredThisQuestion = true;
+                const missingPlace = placeLabel(state.problem.targetPlaces + 1);
+                document.getElementById('phase-note').innerText = `還不能取概數：要先算出判斷用的${missingPlace}`;
+                const button = document.getElementById('round-stop-btn');
+                button.classList.add('error');
+                setTimeout(() => button.classList.remove('error'), 420);
+                return;
+            }
+
+            state.phase = 'round-answer';
+            state.focusId = null;
+            updateFocusUI();
+            document.getElementById('round-stop-btn').classList.add('hidden');
+            document.querySelectorAll('#math-vertical .input-cell:not(.filled)').forEach(cell => cell.classList.add('skipped'));
+            document.getElementById('round-answer-panel').classList.remove('hidden');
+            document.getElementById('round-answer-title').innerText = `將商四捨五入取到${placeLabel(state.problem.targetPlaces)}`;
+            document.getElementById('round-answer-hint').innerText = '看判斷位完成進位，再用數字鍵填入答案。';
+            document.getElementById('phase-note').innerText = '停止位置正確，請填入取概數後的商';
+            renderFinalAnswer();
+        }
+
+        function renderFinalAnswer() {
+            const row = document.getElementById('round-answer-row');
+            row.innerHTML = '';
+            state.finalAnswerOrder = [];
+            state.finalAnswerAnswers = {};
+            let digitIndex = 0;
+            for (const char of state.problem.roundedAnswer) {
+                if (char === '.') {
+                    const dot = document.createElement('span');
+                    dot.className = 'final-answer-dot';
+                    dot.innerText = '.';
+                    row.appendChild(dot);
+                    continue;
+                }
+                const id = `final-answer-${digitIndex++}`;
+                const cell = document.createElement('div');
+                cell.className = 'final-answer-cell';
+                cell.id = id;
+                row.appendChild(cell);
+                state.finalAnswerOrder.push(id);
+                state.finalAnswerAnswers[id] = char;
+            }
+            state.finalFocusId = state.finalAnswerOrder[0] || null;
+            updateFinalAnswerFocus();
+        }
+
+        function updateFinalAnswerFocus() {
+            document.querySelectorAll('.final-answer-cell').forEach(cell => cell.classList.remove('active'));
+            if (state.finalFocusId) document.getElementById(state.finalFocusId)?.classList.add('active');
+        }
+
+        function inputFinalAnswerDigit(number) {
+            if (!state.finalFocusId) return;
+            const cell = document.getElementById(state.finalFocusId);
+            if (String(number) !== state.finalAnswerAnswers[state.finalFocusId]) {
+                playSound('wrong');
+                state.hasErroredThisQuestion = true;
+                cell.innerText = number;
+                cell.classList.add('error');
+                setTimeout(() => { cell.innerText = ''; cell.classList.remove('error'); }, 420);
+                return;
+            }
+
+            playSound('move');
+            cell.innerText = number;
+            cell.classList.add('filled');
+            const currentIndex = state.finalAnswerOrder.indexOf(state.finalFocusId);
+            state.finalFocusId = state.finalAnswerOrder[currentIndex + 1] || null;
+            updateFinalAnswerFocus();
+            if (!state.finalFocusId) finishQuestion();
+        }
 
         function finishQuestion() {
             playSound('correct');
