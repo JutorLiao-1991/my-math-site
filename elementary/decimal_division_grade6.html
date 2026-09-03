@@ -162,9 +162,32 @@
         .decimal-gap.correct { border-style: solid; border-color: var(--success); background: #e8f5e9; }
         .decimal-gap.correct::after { content: "✓"; color: var(--success); font-size: 1.2rem; }
         .decimal-gap.wrong { border-color: var(--error); background: #ffebee; }
-        .quotient-point-slots { gap: 0; }
-        .quotient-slot { flex: 0 0 38px; height: 48px; border: 2px dashed var(--border); border-radius: 8px; background: #fff; }
-        .integer-answer-btn { margin-top: 8px; padding: 10px 18px; border: 2px solid #90a4ae; border-radius: 999px; color: #546e7a; background: #fff; cursor: pointer; font-weight: 900; }
+        .quotient-inline-row {
+            position: relative; display: grid; gap: 6px; grid-column: 1 / -1;
+            align-items: center; justify-content: center;
+        }
+        .quotient-inline-row.has-point-task { margin-top: 72px; }
+        .quotient-inline-toolbar {
+            position: absolute; right: 0; bottom: calc(100% + 10px); left: 0;
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 7px;
+            min-height: 52px; padding: 7px 10px; border: 2px solid var(--border); border-radius: 12px;
+            color: #806f74; background: #fffafb; font: 800 .88rem "Segoe UI", "Microsoft JhengHei", sans-serif;
+        }
+        .quotient-inline-hint { flex: 1 1 100%; min-height: 1.2em; color: #806f74; text-align: center; }
+        .inline-decimal-choice {
+            position: absolute; top: 3px; z-index: 8; width: 32px; height: 44px; padding: 0;
+            border: 2px dashed #d9b6bf; border-radius: 999px; color: var(--primary-dark);
+            background: #fff8fa; cursor: pointer; font-size: 1.65rem; font-weight: 900; line-height: 1;
+        }
+        .inline-decimal-choice.before { left: -19px; }
+        .inline-decimal-choice.after { right: -19px; }
+        .inline-decimal-choice.in-dot { right: 5px; left: 5px; width: auto; }
+        .inline-decimal-choice:active:not(:disabled) { transform: scale(.92); }
+        .inline-decimal-choice:disabled { cursor: default; }
+        .inline-decimal-choice.muted { opacity: .2; }
+        .inline-decimal-choice.correct { border-style: solid; border-color: var(--success); color: var(--success); background: #e8f5e9; }
+        .inline-decimal-choice.wrong { border-color: var(--error); color: var(--error); background: #ffebee; }
+        .integer-answer-btn { padding: 7px 13px; border: 2px solid #90a4ae; border-radius: 999px; color: #546e7a; background: #fff; cursor: pointer; font-weight: 900; }
         .integer-answer-btn.correct { border-color: var(--success); color: #256b2b; background: #e8f5e9; }
         .integer-answer-btn.wrong { border-color: var(--error); color: var(--error); background: #ffebee; }
 
@@ -276,14 +299,6 @@
                 </div>
 
                 <div class="math-grid hidden" id="math-vertical"></div>
-
-                <div class="answer-panel hidden" id="quotient-point-panel">
-                    <h2 class="answer-title">第 2 步｜判斷商的小數點</h2>
-                    <p class="answer-hint">點選商的小數點位置；如果商是整數，請按「商是整數」。</p>
-                    <div class="gap-number quotient-point-slots" id="quotient-point-selector"></div>
-                    <button class="integer-answer-btn" id="integer-answer-btn" type="button" onclick="selectQuotientPosition(-1, this)">商是整數</button>
-                    <p class="answer-hint" id="quotient-point-hint"></p>
-                </div>
 
                 <div class="answer-panel hidden" id="remainder-panel">
                     <h2 class="answer-title">最後一步｜放好餘數的小數點</h2>
@@ -670,7 +685,6 @@
             document.getElementById('numpad').classList.add('hidden');
             document.getElementById('round-stop-btn').classList.add('hidden');
             document.getElementById('round-stop-btn').classList.remove('ready', 'error');
-            document.getElementById('quotient-point-panel').classList.add('hidden');
             document.getElementById('remainder-panel').classList.add('hidden');
             document.getElementById('round-answer-panel').classList.add('hidden');
             document.getElementById('remainder-equation').classList.add('hidden');
@@ -731,33 +745,56 @@
             if (state.phase !== 'quotient-point') return;
             document.getElementById('move-panel').classList.add('hidden');
             document.getElementById('math-vertical').classList.remove('hidden');
-            document.getElementById('quotient-point-panel').classList.remove('hidden');
-            document.getElementById('quotient-point-hint').innerText = '商的小數點尚未確認，數字鍵盤暫時鎖定。';
-            document.getElementById('phase-note').innerText = '請先判斷商的小數點位置';
+            document.getElementById('phase-note').innerText = '直接在直式的商數列點選小數點位置';
             renderVerticalDivision();
-            renderQuotientPointSelector();
         }
 
-        function renderQuotientPointSelector() {
-            const selector = document.getElementById('quotient-point-selector');
-            const quotientDigits = state.problem.answer.replace('.', '').split('');
-            selector.innerHTML = '';
-            for (let index = 0; index <= quotientDigits.length; index++) {
-                const gap = document.createElement('button');
-                gap.type = 'button';
-                gap.className = 'decimal-gap';
-                gap.setAttribute('aria-label', `商的小數點位置 ${index}`);
-                gap.onclick = () => selectQuotientPosition(index, gap);
-                selector.appendChild(gap);
-                if (index < quotientDigits.length) {
-                    const slot = document.createElement('span');
-                    slot.className = 'quotient-slot';
-                    selector.appendChild(slot);
+        function renderInlineQuotientPointSelector(row, digitCells, dotCell) {
+            row.classList.add('has-point-task');
+            const toolbar = document.createElement('div');
+            toolbar.className = 'quotient-inline-toolbar';
+            toolbar.id = 'quotient-inline-toolbar';
+            toolbar.innerHTML = '<span>點選商數列中正確的小數點位置</span>';
+
+            const integerButton = document.createElement('button');
+            integerButton.type = 'button';
+            integerButton.className = 'integer-answer-btn';
+            integerButton.id = 'integer-answer-btn';
+            integerButton.innerText = '商是整數';
+            integerButton.onclick = () => selectQuotientPosition(-1, integerButton);
+            toolbar.appendChild(integerButton);
+
+            const hint = document.createElement('span');
+            hint.className = 'quotient-inline-hint';
+            hint.id = 'quotient-point-hint';
+            hint.innerText = '小數點尚未確認，數字格暫時鎖定。';
+            toolbar.appendChild(hint);
+            row.appendChild(toolbar);
+
+            const quotient = state.problem.answer;
+            const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : -1;
+            for (let index = 0; index <= digitCells.length; index++) {
+                const choice = document.createElement('button');
+                choice.type = 'button';
+                choice.className = 'inline-decimal-choice';
+                choice.innerText = '·';
+                choice.setAttribute('aria-label', `商的小數點位置 ${index}`);
+                choice.onclick = event => {
+                    event.stopPropagation();
+                    selectQuotientPosition(index, choice);
+                };
+
+                if (index === targetIndex && dotCell) {
+                    choice.classList.add('in-dot');
+                    dotCell.appendChild(choice);
+                } else if (index < digitCells.length) {
+                    choice.classList.add('before');
+                    digitCells[index].appendChild(choice);
+                } else {
+                    choice.classList.add('after');
+                    digitCells[digitCells.length - 1].appendChild(choice);
                 }
             }
-            const integerButton = document.getElementById('integer-answer-btn');
-            integerButton.disabled = false;
-            integerButton.classList.remove('correct', 'wrong');
         }
 
         function selectQuotientPosition(selectedIndex, button) {
@@ -775,7 +812,10 @@
 
             playSound('correct');
             button.classList.add('correct');
-            document.querySelectorAll('#quotient-point-selector button, #integer-answer-btn').forEach(choice => { choice.disabled = true; });
+            document.querySelectorAll('#math-vertical .inline-decimal-choice, #integer-answer-btn').forEach(choice => {
+                choice.disabled = true;
+                if (choice !== button) choice.classList.add('muted');
+            });
             const dotCell = document.getElementById('quotient-dot-cell');
             if (dotCell) {
                 dotCell.innerText = '.';
@@ -791,7 +831,9 @@
         function startLongDivision() {
             if (state.phase !== 'ready-digits') return;
             state.phase = 'digits';
-            document.getElementById('quotient-point-panel').classList.add('hidden');
+            document.getElementById('quotient-inline-toolbar')?.remove();
+            document.querySelectorAll('#math-vertical .inline-decimal-choice').forEach(choice => choice.remove());
+            document.querySelector('#math-vertical .quotient-inline-row')?.classList.remove('has-point-task');
             document.getElementById('numpad').classList.remove('hidden');
             document.getElementById('phase-note').innerText = state.problem.kind === 'rounding'
                 ? `先算到${placeLabel(state.problem.targetPlaces + 1)}，再自己決定何時取概數`
@@ -870,22 +912,33 @@
                 quotientRow[quotientStartColumn + quotient.indexOf('.')] = { type: 'dot', char: '.' };
             }
 
+            const quotientRowElement = document.createElement('div');
+            quotientRowElement.className = 'quotient-inline-row';
+            quotientRowElement.style.gridTemplateColumns = `repeat(${cols}, minmax(29px, 42px))`;
+            const quotientDigitCells = [];
+            let quotientDotCell = null;
             quotientRow.forEach(item => {
-                if (!item) return grid.appendChild(createCell(''));
+                if (!item) return quotientRowElement.appendChild(createCell(''));
                 if (item.type === 'dot') {
                     const dotCell = createCell('');
                     dotCell.id = 'quotient-dot-cell';
                     dotCell.classList.add('quotient-dot-cell');
-                    return grid.appendChild(dotCell);
+                    quotientDotCell = dotCell;
+                    return quotientRowElement.appendChild(dotCell);
                 }
                 const id = `input-${state.totalInputs++}`;
                 const cell = createCell('', true, id);
                 cell.onclick = () => setFocus(id);
-                grid.appendChild(cell);
+                quotientRowElement.appendChild(cell);
                 state.cellAnswers[id] = item.char;
                 state.quotientInputIds.push(id);
+                quotientDigitCells.push(cell);
                 steps[item.index].quotientId = id;
             });
+            grid.appendChild(quotientRowElement);
+            if (state.phase === 'quotient-point') {
+                renderInlineQuotientPointSelector(quotientRowElement, quotientDigitCells, quotientDotCell);
+            }
 
             grid.appendChild(createLine('div-line'));
             const dividendRow = Array(cols).fill('');

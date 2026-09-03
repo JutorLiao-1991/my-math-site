@@ -61,15 +61,22 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("除數、被除數同時移動", self.page)
 
     def test_quotient_decimal_point_is_checked_before_digit_entry(self):
-        self.assertIn("第 2 步｜判斷商的小數點", self.page)
         self.assertIn("function prepareQuotientPointPlacement()", self.page)
-        self.assertIn("function renderQuotientPointSelector()", self.page)
+        self.assertIn("function renderInlineQuotientPointSelector(row, digitCells, dotCell)", self.page)
         self.assertIn("function selectQuotientPosition(selectedIndex, button)", self.page)
         self.assertIn("const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : -1", self.page)
         self.assertIn("state.phase = 'ready-digits'", self.page)
         self.assertIn("if (state.phase !== 'ready-digits') return", self.page)
         self.assertIn("商是整數", self.page)
         self.assertIn("state.hasErroredThisQuestion = true", self.page)
+
+    def test_quotient_point_choices_are_embedded_in_long_division(self):
+        self.assertIn("className = 'quotient-inline-row'", self.page)
+        self.assertIn("className = 'inline-decimal-choice'", self.page)
+        self.assertIn("digitCells[index].appendChild(choice)", self.page)
+        self.assertIn("dotCell.appendChild(choice)", self.page)
+        self.assertNotIn('id="quotient-point-panel"', self.page)
+        self.assertNotIn('id="quotient-point-selector"', self.page)
 
     def test_keeps_existing_challenge_rules_and_touch_numpad(self):
         self.assertIn("state.qIndex >= 10", self.page)
