@@ -6232,6 +6232,258 @@ var jutorDB = {
           "ch": "觀光；遊覽",
           "sentence": "They went sightseeing in Tainan last weekend."
         }
+      ],
+      "國二上 Unit 6": [
+        {
+          "en": "will",
+          "ch": "將",
+          "sentence": "He will visit his grandparents this weekend."
+        },
+        {
+          "en": "ugly",
+          "ch": "醜的",
+          "sentence": "The sweater is ugly, but it is very warm."
+        },
+        {
+          "en": "sweater",
+          "ch": "毛衣",
+          "sentence": "I bought a red sweater for Christmas."
+        },
+        {
+          "en": "tonight",
+          "ch": "今晚",
+          "sentence": "We are going to have dinner together tonight."
+        },
+        {
+          "en": "funny",
+          "ch": "滑稽的",
+          "sentence": "The clown's funny face made everyone laugh."
+        },
+        {
+          "en": "cost",
+          "ch": "價錢為；花費",
+          "sentence": "The new jacket cost me two thousand dollars."
+        },
+        {
+          "en": "price",
+          "ch": "價格",
+          "sentence": "The price of this computer is very high."
+        },
+        {
+          "en": "spend",
+          "ch": "花費（時間、金錢）",
+          "sentence": "I spent three hours finishing my homework."
+        },
+        {
+          "en": "expensive",
+          "ch": "昂貴的",
+          "sentence": "That sports car is too expensive for me to buy."
+        },
+        {
+          "en": "on sale",
+          "ch": "特價中",
+          "sentence": "All the coats in the store are on sale today."
+        },
+        {
+          "en": "pair",
+          "ch": "(一)雙；(一)對",
+          "sentence": "She bought a new pair of shoes yesterday."
+        },
+        {
+          "en": "total",
+          "ch": "總計(的)；全部(的)",
+          "sentence": "The total cost of the dinner was five hundred dollars."
+        },
+        {
+          "en": "pay",
+          "ch": "付費；工資",
+          "sentence": "Can I pay for the meal with cash?"
+        },
+        {
+          "en": "thousand",
+          "ch": "千",
+          "sentence": "There are more than one thousand students in our school."
+        },
+        {
+          "en": "tomorrow",
+          "ch": "明天",
+          "sentence": "We will go on a picnic tomorrow morning."
+        },
+        {
+          "en": "high",
+          "ch": "高的",
+          "sentence": "The price of vegetables is very high after the typhoon."
+        },
+        {
+          "en": "save",
+          "ch": "節省",
+          "sentence": "Turn off the lights when you leave to save electricity."
+        },
+        {
+          "en": "would like",
+          "ch": "想要",
+          "sentence": "I would like a cup of hot tea, please."
+        },
+        {
+          "en": "change",
+          "ch": "找零",
+          "sentence": "Here is your change and receipt."
+        },
+        {
+          "en": "take",
+          "ch": "花費（時間）",
+          "sentence": "It took me twenty minutes to walk to the station."
+        },
+        {
+          "en": "dress",
+          "ch": "打扮；洋裝",
+          "sentence": "She wore a beautiful pink dress to the party."
+        },
+        {
+          "en": "cap",
+          "ch": "(前有遮簷的)帽子",
+          "sentence": "He wore a baseball cap to protect his eyes from the sun."
+        },
+        {
+          "en": "shirt",
+          "ch": "襯衫",
+          "sentence": "Dad wears a white shirt to work every day."
+        },
+        {
+          "en": "belt",
+          "ch": "腰帶",
+          "sentence": "He needs a brown belt for his new pants."
+        },
+        {
+          "en": "jeans",
+          "ch": "牛仔褲",
+          "sentence": "Blue jeans are very popular among teenagers."
+        },
+        {
+          "en": "sock",
+          "ch": "襪子",
+          "sentence": "He found his missing sock under the bed."
+        },
+        {
+          "en": "tie",
+          "ch": "領帶",
+          "sentence": "Mr. Lin wears a tie when meeting important clients."
+        },
+        {
+          "en": "pants",
+          "ch": "長褲",
+          "sentence": "These black pants are too long for me."
+        },
+        {
+          "en": "shoe",
+          "ch": "鞋",
+          "sentence": "I need to buy a pair of running shoes."
+        },
+        {
+          "en": "T-shirt",
+          "ch": "T恤",
+          "sentence": "He likes wearing a simple T-shirt in summer."
+        },
+        {
+          "en": "shorts",
+          "ch": "短褲",
+          "sentence": "I usually wear shorts when I play basketball."
+        },
+        {
+          "en": "hat",
+          "ch": "帽子",
+          "sentence": "Put on your hat before going out in the cold weather."
+        },
+        {
+          "en": "coat",
+          "ch": "外套",
+          "sentence": "You should wear a heavy coat because it is freezing outside."
+        },
+        {
+          "en": "skirt",
+          "ch": "裙子",
+          "sentence": "The girl in the yellow skirt is my classmate."
+        },
+        {
+          "en": "glasses",
+          "ch": "眼鏡",
+          "sentence": "My grandfather needs his reading glasses to read the book."
+        },
+        {
+          "en": "ring",
+          "ch": "戒指；環(狀物)",
+          "sentence": "She wears a silver ring on her finger."
+        },
+        {
+          "en": "take off",
+          "ch": "脫下",
+          "sentence": "Please take off your shoes before entering the house."
+        },
+        {
+          "en": "fast",
+          "ch": "快(的)；快(地)",
+          "sentence": "He is a fast runner and won first place."
+        },
+        {
+          "en": "low",
+          "ch": "低的",
+          "sentence": "The temperature will be very low tonight."
+        },
+        {
+          "en": "cheap",
+          "ch": "便宜的",
+          "sentence": "The food at this night market is both cheap and delicious."
+        },
+        {
+          "en": "what's more",
+          "ch": "而且",
+          "sentence": "The hotel is clean, and what's more, it is close to the beach."
+        },
+        {
+          "en": "most",
+          "ch": "大部分的",
+          "sentence": "Most students in our class enjoy playing online games."
+        },
+        {
+          "en": "hurt",
+          "ch": "傷害",
+          "sentence": "Be careful with your words so you don't hurt others."
+        },
+        {
+          "en": "come off",
+          "ch": "從…脫落",
+          "sentence": "A button came off my shirt this morning."
+        },
+        {
+          "en": "second",
+          "ch": "秒",
+          "sentence": "Wait for me; I'll be ready in just a second."
+        },
+        {
+          "en": "checkout",
+          "ch": "結帳處",
+          "sentence": "Please take your items to the checkout to pay."
+        },
+        {
+          "en": "cash",
+          "ch": "現金",
+          "sentence": "I don't have enough cash, so I will pay by card."
+        },
+        {
+          "en": "truth",
+          "ch": "真相",
+          "sentence": "You should always tell the truth to your family."
+        },
+        {
+          "en": "fashion",
+          "ch": "時尚",
+          "sentence": "She always keeps up with the latest fashion trends."
+        },
+        {
+          "en": "environment",
+          "ch": "環境",
+          "sentence": "We must take action to protect the environment."
+        }
       ]
     }
   },
