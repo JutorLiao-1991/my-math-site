@@ -5783,6 +5783,223 @@ var jutorDB = {
           "ch": "洞",
           "sentence": "There is a small hole in my sock."
         }
+      ],
+      "國二上 Unit 4": [
+        {
+          "en": "hope",
+          "ch": "希望",
+          "sentence": "I hope you have a great time at the party."
+        },
+        {
+          "en": "future",
+          "ch": "未來（的）",
+          "sentence": "What do you want to be in the future?"
+        },
+        {
+          "en": "plan",
+          "ch": "規劃；計畫",
+          "sentence": "We need to make a plan for our summer vacation."
+        },
+        {
+          "en": "lawyer",
+          "ch": "律師",
+          "sentence": "She wants to be a lawyer to help people in need."
+        },
+        {
+          "en": "job",
+          "ch": "工作",
+          "sentence": "My uncle loves his job as an English teacher."
+        },
+        {
+          "en": "get butterflies in one's stomach",
+          "ch": "感到緊張",
+          "sentence": "I always get butterflies in my stomach before speaking on stage."
+        },
+        {
+          "en": "worry",
+          "ch": "擔心",
+          "sentence": "Don't worry about the test; you studied very hard."
+        },
+        {
+          "en": "keep",
+          "ch": "持續；保持",
+          "sentence": "Please keep quiet while reading in the library."
+        },
+        {
+          "en": "idea",
+          "ch": "主意；想法",
+          "sentence": "Going for a picnic this weekend is a wonderful idea."
+        },
+        {
+          "en": "right",
+          "ch": "權利",
+          "sentence": "Every child has the right to go to school."
+        },
+        {
+          "en": "put on",
+          "ch": "穿上",
+          "sentence": "Put on your heavy coat because it is cold outside."
+        },
+        {
+          "en": "reporter",
+          "ch": "記者",
+          "sentence": "The news reporter is talking about the typhoon."
+        },
+        {
+          "en": "interview",
+          "ch": "採訪；面試",
+          "sentence": "The writer had an interview on TV yesterday."
+        },
+        {
+          "en": "mail carrier",
+          "ch": "郵差",
+          "sentence": "The mail carrier brings letters to our house every morning."
+        },
+        {
+          "en": "dentist",
+          "ch": "牙醫",
+          "sentence": "You should visit the dentist every six months."
+        },
+        {
+          "en": "factory",
+          "ch": "工廠",
+          "sentence": "My grandfather worked in a shoe factory for thirty years."
+        },
+        {
+          "en": "fisherman",
+          "ch": "漁夫",
+          "sentence": "The fisherman caught a lot of fish this morning."
+        },
+        {
+          "en": "secretary",
+          "ch": "秘書",
+          "sentence": "The secretary helped her boss answer the phone calls."
+        },
+        {
+          "en": "boss",
+          "ch": "老闆",
+          "sentence": "Our boss is very kind to everyone in the office."
+        },
+        {
+          "en": "salesman",
+          "ch": "銷售員；業務員",
+          "sentence": "The salesman introduced the new smartphone to us."
+        },
+        {
+          "en": "farmer",
+          "ch": "農夫",
+          "sentence": "The farmer works hard in the fields every day."
+        },
+        {
+          "en": "grow",
+          "ch": "種植；成長",
+          "sentence": "Flowers grow quickly in the warm sunshine."
+        },
+        {
+          "en": "soldier",
+          "ch": "士兵",
+          "sentence": "The brave soldier fought for his country."
+        },
+        {
+          "en": "country",
+          "ch": "國家",
+          "sentence": "Taiwan is a beautiful country with friendly people."
+        },
+        {
+          "en": "truck driver",
+          "ch": "卡車司機",
+          "sentence": "His father is an experienced truck driver."
+        },
+        {
+          "en": "drive",
+          "ch": "開（車）",
+          "sentence": "My mother drives me to school every morning."
+        },
+        {
+          "en": "successful",
+          "ch": "成功的",
+          "sentence": "After years of practice, she became a successful dancer."
+        },
+        {
+          "en": "find",
+          "ch": "找到；發現",
+          "sentence": "I cannot find my math workbook anywhere."
+        },
+        {
+          "en": "grade",
+          "ch": "年級",
+          "sentence": "Tina is an eighth grade student this year."
+        },
+        {
+          "en": "decide",
+          "ch": "決定",
+          "sentence": "We decided to go to the night market tonight."
+        },
+        {
+          "en": "become",
+          "ch": "成為",
+          "sentence": "He wants to become a doctor in the future."
+        },
+        {
+          "en": "relative",
+          "ch": "親戚",
+          "sentence": "We visit our relatives during the Chinese New Year."
+        },
+        {
+          "en": "believe",
+          "ch": "相信",
+          "sentence": "I believe that hard work brings good results."
+        },
+        {
+          "en": "act",
+          "ch": "表演",
+          "sentence": "The students will act in the English drama contest."
+        },
+        {
+          "en": "all over",
+          "ch": "遍及",
+          "sentence": "People all over the world enjoy listening to music."
+        },
+        {
+          "en": "make fun of",
+          "ch": "取笑",
+          "sentence": "It is not polite to make fun of other people."
+        },
+        {
+          "en": "give up",
+          "ch": "放棄",
+          "sentence": "Never give up easily when facing challenges."
+        },
+        {
+          "en": "channel",
+          "ch": "頻道",
+          "sentence": "Which TV channel are you watching right now?"
+        },
+        {
+          "en": "wig",
+          "ch": "假髮",
+          "sentence": "The actor wore a funny yellow wig on stage."
+        },
+        {
+          "en": "career",
+          "ch": "職業",
+          "sentence": "Teaching is a rewarding career for her."
+        },
+        {
+          "en": "deliver",
+          "ch": "投遞；運送",
+          "sentence": "They deliver hot pizza to your door in thirty minutes."
+        },
+        {
+          "en": "success",
+          "ch": "成功",
+          "sentence": "Confidence and effort are important keys to success."
+        },
+        {
+          "en": "audition",
+          "ch": "試鏡",
+          "sentence": "She went to an audition for the school musical."
+        }
       ]
     }
   },
