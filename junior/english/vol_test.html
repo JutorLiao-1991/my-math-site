@@ -242,6 +242,7 @@
     }
 
     let currentList = [], currentIndex = 0, currentWordObj = null, quizMode = 'practice', score = 0, spellingAttempts = 0, isSentenceMode = false;
+    let currentQuestionUsesSentenceCloze = false;
     let isSubmitted = false;
     const STUDY_STORAGE_KEY = "jutor_vocab_study_v1";
     const SLOW_PHRASE_PAUSE_MS = 450;
@@ -525,11 +526,27 @@
         loadQuestion();
     }
 
+    function replaceExactVocabularyForm(sentence, answer, replacement) {
+        const source = String(sentence || "").trim();
+        const target = String(answer || "").trim();
+        if (!source || !target) return null;
+
+        const escapedTarget = target.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const exactFormRegex = new RegExp(`(^|[^A-Za-z])(${escapedTarget})(?=$|[^A-Za-z])`, "gi");
+        let found = false;
+        const result = source.replace(exactFormRegex, (match, prefix) => {
+            found = true;
+            return prefix + replacement;
+        });
+        return found ? result : null;
+    }
+
     function loadQuestion() {
         currentWordObj = currentList[currentIndex];
         spellingAttempts = 0;
         isSubmitted = false; 
         isSentenceMode = false;
+        currentQuestionUsesSentenceCloze = false;
 
         document.getElementById('step-spelling').classList.remove('hidden');
         document.getElementById('step-meaning').classList.add('hidden');
@@ -558,11 +575,25 @@
         } else {
             container.classList.remove('sentence-mode');
             if (currentWordObj.sentence) {
-                const regex = new RegExp(currentWordObj.en, "gi");
-                const cloze = currentWordObj.sentence.replace(regex, '<span class="blank-space">_______</span>');
-                displayArea.innerHTML = cloze;
+                const cloze = replaceExactVocabularyForm(
+                    currentWordObj.sentence,
+                    currentWordObj.en,
+                    '<span class="blank-space">_______</span>'
+                );
+                if (cloze !== null) {
+                    currentQuestionUsesSentenceCloze = true;
+                    displayArea.innerHTML = cloze;
+                } else {
+                    const meaning = String(currentWordObj.ch || "").trim();
+                    displayArea.textContent = meaning
+                        ? `中文提示：${meaning}（請輸入單字原形）`
+                        : "請根據發音輸入單字原形";
+                }
             } else {
-                displayArea.innerHTML = '<span class="blank-space">_______</span>';
+                const meaning = String(currentWordObj.ch || "").trim();
+                displayArea.textContent = meaning
+                    ? `中文提示：${meaning}（請輸入單字原形）`
+                    : "請根據發音輸入單字原形";
             }
             document.getElementById('spellingInput').placeholder = "輸入單字";
         }
@@ -572,7 +603,9 @@
     }
 
     function playCurrentWord() {
-        let textToRead = isSentenceMode ? currentWordObj.ch : (currentWordObj.sentence || currentWordObj.en);
+        let textToRead = isSentenceMode
+            ? currentWordObj.ch
+            : (currentQuestionUsesSentenceCloze ? currentWordObj.sentence : currentWordObj.en);
         let lang = isSentenceMode ? "zh-TW" : "en-US";
         const u = new SpeechSynthesisUtterance(textToRead);
         u.lang = lang; u.rate = 0.8;
@@ -630,9 +663,16 @@
                     document.getElementById('step-spelling').classList.add('hidden');
                     document.getElementById('step-meaning').classList.remove('hidden');
                     if (currentWordObj.sentence) {
-                        const regex = new RegExp(currentWordObj.en, "gi");
-                        const fullSentence = currentWordObj.sentence.replace(regex, `<u style="color:var(--accent);">${currentWordObj.en}</u>`);
-                        document.getElementById('fullSentenceDisplay').innerHTML = fullSentence;
+                        const fullSentence = replaceExactVocabularyForm(
+                            currentWordObj.sentence,
+                            currentWordObj.en,
+                            `<u style="color:var(--accent);">${currentWordObj.en}</u>`
+                        );
+                        if (fullSentence !== null) {
+                            document.getElementById('fullSentenceDisplay').innerHTML = fullSentence;
+                        } else {
+                            document.getElementById('fullSentenceDisplay').textContent = currentWordObj.sentence;
+                        }
                     } else {
                         document.getElementById('fullSentenceDisplay').textContent = currentWordObj.en;
                     }
