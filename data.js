@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月2日" // 已更新為最新日期
+    lastUpdated: "2026年9月3日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -126,12 +126,20 @@ const lessonData = [
         desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
     },
     {
-        title: "小數乘法與除法",
+        title: "小數乘法與除法（五年級）",
         category: "elementary", // 設定為國小區類別
         url: "elementary/decimal_times_div.html", // 依照您截圖的路徑
         tagClass: "math",
         tagName: "國小數學",
-        desc: "挑戰小數乘法與除法。"
+        desc: "練習小數乘法，以及小數除以整數的直式計算。"
+    },
+    {
+        title: "小數的除法（六年級）",
+        category: "elementary",
+        url: "elementary/decimal_division_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "先移動除數與被除數的小數點，再完成整數除以小數、小數除以小數的直式計算。"
     },
     {
         title: "時間乘法與除法",
