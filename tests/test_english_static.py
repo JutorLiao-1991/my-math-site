@@ -60,6 +60,21 @@ class EnglishStaticSecurityTests(unittest.TestCase):
         self.assertIn("每題 5 分，共 100 分", source)
         self.assertIn("currentWordObj.sentence", source)
 
+    def test_vocabulary_inflection_does_not_create_a_misleading_cloze(self):
+        source = (ROOT / "junior/english/vol_test.html").read_text(encoding="utf-8")
+        for marker in [
+            "function replaceExactVocabularyForm(sentence, answer, replacement)",
+            "currentQuestionUsesSentenceCloze = false",
+            "cloze !== null",
+            "中文提示：${meaning}（請輸入單字原形）",
+            "currentQuestionUsesSentenceCloze ? currentWordObj.sentence : currentWordObj.en",
+        ]:
+            self.assertIn(marker, source)
+
+        database = (ROOT / "junior/english/database.js").read_text(encoding="utf-8")
+        self.assertIn('"en": "give"', database)
+        self.assertIn('"sentence": "He gave me a wonderful birthday gift."', database)
+
     def test_grammar_exam_is_ten_questions_and_one_hundred_points(self):
         source = (ROOT / "junior/english/basic_grammar.html").read_text(encoding="utf-8")
         self.assertIn("const SP_TOTAL_Q = 10", source)
