@@ -6000,6 +6000,238 @@ var jutorDB = {
           "ch": "試鏡",
           "sentence": "She went to an audition for the school musical."
         }
+      ],
+      "國二上 Unit 5": [
+        {
+          "en": "metro",
+          "ch": "捷運",
+          "sentence": "We can take the metro to the night market."
+        },
+        {
+          "en": "lost",
+          "ch": "迷路的",
+          "sentence": "Don't worry; we won't get lost with this map."
+        },
+        {
+          "en": "map",
+          "ch": "地圖",
+          "sentence": "Look at the map to find the nearest museum."
+        },
+        {
+          "en": "ask",
+          "ch": "請求；詢問",
+          "sentence": "You can ask the police officer for directions."
+        },
+        {
+          "en": "Excuse me.",
+          "ch": "（對不起）請問⋯。",
+          "sentence": "Excuse me, where is the nearest bookstore?"
+        },
+        {
+          "en": "straight",
+          "ch": "直地；直的",
+          "sentence": "Go straight for two blocks, and you will see the park."
+        },
+        {
+          "en": "turn left",
+          "ch": "向左轉",
+          "sentence": "Turn left at the next corner."
+        },
+        {
+          "en": "along",
+          "ch": "沿著",
+          "sentence": "Walk along the river, and you will find the cafe."
+        },
+        {
+          "en": "block",
+          "ch": "街區",
+          "sentence": "The library is just one block away."
+        },
+        {
+          "en": "corner",
+          "ch": "轉角；角落",
+          "sentence": "There is a convenience store on the corner."
+        },
+        {
+          "en": "across from",
+          "ch": "在⋯的對面",
+          "sentence": "The bakery is across from the post office."
+        },
+        {
+          "en": "supermarket",
+          "ch": "超市",
+          "sentence": "Mom bought some fresh fruit at the supermarket."
+        },
+        {
+          "en": "ground",
+          "ch": "地面",
+          "sentence": "The fallen leaves covered the ground."
+        },
+        {
+          "en": "sir",
+          "ch": "先生",
+          "sentence": "May I help you with your bags, sir?"
+        },
+        {
+          "en": "on foot",
+          "ch": "步行",
+          "sentence": "He goes to school on foot every day."
+        },
+        {
+          "en": "take",
+          "ch": "搭乘（交通工具）",
+          "sentence": "Let's take a bus to the zoo."
+        },
+        {
+          "en": "by",
+          "ch": "搭乘；藉由⋯方式",
+          "sentence": "They traveled to Hualien by train."
+        },
+        {
+          "en": "get off",
+          "ch": "下（車、飛機等）",
+          "sentence": "Remember to get off at the final station."
+        },
+        {
+          "en": "get",
+          "ch": "到達",
+          "sentence": "How can I get to the train station?"
+        },
+        {
+          "en": "right",
+          "ch": "右邊（的）",
+          "sentence": "Turn right after you pass the fire station."
+        },
+        {
+          "en": "ship",
+          "ch": "輪船",
+          "sentence": "A large ship is arriving at the port."
+        },
+        {
+          "en": "taxi",
+          "ch": "計程車",
+          "sentence": "We took a taxi because we were running late."
+        },
+        {
+          "en": "bike",
+          "ch": "單車",
+          "sentence": "I often ride my bike to the park on weekends."
+        },
+        {
+          "en": "motorcycle",
+          "ch": "機車；摩托車",
+          "sentence": "My uncle bought a new motorcycle yesterday."
+        },
+        {
+          "en": "scooter",
+          "ch": "機車",
+          "sentence": "Many people in Taiwan ride a scooter to work."
+        },
+        {
+          "en": "bank",
+          "ch": "銀行；河岸",
+          "sentence": "My father works at a bank in Taipei."
+        },
+        {
+          "en": "fire station",
+          "ch": "消防局",
+          "sentence": "There is a fire station near our neighborhood."
+        },
+        {
+          "en": "toy",
+          "ch": "玩具",
+          "sentence": "The little boy is playing with his toy car."
+        },
+        {
+          "en": "post office",
+          "ch": "郵局",
+          "sentence": "I need to go to the post office to mail a letter."
+        },
+        {
+          "en": "hospital",
+          "ch": "醫院",
+          "sentence": "The doctor works at a big hospital in the city."
+        },
+        {
+          "en": "pool",
+          "ch": "水池",
+          "sentence": "The children are swimming in the pool."
+        },
+        {
+          "en": "go jogging",
+          "ch": "慢跑",
+          "sentence": "My sister likes to go jogging in the morning."
+        },
+        {
+          "en": "go sailing",
+          "ch": "玩帆船；航行",
+          "sentence": "We plan to go sailing this weekend."
+        },
+        {
+          "en": "go surfing",
+          "ch": "衝浪",
+          "sentence": "They go surfing at the beach every summer."
+        },
+        {
+          "en": "fly",
+          "ch": "飛行；駕駛",
+          "sentence": "Birds can fly high in the sky."
+        },
+        {
+          "en": "bus stop",
+          "ch": "公車站",
+          "sentence": "Let's wait for Jenny at the bus stop."
+        },
+        {
+          "en": "go biking",
+          "ch": "騎單車",
+          "sentence": "We often go biking along the river."
+        },
+        {
+          "en": "go shopping",
+          "ch": "購物",
+          "sentence": "Mom and I went shopping at the mall."
+        },
+        {
+          "en": "hit",
+          "ch": "碰撞；打擊",
+          "sentence": "The car hit a tree by accident."
+        },
+        {
+          "en": "sound",
+          "ch": "聲音",
+          "sentence": "I heard a strange sound coming from the kitchen."
+        },
+        {
+          "en": "bell",
+          "ch": "鐘；鈴",
+          "sentence": "The school bell rang, and the class began."
+        },
+        {
+          "en": "experience",
+          "ch": "經歷；經驗",
+          "sentence": "Traveling alone was a great experience for him."
+        },
+        {
+          "en": "wonderful",
+          "ch": "美好的",
+          "sentence": "We had a wonderful time at the party."
+        },
+        {
+          "en": "play",
+          "ch": "戲劇",
+          "sentence": "We went to the theater to watch a play."
+        },
+        {
+          "en": "around",
+          "ch": "大約",
+          "sentence": "The concert will start at around seven o'clock."
+        },
+        {
+          "en": "go sightseeing",
+          "ch": "觀光；遊覽",
+          "sentence": "They went sightseeing in Tainan last weekend."
+        }
       ]
     }
   },
