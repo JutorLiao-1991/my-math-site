@@ -5090,197 +5090,207 @@ var jutorDB = {
         {
           "en": "summer vacation",
           "ch": "暑假",
-          "sentence": "I went to Australia during summer vacation in August."
+          "sentence": "What did you do during the summer vacation?"
         },
         {
           "en": "weather",
           "ch": "天氣",
-          "sentence": "The weather in Africa is usually hot."
+          "sentence": "How is the weather today?"
         },
         {
           "en": "Taiwan",
           "ch": "臺灣",
-          "sentence": "Taiwan is an island with a lot of yummy food."
+          "sentence": "I live in Taiwan."
         },
         {
           "en": "fun",
           "ch": "樂趣；有趣的",
-          "sentence": "Was it fun at the park last Sunday?"
+          "sentence": "Playing video games is fun."
         },
         {
           "en": "snow",
           "ch": "下雪；雪",
-          "sentence": "Does it snow in Taiwan?"
+          "sentence": "It doesn't snow in the city."
         },
         {
           "en": "send",
           "ch": "寄；送",
-          "sentence": "Did you send your mom a Christmas card?"
+          "sentence": "Please send me a postcard."
         },
         {
           "en": "postcard",
           "ch": "明信片",
-          "sentence": "I sent my brother a postcard from Poland."
+          "sentence": "She sent a postcard to her friend."
         },
         {
           "en": "borrow",
           "ch": "借（入）",
-          "sentence": "Sabrina is borrowing an umbrella from her friend."
+          "sentence": "Can I borrow your pen?"
         },
         {
           "en": "lend",
           "ch": "借（出）",
-          "sentence": "Can you lend these new books to me?"
+          "sentence": "Can you lend me some money?"
         },
         {
           "en": "glove",
           "ch": "手套",
-          "sentence": "My father bought me new gloves for winter."
+          "sentence": "He wears gloves in winter."
         },
         {
           "en": "kind",
           "ch": "親切的；有同情心的",
-          "sentence": "Michelle is a kind teacher. Her students like her very much."
+          "sentence": "It is kind of you to help me."
         },
         {
           "en": "lovely",
           "ch": "可愛的；美好的",
-          "sentence": "Mark is a lovely person, so he has many friends."
+          "sentence": "We had a lovely time at the park."
         },
         {
           "en": "jacket",
           "ch": "夾克",
-          "sentence": "Tyler, can I borrow your jacket, please? I am cold."
+          "sentence": "Put on your jacket; it's cold outside."
         },
         {
           "en": "give",
           "ch": "給予",
-          "sentence": "Can you give me a glass of water, please?"
+          "sentence": "He gave me a wonderful birthday gift."
         },
         {
           "en": "hate",
           "ch": "討厭",
-          "sentence": "I hate milk; I never drink it."
+          "sentence": "I hate waking up early on weekends."
         },
         {
           "en": "heavy",
           "ch": "厚重的；大量的",
-          "sentence": "We had heavy snow last week."
+          "sentence": "The box is too heavy for me to carry."
         },
         {
           "en": "season",
           "ch": "季節",
-          "sentence": "Many people visit the island during the holiday season."
+          "sentence": "Autumn is my favorite season."
         },
         {
           "en": "spring",
           "ch": "春天",
-          "sentence": "I like spring because the weather is warm."
+          "sentence": "Flowers bloom in spring."
         },
         {
           "en": "cloud",
           "ch": "雲",
-          "sentence": "It's a beautiful day. There's not a cloud in the sky."
+          "sentence": "There are white clouds in the sky."
         },
         {
           "en": "sun",
           "ch": "太陽",
-          "sentence": "Don't sit in the sun; it's too hot."
+          "sentence": "The sun rises in the east."
         },
         {
           "en": "autumn",
           "ch": "秋天",
-          "sentence": "Autumn is the season between summer and winter."
+          "sentence": "Leaves turn yellow in autumn."
         },
         {
           "en": "wind",
           "ch": "風",
-          "sentence": "The winds are so strong today."
+          "sentence": "A cold wind is blowing."
         },
         {
           "en": "winter",
           "ch": "冬天",
-          "sentence": "Mom doesn't like winter because the weather is too cold for her."
+          "sentence": "It is very cold in winter."
         },
         {
           "en": "sunny",
           "ch": "陽光普照的",
-          "sentence": "It's sunny today. Let's take a walk in the park."
+          "sentence": "It is a sunny Sunday morning."
         },
         {
           "en": "snowy",
           "ch": "有雪的；下雪的",
-          "sentence": "We had a snowy winter last year."
+          "sentence": "We built a snowman on a snowy day."
         },
         {
           "en": "rainy",
           "ch": "有雨的；下雨的",
-          "sentence": "Don't you have an umbrella with you on a rainy day?"
+          "sentence": "Take an umbrella with you on a rainy day."
         },
         {
           "en": "cloudy",
           "ch": "多雲的",
-          "sentence": "Is it warm and sunny in Taipei now? No. It's cloudy."
+          "sentence": "It is cloudy today, but it won't rain."
         },
         {
           "en": "windy",
           "ch": "風大的",
-          "sentence": "It's very windy. Please go inside the house."
+          "sentence": "It is too windy to play badminton outside."
         },
         {
           "en": "cool",
           "ch": "涼爽的",
-          "sentence": "I took my dog to the beach on a cool evening."
+          "sentence": "The weather is cool and comfortable today."
         },
         {
           "en": "speak",
           "ch": "講話",
-          "sentence": "Many people in Taiwan can speak English."
+          "sentence": "Please speak English in class."
         },
         {
           "en": "mad",
           "ch": "生氣的",
-          "sentence": "I was late for school again today, so my teacher was mad."
+          "sentence": "Mom got mad at me because I broke the cup."
         },
         {
           "en": "in fact",
           "ch": "事實上",
-          "sentence": "In fact, she's sad these days because her cat died last week."
+          "sentence": "In fact, I don't really like chocolate."
         },
         {
           "en": "mean",
           "ch": "意指",
-          "sentence": "What does the sign mean?"
+          "sentence": "What does this new word mean?"
         },
         {
           "en": "another",
           "ch": "另一（的）",
-          "sentence": "Can I have another cup of green tea? It's so good."
+          "sentence": "May I have another glass of water?"
         },
         {
           "en": "order",
           "ch": "點餐；訂購",
-          "sentence": "Tim ordered a pizza and a milkshake."
+          "sentence": "Are you ready to order your meal?"
         },
         {
           "en": "strange",
           "ch": "奇怪的；陌生的",
-          "sentence": "There's a strange man at the door."
+          "sentence": "I heard a strange noise last night."
         },
         {
           "en": "soon",
           "ch": "很快地",
-          "sentence": "Good-bye, everybody. See you soon."
+          "sentence": "I hope to see you soon."
         },
         {
           "en": "Rd.",
           "ch": "路（Road 的縮寫）",
-          "sentence": "On a postcard, \"Rd.\" stands for \"Road.\""
+          "sentence": "The library is on Main Rd."
         },
         {
           "en": "ROC",
           "ch": "中華民國",
-          "sentence": "ROC is another name for Taiwan."
+          "sentence": "ROC stands for Republic of China."
+        },
+        {
+          "en": "snowboard",
+          "ch": "滑雪板",
+          "sentence": "He bought a new snowboard for the winter trip."
+        },
+        {
+          "en": "anyway",
+          "ch": "無論如何",
+          "sentence": "Anyway, let's get back to work."
         }
       ],
       "國二上 Unit 1 (句型)": [
