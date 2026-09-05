@@ -126,6 +126,22 @@ const lessonData = [
         desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
     },
     {
+        title: "五位數加減法（四年級）",
+        category: "elementary",
+        url: "elementary/five_digit_add_sub.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "把進位與借位寫進直式，練習五位數加減法與連續借位。"
+    },
+    {
+        title: "三位數以內的乘法（四年級）",
+        category: "elementary",
+        url: "elementary/multiplication_upto_three_digits.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "逐列完成一、二、三位數乘法的部分積與最後答案。"
+    },
+    {
         title: "小數乘法與除法（五年級）",
         category: "elementary", // 設定為國小區類別
         url: "elementary/decimal_times_div.html", // 依照您截圖的路徑
