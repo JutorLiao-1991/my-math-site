@@ -32,7 +32,8 @@ def test_both_lessons_have_practice_and_ten_minute_exam():
 
 
 def test_add_sub_includes_carry_and_chain_borrow_actions():
-    assert "需要進位嗎" not in ADD_SUB  # generated dynamically for each active column
+    assert "function hasCarry" in ADD_SUB
+    assert "carryMarks[col-1]=1" in ADD_SUB
     assert "借 1" in ADD_SUB
     assert "function applyBorrow" in ADD_SUB
     assert "while(donor>=0&&working[donor]===0)" in ADD_SUB
