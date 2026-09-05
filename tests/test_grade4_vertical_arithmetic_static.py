@@ -40,10 +40,13 @@ def test_add_sub_includes_carry_and_chain_borrow_actions():
     assert "working[j]=9" in ADD_SUB
 
 
-def test_add_sub_moves_to_next_column_without_timer_race():
-    transition = "col--;phase='decision';renderPreservingAnswers();showDecision()"
+def test_add_sub_moves_to_next_column_without_rerender_or_timer_race():
+    transition = "col--;phase='decision';showDecision()"
     assert transition in ADD_SUB
-    assert "setTimeout(()=>{renderPreservingAnswers();showDecision()}" not in ADD_SUB
+    assert "renderPreservingAnswers" not in ADD_SUB
+    assert "setTimeout(()=>{render" not in ADD_SUB
+    assert "$(`ans-${col}`).classList.add('active')" in ADD_SUB
+    assert "function updateTopRow" in ADD_SUB
 
 
 def test_multiplication_builds_shifted_partial_products():
