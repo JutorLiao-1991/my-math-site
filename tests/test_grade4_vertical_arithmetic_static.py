@@ -40,6 +40,12 @@ def test_add_sub_includes_carry_and_chain_borrow_actions():
     assert "working[j]=9" in ADD_SUB
 
 
+def test_add_sub_moves_to_next_column_without_timer_race():
+    transition = "col--;phase='decision';renderPreservingAnswers();showDecision()"
+    assert transition in ADD_SUB
+    assert "setTimeout(()=>{renderPreservingAnswers();showDecision()}" not in ADD_SUB
+
+
 def test_multiplication_builds_shifted_partial_products():
     assert "function buildRows" in MULTIPLICATION
     assert "value:q.a*d,shift" in MULTIPLICATION
