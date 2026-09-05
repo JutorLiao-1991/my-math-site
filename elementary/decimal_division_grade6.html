@@ -273,7 +273,8 @@
             <div class="welcome" id="welcome-msg">
                 每按一次「小數點向右」，除數和被除數會同時移動一位。<br>
                 讓除數成為整數後，再判斷商的小數點位置。<br>
-                完成後，就用熟悉的直式除法算出答案！
+                完成後，就用熟悉的直式除法算出答案！<br>
+                測驗共 10 題、限時 10 分鐘；每輸錯一次扣 1 分。
             </div>
 
             <div class="workspace hidden" id="workspace">
@@ -341,7 +342,7 @@
                     <div class="stats-header">
                         <span id="stat-q">題號：1 / 10</span>
                         <span id="stat-score">分數：0</span>
-                        <span id="stat-timer">300s</span>
+                        <span id="stat-timer">10:00</span>
                     </div>
                     <div class="timer-bar-container"><div class="timer-bar" id="timer-bar"></div></div>
                     <div class="phase-note" id="phase-note">先完成左側的小數點移動</div>
@@ -376,10 +377,11 @@
             'rounding': { kind: 'rounding' }
         };
 
+        const EXAM_SECONDS = 10 * 60;
         let audioCtx = null;
         let state = {
-            mode: '', qIndex: 0, score: 0, timer: 300, timerInterval: null,
-            problem: null, questions: [], phase: 'idle', hasErroredThisQuestion: false,
+            mode: '', qIndex: 0, score: 0, timer: EXAM_SECONDS, timerInterval: null,
+            problem: null, questions: [], phase: 'idle', mistakesThisQuestion: 0,
             totalInputs: 0, filledCount: 0, logicalOrder: [], cellAnswers: {}, focusId: null,
             quotientInputIds: [], completedQuotientDigits: 0, decimalShiftCount: 0,
             finalAnswerOrder: [], finalAnswerAnswers: {}, finalFocusId: null
@@ -583,15 +585,37 @@
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
             const oscillator = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            oscillator.connect(gain); gain.connect(audioCtx.destination);
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
-            oscillator.type = type === 'wrong' ? 'sawtooth' : 'sine';
-            oscillator.frequency.setValueAtTime(type === 'wrong' ? 300 : (type === 'correct' ? 659 : 800), now);
-            oscillator.frequency.exponentialRampToValueAtTime(type === 'wrong' ? 150 : 450, now + 0.16);
-            gain.gain.setValueAtTime(0.16, now);
-            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
-            oscillator.start(now); oscillator.stop(now + 0.2);
+
+            if (type === 'move') {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(600, now);
+                oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.05);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.2, now + 0.01);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                oscillator.start(now); oscillator.stop(now + 0.05);
+            } else if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(659.25, now);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.02);
+                gainNode.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
+                oscillator.frequency.setValueAtTime(523.25, now + 0.3);
+                gainNode.gain.linearRampToValueAtTime(0.4, now + 0.32);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 1.0);
+                oscillator.start(now); oscillator.stop(now + 1.0);
+            } else if (type === 'wrong') {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, now);
+                oscillator.frequency.exponentialRampToValueAtTime(150, now + 0.3);
+                gainNode.gain.setValueAtTime(0, now);
+                gainNode.gain.linearRampToValueAtTime(0.3, now + 0.05);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                oscillator.start(now); oscillator.stop(now + 0.3);
+            }
         }
 
         function shuffled(items) {
@@ -633,7 +657,7 @@
             state.mode = mode;
             state.qIndex = 0;
             state.score = 0;
-            state.timer = 300;
+            state.timer = EXAM_SECONDS;
             state.questions = questionsForMode(mode);
             document.querySelectorAll('.menu-btn').forEach(button => button.classList.remove('active'));
             document.getElementById(`btn-${mode}`).classList.add('active');
@@ -655,14 +679,23 @@
         }
 
         function updateTimer() {
-            document.getElementById('stat-timer').innerText = `${state.timer}s`;
-            document.getElementById('timer-bar').style.width = `${Math.max(0, state.timer) / 300 * 100}%`;
+            const minutes = Math.floor(Math.max(0, state.timer) / 60);
+            const seconds = String(Math.max(0, state.timer) % 60).padStart(2, '0');
+            document.getElementById('stat-timer').innerText = `${minutes}:${seconds}`;
+            document.getElementById('timer-bar').style.width = `${Math.max(0, state.timer) / EXAM_SECONDS * 100}%`;
+        }
+
+        function registerMistake() {
+            state.mistakesThisQuestion++;
+            const questionPoints = Math.max(0, 10 - state.mistakesThisQuestion);
+            document.getElementById('stat-score').innerText = `分數：${state.score}（本題${questionPoints}）`;
+            return questionPoints;
         }
 
         function nextQuestion() {
             if (state.qIndex >= 10) return endGame();
             state.qIndex++;
-            state.hasErroredThisQuestion = false;
+            state.mistakesThisQuestion = 0;
             state.phase = 'shift-decimals';
             state.totalInputs = 0;
             state.filledCount = 0;
@@ -803,7 +836,7 @@
             const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : -1;
             if (selectedIndex !== targetIndex) {
                 playSound('wrong');
-                state.hasErroredThisQuestion = true;
+                registerMistake();
                 button.classList.add('wrong');
                 document.getElementById('quotient-point-hint').innerText = '位置不對，再觀察被除數的小數點位置。';
                 setTimeout(() => button.classList.remove('wrong'), 420);
@@ -1008,7 +1041,7 @@
                     const stopId = state.quotientInputIds[state.quotientInputIds.length - 1];
                     if (state.logicalOrder.indexOf(id) > state.logicalOrder.indexOf(stopId)) {
                         playSound('wrong');
-                        state.hasErroredThisQuestion = true;
+                        registerMistake();
                         document.getElementById('phase-note').innerText = '這一列不必再算；請在判斷位完成時取概數';
                         return;
                     }
@@ -1047,7 +1080,7 @@
             const cell = document.getElementById(state.focusId);
             if (String(number) !== state.cellAnswers[state.focusId]) {
                 playSound('wrong');
-                state.hasErroredThisQuestion = true;
+                registerMistake();
                 cell.innerText = number;
                 cell.classList.add('error');
                 setTimeout(() => { cell.innerText = ''; cell.classList.remove('error'); }, 420);
@@ -1113,7 +1146,7 @@
             if (state.phase !== 'remainder-point') return;
             if (selectedIndex !== targetIndex) {
                 playSound('wrong');
-                state.hasErroredThisQuestion = true;
+                registerMistake();
                 button.classList.add('wrong');
                 setTimeout(() => button.classList.remove('wrong'), 420);
                 return;
@@ -1134,7 +1167,7 @@
             if (state.problem?.kind !== 'rounding' || state.phase !== 'digits') return;
             if (!roundingReady()) {
                 playSound('wrong');
-                state.hasErroredThisQuestion = true;
+                registerMistake();
                 const missingPlace = placeLabel(state.problem.targetPlaces + 1);
                 document.getElementById('phase-note').innerText = `還不能取概數：要先算出判斷用的${missingPlace}`;
                 const button = document.getElementById('round-stop-btn');
@@ -1191,7 +1224,7 @@
             const cell = document.getElementById(state.finalFocusId);
             if (String(number) !== state.finalAnswerAnswers[state.finalFocusId]) {
                 playSound('wrong');
-                state.hasErroredThisQuestion = true;
+                registerMistake();
                 cell.innerText = number;
                 cell.classList.add('error');
                 setTimeout(() => { cell.innerText = ''; cell.classList.remove('error'); }, 420);
@@ -1209,7 +1242,7 @@
 
         function finishQuestion() {
             playSound('correct');
-            if (!state.hasErroredThisQuestion) state.score += 10;
+            state.score += Math.max(0, 10 - state.mistakesThisQuestion);
             document.getElementById('stat-score').innerText = `分數：${state.score}`;
             state.phase = 'complete';
             setTimeout(nextQuestion, 1200);
