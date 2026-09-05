@@ -1,0 +1,158 @@
+/* 國小互動教材共用主題：以 unit_convert.html 的灰藍色系為基準 */
+:root {
+  --primary-color: #4a90e2 !important;
+  --secondary-color: #f5a623 !important;
+  --bg-color: #f4f7f6 !important;
+  --text-color: #334155 !important;
+  --panel-bg: #ffffff !important;
+  --nav-bg: rgba(30, 41, 59, .96) !important;
+  --accent: #38bdf8 !important;
+  --border-color: #dbe4ee !important;
+  --highlight: #e74c3c !important;
+  --primary: #4a90e2 !important;
+  --primary-dark: #2563a8 !important;
+  --pink: #4a90e2 !important;
+  --pink2: #38bdf8 !important;
+  --ink: #334155 !important;
+  --paper: #ffffff !important;
+  --bg: #f4f7f6 !important;
+  --line: #dbe4ee !important;
+  --nav: rgba(30, 41, 59, .96) !important;
+  --border: #dbe4ee !important;
+  --soft: #eef6fc !important;
+  --sp-main: #4a90e2 !important;
+  --sp-bg: #eef6fc !important;
+}
+
+body {
+  background-color: #f4f7f6 !important;
+  background-image: linear-gradient(rgba(74, 144, 226, .07) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(74, 144, 226, .07) 1px, transparent 1px) !important;
+  color: #334155;
+}
+
+.nav-bar,
+.nav {
+  background: rgba(30, 41, 59, .96) !important;
+  border-bottom: 1px solid #334155 !important;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, .16);
+}
+
+.back-btn,
+.nav a {
+  color: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+}
+
+.back-btn:hover,
+.nav a:hover {
+  color: #0f172a !important;
+  background: #38bdf8 !important;
+}
+
+.panel {
+  border: 1px solid #dbe4ee !important;
+  box-shadow: 0 6px 20px rgba(30, 41, 59, .09) !important;
+}
+
+.step-container,
+.status {
+  background: #eef6fc !important;
+  border-left-color: #4a90e2 !important;
+}
+
+.menu-btn,
+.choice {
+  color: #475569 !important;
+  background: #f8fafc !important;
+  border-color: #dbe4ee !important;
+}
+
+.menu-btn:hover,
+.choice:hover {
+  color: #2563a8 !important;
+  background: #e8f2fb !important;
+  border-color: #8fc1ee !important;
+}
+
+.menu-btn.active,
+.choice.active,
+.primary {
+  color: #fff !important;
+  background: #4a90e2 !important;
+  border-color: #4a90e2 !important;
+}
+
+.answer,
+.input-cell,
+.final-answer-cell,
+.num-btn,
+.numpad button {
+  border-color: #dbe4ee !important;
+}
+
+.answer.active,
+.input-cell.active,
+.final-answer-cell.active {
+  border-color: #38bdf8 !important;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, .17) !important;
+}
+
+.answer,
+.note,
+.decimal-hint,
+.answer-title,
+.move-title {
+  color: #2563a8 !important;
+}
+
+.decision button,
+.move-btn,
+.round-stop-btn {
+  color: #fff !important;
+  background: #4a90e2 !important;
+  border-color: #4a90e2 !important;
+  box-shadow: 0 4px 0 #2563a8 !important;
+}
+
+.num-btn:active,
+.numpad button:active {
+  color: #fff !important;
+  background: #38bdf8 !important;
+  border-color: #38bdf8 !important;
+}
+
+.timer-bar,
+.timerbar > div {
+  background: #4a90e2 !important;
+}
+
+.score-display,
+.end strong {
+  color: #2563a8 !important;
+}
+
+.watermark {
+  color: rgba(37, 99, 168, .10) !important;
+}
+
+/* 質數挑戰保留雙人辨識差異，但納入同一個冷色系。 */
+#mode-select-screen,
+#sp-container {
+  background-color: #eef6fc !important;
+}
+
+.game-title,
+.sp-score-board {
+  color: #2563a8 !important;
+}
+
+.btn-sp {
+  background: #4a90e2 !important;
+  box-shadow: 0 6px 0 #2563a8 !important;
+}
+
+.btn-pk {
+  background: #0891b2 !important;
+  box-shadow: 0 6px 0 #0e7490 !important;
+}
