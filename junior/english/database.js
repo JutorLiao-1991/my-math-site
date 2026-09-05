@@ -2077,6 +2077,196 @@ var jutorDB = {
           "en": "nice",
           "ch": "好的；好心的",
           "sentence": "It is nice of you to help me."
+        },
+        {
+          "en": "sheep",
+          "ch": "綿羊",
+          "sentence": "There are some sheep on the farm."
+        },
+        {
+          "en": "fox",
+          "ch": "狐狸",
+          "sentence": "The fox has a long and bushy tail."
+        },
+        {
+          "en": "bear",
+          "ch": "熊",
+          "sentence": "The big bear is sleeping under the tree."
+        },
+        {
+          "en": "rabbit",
+          "ch": "兔子",
+          "sentence": "The white rabbit is eating carrots."
+        },
+        {
+          "en": "mouse",
+          "ch": "老鼠",
+          "sentence": "A little mouse is hiding behind the box."
+        },
+        {
+          "en": "horse",
+          "ch": "馬",
+          "sentence": "Can you ride a horse?"
+        },
+        {
+          "en": "monkey",
+          "ch": "猴子",
+          "sentence": "The monkey is jumping in the tree."
+        },
+        {
+          "en": "elephant",
+          "ch": "大象",
+          "sentence": "An elephant has a long nose and big ears."
+        },
+        {
+          "en": "zebra",
+          "ch": "斑馬",
+          "sentence": "A zebra has black and white stripes."
+        },
+        {
+          "en": "tiger",
+          "ch": "老虎",
+          "sentence": "The tiger is a strong animal."
+        },
+        {
+          "en": "picture",
+          "ch": "照片；圖片",
+          "sentence": "Let me take a picture of you."
+        },
+        {
+          "en": "people person",
+          "ch": "人緣好的人",
+          "sentence": "Leo is friendly to everyone, so he is a people person."
+        },
+        {
+          "en": "movie theater",
+          "ch": "電影院",
+          "sentence": "We can watch the new movie at the movie theater."
+        },
+        {
+          "en": "animal",
+          "ch": "動物",
+          "sentence": "The dog is my favorite animal."
+        },
+        {
+          "en": "lion",
+          "ch": "獅子",
+          "sentence": "The lion is the king of the jungle."
+        },
+        {
+          "en": "Chinese",
+          "ch": "中國的／人",
+          "sentence": "Mr. Lin is a Chinese teacher."
+        },
+        {
+          "en": "What about..?",
+          "ch": "怎麼樣？",
+          "sentence": "I like this dog. What about you?"
+        },
+        {
+          "en": "sign",
+          "ch": "符號",
+          "sentence": "Look at the sign on the door."
+        },
+        {
+          "en": "rat",
+          "ch": "大老鼠",
+          "sentence": "The cat is chasing a rat."
+        },
+        {
+          "en": "ox",
+          "ch": "(公)牛",
+          "sentence": "The ox is working hard on the farm."
+        },
+        {
+          "en": "dragon",
+          "ch": "龍",
+          "sentence": "The dragon is a special animal in stories."
+        },
+        {
+          "en": "snake",
+          "ch": "蛇",
+          "sentence": "There is a long snake in the grass."
+        },
+        {
+          "en": "goat",
+          "ch": "山羊",
+          "sentence": "The goat is eating green grass on the hill."
+        },
+        {
+          "en": "rooster",
+          "ch": "公雞",
+          "sentence": "The rooster crows early in the morning."
+        },
+        {
+          "en": "smart",
+          "ch": "聰明的",
+          "sentence": "The smart boy can answer all the questions."
+        },
+        {
+          "en": "energetic",
+          "ch": "充滿活力的",
+          "sentence": "My brother is very energetic and loves sports."
+        },
+        {
+          "en": "true",
+          "ch": "真的",
+          "sentence": "The news is true."
+        },
+        {
+          "en": "No wonder",
+          "ch": "難怪",
+          "sentence": "You didn't have lunch? No wonder you are hungry."
+        },
+        {
+          "en": "people",
+          "ch": "人們",
+          "sentence": "Many people are in the park today."
+        },
+        {
+          "en": "or",
+          "ch": "或者",
+          "sentence": "Do you want tea or milk?"
+        },
+        {
+          "en": "size",
+          "ch": "尺寸",
+          "sentence": "What size of shoes do you wear?"
+        },
+        {
+          "en": "but",
+          "ch": "但是",
+          "sentence": "I like cats, but my sister likes dogs."
+        },
+        {
+          "en": "different",
+          "ch": "不同的",
+          "sentence": "The two pictures are different."
+        },
+        {
+          "en": "very",
+          "ch": "非常",
+          "sentence": "She is a very nice girl."
+        },
+        {
+          "en": "their",
+          "ch": "他們的",
+          "sentence": "These are their English books."
+        },
+        {
+          "en": "meter",
+          "ch": "公尺",
+          "sentence": "The tree is five meters tall."
+        },
+        {
+          "en": "only",
+          "ch": "僅僅",
+          "sentence": "There is only one apple on the table."
+        },
+        {
+          "en": "lifespan",
+          "ch": "壽命",
+          "sentence": "What is the average lifespan of a dog?"
         }
       ],
       "國一上 Unit 1 (句型)": [
