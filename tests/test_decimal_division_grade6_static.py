@@ -68,7 +68,7 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("state.phase = 'ready-digits'", self.page)
         self.assertIn("if (state.phase !== 'ready-digits') return", self.page)
         self.assertIn("商是整數", self.page)
-        self.assertIn("state.hasErroredThisQuestion = true", self.page)
+        self.assertIn("registerMistake();", self.page)
 
     def test_quotient_point_choices_are_embedded_in_long_division(self):
         self.assertIn("className = 'quotient-inline-row'", self.page)
@@ -80,11 +80,22 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
 
     def test_keeps_existing_challenge_rules_and_touch_numpad(self):
         self.assertIn("state.qIndex >= 10", self.page)
-        self.assertIn("timer: 300", self.page)
-        self.assertIn("state.score += 10", self.page)
+        self.assertIn("const EXAM_SECONDS = 10 * 60", self.page)
+        self.assertIn("state.timer = EXAM_SECONDS", self.page)
+        self.assertIn("state.score += Math.max(0, 10 - state.mistakesThisQuestion)", self.page)
+        self.assertIn("function registerMistake()", self.page)
+        self.assertEqual(self.page.count("registerMistake();"), 6)
+        self.assertIn("每輸錯一次扣 1 分", self.page)
         self.assertIn("shuffled(PROBLEM_BANKS[mode]).slice(0, 10)", self.page)
         self.assertNotRegex(self.page, r"<input\b")
         self.assertEqual(self.page.count('class="num-btn"'), 10)
+
+    def test_click_sound_matches_the_crisp_unit_convert_pattern(self):
+        self.assertIn("if (type === 'move')", self.page)
+        self.assertIn("oscillator.type = 'triangle'", self.page)
+        self.assertIn("oscillator.frequency.setValueAtTime(600, now)", self.page)
+        self.assertIn("oscillator.frequency.exponentialRampToValueAtTime(200, now + 0.05)", self.page)
+        self.assertIn("oscillator.stop(now + 0.05)", self.page)
 
     def test_generated_banks_have_valid_division_relationships(self):
         scripts = re.findall(r"<script>(.*?)</script>", self.page, re.S)
