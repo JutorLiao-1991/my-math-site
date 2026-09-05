@@ -40,12 +40,21 @@ def test_add_sub_includes_carry_and_chain_borrow_actions():
     assert "working[j]=9" in ADD_SUB
 
 
-def test_add_sub_moves_to_next_column_without_rerender_or_timer_race():
-    transition = "col--;phase='decision';showDecision()"
-    assert transition in ADD_SUB
+def test_add_sub_uses_human_carry_and_borrow_order_without_no_buttons():
+    assert "不用進位" not in ADD_SUB
+    assert "不用借位" not in ADD_SUB
+    assert "function pressRegroup" in ADD_SUB
+    assert "加法要先填本欄答案" in ADD_SUB
+    assert "這一欄要先借 1，再填答案" in ADD_SUB
+    assert "if(question.kind==='add'&&sum>=10){phase='carry'" in ADD_SUB
+    assert "applyBorrow(col);borrowed=true" in ADD_SUB
+
+
+def test_add_sub_moves_between_columns_without_rerender_or_timer_race():
+    assert "function advanceColumn(){col--;prepareColumn()}" in ADD_SUB
     assert "renderPreservingAnswers" not in ADD_SUB
     assert "setTimeout(()=>{render" not in ADD_SUB
-    assert "$(`ans-${col}`).classList.add('active')" in ADD_SUB
+    assert "function prepareColumn" in ADD_SUB
     assert "function updateTopRow" in ADD_SUB
 
 
