@@ -51,12 +51,18 @@ class FractionAddSubGrade5StaticTests(unittest.TestCase):
         self.assertIn("先找共同分母", HTML)
         self.assertIn("把每個分數擴成相同分母", HTML)
         self.assertLess(HTML.index("先找共同分母"), HTML.index("把每個分數擴成相同分母"))
+        self.assertIn("return`${join(originals)}", HTML)
+        self.assertIn("${join(expanded)}`", HTML)
 
     def test_mixed_number_flow_keeps_mixed_form_and_supports_borrowing(self):
         self.assertIn("加減法不需要把帶分數換成假分數", HTML)
-        self.assertIn("分數不夠減，先向整數借 1", HTML)
+        self.assertIn("先判斷是否借 1，再填答案", HTML)
+        self.assertIn("向整數借 1</button>", HTML)
+        self.assertIn("function pressBorrow", HTML)
+        self.assertIn("這一步不需要借 1", HTML)
         self.assertIn("borrowed={whole:current.whole-1,num:current.num+common}", HTML)
         self.assertIn("先填整數，再填分數", HTML)
+        self.assertNotIn('class="step-card borrow-card locked"', HTML)
 
     def test_mixed_addition_carries_a_whole_when_fraction_reaches_one(self):
         self.assertIn("carried={whole,num}", HTML)
@@ -70,6 +76,9 @@ class FractionAddSubGrade5StaticTests(unittest.TestCase):
         self.assertIn("function appendReductionRow", HTML)
         self.assertIn("setTimeout(askReducible,350)", HTML)
         self.assertIn("分子、分母要同除以一個大於 1 的整數", HTML)
+        self.assertIn("先填分母，再填分子", HTML)
+        self.assertIn("reduction.stage='den'", HTML)
+        self.assertIn("請填：約分後的分母", HTML)
 
     def test_inline_javascript_parses(self):
         scripts = re.findall(r"<script>(.*?)</script>", HTML, re.DOTALL)
