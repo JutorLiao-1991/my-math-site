@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月3日" // 已更新為最新日期
+    lastUpdated: "2026年9月6日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -148,6 +148,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "練習小數乘法，以及小數除以整數的直式計算。"
+    },
+    {
+        title: "分數的加減法（五年級）",
+        category: "elementary",
+        url: "elementary/fraction_add_sub_grade5.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "依序完成同分母、異分母與帶分數加減法，進階模式再一路約成最簡分數。"
     },
     {
         title: "小數的除法（六年級）",
