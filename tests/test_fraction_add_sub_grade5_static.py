@@ -58,6 +58,12 @@ class FractionAddSubGrade5StaticTests(unittest.TestCase):
         self.assertIn("borrowed={whole:current.whole-1,num:current.num+common}", HTML)
         self.assertIn("先填整數，再填分數", HTML)
 
+    def test_mixed_addition_carries_a_whole_when_fraction_reaches_one(self):
+        self.assertIn("carried={whole,num}", HTML)
+        self.assertIn("result={whole:whole+1,num:num-common}", HTML)
+        self.assertIn("分數滿 1，向整數進 1", HTML)
+        self.assertIn('class="step-card carry-card locked"', HTML)
+
     def test_advanced_flow_repeats_until_irreducible(self):
         self.assertIn("這個分數還能約分嗎？", HTML)
         self.assertIn("function answerReducible", HTML)
