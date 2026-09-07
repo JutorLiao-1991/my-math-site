@@ -6677,7 +6677,152 @@ var jutorDB = {
       ]
     }
   },
-  "國三": {},
+  "國三": {
+    "康軒版": {
+      "國三上 Unit 1": [
+        {
+          "en": "subject",
+          "ch": "學科",
+          "sentence": "English is my favorite subject in school."
+        },
+        {
+          "en": "history",
+          "ch": "歷史",
+          "sentence": "She loves reading books about world history."
+        },
+        {
+          "en": "topic",
+          "ch": "主題",
+          "sentence": "What is the topic of your presentation?"
+        },
+        {
+          "en": "hairdryer",
+          "ch": "吹風機",
+          "sentence": "I used a hairdryer to dry my wet hair."
+        },
+        {
+          "en": "yet",
+          "ch": "還（沒）；尚（未）",
+          "sentence": "I haven't finished my homework yet."
+        },
+        {
+          "en": "century",
+          "ch": "世紀",
+          "sentence": "This old building was built in the last century."
+        },
+        {
+          "en": "freeze",
+          "ch": "凍結；結冰",
+          "sentence": "Water will freeze when the temperature drops below zero."
+        },
+        {
+          "en": "potato",
+          "ch": "馬鈴薯",
+          "sentence": "My brother likes to eat french fries made from potatoes."
+        },
+        {
+          "en": "stick",
+          "ch": "枝條",
+          "sentence": "The dog ran after the wooden stick."
+        },
+        {
+          "en": "American",
+          "ch": "美國的；美國人",
+          "sentence": "Baseball is a very popular American sport."
+        },
+        {
+          "en": "soldier",
+          "ch": "士兵；軍人",
+          "sentence": "The brave soldiers protected their country."
+        },
+        {
+          "en": "main",
+          "ch": "主要的",
+          "sentence": "Rice is the main food for many people in Asia."
+        },
+        {
+          "en": "language",
+          "ch": "語言",
+          "sentence": "Learning a new language takes time and practice."
+        },
+        {
+          "en": "since",
+          "ch": "自……以來",
+          "sentence": "I have lived in this city since 2018."
+        },
+        {
+          "en": "celebrate",
+          "ch": "慶祝",
+          "sentence": "How will you celebrate your sixteenth birthday?"
+        },
+        {
+          "en": "national",
+          "ch": "國家的；國立的",
+          "sentence": "We visited the national park during our vacation."
+        },
+        {
+          "en": "thick",
+          "ch": "粗的；厚的",
+          "sentence": "Wear a thick jacket because it is freezing outside."
+        },
+        {
+          "en": "fry",
+          "ch": "油炸；油煎",
+          "sentence": "You can fry the eggs in a pan."
+        },
+        {
+          "en": "chocolate",
+          "ch": "巧克力",
+          "sentence": "Eating dark chocolate can make people feel happy."
+        },
+        {
+          "en": "bunny",
+          "ch": "小兔子",
+          "sentence": "The cute bunny is hopping across the grass."
+        },
+        {
+          "en": "candy",
+          "ch": "糖果",
+          "sentence": "Eating too much candy is not good for your teeth."
+        },
+        {
+          "en": "pumpkin",
+          "ch": "南瓜",
+          "sentence": "People make pumpkin soup for dinner in autumn."
+        },
+        {
+          "en": "bake",
+          "ch": "烘烤",
+          "sentence": "My mom is going to bake a delicious cake this afternoon."
+        },
+        {
+          "en": "Christmas Eve",
+          "ch": "聖誕節前夕；平安夜",
+          "sentence": "Families usually gather together on Christmas Eve."
+        },
+        {
+          "en": "nobody",
+          "ch": "沒有人",
+          "sentence": "Nobody knew the answer to the difficult question."
+        },
+        {
+          "en": "wave",
+          "ch": "揮（手）",
+          "sentence": "She waved to us when she got on the train."
+        },
+        {
+          "en": "inch",
+          "ch": "英寸",
+          "sentence": "The little plant grew an inch taller in a week."
+        },
+        {
+          "en": "king",
+          "ch": "國王；王者",
+          "sentence": "The king ruled the country for many years."
+        }
+      ]
+    }
+  },
   "會考複習": {
     "全廠商": {
       "會考單字(全) Part A-C": [
