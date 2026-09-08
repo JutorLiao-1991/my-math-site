@@ -73,6 +73,14 @@ def test_multiplication_uses_horizontal_row_labels_without_duplicate_hint():
     assert "$('hint')" not in MULTIPLICATION
 
 
+def test_multiplication_can_return_to_mode_menu_and_restart_safely():
+    assert 'id="modeBackBtn"' in MULTIPLICATION
+    assert "function returnToModeMenu" in MULTIPLICATION
+    assert "function startMode" in MULTIPLICATION
+    assert "if(nextTimer)clearTimeout(nextTimer)" in MULTIPLICATION
+    assert "↩ 返回模式選擇" in MULTIPLICATION
+
+
 def test_crisp_reference_click_sound_is_used():
     for page in (ADD_SUB, MULTIPLICATION):
         assert "frequency.setValueAtTime(600" in page

@@ -10,7 +10,7 @@ THEME = (ELEMENTARY / "elementary_theme.css").read_text(encoding="utf-8")
 
 class ElementaryThemeStaticTests(unittest.TestCase):
     def test_every_elementary_page_loads_shared_theme(self):
-        self.assertEqual(len(PAGES), 9)
+        self.assertEqual(len(PAGES), 10)
         for page in PAGES:
             html = page.read_text(encoding="utf-8")
             self.assertIn(
@@ -35,6 +35,7 @@ class ElementaryThemeStaticTests(unittest.TestCase):
             "time_times_div.html": "🦔 鳩特數理｜時間特訓基地",
             "rate_ratio_percentage.html": "🦔 鳩特數理｜比率與百分率特訓",
             "five_digit_add_sub.html": "🦔 五位數加減法（四年級）",
+            "multiplication_table_trial.html": "🦔 九九乘法試煉",
             "multiplication_upto_three_digits.html": "🦔 三位數以內的乘法（四年級）",
             "prime_test.html": "🦔 1~100",
             "fraction_add_sub_grade5.html": "🦔 分數的加減法（五年級）",
