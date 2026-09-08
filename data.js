@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月6日" // 已更新為最新日期
+    lastUpdated: "2026年9月8日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -68,6 +68,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "逐步練習和的平方、差的平方與平方差，並挑戰五分鐘十題考試。"
+    },
+    {
+        title: "常見次方表（國一）",
+        category: "junior",
+        url: "junior/math/common_powers_trial.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "熟練底數 2～10 的常見次方，並挑戰單人快問快答與雙人搶答。"
     },
     {
         title: "平面族示意動畫",
