@@ -22,7 +22,7 @@
     <div class="game-title">🦔 常見次方表<br><small>國一</small></div>
     <div class="mode-grid">
       <button class="mode-card mode-practice" onclick="openPractice()">🌱 練習模式<span>依底數熟練常見次方</span></button>
-      <button class="mode-card mode-single" onclick="startSinglePlayer()">👤 單人模式<span>20 題限時快問快答</span></button>
+      <button class="mode-card mode-single" onclick="startSinglePlayer()">👤 單人模式<span>每題 8 秒，前 3 秒答對得 5 分</span></button>
       <button class="mode-card mode-pk" onclick="showPKSetup()">⚔️ 雙人 PK<span>率先取得 300 分</span></button>
     </div>
   </section>
@@ -88,7 +88,7 @@ let singleQuestions=[],singleIndex=0,singleScore=0,singleStreak=0,singleBuffer='
 function startSinglePlayer(){initAudio();clearSchedules();showScreen('singleScreen');$('singleEnd').style.display='none';singleQuestions=shuffle(FACTS).slice(0,SP_TOTAL_Q);singleIndex=0;singleScore=0;singleStreak=0;singleBuffer='';singleProcessing=true;$('singleScore').textContent='0.0';$('singleStreak').textContent='';$('singleProgress').textContent=`0 / ${SP_TOTAL_Q}`;$('singleQuestion').textContent='?';$('singleFeedback').textContent='準備開始……';updateSingleDisplay();runCountdown('準備挑戰！',loadSingleQuestion)}
 function loadSingleQuestion(){if(singleIndex>=SP_TOTAL_Q)return showSingleEnd();singleProcessing=false;singleCurrent=singleQuestions[singleIndex];singleBuffer='';$('singleQuestion').innerHTML=powerHTML(singleCurrent);$('singleProgress').textContent=`${singleIndex+1} / ${SP_TOTAL_Q}`;$('singleFeedback').textContent='';$('singleTimerBar').style.width='100%';$('singleTimerBar').style.background=varColor('green');updateSingleDisplay();singleStartTime=performance.now();updateSingleTimer()}
 function varColor(name){return getComputedStyle(document.documentElement).getPropertyValue(`--${name}`).trim()}
-function updateSingleTimer(){if(singleProcessing)return;const dt=performance.now()-singleStartTime,remain=Math.max(0,SP_TIME_LIMIT-dt),pct=remain/SP_TIME_LIMIT*100;$('singleTimerText').textContent=`${(remain/1000).toFixed(1)}s`;$('singleTimerBar').style.width=`${pct}%`;$('singleTimerBar').style.background=pct<25?varColor('red'):pct<50?varColor('orange'):varColor('green');if(dt>=SP_TIME_LIMIT)handleSingleTimeout();else singleTimerFrame=requestAnimationFrame(updateSingleTimer)}
+function updateSingleTimer(){if(singleProcessing)return;const dt=performance.now()-singleStartTime,remain=Math.max(0,SP_TIME_LIMIT-dt),pct=remain/SP_TIME_LIMIT*100;$('singleTimerText').textContent=`${(remain/1000).toFixed(1)}s`;$('singleTimerBar').style.width=`${pct}%`;$('singleTimerBar').style.background=remain<=2000?varColor('red'):dt>SP_FULL_SCORE_TIME?varColor('orange'):varColor('green');if(dt>=SP_TIME_LIMIT)handleSingleTimeout();else singleTimerFrame=requestAnimationFrame(updateSingleTimer)}
 function calculateSinglePoints(dt){const pts=dt<=SP_FULL_SCORE_TIME?5:5-((dt-SP_FULL_SCORE_TIME)/(SP_TIME_LIMIT-SP_FULL_SCORE_TIME))*5;return Math.max(0,Math.round(pts*10)/10)}
 function updateSingleDisplay(){$('singleDisplay').textContent=singleBuffer||'—'}
 function singleDigit(d){if(singleProcessing||singleBuffer.length>=5)return;singleBuffer+=d;updateSingleDisplay()}
