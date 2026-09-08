@@ -134,6 +134,14 @@ const lessonData = [
         desc: "把進位與借位寫進直式，練習五位數加減法與連續借位。"
     },
     {
+        title: "九九乘法試煉",
+        category: "elementary",
+        url: "elementary/multiplication_table_trial.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "從分組練習到單人快問快答與雙人搶答，熟練九九乘法表。"
+    },
+    {
         title: "三位數以內的乘法（四年級）",
         category: "elementary",
         url: "elementary/multiplication_upto_three_digits.html",
