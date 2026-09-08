@@ -41,6 +41,8 @@ class CommonPowersTrialStaticTests(unittest.TestCase):
         self.assertIn("(SP_TIME_LIMIT-SP_FULL_SCORE_TIME))*5", HTML)
         self.assertIn("Math.max(0,Math.round(pts*10)/10)", HTML)
         self.assertIn("const pts=calculateSinglePoints(dt)", HTML)
+        self.assertIn("每題 8 秒，前 3 秒答對得 5 分", HTML)
+        self.assertIn("dt>SP_FULL_SCORE_TIME?varColor('orange')", HTML)
 
     def test_single_player_score_is_full_for_three_seconds_then_falls_to_zero(self):
         function = re.search(
