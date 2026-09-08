@@ -13,9 +13,10 @@ DATA = (ROOT / "data.js").read_text(encoding="utf-8")
 
 class MultiplicationTableTrialStaticTests(unittest.TestCase):
     def test_lesson_is_listed_in_elementary_section(self):
-        self.assertIn('title: "九九乘法試煉"', DATA)
+        self.assertIn('title: "九九乘法試煉（二年級）"', DATA)
         self.assertIn('url: "elementary/multiplication_table_trial.html"', DATA)
         self.assertIn('category: "elementary"', DATA)
+        self.assertIn("九九乘法試煉（二年級）", HTML)
 
     def test_page_has_three_requested_modes(self):
         for text in ("練習模式", "單人模式", "雙人 PK"):
