@@ -61,8 +61,16 @@ def test_add_sub_moves_between_columns_without_rerender_or_timer_race():
 def test_multiplication_builds_shifted_partial_products():
     assert "function buildRows" in MULTIPLICATION
     assert "value:q.a*d,shift" in MULTIPLICATION
-    assert "向左 ${shift} 格" in MULTIPLICATION
+    assert "r.push({label:`× ${d}`,value:q.a*d,shift,kind:'partial'})" in MULTIPLICATION
+    assert "向左 ${shift} 格" not in MULTIPLICATION
     assert "部分積" in MULTIPLICATION
+
+
+def test_multiplication_uses_horizontal_row_labels_without_duplicate_hint():
+    assert "writing-mode:vertical-rl" not in MULTIPLICATION
+    assert ".row-label{font:700 1rem" in MULTIPLICATION
+    assert 'id="hint"' not in MULTIPLICATION
+    assert "$('hint')" not in MULTIPLICATION
 
 
 def test_crisp_reference_click_sound_is_used():
