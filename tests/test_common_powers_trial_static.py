@@ -35,9 +35,31 @@ class CommonPowersTrialStaticTests(unittest.TestCase):
 
     def test_single_player_keeps_speed_scoring(self):
         self.assertIn("SP_TOTAL_Q=20", HTML)
-        self.assertIn("SP_TIME_LIMIT=5000", HTML)
-        self.assertIn("dt<=1500?5:5-((dt-1500)/3500)*4.9", HTML)
-        self.assertIn("Math.max(.1,Math.round(pts*10)/10)", HTML)
+        self.assertIn("SP_TIME_LIMIT=8000", HTML)
+        self.assertIn("SP_FULL_SCORE_TIME=3000", HTML)
+        self.assertIn("dt<=SP_FULL_SCORE_TIME?5", HTML)
+        self.assertIn("(SP_TIME_LIMIT-SP_FULL_SCORE_TIME))*5", HTML)
+        self.assertIn("Math.max(0,Math.round(pts*10)/10)", HTML)
+        self.assertIn("const pts=calculateSinglePoints(dt)", HTML)
+        self.assertIn("每題 8 秒，前 3 秒答對得 5 分", HTML)
+        self.assertIn("dt>SP_FULL_SCORE_TIME?varColor('orange')", HTML)
+
+    def test_single_player_score_is_full_for_three_seconds_then_falls_to_zero(self):
+        function = re.search(
+            r"function calculateSinglePoints\(dt\)\{.*?\}", HTML
+        )
+        self.assertIsNotNone(function)
+        javascript = (
+            "const SP_TIME_LIMIT=8000,SP_FULL_SCORE_TIME=3000;"
+            + function.group(0)
+            + "console.log(JSON.stringify([0,3000,4000,5000,6000,7000,8000]"
+            ".map(calculateSinglePoints)))"
+        )
+        result = subprocess.run(
+            ["node", "-e", javascript], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "[5,5,4,3,2,1,0]")
 
     def test_pk_keeps_streak_catchup_and_win_scoring(self):
         self.assertIn("PK_WIN_SCORE=300", HTML)

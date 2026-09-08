@@ -31,6 +31,14 @@ class MultiplicationTableTrialStaticTests(unittest.TestCase):
         self.assertIn("startPracticeTable", HTML)
         self.assertIn("digit-slot", HTML)
 
+    def test_mobile_practice_keeps_keypad_fixed_below_scrollable_table(self):
+        self.assertIn(".practice-screen.practice-active", HTML)
+        self.assertIn("overflow-y:auto", HTML)
+        self.assertIn("bottom:max(6px,env(safe-area-inset-bottom))", HTML)
+        self.assertIn("classList.add('practice-active')", HTML)
+        self.assertIn("classList.remove('practice-active')", HTML)
+        self.assertIn("scrollIntoView({block:'nearest',behavior:'smooth'})", HTML)
+
     def test_single_player_keeps_prime_challenge_scoring(self):
         self.assertIn("SP_TOTAL_Q=20", HTML)
         self.assertIn("SP_TIME_LIMIT=5000", HTML)

@@ -12,6 +12,17 @@
     .mode-practice{grid-column:1/-1}
     .equation-list{grid-template-columns:1fr}
     @media(max-width:760px){.mode-grid{grid-template-columns:1fr}.equation-list{grid-template-columns:1fr}}
+    @media(max-width:760px){
+      .practice-screen.practice-active{padding:68px 10px 0;overflow:hidden;align-items:stretch}
+      .practice-screen.practice-active .practice-work{position:relative;display:block;width:100%;height:100%;min-height:0}
+      .practice-screen.practice-active .sheet{position:absolute;inset:0 0 calc(276px + max(6px,env(safe-area-inset-bottom)));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 10px}
+      .practice-screen.practice-active .sheet-head{position:sticky;top:-14px;z-index:2;margin-bottom:10px;padding:8px 0 10px;background:#fff}
+      .practice-screen.practice-active .keypad-panel{position:absolute;z-index:3;left:50%;bottom:max(6px,env(safe-area-inset-bottom));width:min(440px,100%);min-height:0;padding:8px 12px 10px;transform:translateX(-50%)}
+      .practice-screen.practice-active .keypad-title{display:none}
+      .practice-screen.practice-active .answer-display{min-height:50px;margin-bottom:6px;font-size:1.8rem}
+      .practice-screen.practice-active .numpad{gap:5px}
+      .practice-screen.practice-active .numpad button{min-height:44px;font-size:1.2rem;box-shadow:0 2px 0 #cbd5e1}
+    }
   </style>
   <link rel="stylesheet" href="elementary_theme.css">
 </head>
@@ -103,9 +114,9 @@ function makeNumpad(id,onDigit,onClear,onConfirm,needsConfirm=true){const el=$(i
 
 let practiceBase=2,practiceFactor=1,practiceBuffer='';
 function openPractice(){initAudio();clearSchedules();showScreen('practiceScreen');showPracticePicker()}
-function showPracticePicker(){if(practiceTimeout)clearTimeout(practiceTimeout);practiceTimeout=null;$('practiceDisplay').className='answer-display';$('practicePicker').classList.remove('hidden');$('practiceWork').classList.add('hidden')}
-function startPracticeTable(base){if(practiceTimeout)clearTimeout(practiceTimeout);practiceTimeout=null;practiceBase=base;practiceFactor=1;practiceBuffer='';$('practiceDisplay').className='answer-display';$('practicePicker').classList.add('hidden');$('practiceWork').classList.remove('hidden');$('practiceTitle').textContent=`${base} 的乘法表`;$('practiceMessage').textContent='從第 1 題開始，一格一格填入答案。';renderPracticeRows();updatePracticeDisplay()}
-function renderPracticeRows(){let html='';for(let factor=1;factor<=9;factor++){const answer=practiceBase*factor,slots=String(answer).length;html+=`<div class="equation-row ${factor<practiceFactor?'done':factor===practiceFactor?'active':''}" id="practiceRow${factor}"><span>${practiceBase} × ${factor} =</span><span class="digit-slots">${Array.from({length:slots},(_,i)=>`<span class="digit-slot" id="practiceSlot${factor}-${i}">${factor<practiceFactor?String(answer)[i]:''}</span>`).join('')}</span></div>`}$('equationList').innerHTML=html;renderPracticeBuffer()}
+function showPracticePicker(){if(practiceTimeout)clearTimeout(practiceTimeout);practiceTimeout=null;$('practiceScreen').classList.remove('practice-active');$('practiceDisplay').className='answer-display';$('practicePicker').classList.remove('hidden');$('practiceWork').classList.add('hidden')}
+function startPracticeTable(base){if(practiceTimeout)clearTimeout(practiceTimeout);practiceTimeout=null;practiceBase=base;practiceFactor=1;practiceBuffer='';$('practiceScreen').classList.add('practice-active');$('practiceDisplay').className='answer-display';$('practicePicker').classList.add('hidden');$('practiceWork').classList.remove('hidden');$('practiceTitle').textContent=`${base} 的乘法表`;$('practiceMessage').textContent='從第 1 題開始，一格一格填入答案。';renderPracticeRows();updatePracticeDisplay()}
+function renderPracticeRows(){let html='';for(let factor=1;factor<=9;factor++){const answer=practiceBase*factor,slots=String(answer).length;html+=`<div class="equation-row ${factor<practiceFactor?'done':factor===practiceFactor?'active':''}" id="practiceRow${factor}"><span>${practiceBase} × ${factor} =</span><span class="digit-slots">${Array.from({length:slots},(_,i)=>`<span class="digit-slot" id="practiceSlot${factor}-${i}">${factor<practiceFactor?String(answer)[i]:''}</span>`).join('')}</span></div>`}$('equationList').innerHTML=html;renderPracticeBuffer();const active=$(`practiceRow${practiceFactor}`);if(active)requestAnimationFrame(()=>active.scrollIntoView({block:'nearest',behavior:'smooth'}))}
 function renderPracticeBuffer(){if(practiceFactor>9)return;const chars=practiceBuffer.split('');chars.forEach((c,i)=>{const slot=$(`practiceSlot${practiceFactor}-${i}`);if(slot)slot.textContent=c})}
 function updatePracticeDisplay(){$('practiceDisplay').textContent=practiceFactor>9?'完成！':practiceBuffer||'—'}
 function practiceDigit(d){if(practiceFactor>9||practiceTimeout)return;const expected=String(practiceBase*practiceFactor);if(practiceBuffer.length>=expected.length)return;practiceBuffer+=d;renderPracticeBuffer();updatePracticeDisplay();if(practiceBuffer.length===expected.length){if(practiceBuffer===expected){playSound('correct');$('practiceMessage').textContent=`答對了！${practiceBase} × ${practiceFactor} = ${expected}`;practiceFactor++;practiceBuffer='';if(practiceFactor>9){$('practiceMessage').textContent=`🎉 ${practiceBase} 的乘法表全部完成！`;renderPracticeRows();updatePracticeDisplay()}else{renderPracticeRows();updatePracticeDisplay()}}else{playSound('wrong');$('practiceMessage').textContent='這一題再想一想。';$('practiceDisplay').classList.add('wrong');practiceTimeout=setTimeout(()=>{practiceTimeout=null;$('practiceDisplay').classList.remove('wrong');practiceBuffer='';renderPracticeRows();updatePracticeDisplay()},450)}}}
