@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月8日" // 已更新為最新日期
+    lastUpdated: "2026年9月12日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -68,6 +68,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "逐步練習和的平方、差的平方與平方差，並挑戰五分鐘十題考試。"
+    },
+    {
+        title: "多項式的加減法（國二）",
+        category: "junior",
+        url: "junior/math/polynomial_add_sub_grade8.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "從對齊同類項、補上缺項與去括號開始，逐步完成多項式加減運算。"
     },
     {
         title: "常見次方表（國一）",
