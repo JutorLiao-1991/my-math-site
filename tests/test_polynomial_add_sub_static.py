@@ -35,7 +35,7 @@ class PolynomialAddSubStaticTests(unittest.TestCase):
         self.assertRegex(self.html, r"const EXAM_SECONDS\s*=\s*10\s*\*\s*60;")
         self.assertRegex(self.html, r"const POINTS_PER_QUESTION\s*=\s*10;")
         self.assertIn(
-            "state.currentQuestionPoints=Math.max(0,state.currentQuestionPoints-wrongCount)",
+            "state.currentQuestionPoints=Math.max(0,state.currentQuestionPoints-1)",
             self.html,
         )
         self.assertIn(
@@ -56,19 +56,36 @@ class PolynomialAddSubStaticTests(unittest.TestCase):
         self.assertIn('value="subtraction"', self.html)
         self.assertIn('value="mixed"', self.html)
 
-    def test_stepwise_coefficient_workflow(self):
-        self.assertIn("去括號並對齊同類項（缺項填 0）", self.html)
-        self.assertIn("合併 ", self.html)
-        self.assertIn("依降冪排列填入最後答案的係數", self.html)
-        self.assertIn('next.classList.remove("hidden")', self.html)
+    def test_two_step_term_workflow(self):
+        self.assertIn('{label:"拆括號",answers:expandedTermAnswers(source,signs)}', self.html)
+        self.assertIn('{label:"合併同類項",answers:finalTermAnswers(result)}', self.html)
+        self.assertIn('input.value!==row.answers[inputIndex]', self.html)
+        self.assertIn('onclick="confirmCurrentTerm()"', self.html)
+        self.assertNotIn("檢查本列", self.html)
+        self.assertNotIn("checkCurrentRow", self.html)
         self.assertIn("state.practiceCompleted++", self.html)
 
-    def test_touch_keypad_supports_negative_coefficients(self):
-        self.assertIn('onclick="typeKey(\'minus\')"', self.html)
+    def test_touch_keypad_supports_complete_polynomial_terms(self):
+        for key in ("plus", "minus", "x", "x2", "x3", "backspace"):
+            self.assertIn(f'onclick="typeKey(\'{key}\')"', self.html)
         self.assertIn(">−</button>", self.html)
+        self.assertIn(">x²</button>", self.html)
+        self.assertIn(">x³</button>", self.html)
         self.assertIn('window.matchMedia("(pointer: coarse)").matches', self.html)
-        self.assertIn('input.inputMode=touchOnly?"none":"numeric"', self.html)
+        self.assertIn('input.inputMode=touchOnly?"none":"text"', self.html)
         self.assertIn("input.readOnly=touchOnly", self.html)
+
+    def test_standard_notation_is_required(self):
+        self.assertIn("function canonicalTerm(", self.html)
+        self.assertIn('degree>0&&absolute===1?"":String(absolute)', self.html)
+        self.assertIn('position>0?"+":""', self.html)
+        self.assertIn('input.value!==row.answers[inputIndex]', self.html)
+
+    def test_mobile_keypad_is_fixed_during_play(self):
+        self.assertIn("body.playing", self.html)
+        self.assertIn(".mobile-dock{position:fixed", self.html)
+        self.assertIn('document.body.classList.add("playing")', self.html)
+        self.assertIn('document.body.classList.remove("playing")', self.html)
 
     def test_runs_locally_without_cloud_calls(self):
         lowered = self.html.lower()
