@@ -58,12 +58,24 @@ class PolynomialAddSubStaticTests(unittest.TestCase):
 
     def test_two_step_term_workflow(self):
         self.assertIn('{label:"拆括號",answers:expandedTermAnswers(source,signs)}', self.html)
-        self.assertIn('{label:"合併同類項",answers:finalTermAnswers(result)}', self.html)
+        self.assertIn('{label:"最後答案",answers:finalTermAnswers(result)}', self.html)
         self.assertIn('input.value!==row.answers[inputIndex]', self.html)
         self.assertIn('onclick="confirmCurrentTerm()"', self.html)
         self.assertNotIn("檢查本列", self.html)
         self.assertNotIn("checkCurrentRow", self.html)
         self.assertIn("state.practiceCompleted++", self.html)
+
+    def test_nested_brackets_have_three_steps(self):
+        self.assertIn('{label:"拆小括號"', self.html)
+        self.assertIn('{label:"拆中括號"', self.html)
+        self.assertIn("bracketStart:outside.length", self.html)
+        self.assertIn('open.textContent="− ["', self.html)
+        self.assertIn('close.textContent="]"', self.html)
+
+    def test_each_step_starts_with_equals_sign(self):
+        self.assertIn('equals.className="row-equals"', self.html)
+        self.assertIn('equals.textContent="="', self.html)
+        self.assertIn("line.appendChild(equals)", self.html)
 
     def test_touch_keypad_supports_complete_polynomial_terms(self):
         for key in ("plus", "minus", "x", "x2", "x3", "backspace"):
@@ -86,6 +98,25 @@ class PolynomialAddSubStaticTests(unittest.TestCase):
         self.assertIn(".mobile-dock{position:fixed", self.html)
         self.assertIn('document.body.classList.add("playing")', self.html)
         self.assertIn('document.body.classList.remove("playing")', self.html)
+
+    def test_practice_highlight_and_cross_out_helpers(self):
+        self.assertIn('id="highlight-btn"', self.html)
+        self.assertIn('onclick="highlightCurrentDegree()"', self.html)
+        self.assertIn("function updatePracticeHelper(", self.html)
+        self.assertIn("function markDegreeDone(", self.html)
+        self.assertIn(".degree-highlight", self.html)
+        self.assertIn(".degree-done", self.html)
+        for degree in ("3", "2", "1", "0"):
+            self.assertIn(f'.helper[data-degree="{degree}"]', self.html)
+
+    def test_correct_sound_matches_decimal_exercise(self):
+        for sound_token in (
+            'oscillator.type="sine"',
+            "oscillator.frequency.setValueAtTime(659.25,now)",
+            "oscillator.frequency.setValueAtTime(523.25,now+.3)",
+            "oscillator.stop(now+1)",
+        ):
+            self.assertIn(sound_token, self.html)
 
     def test_runs_locally_without_cloud_calls(self):
         lowered = self.html.lower()
