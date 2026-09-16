@@ -83,6 +83,7 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
         self.assertIn('longKind:"product"', self.html)
         self.assertIn('longKind:"difference"', self.html)
         self.assertIn("function longDivide(", self.html)
+        self.assertIn("rounds.length>0&&qcoef.n>0", self.html)
 
     def test_long_division_limits_and_responsive_grid(self):
         self.assertIn("被除式最高三次、除式最高二次", self.html)
