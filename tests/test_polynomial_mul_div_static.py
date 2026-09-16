@@ -42,15 +42,18 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
 
     def test_all_requested_topics_are_selectable(self):
         expected = {
-            "single_mul": "重點2｜單項式 × 多項式",
-            "poly_mul": "重點3｜多項式 × 多項式",
-            "formula": "重點5｜利用乘法公式",
-            "single_div": "重點6｜單項式 ÷ 單項式",
-            "long_div": "重點8｜多項式長除法",
+            "single_mul": "考點 1｜單項式 × 多項式",
+            "poly_mul": "考點 2｜多項式 × 多項式",
+            "formula": "考點 3｜利用乘法公式",
+            "single_div": "考點 4｜單項式 ÷ 單項式",
+            "long_div": "考點 5｜多項式長除法",
         }
         for value, label in expected.items():
             self.assertIn(f'value="{value}"', self.html)
             self.assertIn(label, self.html)
+        self.assertIn("五個考點混合", self.html)
+        for old_label in ("重點 2", "重點 3", "重點 5", "重點 6", "重點 8"):
+            self.assertNotIn(old_label, self.html)
 
     def test_multiplication_workflow_and_error_hint(self):
         for label in ("逐項相乘", "寫出尚未合併的展開式", "合併同類項"):

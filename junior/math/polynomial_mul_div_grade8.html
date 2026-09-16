@@ -28,13 +28,13 @@
   <div id="intro-screen" class="intro">
     <h2>係數對係數，文字對文字</h2><p>乘法先逐項分配；除法先對齊次方。長除法每一輪都依「商、乘回、相減」完成。</p>
     <div class="topic-grid">
-      <article class="topic-card"><strong>重點 2｜單項式 × 多項式</strong><p>每一項都把數字與文字分開相乘，一步寫出完整單項式。</p><div class="example">−3x(2x² − x + 4)</div></article>
-      <article class="topic-card"><strong>重點 3｜多項式 × 多項式</strong><p>逐項相乘、寫出展開式，再合併同類項。</p><div class="example">(x − 5)(x + 3)</div></article>
-      <article class="topic-card"><strong>重點 5｜利用乘法公式</strong><p>逐步確認第一項平方、中間項與第二項平方。</p><div class="example">(3x + 1)²</div></article>
-      <article class="topic-card"><strong>重點 6｜單項式 ÷ 單項式</strong><p>數字除以數字、文字除以文字，一步完成。</p><div class="example">(−18x²) ÷ (10x²)</div></article>
-      <article class="topic-card"><strong>重點 8｜多項式長除法</strong><p>先補齊缺項，再逐輪輸入商的一項、乘回一列與相減一列；被除式最高三次、除式最高二次。</p><div class="example">(2x³ − 3x² − 5x + 7) ÷ (x − 2)</div></article>
+      <article class="topic-card"><strong>考點 1｜單項式 × 多項式</strong><p>每一項都把數字與文字分開相乘，一步寫出完整單項式。</p><div class="example">−3x(2x² − x + 4)</div></article>
+      <article class="topic-card"><strong>考點 2｜多項式 × 多項式</strong><p>逐項相乘、寫出展開式，再合併同類項。</p><div class="example">(x − 5)(x + 3)</div></article>
+      <article class="topic-card"><strong>考點 3｜利用乘法公式</strong><p>逐步確認第一項平方、中間項與第二項平方。</p><div class="example">(3x + 1)²</div></article>
+      <article class="topic-card"><strong>考點 4｜單項式 ÷ 單項式</strong><p>數字除以數字、文字除以文字，一步完成。</p><div class="example">(−18x²) ÷ (10x²)</div></article>
+      <article class="topic-card"><strong>考點 5｜多項式長除法</strong><p>先補齊缺項，再逐輪輸入商的一項、乘回一列與相減一列；被除式最高三次、除式最高二次。</p><div class="example">(2x³ − 3x² − 5x + 7) ÷ (x − 2)</div></article>
     </div>
-    <div class="note">練習模式可指定重點；考試模式混合 10 題、限時 10 分鐘，每次確認錯誤扣 1 分。</div>
+    <div class="note">練習模式可指定考點；考試模式混合 10 題、限時 10 分鐘，每次確認錯誤扣 1 分。</div>
   </div>
   <div id="question-screen" class="hidden">
     <div id="strategy" class="strategy hidden"><small>本題策略</small><span id="strategy-text"></span></div>
@@ -52,7 +52,7 @@
   <div id="setup-controls">
     <h2>選擇模式</h2>
     <div class="mode-grid"><button class="mode practice" type="button" onclick="startPractice()"><strong>💪 練習模式</strong><small>不限時間、不計分；每個步驟正確後才會往下進行。</small></button><button class="mode exam" type="button" onclick="startExam()"><strong>📝 考試模式</strong><small>混合 10 題、限時 10 分鐘；每題 10 分，每次確認錯誤扣 1 分。</small></button></div>
-    <div class="selector"><label for="practice-topic">練習範圍</label><select id="practice-topic"><option value="all">五個重點混合</option><option value="single_mul">重點2｜單項式 × 多項式</option><option value="poly_mul">重點3｜多項式 × 多項式</option><option value="formula">重點5｜利用乘法公式</option><option value="single_div">重點6｜單項式 ÷ 單項式</option><option value="long_div">重點8｜多項式長除法</option></select></div>
+    <div class="selector"><label for="practice-topic">練習範圍</label><select id="practice-topic"><option value="all">五個考點混合</option><option value="single_mul">考點 1｜單項式 × 多項式</option><option value="poly_mul">考點 2｜多項式 × 多項式</option><option value="formula">考點 3｜利用乘法公式</option><option value="single_div">考點 4｜單項式 ÷ 單項式</option><option value="long_div">考點 5｜多項式長除法</option></select></div>
     <div class="rules"><strong>輸入方式</strong><ul><li>每一格輸入完整的一項，例如 −3x²、+5x、−9/5。</li><li>同一列的後續正項要加「＋」；係數為 1 時省略。</li><li>長除法遇到缺項，要先補成 0x²、0x 或 0。</li><li>手機使用下方鍵盤；桌機可直接輸入 x^2、x² 或 x2。</li></ul></div>
   </div>
   <div id="play-controls" class="hidden">
@@ -77,7 +77,7 @@
 const EXAM_QUESTION_COUNT=10;
 const EXAM_SECONDS=10*60;
 const POINTS_PER_QUESTION=10;
-const TOPIC_TITLES={single_mul:"重點2｜單項式 × 多項式",poly_mul:"重點3｜多項式 × 多項式",formula:"重點5｜利用乘法公式",single_div:"重點6｜單項式 ÷ 單項式",long_div:"重點8｜多項式長除法"};
+const TOPIC_TITLES={single_mul:"考點 1｜單項式 × 多項式",poly_mul:"考點 2｜多項式 × 多項式",formula:"考點 3｜利用乘法公式",single_div:"考點 4｜單項式 ÷ 單項式",long_div:"考點 5｜多項式長除法"};
 const STRATEGIES={single_mul:"數字 × 數字，文字 × 文字。每一項都要乘到。",poly_mul:"逐項相乘 → 寫出展開式 → 合併同類項。",formula:"先辨認公式，再依序完成三個部分。",single_div:"數字 ÷ 數字，文字 ÷ 文字。",long_div:"補缺項 → 商的一項 → 乘回一列 → 相減一列。"};
 const state={mode:null,topic:"all",questions:[],questionIndex:0,stepIndex:0,practiceCompleted:0,earnedScore:0,currentQuestionPoints:POINTS_PER_QUESTION,wrongChecks:0,timerId:null,deadline:null,activeInput:null,lastQuestionId:null,finished:false};
 function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){const t=a%b;a=b;b=t}return a||1}
