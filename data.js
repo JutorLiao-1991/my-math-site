@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月12日" // 已更新為最新日期
+    lastUpdated: "2026年9月16日" // 已更新為最新日期
 };
 
 // --- 課程資料區 ---
@@ -76,6 +76,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "從對齊同類項、補上缺項與去括號開始，逐步完成多項式加減運算。"
+    },
+    {
+        title: "多項式乘除法（國二）",
+        category: "junior",
+        url: "junior/math/polynomial_mul_div_grade8.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "逐步練習單項式與多項式乘除、乘法公式，以及補缺項後完成多項式長除法。"
     },
     {
         title: "常見次方表（國一）",
