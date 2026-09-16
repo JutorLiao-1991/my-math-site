@@ -62,7 +62,7 @@ const lessonData = [
         desc: "透過鳩特精心設計的步驟，一步一步用尺規作圖完成指定三角形"
     },
     {
-        title: "乘法公式基礎練習",
+        title: "乘法公式基礎練習（國二）",
         category: "junior",
         url: "junior/math/multiplication_formulas.html",
         tagClass: "math",

@@ -70,6 +70,31 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
             "(a + b)(a − b) = a² − b²",
         ):
             self.assertIn(formula, self.html)
+        self.assertIn('makeStep("代入乘法公式"', self.html)
+        self.assertIn('parts:["= ("', self.html)
+        self.assertIn('step.parts[step.parts.length-1]', self.html)
+
+    def test_each_cell_must_be_confirmed_before_the_next_unlocks(self):
+        for token in (
+            "確認這一格",
+            "cellIndex:0",
+            "input.disabled=true",
+            "function activateCell(index)",
+            "inputs[state.cellIndex]",
+            "if(state.cellIndex+1<inputs.length)",
+            "這一格正確！已開放下一格。",
+        ):
+            self.assertIn(token, self.html)
+
+    def test_touch_flow_does_not_focus_or_zoom_the_next_long_division_cell(self):
+        self.assertIn('input.addEventListener("pointerdown"', self.html)
+        self.assertIn("event.preventDefault()", self.html)
+        self.assertIn("if(usesTouchKeypadOnly())return", self.html)
+        self.assertIn(".long-answer{font-size:16px", self.html)
+        self.assertIn(
+            "repeat(var(--poly-cols),minmax(0,1fr))",
+            self.html,
+        )
 
     def test_single_division_is_one_step_with_targeted_hint(self):
         self.assertIn('makeStep("一步寫出商"', self.html)
