@@ -89,6 +89,11 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
         self.assertIn("--poly-cols", self.html)
         self.assertIn("grid-template-columns:minmax(64px,.9fr)", self.html)
         self.assertIn("@media(max-width:590px)", self.html)
+        self.assertIn(".step.future{display:none}", self.html)
+        self.assertIn(
+            "longArea.appendChild(renderFinalDivision(step,index))",
+            self.html,
+        )
 
     def test_fraction_and_touch_keyboard_support(self):
         self.assertIn("function parseRational(", self.html)
