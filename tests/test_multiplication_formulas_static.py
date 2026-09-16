@@ -17,13 +17,14 @@ class MultiplicationFormulasStaticTests(unittest.TestCase):
     def test_page_is_listed_in_junior_math(self):
         self.assertTrue(PAGE.exists())
         card = re.search(
-            r'title:\s*"乘法公式基礎練習"(?P<body>.*?)\n\s*\}',
+            r'title:\s*"乘法公式基礎練習（國二）"(?P<body>.*?)\n\s*\}',
             self.data,
             re.S,
         )
         self.assertIsNotNone(card)
         self.assertIn('category: "junior"', card.group("body"))
         self.assertIn('url: "junior/math/multiplication_formulas.html"', card.group("body"))
+        self.assertIn("乘法公式基礎練習（國二）", self.html)
 
     def test_three_formulas_include_correct_difference_square_sign(self):
         self.assertIn(
