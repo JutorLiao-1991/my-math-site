@@ -115,6 +115,24 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
         self.assertIn("function longDivide(", self.html)
         self.assertIn("rounds.length>0&&qcoef.n>0", self.html)
 
+    def test_only_long_division_cells_allow_an_implicit_positive_sign(self):
+        self.assertIn(
+            'input.dataset.allowImplicitPlus=longMode?"true":"false"',
+            self.html,
+        )
+        self.assertIn(
+            'allowImplicitPlus=input.dataset.allowImplicitPlus==="true"',
+            self.html,
+        )
+        self.assertIn(
+            "!parsed.explicitPlus&&!allowImplicitPlus",
+            self.html,
+        )
+        self.assertIn(
+            "answerMatches(input.value,expected,allowImplicitPlus)",
+            self.html,
+        )
+
     def test_final_division_uses_one_whole_input_for_each_result(self):
         self.assertIn(
             '[wholeAnswer(work.quotient),wholeAnswer(work.remainder)]',
