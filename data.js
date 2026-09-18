@@ -22,42 +22,114 @@ const lessonData = [
         desc: "包含平假名、片假名以及濁音的完整練習，適合初學者入門。"
     },
     {
-        title: "圓周運動與簡諧投影",
-        category: "senior",    // 高中區
-        url: "senior/physics/shm_circle.html",
-        tagClass: "phys",      // 紫色標籤
-        tagName: "高中物理",
-        desc: "透過動態投影，理解等速圓周運動、正弦波與簡諧運動(SHM)的數學關聯。"
+        title: "九九乘法試煉（二年級）",
+        category: "elementary",
+        url: "elementary/multiplication_table_trial.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "從分組練習到單人快問快答與雙人搶答，熟練二年級九九乘法表。"
     },
     {
-        title: "物質加熱曲線與三態變化",
-        category: "junior", // 國中區
-        url: "junior/science/heating_curve.html", // 新檔案的路徑
-        tagClass: "phys", // 使用物理（紫色）標籤
+        title: "五位數加減法（四年級）",
+        category: "elementary",
+        url: "elementary/five_digit_add_sub.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "把進位與借位寫進直式，練習五位數加減法與連續借位。"
+    },
+    {
+        title: "三位數以內的乘法（四年級）",
+        category: "elementary",
+        url: "elementary/multiplication_upto_three_digits.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "逐列完成一、二、三位數乘法的部分積與最後答案。"
+    },
+    {
+        title: "小數乘法與除法（五年級）",
+        category: "elementary",
+        url: "elementary/decimal_times_div.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "練習小數乘法，以及小數除以整數的直式計算。"
+    },
+    {
+        title: "分數的加減法（五年級）",
+        category: "elementary",
+        url: "elementary/fraction_add_sub_grade5.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "依序完成同分母、異分母與帶分數加減法，進階模式再一路約成最簡分數。"
+    },
+    {
+        title: "單位換算特訓（五年級）",
+        category: "elementary",
+        url: "elementary/unit_convert.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
+    },
+    {
+        title: "時間乘法與除法（五年級）",
+        category: "elementary",
+        url: "elementary/time_times_div.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "挑戰時間的乘法與除法。"
+    },
+    {
+        title: "比率與百分率（五年級）",
+        category: "elementary",
+        url: "elementary/rate_ratio_percentage.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "試著在此精熟比率與百分率吧！"
+    },
+    {
+        title: "質數合數大挑戰（五年級）",
+        category: "elementary",
+        url: "elementary/prime_test.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "質數？合數？都不是？"
+    },
+    {
+        title: "小數的除法（六年級）",
+        category: "elementary",
+        url: "elementary/decimal_division_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "先移動除數與被除數的小數點，再完成整數除以小數、小數除以小數的直式計算。"
+    },
+    {
+        title: "常見次方表（國一）",
+        category: "junior",
+        url: "junior/math/common_powers_trial.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "熟練底數 2～10 的常見次方，並挑戰單人快問快答與雙人搶答。"
+    },
+    {
+        title: "物質加熱曲線與三態變化（國二）",
+        category: "junior",
+        url: "junior/science/heating_curve.html",
+        tagClass: "phys",
         tagName: "國中理化",
         desc: "透過加熱曲線與巨觀、微觀畫面熟悉曲線意義。"
     },
     {
-        title: "多項式函數圖形",
-        category: "senior",
-        url: "senior/math/poly_function_graphing.html",
-        tagClass: "math", // 藍色標籤
-        tagName: "高中數學",
-        desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
-    },
-    {
-        title: "尺規作圖基本技巧",
+        title: "尺規作圖基本技巧（國二）",
         category: "junior",
         url: "junior/math/CAR.html",
-        tagClass: "math", // 藍色標籤
+        tagClass: "math",
         tagName: "國中數學",
         desc: "透過鳩特精心設計的步驟，一步一步領悟尺規作圖方式"
     },
     {
-        title: "尺規作圖做三角形",
+        title: "尺規作圖做三角形（國二）",
         category: "junior",
         url: "junior/math/CAR_Triangle.html",
-        tagClass: "math", // 藍色標籤
+        tagClass: "math",
         tagName: "國中數學",
         desc: "透過鳩特精心設計的步驟，一步一步用尺規作圖完成指定三角形"
     },
@@ -86,47 +158,15 @@ const lessonData = [
         desc: "逐步練習單項式與多項式乘除、乘法公式，以及補缺項後完成多項式長除法。"
     },
     {
-        title: "常見次方表（國一）",
+        title: "常見元素的週期表（國二）",
         category: "junior",
-        url: "junior/math/common_powers_trial.html",
-        tagClass: "math",
-        tagName: "國中數學",
-        desc: "熟練底數 2～10 的常見次方，並挑戰單人快問快答與雙人搶答。"
-    },
-    {
-        title: "平面族示意動畫",
-        category: "senior",
-        url: "senior/math/Family_of_planes.html",
-        tagClass: "math", // 藍色標籤
-        tagName: "高中數學",
-        desc: "透過調整k，觀察平面族是什麼概念。"
-    },
-    {
-        title: "光電效應實驗室",
-        category: "senior",
-        url: "senior/physics/photoelectric_effect.html",
-        tagClass: "phys", // 藍色標籤
-        tagName: "高中物理",
-        desc: "經由調整光線的頻率、強度、金屬靶，觀察發射出來的電子。"
-    },
-    {
-        title: "常見元素的週期表",
-        category: "junior", // 國中區
-        url: "junior/science/periodic_table.html", // 新檔案的路徑
-        tagClass: "chem", // 使用化學標籤
+        url: "junior/science/periodic_table.html",
+        tagClass: "chem",
         tagName: "國中理化",
         desc: "常見的元素週期表，讓我們邊玩邊學吧！"
     },
     {
-        title: "高中光譜實驗",
-        category: "senior",    // 高中區
-        url: "senior/physics/spectrum.html",
-        tagClass: "phys",      // 藍色標籤
-        tagName: "高中物理",
-        desc: "親手操作當年的光譜實驗，並以能階理解現象。"
-    },
-    {
-        title: "元素JUNO！",
+        title: "元素JUNO！（國二）",
         category: "junior",
         url: "junior/science/element_uno.html",
         tagClass: "chem",
@@ -134,91 +174,43 @@ const lessonData = [
         desc: "來場元素JUNO吧！"
     },
     {
-        title: "鳩特國中英文練習區",
-        category: "language",
-        url: "junior/english/index.html",
-        tagClass: "lang",
-        tagName: "國中英文",
-        desc: "整合單字自習、單字測驗與基礎文法練習，依年級學期與教材範圍開始挑戰。"
+        title: "多項式函數圖形（高一）",
+        category: "senior",
+        url: "senior/math/poly_function_graphing.html",
+        tagClass: "math",
+        tagName: "高中數學",
+        desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
     },
     {
-        title: "單位換算特訓",
-        category: "elementary", // 設定為國小區類別
-        url: "elementary/unit_convert.html", // 依照您截圖的路徑
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "挑戰長度、重量、面積、容積換算！用「小數點漂移」輕鬆破解單位大魔王。"
+        title: "光電效應實驗室（高一）",
+        category: "senior",
+        url: "senior/physics/photoelectric_effect.html",
+        tagClass: "phys",
+        tagName: "高中物理",
+        desc: "經由調整光線的頻率、強度、金屬靶，觀察發射出來的電子。"
     },
     {
-        title: "五位數加減法（四年級）",
-        category: "elementary",
-        url: "elementary/five_digit_add_sub.html",
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "把進位與借位寫進直式，練習五位數加減法與連續借位。"
+        title: "高中光譜實驗（高一）",
+        category: "senior",
+        url: "senior/physics/spectrum.html",
+        tagClass: "phys",
+        tagName: "高中物理",
+        desc: "親手操作當年的光譜實驗，並以能階理解現象。"
     },
     {
-        title: "九九乘法試煉（二年級）",
-        category: "elementary",
-        url: "elementary/multiplication_table_trial.html",
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "從分組練習到單人快問快答與雙人搶答，熟練二年級九九乘法表。"
+        title: "圓周運動與簡諧投影（高二）",
+        category: "senior",
+        url: "senior/physics/shm_circle.html",
+        tagClass: "phys",
+        tagName: "高中物理",
+        desc: "透過動態投影，理解等速圓周運動、正弦波與簡諧運動(SHM)的數學關聯。"
     },
     {
-        title: "三位數以內的乘法（四年級）",
-        category: "elementary",
-        url: "elementary/multiplication_upto_three_digits.html",
+        title: "平面族示意動畫（高二）",
+        category: "senior",
+        url: "senior/math/Family_of_planes.html",
         tagClass: "math",
-        tagName: "國小數學",
-        desc: "逐列完成一、二、三位數乘法的部分積與最後答案。"
-    },
-    {
-        title: "小數乘法與除法（五年級）",
-        category: "elementary", // 設定為國小區類別
-        url: "elementary/decimal_times_div.html", // 依照您截圖的路徑
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "練習小數乘法，以及小數除以整數的直式計算。"
-    },
-    {
-        title: "分數的加減法（五年級）",
-        category: "elementary",
-        url: "elementary/fraction_add_sub_grade5.html",
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "依序完成同分母、異分母與帶分數加減法，進階模式再一路約成最簡分數。"
-    },
-    {
-        title: "小數的除法（六年級）",
-        category: "elementary",
-        url: "elementary/decimal_division_grade6.html",
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "先移動除數與被除數的小數點，再完成整數除以小數、小數除以小數的直式計算。"
-    },
-    {
-        title: "時間乘法與除法",
-        category: "elementary", // 設定為國小區類別
-        url: "elementary/time_times_div.html", // 依照您截圖的路徑
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "挑戰時間的乘法與除法。"
-    },
-    {
-        title: "比率與百分率",
-        category: "elementary", // 設定為國小區類別
-        url: "elementary/rate_ratio_percentage.html", // 依照您截圖的路徑
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "試著在此精熟比率與百分率吧！"
-    },
-    {
-        title: "質數合數大挑戰",
-        category: "elementary", // 設定為國小區類別
-        url: "elementary/prime_test.html", // 依照您截圖的路徑
-        tagClass: "math",
-        tagName: "國小數學",
-        desc: "質數？合數？都不是？"
+        tagName: "高中數學",
+        desc: "透過調整k，觀察平面族是什麼概念。"
     }
 ];
