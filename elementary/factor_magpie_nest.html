@@ -453,8 +453,9 @@
       </div>
       <div class="stats">
         <div class="stat mode-stat" id="mode-label">選擇模式</div>
-        <div class="stat">⭐ <span id="score">0</span> 分</div>
-        <div class="stat">題目 <span id="round">1</span>/5</div>
+        <div class="stat">⭐ 累計 <span id="score">0</span> 分</div>
+        <div class="stat hidden" id="question-score-stat">本題 <span id="question-score">10</span> 分</div>
+        <div class="stat">題目 <span id="round">1</span>/<span id="round-total">5</span></div>
       </div>
     </header>
 
@@ -521,7 +522,7 @@
         </button>
         <button class="mode-btn exam" data-mode="exam">
           <strong>考試模式</strong>
-          <span>不公布總數，由你判斷什麼時候找完</span>
+          <span>共 10 題，每題 10 分；每次判斷錯誤扣 1 分</span>
         </button>
       </div>
     </div>
@@ -533,7 +534,7 @@
       <h2>鵲巢全部安排完成！</h2>
       <p id="finish-text"></p>
       <div class="modal-actions">
-        <button class="primary-btn" id="restart">再玩五題</button>
+        <button class="primary-btn" id="restart">再玩一次</button>
         <button class="home-btn" id="choose-mode">重新選擇模式</button>
         <button class="home-btn" onclick="location.href='../index.html'">回教材首頁</button>
       </div>
@@ -542,11 +543,15 @@
 
   <script>
     const QUESTION_POOL = [12, 16, 18, 20, 24, 27, 28, 30, 32, 36, 40, 42, 45, 48, 54, 56, 60, 63, 64, 72];
-    const TOTAL_ROUNDS = 5;
+    const PRACTICE_ROUNDS = 5;
+    const EXAM_ROUNDS = 10;
+    const POINTS_PER_EXAM_QUESTION = 10;
     const state = {
       questions: [],
       round: 0,
+      totalRounds: PRACTICE_ROUNDS,
       score: 0,
+      questionScore: POINTS_PER_EXAM_QUESTION,
       target: 24,
       pairs: [],
       found: new Set(),
@@ -583,26 +588,32 @@
 
     function startGame(mode = state.mode) {
       state.mode = mode;
-      state.questions = shuffle(QUESTION_POOL).slice(0, TOTAL_ROUNDS);
+      state.totalRounds = state.mode === 'exam' ? EXAM_ROUNDS : PRACTICE_ROUNDS;
+      state.questions = shuffle(QUESTION_POOL).slice(0, state.totalRounds);
       state.round = 0;
       state.score = 0;
-      $('score').textContent = '0';
+      state.questionScore = POINTS_PER_EXAM_QUESTION;
+      updateScoreboard();
       $('intro-overlay').classList.add('hidden');
       $('finish-overlay').classList.add('hidden');
       $('mode-label').textContent = state.mode === 'practice' ? '練習模式' : '考試模式';
+      $('round-total').textContent = String(state.totalRounds);
+      $('restart').textContent = state.mode === 'exam' ? '再考十題' : '再練習五題';
       loadRound();
     }
 
     function loadRound() {
-      if (state.round >= TOTAL_ROUNDS) return finishGame();
+      if (state.round >= state.totalRounds) return finishGame();
       state.target = state.questions[state.round];
       state.pairs = factorPairs(state.target);
       state.found = new Set();
       state.input = { left: '', right: '' };
       state.activeSide = 'left';
       state.mistakesThisRound = 0;
+      state.questionScore = POINTS_PER_EXAM_QUESTION;
       state.locked = false;
       state.awaitingDecision = false;
+      updateScoreboard();
 
       $('round').textContent = String(state.round + 1);
       $('target').textContent = String(state.target);
@@ -693,6 +704,19 @@
       feedback.className = `feedback ${type}`;
     }
 
+    function updateScoreboard() {
+      $('score').textContent = String(state.score);
+      $('question-score').textContent = String(state.questionScore);
+      $('question-score-stat').classList.toggle('hidden', state.mode !== 'exam');
+    }
+
+    function deductExamPoint() {
+      if (state.mode !== 'exam') return;
+      state.mistakesThisRound++;
+      state.questionScore = Math.max(0, POINTS_PER_EXAM_QUESTION - state.mistakesThisRound);
+      updateScoreboard();
+    }
+
     function submitAnswer() {
       if (state.locked) return;
       const a = Number(state.input.left);
@@ -708,9 +732,13 @@
       const valid = product === state.target && state.pairs.some(([x, y]) => pairKey(x, y) === key);
 
       if (!valid) {
-        state.mistakesThisRound++;
-        state.score = Math.max(0, state.score - 1);
-        $('score').textContent = String(state.score);
+        if (state.mode === 'exam') {
+          deductExamPoint();
+        } else {
+          state.mistakesThisRound++;
+          state.score = Math.max(0, state.score - 1);
+          updateScoreboard();
+        }
         playTone(false);
         if (product < state.target) {
           setFeedback(`${a} × ${b} 只能安排 ${product} 隻，還有 ${state.target - product} 隻小鳩無法入住。`, 'bad');
@@ -721,6 +749,8 @@
       }
 
       if (state.found.has(key)) {
+        deductExamPoint();
+        playTone(false);
         setFeedback(`${Math.min(a,b)} × ${Math.max(a,b)} 已經找過囉！試試另一種排列。`, 'info');
         state.input = { left: '', right: '' };
         chooseSide('left');
@@ -729,8 +759,10 @@
       }
 
       state.found.add(key);
-      state.score += 10;
-      $('score').textContent = String(state.score);
+      if (state.mode === 'practice') {
+        state.score += 10;
+        updateScoreboard();
+      }
       renderDoves(a, b);
       renderPairList(key);
       $('equation').textContent = `${a} × ${b} = ${state.target}`;
@@ -764,8 +796,15 @@
 
     function continueSearch() {
       if (state.mode !== 'exam' || !state.awaitingDecision) return;
+      const alreadyComplete = state.found.size === state.pairs.length;
+      if (alreadyComplete) deductExamPoint();
       clearAttempt();
-      setFeedback('好，再找一種不同的完整排列！', 'info');
+      setFeedback(
+        alreadyComplete
+          ? `其實已經全部找齊了，本題扣 1 分；請按「我搞錯了，其實已經找完了」。`
+          : '好，再找一種不同的完整排列！',
+        alreadyComplete ? 'bad' : 'info'
+      );
     }
 
     function declareFinished() {
@@ -774,9 +813,7 @@
         completeRound();
         return;
       }
-      state.mistakesThisRound++;
-      state.score = Math.max(0, state.score - 1);
-      $('score').textContent = String(state.score);
+      deductExamPoint();
       playTone(false);
       clearAttempt();
       setFeedback('還有其他完整排列喔！再觀察這個數還能分成幾排。', 'bad');
@@ -787,11 +824,16 @@
       state.awaitingDecision = false;
       $('decision-row').classList.add('hidden');
       $('oops-finished').classList.add('hidden');
-      const bonus = Math.max(0, 5 - state.mistakesThisRound);
-      state.score += bonus;
-      $('score').textContent = String(state.score);
-      const detail = state.mode === 'practice' ? `共 ${state.pairs.length} 種排列。` : '你的判斷正確，全部找齊了！';
-      setFeedback(`${detail} 本題加上 ${bonus} 分完整獎勵，準備前往下一個鵲巢。`, 'good');
+      if (state.mode === 'exam') {
+        state.score += state.questionScore;
+        updateScoreboard();
+        setFeedback(`你的判斷正確，全部找齊了！本題獲得 ${state.questionScore} 分，準備前往下一個鵲巢。`, 'good');
+      } else {
+        const bonus = Math.max(0, 5 - state.mistakesThisRound);
+        state.score += bonus;
+        updateScoreboard();
+        setFeedback(`共 ${state.pairs.length} 種排列。本題加上 ${bonus} 分完整獎勵，準備前往下一個鵲巢。`, 'good');
+      }
       setTimeout(() => { state.round++; loadRound(); }, 1800);
     }
 
@@ -807,7 +849,8 @@
     }
 
     function finishGame() {
-      $('finish-text').textContent = `你完成了 ${TOTAL_ROUNDS} 個鵲巢，共得到 ${state.score} 分。每一組完整排列，都是這個數的一組因數配對！`;
+      const scoreDetail = state.mode === 'exam' ? `滿分 ${EXAM_ROUNDS * POINTS_PER_EXAM_QUESTION} 分。` : '';
+      $('finish-text').textContent = `你完成了 ${state.totalRounds} 個鵲巢，共得到 ${state.score} 分。${scoreDetail}每一組完整排列，都是這個數的一組因數配對！`;
       $('finish-overlay').classList.remove('hidden');
     }
 
