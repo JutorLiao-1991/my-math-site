@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>因數鵲巢｜鳩特老師</title>
+  <style>
+    :root {
+      --ink: #26384d;
+      --muted: #64748b;
+      --blue: #5c7f9d;
+      --blue-deep: #385a78;
+      --blue-soft: #e9f1f6;
+      --paper: #fffdf8;
+      --nest: #a76b3f;
+      --nest-dark: #75452b;
+      --gold: #f5bd49;
+      --green: #5e9a72;
+      --red: #cf6b64;
+      --shadow: 0 12px 30px rgba(49, 70, 89, .14);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      min-height: 100vh;
+      font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 5%, rgba(255,255,255,.95), transparent 28%),
+        linear-gradient(145deg, #edf4f8 0%, #dbe9f1 55%, #f4ead5 100%);
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: manipulation;
+    }
+
+    button { font: inherit; touch-action: manipulation; }
+    button:focus-visible { outline: 4px solid rgba(245,189,73,.55); outline-offset: 2px; }
+    .hidden { display: none !important; }
+
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      min-height: 72px;
+      padding: 12px clamp(12px, 3vw, 34px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: rgba(255,255,255,.88);
+      border-bottom: 1px solid rgba(81,111,137,.18);
+      box-shadow: 0 4px 18px rgba(48,72,92,.09);
+      backdrop-filter: blur(12px);
+      z-index: 20;
+    }
+
+    .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .brand-mark {
+      width: 48px; height: 48px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: #fff4d3;
+      box-shadow: inset 0 0 0 3px #f3c866;
+      font-size: 29px;
+    }
+    .brand h1 { margin: 0; font-size: clamp(1.25rem, 3vw, 2rem); line-height: 1.1; }
+    .brand small { color: var(--muted); font-weight: 700; }
+
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+    .stat {
+      min-width: 92px;
+      padding: 9px 13px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(52,78,98,.1);
+      font-weight: 900;
+      text-align: center;
+    }
+    .stat span { color: var(--blue-deep); }
+
+    .game {
+      width: min(1500px, 100%);
+      margin: 0 auto;
+      flex: 1;
+      padding: clamp(12px, 2vw, 24px);
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(265px, 330px);
+      gap: clamp(12px, 2vw, 24px);
+      min-height: 0;
+    }
+
+    .play-card, .pairs-card {
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(92,127,157,.16);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .play-card {
+      min-width: 0;
+      padding: clamp(14px, 2vw, 26px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prompt {
+      text-align: center;
+      font-size: clamp(1.25rem, 3.2vw, 2.2rem);
+      font-weight: 900;
+      letter-spacing: .02em;
+    }
+    .prompt strong { color: var(--blue-deep); font-size: 1.25em; }
+
+    .equation {
+      min-height: 58px;
+      min-width: min(420px, 88%);
+      display: grid;
+      place-items: center;
+      padding: 8px 24px;
+      border-radius: 20px;
+      background: #fff4c9;
+      color: #26415c;
+      font-size: clamp(1.5rem, 4vw, 2.6rem);
+      font-weight: 1000;
+      transition: transform .25s ease, background .25s ease;
+    }
+    .equation.pop { animation: pop .45s ease; }
+
+    .nest-wrap {
+      width: 100%;
+      min-height: clamp(250px, 39vh, 470px);
+      display: grid;
+      place-items: center;
+      padding: 18px;
+      overflow: auto;
+    }
+
+    .nest {
+      position: relative;
+      width: min(92%, 880px);
+      min-height: 230px;
+      padding: 28px;
+      display: grid;
+      place-items: center;
+      border: 13px solid transparent;
+      border-radius: 62px 62px 88px 88px;
+      background:
+        linear-gradient(#f5dfb4, #ebc98e) padding-box,
+        repeating-linear-gradient(28deg, var(--nest-dark) 0 8px, var(--nest) 8px 17px, #c98b51 17px 25px) border-box;
+      box-shadow:
+        inset 0 -18px 32px rgba(117,69,43,.14),
+        0 13px 0 rgba(117,69,43,.12),
+        0 20px 36px rgba(79,60,42,.15);
+    }
+    .nest::before, .nest::after {
+      content: "";
+      position: absolute;
+      width: 55px; height: 86px;
+      top: -38px;
+      background: linear-gradient(145deg, #759b65, #4f7c51);
+      border-radius: 100% 0 100% 0;
+      z-index: -1;
+    }
+    .nest::before { left: 7%; transform: rotate(-20deg); }
+    .nest::after { right: 7%; transform: scaleX(-1) rotate(-20deg); }
+
+    .dove-grid {
+      --cols: 6;
+      display: grid;
+      grid-template-columns: repeat(var(--cols), minmax(28px, 58px));
+      justify-content: center;
+      align-content: center;
+      gap: clamp(4px, .8vw, 10px);
+      transition: all .45s ease;
+    }
+    .dove {
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: rgba(255,255,255,.54);
+      box-shadow: inset 0 -3px 0 rgba(117,69,43,.11);
+      font-size: clamp(20px, 3.5vw, 38px);
+      animation: arrive .45s both;
+    }
+    .dove:nth-child(3n+1) { filter: hue-rotate(8deg); }
+    .dove:nth-child(3n+2) { filter: saturate(.8); }
+
+    .feedback {
+      min-height: 54px;
+      width: min(760px, 100%);
+      padding: 10px 16px;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      color: var(--muted);
+      font-weight: 900;
+      text-align: center;
+      line-height: 1.4;
+    }
+    .feedback.good { background: #e3f3e8; color: #2f6a44; }
+    .feedback.bad { background: #f9e5e3; color: #9a4742; }
+    .feedback.info { background: var(--blue-soft); color: var(--blue-deep); }
+
+    .answer-row {
+      width: min(620px, 100%);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    .answer-box {
+      height: 72px;
+      border: 4px solid #b8cbd9;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: white;
+      font-size: 2.3rem;
+      font-weight: 1000;
+      color: var(--ink);
+      cursor: pointer;
+      transition: .15s ease;
+    }
+    .answer-box.active { border-color: var(--gold); box-shadow: 0 0 0 5px rgba(245,189,73,.22); }
+    .times { font-size: 2.1rem; font-weight: 1000; }
+    .submit {
+      height: 68px;
+      padding: 0 22px;
+      border: 0;
+      border-radius: 18px;
+      color: white;
+      background: var(--blue-deep);
+      box-shadow: 0 6px 0 #27475f;
+      font-weight: 1000;
+      font-size: 1.25rem;
+      cursor: pointer;
+    }
+    .submit:active { transform: translateY(5px); box-shadow: 0 1px 0 #27475f; }
+
+    .pairs-card {
+      padding: 22px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      min-height: 0;
+    }
+    .pairs-card h2 { margin: 0; text-align: center; font-size: 1.45rem; }
+    .remaining { text-align: center; color: var(--muted); font-weight: 800; }
+    .pair-list { display: grid; gap: 10px; overflow: auto; padding: 2px; }
+    .pair-chip {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      border-radius: 16px;
+      background: #eef2f5;
+      color: #8794a1;
+      font-size: 1.25rem;
+      font-weight: 1000;
+      border: 2px dashed #cbd5df;
+    }
+    .pair-chip.found {
+      background: #e3f3e8;
+      color: #376e49;
+      border: 2px solid #8bc49d;
+      animation: pop .4s ease;
+    }
+    .pair-chip.latest { background: #fff1bd; color: #765313; border-color: #efbf4b; }
+
+    .hint-btn, .home-btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+    .hint-btn { margin-top: auto; background: #f8cf63; color: #644812; box-shadow: 0 5px 0 #d8a83c; }
+    .home-btn { background: #e8eef2; color: var(--ink); }
+
+    .keypad {
+      position: sticky;
+      bottom: 0;
+      z-index: 30;
+      display: grid;
+      grid-template-columns: repeat(12, minmax(44px, 1fr));
+      gap: 8px;
+      padding: 12px max(12px, calc((100vw - 1200px) / 2));
+      background: rgba(255,255,255,.94);
+      border-top: 1px solid rgba(71,100,124,.18);
+      box-shadow: 0 -8px 24px rgba(49,70,89,.12);
+      backdrop-filter: blur(12px);
+    }
+    .key {
+      min-height: 58px;
+      border: 0;
+      border-radius: 13px;
+      background: white;
+      color: var(--ink);
+      box-shadow: 0 4px 0 #c8d3dc;
+      font-size: 1.45rem;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+    .key:active { transform: translateY(4px); box-shadow: none; }
+    .key.erase { grid-column: span 2; background: #e9eef2; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(28,45,60,.72);
+      backdrop-filter: blur(8px);
+    }
+    .modal {
+      width: min(560px, 96vw);
+      padding: 30px;
+      border-radius: 28px;
+      background: var(--paper);
+      box-shadow: 0 24px 80px rgba(0,0,0,.28);
+      text-align: center;
+    }
+    .modal .hero { font-size: 5rem; }
+    .modal h2 { margin: 8px 0; font-size: 2rem; }
+    .modal p { color: var(--muted); font-weight: 700; line-height: 1.7; }
+    .modal-actions { display: grid; gap: 12px; margin-top: 22px; }
+    .primary-btn {
+      min-height: 60px;
+      border: 0;
+      border-radius: 16px;
+      background: var(--blue-deep);
+      color: white;
+      box-shadow: 0 6px 0 #27475f;
+      font-size: 1.25rem;
+      font-weight: 1000;
+      cursor: pointer;
+    }
+
+    @keyframes pop { 50% { transform: scale(1.06); } }
+    @keyframes arrive {
+      from { opacity: 0; transform: translateY(-14px) scale(.75); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (max-width: 850px) {
+      .topbar { min-height: 62px; }
+      .brand small { display: none; }
+      .brand-mark { width: 42px; height: 42px; font-size: 25px; }
+      .stat { min-width: 76px; padding: 8px; font-size: .88rem; }
+      .game { grid-template-columns: 1fr; overflow: visible; }
+      .pairs-card { order: 2; }
+      .pair-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hint-btn { margin-top: 4px; }
+      .nest-wrap { min-height: 290px; }
+      .keypad { grid-template-columns: repeat(6, 1fr); }
+      .key.erase { grid-column: span 2; }
+    }
+
+    @media (max-width: 520px) {
+      .topbar { align-items: flex-start; }
+      .brand h1 { font-size: 1.05rem; }
+      .stats { gap: 5px; }
+      .stat { min-width: 64px; padding: 6px; font-size: .72rem; border-radius: 11px; }
+      .game { padding: 8px; gap: 8px; }
+      .play-card, .pairs-card { border-radius: 19px; }
+      .play-card { padding: 12px 8px; }
+      .nest { width: 100%; padding: 17px; border-width: 9px; }
+      .dove-grid { grid-template-columns: repeat(var(--cols), minmax(20px, 42px)); gap: 3px; }
+      .dove { font-size: clamp(17px, 6.5vw, 28px); border-radius: 8px; }
+      .answer-row { grid-template-columns: 1fr auto 1fr; }
+      .submit { grid-column: 1 / -1; height: 56px; }
+      .answer-box { height: 58px; font-size: 1.8rem; }
+      .pair-list { grid-template-columns: 1fr; }
+      .keypad { gap: 6px; padding: 8px; }
+      .key { min-height: 50px; font-size: 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">🕊️</div>
+        <div>
+          <h1>因數鵲巢</h1>
+          <small>幫每一隻小鳩找到位置</small>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat">⭐ <span id="score">0</span> 分</div>
+        <div class="stat">題目 <span id="round">1</span>/5</div>
+      </div>
+    </header>
+
+    <main class="game">
+      <section class="play-card">
+        <div class="prompt"><strong id="target">24</strong> 隻小鳩要入住鵲巢</div>
+        <div class="equation" id="equation">先找一種完整排列吧！</div>
+
+        <div class="nest-wrap">
+          <div class="nest" aria-label="小鳩方陣">
+            <div class="dove-grid" id="dove-grid"></div>
+          </div>
+        </div>
+
+        <div class="feedback info" id="feedback">輸入「幾排 × 每排幾隻」，找出所有不會剩下小鳩的排列。</div>
+
+        <div class="answer-row">
+          <button class="answer-box active" id="left-answer" data-side="left" aria-label="幾排">?</button>
+          <div class="times">×</div>
+          <button class="answer-box" id="right-answer" data-side="right" aria-label="每排幾隻">?</button>
+          <button class="submit" id="submit">確認入住</button>
+        </div>
+      </section>
+
+      <aside class="pairs-card">
+        <h2>已找到的排列</h2>
+        <div class="remaining">還有 <strong id="remaining">0</strong> 種</div>
+        <div class="pair-list" id="pair-list"></div>
+        <button class="hint-btn" id="hint">💡 給我提示</button>
+        <button class="home-btn" onclick="location.href='../index.html'">🏠 回教材首頁</button>
+      </aside>
+    </main>
+
+    <div class="keypad" id="keypad" aria-label="觸控數字鍵盤">
+      <button class="key" data-key="0">0</button>
+      <button class="key" data-key="1">1</button>
+      <button class="key" data-key="2">2</button>
+      <button class="key" data-key="3">3</button>
+      <button class="key" data-key="4">4</button>
+      <button class="key" data-key="5">5</button>
+      <button class="key" data-key="6">6</button>
+      <button class="key" data-key="7">7</button>
+      <button class="key" data-key="8">8</button>
+      <button class="key" data-key="9">9</button>
+      <button class="key erase" data-key="backspace">⌫</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="intro-overlay">
+    <div class="modal">
+      <div class="hero">🕊️🏡</div>
+      <h2>因數鵲巢</h2>
+      <p>把小鳩排成完整的長方形。只要沒有任何小鳩落單，就找到一組因數配對！</p>
+      <div class="modal-actions">
+        <button class="primary-btn" id="start">開始安排鵲巢</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="finish-overlay">
+    <div class="modal">
+      <div class="hero">🎉🕊️</div>
+      <h2>鵲巢全部安排完成！</h2>
+      <p id="finish-text"></p>
+      <div class="modal-actions">
+        <button class="primary-btn" id="restart">再玩五題</button>
+        <button class="home-btn" onclick="location.href='../index.html'">回教材首頁</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const QUESTION_POOL = [12, 16, 18, 20, 24, 27, 28, 30, 32, 36, 40, 42, 45, 48, 54, 56, 60, 63, 64, 72];
+    const TOTAL_ROUNDS = 5;
+    const state = {
+      questions: [],
+      round: 0,
+      score: 0,
+      target: 24,
+      pairs: [],
+      found: new Set(),
+      activeSide: 'left',
+      input: { left: '', right: '' },
+      mistakesThisRound: 0,
+      locked: false
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    function shuffle(values) {
+      const copy = [...values];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function factorPairs(number) {
+      const pairs = [];
+      for (let factor = 1; factor * factor <= number; factor++) {
+        if (number % factor === 0) pairs.push([factor, number / factor]);
+      }
+      return pairs;
+    }
+
+    function pairKey(a, b) {
+      return `${Math.min(a, b)}x${Math.max(a, b)}`;
+    }
+
+    function startGame() {
+      state.questions = shuffle(QUESTION_POOL).slice(0, TOTAL_ROUNDS);
+      state.round = 0;
+      state.score = 0;
+      $('score').textContent = '0';
+      $('intro-overlay').classList.add('hidden');
+      $('finish-overlay').classList.add('hidden');
+      loadRound();
+    }
+
+    function loadRound() {
+      if (state.round >= TOTAL_ROUNDS) return finishGame();
+      state.target = state.questions[state.round];
+      state.pairs = factorPairs(state.target);
+      state.found = new Set();
+      state.input = { left: '', right: '' };
+      state.activeSide = 'left';
+      state.mistakesThisRound = 0;
+      state.locked = false;
+
+      $('round').textContent = String(state.round + 1);
+      $('target').textContent = String(state.target);
+      $('equation').textContent = '先找一種完整排列吧！';
+      setFeedback('輸入「幾排 × 每排幾隻」，找出所有不會剩下小鳩的排列。', 'info');
+      updateAnswers();
+      renderPairList();
+
+      const starter = state.pairs.find(([a]) => a > 1) || state.pairs[0];
+      renderDoves(starter[0], starter[1], true);
+    }
+
+    function renderDoves(rows, columns, waiting = false) {
+      const grid = $('dove-grid');
+      grid.innerHTML = '';
+      grid.style.setProperty('--cols', columns);
+      grid.setAttribute('aria-label', `${state.target} 隻小鳩排成 ${rows} 排，每排 ${columns} 隻`);
+
+      for (let i = 0; i < state.target; i++) {
+        const dove = document.createElement('div');
+        dove.className = 'dove';
+        dove.textContent = '🕊️';
+        dove.style.animationDelay = `${Math.min(i * 12, 360)}ms`;
+        if (waiting) dove.style.opacity = '.72';
+        grid.appendChild(dove);
+      }
+    }
+
+    function renderPairList(latestKey = '') {
+      const list = $('pair-list');
+      list.innerHTML = '';
+      state.pairs.forEach(([a, b]) => {
+        const key = pairKey(a, b);
+        const found = state.found.has(key);
+        const chip = document.createElement('div');
+        chip.className = `pair-chip${found ? ' found' : ''}${key === latestKey ? ' latest' : ''}`;
+        chip.innerHTML = found ? `<span>${a} × ${b}</span><span>✓</span>` : '<span>? × ?</span><span>○</span>';
+        list.appendChild(chip);
+      });
+      $('remaining').textContent = String(state.pairs.length - state.found.size);
+    }
+
+    function chooseSide(side) {
+      if (state.locked) return;
+      state.activeSide = side;
+      $('left-answer').classList.toggle('active', side === 'left');
+      $('right-answer').classList.toggle('active', side === 'right');
+    }
+
+    function updateAnswers() {
+      $('left-answer').textContent = state.input.left || '?';
+      $('right-answer').textContent = state.input.right || '?';
+      chooseSide(state.activeSide);
+    }
+
+    function pressKey(key) {
+      if (state.locked) return;
+      const side = state.activeSide;
+      if (key === 'backspace') {
+        state.input[side] = state.input[side].slice(0, -1);
+      } else if (state.input[side].length < 2) {
+        if (state.input[side] === '' && key === '0') return;
+        state.input[side] += key;
+      }
+      updateAnswers();
+    }
+
+    function setFeedback(message, type) {
+      const feedback = $('feedback');
+      feedback.textContent = message;
+      feedback.className = `feedback ${type}`;
+    }
+
+    function submitAnswer() {
+      if (state.locked) return;
+      const a = Number(state.input.left);
+      const b = Number(state.input.right);
+
+      if (!Number.isInteger(a) || !Number.isInteger(b) || a < 1 || b < 1) {
+        setFeedback('請先填好「幾排」和「每排幾隻」。', 'bad');
+        return;
+      }
+
+      const product = a * b;
+      const key = pairKey(a, b);
+      const valid = product === state.target && state.pairs.some(([x, y]) => pairKey(x, y) === key);
+
+      if (!valid) {
+        state.mistakesThisRound++;
+        state.score = Math.max(0, state.score - 1);
+        $('score').textContent = String(state.score);
+        playTone(false);
+        if (product < state.target) {
+          setFeedback(`${a} × ${b} 只能安排 ${product} 隻，還有 ${state.target - product} 隻小鳩無法入住。`, 'bad');
+        } else {
+          setFeedback(`${a} × ${b} 需要 ${product} 隻，但現在只有 ${state.target} 隻小鳩。`, 'bad');
+        }
+        return;
+      }
+
+      if (state.found.has(key)) {
+        setFeedback(`${Math.min(a,b)} × ${Math.max(a,b)} 已經找過囉！試試另一種排列。`, 'info');
+        state.input = { left: '', right: '' };
+        chooseSide('left');
+        updateAnswers();
+        return;
+      }
+
+      state.found.add(key);
+      state.score += 10;
+      $('score').textContent = String(state.score);
+      renderDoves(a, b);
+      renderPairList(key);
+      $('equation').textContent = `${a} × ${b} = ${state.target}`;
+      $('equation').classList.remove('pop');
+      void $('equation').offsetWidth;
+      $('equation').classList.add('pop');
+      setFeedback(`成功！${state.target} 隻小鳩排成 ${a} 排，每排 ${b} 隻，沒有任何一隻落單。`, 'good');
+      playTone(true);
+
+      state.input = { left: '', right: '' };
+      chooseSide('left');
+      updateAnswers();
+
+      if (state.found.size === state.pairs.length) {
+        state.locked = true;
+        const bonus = Math.max(0, 5 - state.mistakesThisRound);
+        state.score += bonus;
+        $('score').textContent = String(state.score);
+        setFeedback(`全部找齊！這一題得到 ${state.pairs.length * 10 + bonus} 分，準備前往下一個鵲巢。`, 'good');
+        setTimeout(() => { state.round++; loadRound(); }, 1800);
+      }
+    }
+
+    function showHint() {
+      const missing = state.pairs.find(([a, b]) => !state.found.has(pairKey(a, b)));
+      if (!missing) return;
+      const [a] = missing;
+      if (a === 1) {
+        setFeedback(`提示：每個整數都能排成 1 排，想想每排要放幾隻小鳩。`, 'info');
+      } else {
+        setFeedback(`提示：試著用 ${a} 排來安排，看看每排能放幾隻小鳩。`, 'info');
+      }
+    }
+
+    function finishGame() {
+      $('finish-text').textContent = `你完成了 ${TOTAL_ROUNDS} 個鵲巢，共得到 ${state.score} 分。每一組完整排列，都是這個數的一組因數配對！`;
+      $('finish-overlay').classList.remove('hidden');
+    }
+
+    let audioContext;
+    function playTone(correct) {
+      try {
+        audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain); gain.connect(audioContext.destination);
+        const now = audioContext.currentTime;
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(correct ? 660 : 220, now);
+        osc.frequency.setValueAtTime(correct ? 880 : 160, now + .12);
+        gain.gain.setValueAtTime(.0001, now);
+        gain.gain.exponentialRampToValueAtTime(.18, now + .02);
+        gain.gain.exponentialRampToValueAtTime(.0001, now + .34);
+        osc.start(now); osc.stop(now + .36);
+      } catch (_) {}
+    }
+
+    $('left-answer').addEventListener('click', () => chooseSide('left'));
+    $('right-answer').addEventListener('click', () => chooseSide('right'));
+    $('submit').addEventListener('click', submitAnswer);
+    $('hint').addEventListener('click', showHint);
+    $('start').addEventListener('click', startGame);
+    $('restart').addEventListener('click', startGame);
+    $('keypad').addEventListener('click', (event) => {
+      const key = event.target.closest('[data-key]');
+      if (key) pressKey(key.dataset.key);
+    });
+    document.addEventListener('keydown', (event) => {
+      if (/^[0-9]$/.test(event.key)) pressKey(event.key);
+      if (event.key === 'Backspace') pressKey('backspace');
+      if (event.key === 'Enter') submitAnswer();
+      if (event.key === 'ArrowLeft') chooseSide('left');
+      if (event.key === 'ArrowRight') chooseSide('right');
+    });
+
+    state.target = 24;
+    state.pairs = factorPairs(24);
+    renderDoves(4, 6, true);
+    renderPairList();
+    updateAnswers();
+  </script>
+</body>
+</html>
