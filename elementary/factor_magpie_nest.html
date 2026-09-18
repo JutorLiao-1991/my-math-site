@@ -263,6 +263,17 @@
     }
     .decision-btn.continue { background: #e4edf3; color: var(--blue-deep); }
     .decision-btn.finish { background: var(--green); color: white; box-shadow: 0 5px 0 #417852; }
+    .oops-btn {
+      width: min(620px, 100%);
+      min-height: 52px;
+      padding: 10px 16px;
+      border: 2px solid #b9cad7;
+      border-radius: 16px;
+      background: #f4f7f9;
+      color: var(--blue-deep);
+      font-weight: 1000;
+      cursor: pointer;
+    }
 
     .pairs-card {
       padding: 22px 18px;
@@ -470,6 +481,7 @@
           <button class="decision-btn continue" id="continue-search">我要繼續找</button>
           <button class="decision-btn finish" id="finish-round">我找完了！</button>
         </div>
+        <button class="oops-btn hidden" id="oops-finished">我搞錯了，其實已經找完了🥺</button>
       </section>
 
       <aside class="pairs-card">
@@ -596,6 +608,7 @@
       $('target').textContent = String(state.target);
       $('equation').textContent = '先找一種完整排列吧！';
       $('decision-row').classList.add('hidden');
+      $('oops-finished').classList.add('hidden');
       $('practice-progress').classList.toggle('hidden', state.mode !== 'practice');
       $('exam-progress').classList.toggle('hidden', state.mode !== 'exam');
       $('hint').classList.toggle('hidden', state.mode !== 'practice');
@@ -731,6 +744,7 @@
         state.locked = true;
         state.awaitingDecision = true;
         $('decision-row').classList.remove('hidden');
+        $('oops-finished').classList.add('hidden');
         setFeedback(`答對了！你已找到 ${a} × ${b}。還有其他排列嗎？`, 'good');
       } else {
         clearAttempt();
@@ -743,6 +757,7 @@
       state.locked = false;
       state.awaitingDecision = false;
       $('decision-row').classList.add('hidden');
+      $('oops-finished').classList.toggle('hidden', state.mode !== 'exam' || state.found.size === 0);
       chooseSide('left');
       updateAnswers();
     }
@@ -754,7 +769,7 @@
     }
 
     function declareFinished() {
-      if (state.mode !== 'exam' || !state.awaitingDecision) return;
+      if (state.mode !== 'exam' || state.found.size === 0) return;
       if (state.found.size === state.pairs.length) {
         completeRound();
         return;
@@ -771,6 +786,7 @@
       state.locked = true;
       state.awaitingDecision = false;
       $('decision-row').classList.add('hidden');
+      $('oops-finished').classList.add('hidden');
       const bonus = Math.max(0, 5 - state.mistakesThisRound);
       state.score += bonus;
       $('score').textContent = String(state.score);
@@ -822,6 +838,7 @@
     });
     $('continue-search').addEventListener('click', continueSearch);
     $('finish-round').addEventListener('click', declareFinished);
+    $('oops-finished').addEventListener('click', declareFinished);
     $('restart').addEventListener('click', () => startGame(state.mode));
     $('choose-mode').addEventListener('click', () => {
       $('finish-overlay').classList.add('hidden');
