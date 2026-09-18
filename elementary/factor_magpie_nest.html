@@ -4,14 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>因數鵲巢｜鳩特老師</title>
+  <link rel="stylesheet" href="elementary_theme.css">
   <style>
     :root {
-      --ink: #26384d;
+      --magpie-ink: #26384d;
       --muted: #64748b;
       --blue: #5c7f9d;
       --blue-deep: #385a78;
       --blue-soft: #e9f1f6;
-      --paper: #fffdf8;
+      --magpie-paper: #fffdf8;
       --nest: #a76b3f;
       --nest-dark: #75452b;
       --gold: #f5bd49;
@@ -25,10 +26,10 @@
     body {
       min-height: 100vh;
       font-family: "Microsoft JhengHei", "Noto Sans TC", system-ui, sans-serif;
-      color: var(--ink);
+      color: var(--magpie-ink);
       background:
         radial-gradient(circle at 10% 5%, rgba(255,255,255,.95), transparent 28%),
-        linear-gradient(145deg, #edf4f8 0%, #dbe9f1 55%, #f4ead5 100%);
+        linear-gradient(145deg, #edf4f8 0%, #dbe9f1 55%, #f4ead5 100%) !important;
       overscroll-behavior: none;
       -webkit-user-select: none;
       user-select: none;
@@ -225,7 +226,7 @@
       background: white;
       font-size: 2.3rem;
       font-weight: 1000;
-      color: var(--ink);
+      color: var(--magpie-ink);
       cursor: pointer;
       transition: .15s ease;
     }
@@ -284,7 +285,7 @@
       cursor: pointer;
     }
     .hint-btn { margin-top: auto; background: #f8cf63; color: #644812; box-shadow: 0 5px 0 #d8a83c; }
-    .home-btn { background: #e8eef2; color: var(--ink); }
+    .home-btn { background: #e8eef2; color: var(--magpie-ink); }
 
     .keypad {
       position: sticky;
@@ -304,7 +305,7 @@
       border: 0;
       border-radius: 13px;
       background: white;
-      color: var(--ink);
+      color: var(--magpie-ink);
       box-shadow: 0 4px 0 #c8d3dc;
       font-size: 1.45rem;
       font-weight: 1000;
@@ -327,7 +328,7 @@
       width: min(560px, 96vw);
       padding: 30px;
       border-radius: 28px;
-      background: var(--paper);
+      background: var(--magpie-paper);
       box-shadow: 0 24px 80px rgba(0,0,0,.28);
       text-align: center;
     }
