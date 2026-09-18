@@ -141,15 +141,20 @@ class PolynomialMulDivStaticTests(unittest.TestCase):
         self.assertIn('["商式","餘式"].forEach', self.html)
         self.assertNotIn("quotientCount", self.html)
 
-    def test_exam_uses_only_whole_final_answers(self):
+    def test_exam_uses_whole_final_answers_except_for_long_division(self):
         self.assertIn("function examSteps(question)", self.html)
         self.assertIn('layout:"exam_final"', self.html)
         self.assertIn("wholeAnswer(question.result)", self.html)
         self.assertIn(
-            'state.mode==="exam"?examSteps(question):question.steps',
+            'state.mode==="exam"&&question.kind!=="long_div"?examSteps(question):question.steps',
             self.html,
         )
         self.assertIn("輸入降冪排列的最後答案", self.html)
+        self.assertIn(
+            'if(state.mode==="practice"||question.kind==="long_div")renderLongBoard(question)',
+            self.html,
+        )
+        self.assertIn("請完成長除法直式。", self.html)
 
     def test_question_banks_are_doubled(self):
         for added_case in (
