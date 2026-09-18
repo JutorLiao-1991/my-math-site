@@ -83,6 +83,7 @@
       text-align: center;
     }
     .stat span { color: var(--blue-deep); }
+    .mode-stat { color: var(--blue-deep); }
 
     .game {
       width: min(1500px, 100%);
@@ -246,6 +247,23 @@
     }
     .submit:active { transform: translateY(5px); box-shadow: 0 1px 0 #27475f; }
 
+    .decision-row {
+      width: min(620px, 100%);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .decision-btn {
+      min-height: 58px;
+      border: 0;
+      border-radius: 16px;
+      font-weight: 1000;
+      font-size: 1.1rem;
+      cursor: pointer;
+    }
+    .decision-btn.continue { background: #e4edf3; color: var(--blue-deep); }
+    .decision-btn.finish { background: var(--green); color: white; box-shadow: 0 5px 0 #417852; }
+
     .pairs-card {
       padding: 22px 18px;
       display: flex;
@@ -276,6 +294,14 @@
       animation: pop .4s ease;
     }
     .pair-chip.latest { background: #fff1bd; color: #765313; border-color: #efbf4b; }
+    .empty-pairs {
+      padding: 20px 10px;
+      border: 2px dashed #cbd5df;
+      border-radius: 16px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 800;
+    }
 
     .hint-btn, .home-btn {
       border: 0;
@@ -347,6 +373,21 @@
       font-weight: 1000;
       cursor: pointer;
     }
+    .mode-grid { display: grid; gap: 14px; margin-top: 22px; }
+    .mode-btn {
+      min-height: 78px;
+      padding: 12px 18px;
+      border: 0;
+      border-radius: 18px;
+      color: white;
+      background: var(--blue-deep);
+      box-shadow: 0 6px 0 #27475f;
+      cursor: pointer;
+    }
+    .mode-btn.exam { background: #6b5a86; box-shadow-color: #4c3d65; }
+    .mode-btn strong, .mode-btn span { display: block; }
+    .mode-btn strong { font-size: 1.25rem; }
+    .mode-btn span { margin-top: 4px; font-size: .9rem; opacity: .9; }
 
     @keyframes pop { 50% { transform: scale(1.06); } }
     @keyframes arrive {
@@ -381,6 +422,7 @@
       .dove { font-size: clamp(17px, 6.5vw, 28px); border-radius: 8px; }
       .answer-row { grid-template-columns: 1fr auto 1fr; }
       .submit { grid-column: 1 / -1; height: 56px; }
+      .decision-row { grid-template-columns: 1fr; }
       .answer-box { height: 58px; font-size: 1.8rem; }
       .pair-list { grid-template-columns: 1fr; }
       .keypad { gap: 6px; padding: 8px; }
@@ -399,6 +441,7 @@
         </div>
       </div>
       <div class="stats">
+        <div class="stat mode-stat" id="mode-label">選擇模式</div>
         <div class="stat">⭐ <span id="score">0</span> 分</div>
         <div class="stat">題目 <span id="round">1</span>/5</div>
       </div>
@@ -423,11 +466,16 @@
           <button class="answer-box" id="right-answer" data-side="right" aria-label="每排幾隻">?</button>
           <button class="submit" id="submit">確認入住</button>
         </div>
+        <div class="decision-row hidden" id="decision-row">
+          <button class="decision-btn continue" id="continue-search">我要繼續找</button>
+          <button class="decision-btn finish" id="finish-round">我找完了！</button>
+        </div>
       </section>
 
       <aside class="pairs-card">
         <h2>已找到的排列</h2>
-        <div class="remaining">還有 <strong id="remaining">0</strong> 種</div>
+        <div class="remaining" id="practice-progress">總共有 <strong id="total-pairs">0</strong> 種，還有 <strong id="remaining">0</strong> 種</div>
+        <div class="remaining hidden" id="exam-progress">不公布總數，由你決定何時找完</div>
         <div class="pair-list" id="pair-list"></div>
         <button class="hint-btn" id="hint">💡 給我提示</button>
         <button class="home-btn" onclick="location.href='../index.html'">🏠 回教材首頁</button>
@@ -454,8 +502,15 @@
       <div class="hero">🕊️🏡</div>
       <h2>因數鵲巢</h2>
       <p>把小鳩排成完整的長方形。只要沒有任何小鳩落單，就找到一組因數配對！</p>
-      <div class="modal-actions">
-        <button class="primary-btn" id="start">開始安排鵲巢</button>
+      <div class="mode-grid">
+        <button class="mode-btn" data-mode="practice">
+          <strong>練習模式</strong>
+          <span>告訴你總共有幾種排列，也可以使用提示</span>
+        </button>
+        <button class="mode-btn exam" data-mode="exam">
+          <strong>考試模式</strong>
+          <span>不公布總數，由你判斷什麼時候找完</span>
+        </button>
       </div>
     </div>
   </div>
@@ -467,6 +522,7 @@
       <p id="finish-text"></p>
       <div class="modal-actions">
         <button class="primary-btn" id="restart">再玩五題</button>
+        <button class="home-btn" id="choose-mode">重新選擇模式</button>
         <button class="home-btn" onclick="location.href='../index.html'">回教材首頁</button>
       </div>
     </div>
@@ -485,7 +541,9 @@
       activeSide: 'left',
       input: { left: '', right: '' },
       mistakesThisRound: 0,
-      locked: false
+      locked: false,
+      mode: 'practice',
+      awaitingDecision: false
     };
 
     const $ = (id) => document.getElementById(id);
@@ -511,13 +569,15 @@
       return `${Math.min(a, b)}x${Math.max(a, b)}`;
     }
 
-    function startGame() {
+    function startGame(mode = state.mode) {
+      state.mode = mode;
       state.questions = shuffle(QUESTION_POOL).slice(0, TOTAL_ROUNDS);
       state.round = 0;
       state.score = 0;
       $('score').textContent = '0';
       $('intro-overlay').classList.add('hidden');
       $('finish-overlay').classList.add('hidden');
+      $('mode-label').textContent = state.mode === 'practice' ? '練習模式' : '考試模式';
       loadRound();
     }
 
@@ -530,11 +590,21 @@
       state.activeSide = 'left';
       state.mistakesThisRound = 0;
       state.locked = false;
+      state.awaitingDecision = false;
 
       $('round').textContent = String(state.round + 1);
       $('target').textContent = String(state.target);
       $('equation').textContent = '先找一種完整排列吧！';
-      setFeedback('輸入「幾排 × 每排幾隻」，找出所有不會剩下小鳩的排列。', 'info');
+      $('decision-row').classList.add('hidden');
+      $('practice-progress').classList.toggle('hidden', state.mode !== 'practice');
+      $('exam-progress').classList.toggle('hidden', state.mode !== 'exam');
+      $('hint').classList.toggle('hidden', state.mode !== 'practice');
+      setFeedback(
+        state.mode === 'practice'
+          ? `這題總共有 ${state.pairs.length} 種排列，試著全部找出來。`
+          : '輸入一種完整排列；每答對一組，再決定要繼續找或完成本題。',
+        'info'
+      );
       updateAnswers();
       renderPairList();
 
@@ -561,7 +631,13 @@
     function renderPairList(latestKey = '') {
       const list = $('pair-list');
       list.innerHTML = '';
-      state.pairs.forEach(([a, b]) => {
+      const visiblePairs = state.mode === 'practice'
+        ? state.pairs
+        : state.pairs.filter(([a, b]) => state.found.has(pairKey(a, b)));
+      if (state.mode === 'exam' && visiblePairs.length === 0) {
+        list.innerHTML = '<div class="empty-pairs">答對後，排列會記錄在這裡</div>';
+      }
+      visiblePairs.forEach(([a, b]) => {
         const key = pairKey(a, b);
         const found = state.found.has(key);
         const chip = document.createElement('div');
@@ -569,6 +645,7 @@
         chip.innerHTML = found ? `<span>${a} × ${b}</span><span>✓</span>` : '<span>? × ?</span><span>○</span>';
         list.appendChild(chip);
       });
+      $('total-pairs').textContent = String(state.pairs.length);
       $('remaining').textContent = String(state.pairs.length - state.found.size);
     }
 
@@ -650,18 +727,56 @@
       setFeedback(`成功！${state.target} 隻小鳩排成 ${a} 排，每排 ${b} 隻，沒有任何一隻落單。`, 'good');
       playTone(true);
 
+      if (state.mode === 'exam') {
+        state.locked = true;
+        state.awaitingDecision = true;
+        $('decision-row').classList.remove('hidden');
+        setFeedback(`答對了！你已找到 ${a} × ${b}。還有其他排列嗎？`, 'good');
+      } else {
+        clearAttempt();
+        if (state.found.size === state.pairs.length) completeRound();
+      }
+    }
+
+    function clearAttempt() {
       state.input = { left: '', right: '' };
+      state.locked = false;
+      state.awaitingDecision = false;
+      $('decision-row').classList.add('hidden');
       chooseSide('left');
       updateAnswers();
+    }
 
+    function continueSearch() {
+      if (state.mode !== 'exam' || !state.awaitingDecision) return;
+      clearAttempt();
+      setFeedback('好，再找一種不同的完整排列！', 'info');
+    }
+
+    function declareFinished() {
+      if (state.mode !== 'exam' || !state.awaitingDecision) return;
       if (state.found.size === state.pairs.length) {
-        state.locked = true;
-        const bonus = Math.max(0, 5 - state.mistakesThisRound);
-        state.score += bonus;
-        $('score').textContent = String(state.score);
-        setFeedback(`全部找齊！這一題得到 ${state.pairs.length * 10 + bonus} 分，準備前往下一個鵲巢。`, 'good');
-        setTimeout(() => { state.round++; loadRound(); }, 1800);
+        completeRound();
+        return;
       }
+      state.mistakesThisRound++;
+      state.score = Math.max(0, state.score - 1);
+      $('score').textContent = String(state.score);
+      playTone(false);
+      clearAttempt();
+      setFeedback('還有其他完整排列喔！再觀察這個數還能分成幾排。', 'bad');
+    }
+
+    function completeRound() {
+      state.locked = true;
+      state.awaitingDecision = false;
+      $('decision-row').classList.add('hidden');
+      const bonus = Math.max(0, 5 - state.mistakesThisRound);
+      state.score += bonus;
+      $('score').textContent = String(state.score);
+      const detail = state.mode === 'practice' ? `共 ${state.pairs.length} 種排列。` : '你的判斷正確，全部找齊了！';
+      setFeedback(`${detail} 本題加上 ${bonus} 分完整獎勵，準備前往下一個鵲巢。`, 'good');
+      setTimeout(() => { state.round++; loadRound(); }, 1800);
     }
 
     function showHint() {
@@ -702,8 +817,16 @@
     $('right-answer').addEventListener('click', () => chooseSide('right'));
     $('submit').addEventListener('click', submitAnswer);
     $('hint').addEventListener('click', showHint);
-    $('start').addEventListener('click', startGame);
-    $('restart').addEventListener('click', startGame);
+    document.querySelectorAll('[data-mode]').forEach((button) => {
+      button.addEventListener('click', () => startGame(button.dataset.mode));
+    });
+    $('continue-search').addEventListener('click', continueSearch);
+    $('finish-round').addEventListener('click', declareFinished);
+    $('restart').addEventListener('click', () => startGame(state.mode));
+    $('choose-mode').addEventListener('click', () => {
+      $('finish-overlay').classList.add('hidden');
+      $('intro-overlay').classList.remove('hidden');
+    });
     $('keypad').addEventListener('click', (event) => {
       const key = event.target.closest('[data-key]');
       if (key) pressKey(key.dataset.key);
