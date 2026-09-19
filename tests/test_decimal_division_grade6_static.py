@@ -64,10 +64,11 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("function prepareQuotientPointPlacement()", self.page)
         self.assertIn("function renderInlineQuotientPointSelector(row, digitCells, dotCell)", self.page)
         self.assertIn("function selectQuotientPosition(selectedIndex, button)", self.page)
-        self.assertIn("const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : -1", self.page)
+        self.assertIn("const targetIndex = quotient.includes('.') ? quotient.indexOf('.') : quotient.length", self.page)
         self.assertIn("state.phase = 'ready-digits'", self.page)
         self.assertIn("if (state.phase !== 'ready-digits') return", self.page)
-        self.assertIn("商是整數", self.page)
+        self.assertNotIn("商是整數", self.page)
+        self.assertNotIn("integer-answer-btn", self.page)
         self.assertIn("registerMistake();", self.page)
 
     def test_quotient_point_choices_are_embedded_in_long_division(self):
@@ -75,8 +76,20 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("className = 'inline-decimal-choice'", self.page)
         self.assertIn("digitCells[index].appendChild(choice)", self.page)
         self.assertIn("dotCell.appendChild(choice)", self.page)
+        self.assertIn("quotientRow[quotientStartColumn + quotientDecimalIndex] = { type: 'dot', char: '.' };", self.page)
+        self.assertIn("const cols = 2 + dividend.length + (quotientHasDecimal ? 0 : 1);", self.page)
         self.assertNotIn('id="quotient-point-panel"', self.page)
         self.assertNotIn('id="quotient-point-selector"', self.page)
+
+    def test_quotient_point_choices_do_not_reveal_the_answer(self):
+        self.assertIn(".input-cell.locked { cursor: default; }", self.page)
+        self.assertNotIn(".input-cell.locked { opacity:", self.page)
+        self.assertNotIn("quotient-inline-toolbar", self.page)
+        self.assertNotIn("quotient-point-hint", self.page)
+        self.assertIn(
+            "document.getElementById('phase-note').innerText = '位置不對，再觀察被除數的小數點位置。';",
+            self.page,
+        )
 
     def test_keeps_existing_challenge_rules_and_touch_numpad(self):
         self.assertIn("state.qIndex >= 10", self.page)
