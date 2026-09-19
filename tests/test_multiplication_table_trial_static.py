@@ -41,9 +41,30 @@ class MultiplicationTableTrialStaticTests(unittest.TestCase):
 
     def test_single_player_keeps_prime_challenge_scoring(self):
         self.assertIn("SP_TOTAL_Q=20", HTML)
-        self.assertIn("SP_TIME_LIMIT=5000", HTML)
-        self.assertIn("dt<=1500?5:5-((dt-1500)/3500)*4.9", HTML)
+        self.assertIn("SP_TIME_LIMIT=6000", HTML)
+        self.assertIn("SP_FULL_SCORE_TIME=1500", HTML)
+        self.assertIn("dt<=SP_FULL_SCORE_TIME?5", HTML)
+        self.assertIn("(SP_TIME_LIMIT-SP_FULL_SCORE_TIME))*4.9", HTML)
         self.assertIn("Math.max(.1,Math.round(pts*10)/10)", HTML)
+        self.assertIn("const pts=calculateSinglePoints(dt)", HTML)
+        self.assertIn("每題 6 秒，前 1.5 秒答對得 5 分", HTML)
+
+    def test_single_player_score_is_full_for_one_and_a_half_seconds(self):
+        function = re.search(
+            r"function calculateSinglePoints\(dt\)\{.*?\}", HTML
+        )
+        self.assertIsNotNone(function)
+        javascript = (
+            "const SP_TIME_LIMIT=6000,SP_FULL_SCORE_TIME=1500;"
+            + function.group(0)
+            + "console.log(JSON.stringify([0,1500,2500,3500,4500,5500,6000]"
+            ".map(calculateSinglePoints)))"
+        )
+        result = subprocess.run(
+            ["node", "-e", javascript], capture_output=True, text=True
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.strip(), "[5,5,3.9,2.8,1.7,0.6,0.1]")
 
     def test_pk_keeps_prime_challenge_scoring(self):
         self.assertIn("PK_WIN_SCORE=300", HTML)
