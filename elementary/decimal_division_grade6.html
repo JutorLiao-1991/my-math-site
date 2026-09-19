@@ -181,6 +181,21 @@
         .inline-decimal-choice.wrong { border-color: var(--error); color: var(--error); background: #ffebee; }
 
         .math-grid { display: grid; gap: 6px; justify-content: center; font: 700 2.2rem "Courier New", monospace; }
+        .math-grid.rounding-frame {
+            width: 100%; height: clamp(390px, 56vh, 620px); align-content: start;
+            overflow: auto; padding: 8px 4px 20px; border-radius: 14px;
+            scrollbar-gutter: stable both-edges;
+        }
+        .rounding-masked-column { visibility: hidden; pointer-events: none; }
+        .division-step-group { display: contents; }
+        .division-step-group.rounding-masked-step { display: none; }
+        .rounding-work-actions { display: flex; justify-content: center; margin: 10px 0 2px; }
+        .round-extend-btn {
+            min-height: 48px; padding: 10px 20px; border: 2px solid var(--primary-dark);
+            border-radius: 999px; color: var(--primary-dark); background: #fff;
+            cursor: pointer; font-weight: 900;
+        }
+        .round-extend-btn:active { transform: scale(.97); }
         .cell { width: 42px; height: 50px; display: flex; align-items: center; justify-content: center; position: relative; }
         .divisor-cell { justify-content: flex-end; overflow: visible; font-size: 0.9em; }
         .input-cell { border: 2px dashed var(--border); border-radius: 8px; background: #fafafa; color: var(--primary-dark); cursor: pointer; }
@@ -290,6 +305,9 @@
                 </div>
 
                 <div class="math-grid hidden" id="math-vertical"></div>
+                <div class="rounding-work-actions hidden" id="rounding-work-actions">
+                    <button class="round-extend-btn" id="round-extend-btn" type="button" onclick="extendRoundingWork()">＋補 0 繼續算</button>
+                </div>
 
                 <div class="answer-panel hidden" id="remainder-panel">
                     <h2 class="answer-title">最後一步｜放好餘數的小數點</h2>
@@ -368,12 +386,14 @@
         };
 
         const EXAM_SECONDS = 10 * 60;
+        const ROUNDING_MAX_DECIMAL_PLACES = 5;
         let audioCtx = null;
         let state = {
             mode: '', qIndex: 0, score: 0, timer: EXAM_SECONDS, timerInterval: null,
             problem: null, questions: [], phase: 'idle', mistakesThisQuestion: 0,
             totalInputs: 0, filledCount: 0, logicalOrder: [], cellAnswers: {}, focusId: null,
             quotientInputIds: [], completedQuotientDigits: 0, decimalShiftCount: 0,
+            roundingVisiblePlaces: 0, roundingStepInputIds: [], roundingReadyAnnounced: false,
             finalAnswerOrder: [], finalAnswerAnswers: {}, finalFocusId: null
         };
 
@@ -418,6 +438,11 @@
             const dividendPlaces = decimalPlaces(dividend);
             if (quotientPlaces <= dividendPlaces) return dividend;
             return `${dividend}${dividend.includes('.') ? '' : '.'}${'0'.repeat(quotientPlaces - dividendPlaces)}`;
+        }
+
+        function padDecimalToPlaces(value, places) {
+            const [whole, fraction = ''] = value.split('.');
+            return `${whole}.${fraction.padEnd(places, '0').slice(0, places)}`;
         }
 
         function buildExactProblemBanks() {
@@ -540,12 +565,18 @@
                             const roundedScaled = Math.floor((quotientWithGuard + 5) / 10);
                             if (roundedScaled === 0) continue;
                             const answer = formatFixedInteger(quotientWithGuard, guardPlaces);
+                            const workFactor = 10 ** ROUNDING_MAX_DECIMAL_PLACES;
+                            const workQuotient = Math.floor(shiftedDividendValue * workFactor / divisor);
+                            const workAnswer = formatFixedInteger(workQuotient, ROUNDING_MAX_DECIMAL_PLACES);
+                            const shiftedDividend = String(shiftedDividendValue);
                             const originalDividend = formatScaled(shiftedDividendValue, shift);
                             problems.push({
                                 kind: 'rounding', targetPlaces,
                                 originalDividend, originalDivisor: formatFixedInteger(divisor, shift), shift,
-                                divisor: String(divisor), shiftedDividend: String(shiftedDividendValue),
-                                dividend: padDividendForQuotient(String(shiftedDividendValue), answer),
+                                divisor: String(divisor), shiftedDividend,
+                                dividend: padDividendForQuotient(shiftedDividend, answer),
+                                frameworkDividend: padDecimalToPlaces(shiftedDividend, ROUNDING_MAX_DECIMAL_PLACES),
+                                workAnswer, workAnswerDigits: workAnswer.replace('.', '').split(''),
                                 answer, answerDigits: answer.replace('.', '').split(''),
                                 roundedAnswer: formatScaled(roundedScaled, targetPlaces, true)
                             });
@@ -695,11 +726,17 @@
             state.quotientInputIds = [];
             state.completedQuotientDigits = 0;
             state.decimalShiftCount = 0;
+            state.roundingVisiblePlaces = 0;
+            state.roundingStepInputIds = [];
+            state.roundingReadyAnnounced = false;
             state.finalAnswerOrder = [];
             state.finalAnswerAnswers = {};
             state.finalFocusId = null;
 
             state.problem = state.questions[state.qIndex - 1];
+            if (state.problem.kind === 'rounding') {
+                state.roundingVisiblePlaces = decimalPlaces(state.problem.shiftedDividend);
+            }
             document.getElementById('stat-q').innerText = `題號：${state.qIndex} / 10`;
             document.getElementById('stat-score').innerText = `分數：${state.score}`;
             document.getElementById('horizontal-problem').innerHTML = `${state.problem.originalDividend} ÷ ${state.problem.originalDivisor} = ?<span class="problem-instruction">${problemInstruction(state.problem)}</span>`;
@@ -708,6 +745,8 @@
             document.getElementById('numpad').classList.add('hidden');
             document.getElementById('round-stop-btn').classList.add('hidden');
             document.getElementById('round-stop-btn').classList.remove('ready', 'error');
+            document.getElementById('rounding-work-actions').classList.add('hidden');
+            document.getElementById('round-extend-btn').classList.remove('error');
             document.getElementById('remainder-panel').classList.add('hidden');
             document.getElementById('round-answer-panel').classList.add('hidden');
             document.getElementById('remainder-equation').classList.add('hidden');
@@ -845,13 +884,15 @@
             const grid = document.getElementById('math-vertical');
             grid.innerHTML = '';
             const p = state.problem;
-            const dividend = p.dividend;
-            const quotient = p.answer;
+            const isRounding = p.kind === 'rounding';
+            const dividend = isRounding ? p.frameworkDividend : p.dividend;
+            const quotient = isRounding ? p.workAnswer : p.answer;
             const divisor = parseInt(p.divisor, 10);
             const dividendDigits = dividend.replace('.', '');
             const quotientDigits = quotient.replace('.', '');
             const quotientHasDecimal = quotient.includes('.');
             const cols = 2 + dividend.length + (quotientHasDecimal ? 0 : 1);
+            grid.classList.toggle('rounding-frame', isRounding);
             grid.style.gridTemplateColumns = `repeat(${cols}, minmax(29px, 42px))`;
 
             const dividendColumnMap = [];
@@ -926,6 +967,7 @@
                 const id = `input-${state.totalInputs++}`;
                 const cell = createCell('', true, id);
                 cell.onclick = () => setFocus(id);
+                if (isRounding) cell.dataset.roundingStep = String(item.index);
                 quotientRowElement.appendChild(cell);
                 state.cellAnswers[id] = item.char;
                 state.quotientInputIds.push(id);
@@ -942,24 +984,39 @@
             dividendRow[0] = p.divisor;
             dividendRow[1] = ')';
             for (let index = 0; index < dividend.length; index++) dividendRow[2 + index] = dividend[index];
+            const dividendPointIndex = dividend.indexOf('.');
             dividendRow.forEach((content, index) => {
                 const cell = createCell(content);
                 if (index === 0) cell.classList.add('divisor-cell');
                 if (content === ')') cell.classList.add('paren');
+                if (isRounding && dividendPointIndex >= 0 && index > 2 + dividendPointIndex) {
+                    cell.dataset.roundingPlace = String(index - 2 - dividendPointIndex);
+                }
                 grid.appendChild(cell);
             });
 
-            steps.forEach(step => {
-                step.productIds = drawDivisionInputRow(grid, step.product, step.productEnd, dividendColumnMap, cols);
-                grid.appendChild(createLine('sub-line'));
-                step.remainderIds = drawDivisionInputRow(grid, step.remainder, step.remainderEnd, dividendColumnMap, cols);
+            steps.forEach((step, stepIndex) => {
+                const group = document.createElement('div');
+                group.className = 'division-step-group';
+                group.dataset.roundingStep = String(stepIndex);
+                grid.appendChild(group);
+                step.productIds = drawDivisionInputRow(group, step.product, step.productEnd, dividendColumnMap, cols);
+                group.appendChild(createLine('sub-line'));
+                step.remainderIds = drawDivisionInputRow(group, step.remainder, step.remainderEnd, dividendColumnMap, cols);
             });
 
             state.logicalOrder = [];
+            state.roundingStepInputIds = [];
             steps.forEach(step => {
                 if (step.quotientId) state.logicalOrder.push(step.quotientId);
                 state.logicalOrder.push(...step.productIds, ...step.remainderIds);
+                state.roundingStepInputIds.push([
+                    ...(step.quotientId ? [step.quotientId] : []),
+                    ...step.productIds,
+                    ...step.remainderIds
+                ]);
             });
+            if (isRounding) updateRoundingVisibility();
         }
 
         function drawDivisionInputRow(grid, value, endDigitIndex, columnMap, totalColumns) {
@@ -997,19 +1054,72 @@
             return line;
         }
 
+        function roundingVisibleStepCount() {
+            if (state.problem?.kind !== 'rounding') return state.quotientInputIds.length;
+            const hiddenPlaces = ROUNDING_MAX_DECIMAL_PLACES - state.roundingVisiblePlaces;
+            return Math.max(1, state.problem.workAnswerDigits.length - hiddenPlaces);
+        }
+
+        function updateRoundingVisibility() {
+            if (state.problem?.kind !== 'rounding') return;
+            const visibleSteps = roundingVisibleStepCount();
+            document.querySelectorAll('#math-vertical [data-rounding-place]').forEach(cell => {
+                const place = Number(cell.dataset.roundingPlace);
+                cell.classList.toggle('rounding-masked-column', place > state.roundingVisiblePlaces);
+            });
+            document.querySelectorAll('#math-vertical .quotient-inline-row [data-rounding-step]').forEach(cell => {
+                const step = Number(cell.dataset.roundingStep);
+                cell.classList.toggle('rounding-masked-column', step >= visibleSteps);
+            });
+            document.querySelectorAll('#math-vertical .division-step-group').forEach(group => {
+                const step = Number(group.dataset.roundingStep);
+                group.classList.toggle('rounding-masked-step', step >= visibleSteps);
+            });
+        }
+
+        function visibleRoundingWorkComplete() {
+            if (state.problem?.kind !== 'rounding') return false;
+            const visibleSteps = roundingVisibleStepCount();
+            return state.roundingStepInputIds.slice(0, visibleSteps).flat().every(id =>
+                document.getElementById(id)?.classList.contains('filled')
+            );
+        }
+
+        function updateRoundingControls() {
+            if (state.problem?.kind !== 'rounding' || state.phase !== 'digits') return;
+            const ready = roundingReady();
+            const stopButton = document.getElementById('round-stop-btn');
+            stopButton.classList.toggle('ready', ready);
+
+            const canExtend = visibleRoundingWorkComplete()
+                && state.roundingVisiblePlaces < ROUNDING_MAX_DECIMAL_PLACES;
+            document.getElementById('rounding-work-actions').classList.toggle('hidden', !canExtend);
+
+            if (!state.focusId && visibleRoundingWorkComplete()) {
+                document.getElementById('phase-note').innerText = ready
+                    ? '可以直接取概數，也可以補 0 繼續往下算。'
+                    : '目前直式已完成，按「補 0 繼續算」求出判斷位。';
+            }
+        }
+
+        function extendRoundingWork() {
+            if (state.problem?.kind !== 'rounding' || state.phase !== 'digits') return;
+            if (!visibleRoundingWorkComplete() || state.roundingVisiblePlaces >= ROUNDING_MAX_DECIMAL_PLACES) return;
+            state.roundingVisiblePlaces++;
+            updateRoundingVisibility();
+            document.getElementById('rounding-work-actions').classList.add('hidden');
+            document.getElementById('phase-note').innerText = `被除數補上 0，繼續算到${placeLabel(state.roundingVisiblePlaces)}。`;
+            playSound('move');
+            findNextFocus();
+            requestAnimationFrame(() => {
+                document.getElementById(state.focusId)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            });
+        }
+
         function setFocus(id) {
             if (state.phase !== 'digits') return;
             const cell = document.getElementById(id);
             if (cell && !cell.classList.contains('filled')) {
-                if (state.problem?.kind === 'rounding') {
-                    const stopId = state.quotientInputIds[state.quotientInputIds.length - 1];
-                    if (state.logicalOrder.indexOf(id) > state.logicalOrder.indexOf(stopId)) {
-                        playSound('wrong');
-                        registerMistake();
-                        document.getElementById('phase-note').innerText = '這一列不必再算；請在判斷位完成時取概數';
-                        return;
-                    }
-                }
                 state.focusId = id;
                 updateFocusUI();
             }
@@ -1017,8 +1127,9 @@
 
         function roundingReady() {
             if (state.problem?.kind !== 'rounding' || !state.quotientInputIds.length) return false;
-            const stopId = state.quotientInputIds[state.quotientInputIds.length - 1];
+            const stopId = state.quotientInputIds[state.problem.answerDigits.length - 1];
             const stopIndex = state.logicalOrder.indexOf(stopId);
+            if (stopIndex < 0) return false;
             return state.logicalOrder.slice(0, stopIndex + 1).every(id =>
                 document.getElementById(id)?.classList.contains('filled')
             );
@@ -1027,10 +1138,15 @@
         function findNextFocus() {
             const nextId = state.logicalOrder.find(id => {
                 const cell = document.getElementById(id);
-                return cell && !cell.classList.contains('filled');
+                const maskedStep = cell?.closest('.rounding-masked-step');
+                return cell
+                    && !cell.classList.contains('filled')
+                    && !cell.classList.contains('rounding-masked-column')
+                    && !maskedStep;
             });
             state.focusId = nextId || null;
             updateFocusUI();
+            updateRoundingControls();
         }
 
         function updateFocusUI() {
@@ -1059,13 +1175,11 @@
             if (state.quotientInputIds.includes(state.focusId)) {
                 state.completedQuotientDigits++;
             }
-            if (roundingReady()) {
-                state.focusId = null;
-                updateFocusUI();
+            if (roundingReady() && !state.roundingReadyAnnounced) {
+                state.roundingReadyAnnounced = true;
                 document.getElementById('phase-note').innerText = `判斷用的${placeLabel(state.problem.targetPlaces + 1)}已經算出，現在要做什麼？`;
                 document.getElementById('round-stop-btn').classList.add('ready');
                 playSound('correct');
-                return;
             }
             if (state.filledCount >= state.totalInputs) return completeLongDivision();
             findNextFocus();
@@ -1073,6 +1187,13 @@
 
         function completeLongDivision() {
             if (state.problem.kind === 'remainder') return startRemainderPlacement();
+            if (state.problem.kind === 'rounding') {
+                state.focusId = null;
+                updateFocusUI();
+                updateRoundingControls();
+                document.getElementById('phase-note').innerText = '直式已算到小數第五位，現在請將商取概數。';
+                return;
+            }
             finishQuestion();
         }
 
@@ -1144,6 +1265,7 @@
             state.focusId = null;
             updateFocusUI();
             document.getElementById('round-stop-btn').classList.add('hidden');
+            document.getElementById('rounding-work-actions').classList.add('hidden');
             document.querySelectorAll('#math-vertical .input-cell:not(.filled)').forEach(cell => cell.classList.add('skipped'));
             document.getElementById('round-answer-panel').classList.remove('hidden');
             document.getElementById('round-answer-title').innerText = `將商四捨五入取到${placeLabel(state.problem.targetPlaces)}`;
