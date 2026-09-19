@@ -51,6 +51,23 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("function renderFinalAnswer", self.page)
         self.assertIn("roundedAnswer", self.page)
 
+    def test_rounding_can_stop_or_continue_after_guard_digit(self):
+        self.assertIn("const ROUNDING_MAX_DECIMAL_PLACES = 5;", self.page)
+        self.assertIn('id="round-extend-btn"', self.page)
+        self.assertIn("function extendRoundingWork()", self.page)
+        self.assertIn("function visibleRoundingWorkComplete()", self.page)
+        self.assertIn("state.quotientInputIds[state.problem.answerDigits.length - 1]", self.page)
+        self.assertIn("可以直接取概數，也可以補 0 繼續往下算。", self.page)
+        self.assertNotIn("這一列不必再算；請在判斷位完成時取概數", self.page)
+
+    def test_rounding_uses_a_masked_five_place_frame(self):
+        self.assertIn("frameworkDividend: padDecimalToPlaces(shiftedDividend, ROUNDING_MAX_DECIMAL_PLACES)", self.page)
+        self.assertIn("workAnswer, workAnswerDigits", self.page)
+        self.assertIn("function updateRoundingVisibility()", self.page)
+        self.assertIn("rounding-masked-column", self.page)
+        self.assertIn("rounding-masked-step", self.page)
+        self.assertIn(".math-grid.rounding-frame", self.page)
+
     def test_decimal_move_is_required_before_long_division(self):
         self.assertIn("state.phase = 'shift-decimals'", self.page)
         self.assertIn("function moveDecimalsRight()", self.page)
@@ -97,7 +114,7 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("state.timer = EXAM_SECONDS", self.page)
         self.assertIn("state.score += Math.max(0, 10 - state.mistakesThisQuestion)", self.page)
         self.assertIn("function registerMistake()", self.page)
-        self.assertEqual(self.page.count("registerMistake();"), 6)
+        self.assertEqual(self.page.count("registerMistake();"), 5)
         self.assertIn("每輸錯一次扣 1 分", self.page)
         self.assertIn("shuffled(PROBLEM_BANKS[mode]).slice(0, 10)", self.page)
         self.assertNotRegex(self.page, r"<input\b")
@@ -165,6 +182,12 @@ eval(SOURCE + `
                 if (expectedRoundedScaled !== actualRoundedScaled) throw new Error(mode + ': rounded answer mismatch');
                 if (p.targetPlaces > 0 && p.roundedAnswer.split('.')[1]?.length !== p.targetPlaces) throw new Error(mode + ': missing trailing place');
                 if (finalRawRemainder === 0) throw new Error(mode + ': rounding should exercise a non-terminating step');
+                if (!/^[0-9]+[.][0-9]{5}$/.test(p.workAnswer)) throw new Error(mode + ': invalid five-place work answer');
+                if (!/^[0-9]+[.][0-9]{5}$/.test(p.frameworkDividend)) throw new Error(mode + ': invalid five-place dividend frame');
+                const workScaled = Number(p.workAnswer.replace('.', ''));
+                if (workScaled !== Math.floor((original + 1e-10) * 100000)) throw new Error(mode + ': extended quotient mismatch');
+                runLongDivision({ ...p, dividend: p.frameworkDividend, answer: p.workAnswer });
+                if (p.answerDigits.length > p.workAnswerDigits.length) throw new Error(mode + ': guard exceeds frame');
                 roundTargets.add(p.targetPlaces);
                 roundDirections.add(Number(p.answer.slice(-1)) >= 5 ? 'up' : 'down');
             } else {
