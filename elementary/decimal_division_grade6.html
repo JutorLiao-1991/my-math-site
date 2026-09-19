@@ -1205,7 +1205,6 @@
                 state.roundingReadyAnnounced = true;
                 document.getElementById('phase-note').innerText = `判斷用的${placeLabel(state.problem.targetPlaces + 1)}已經算出，現在要做什麼？`;
                 document.getElementById('round-stop-btn').classList.add('ready');
-                playSound('correct');
             }
             if (state.filledCount >= state.totalInputs) return completeLongDivision();
             findNextFocus();
