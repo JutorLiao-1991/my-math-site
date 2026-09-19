@@ -306,7 +306,7 @@
 
                 <div class="math-grid hidden" id="math-vertical"></div>
                 <div class="rounding-work-actions hidden" id="rounding-work-actions">
-                    <button class="round-extend-btn" id="round-extend-btn" type="button" onclick="extendRoundingWork()">＋補 0 繼續算</button>
+                    <button class="round-extend-btn" id="round-extend-btn" type="button" onclick="extendRoundingWork()">補 0 繼續算</button>
                 </div>
 
                 <div class="answer-panel hidden" id="remainder-panel">
@@ -1002,7 +1002,19 @@
                 grid.appendChild(group);
                 step.productIds = drawDivisionInputRow(group, step.product, step.productEnd, dividendColumnMap, cols);
                 group.appendChild(createLine('sub-line'));
-                step.remainderIds = drawDivisionInputRow(group, step.remainder, step.remainderEnd, dividendColumnMap, cols);
+                step.remainderIds = drawDivisionInputRow(
+                    group,
+                    step.remainder,
+                    step.remainderEnd,
+                    dividendColumnMap,
+                    cols,
+                    isRounding && step.remainderEnd >= p.shiftedDividend.replace('.', '').length
+                        ? {
+                            autoBroughtDownDigitIndex: step.remainderEnd,
+                            decimalDigitStart: dividendDecimalIndex
+                        }
+                        : null
+                );
             });
 
             state.logicalOrder = [];
@@ -1019,21 +1031,35 @@
             if (isRounding) updateRoundingVisibility();
         }
 
-        function drawDivisionInputRow(grid, value, endDigitIndex, columnMap, totalColumns) {
+        function drawDivisionInputRow(grid, value, endDigitIndex, columnMap, totalColumns, roundingOptions = null) {
             const row = Array(totalColumns).fill(null);
             const ids = [];
             const startDigitIndex = endDigitIndex - value.length + 1;
             value.split('').forEach((char, index) => {
                 const digitIndex = startDigitIndex + index;
-                if (digitIndex >= 0 && digitIndex < columnMap.length) row[columnMap[digitIndex]] = char;
+                if (digitIndex >= 0 && digitIndex < columnMap.length) {
+                    row[columnMap[digitIndex]] = { char, digitIndex };
+                }
             });
-            row.forEach(char => {
-                if (char === null) return grid.appendChild(createCell(''));
+            row.forEach(item => {
+                if (item === null) return grid.appendChild(createCell(''));
+                const isAutoBroughtDownZero = roundingOptions
+                    && item.char === '0'
+                    && item.digitIndex === roundingOptions.autoBroughtDownDigitIndex;
+                if (isAutoBroughtDownZero) {
+                    const cell = createCell('0');
+                    cell.classList.add('auto-brought-down-zero');
+                    cell.dataset.roundingPlace = String(
+                        item.digitIndex - roundingOptions.decimalDigitStart + 1
+                    );
+                    grid.appendChild(cell);
+                    return;
+                }
                 const id = `input-${state.totalInputs++}`;
                 const cell = createCell('', true, id);
                 cell.onclick = () => setFocus(id);
                 grid.appendChild(cell);
-                state.cellAnswers[id] = char;
+                state.cellAnswers[id] = item.char;
                 ids.push(id);
             });
             return ids;

@@ -68,6 +68,14 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("rounding-masked-step", self.page)
         self.assertIn(".math-grid.rounding-frame", self.page)
 
+    def test_rounding_extend_button_brings_down_zero_automatically(self):
+        self.assertIn("autoBroughtDownDigitIndex: step.remainderEnd", self.page)
+        self.assertIn("const isAutoBroughtDownZero = roundingOptions", self.page)
+        self.assertIn("cell.classList.add('auto-brought-down-zero')", self.page)
+        self.assertIn("cell.dataset.roundingPlace", self.page)
+        self.assertIn("const cell = createCell('0');", self.page)
+        self.assertNotIn("state.cellAnswers[id] = char;", self.page)
+
     def test_decimal_move_is_required_before_long_division(self):
         self.assertIn("state.phase = 'shift-decimals'", self.page)
         self.assertIn("function moveDecimalsRight()", self.page)
