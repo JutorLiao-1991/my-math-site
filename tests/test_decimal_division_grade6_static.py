@@ -51,6 +51,16 @@ class DecimalDivisionGrade6StaticTests(unittest.TestCase):
         self.assertIn("function renderFinalAnswer", self.page)
         self.assertIn("roundedAnswer", self.page)
 
+    def test_reaching_rounding_guard_digit_does_not_play_answer_sound(self):
+        ready_block = re.search(
+            r"if \(roundingReady\(\) && !state\.roundingReadyAnnounced\) \{(.*?)\n            \}",
+            self.page,
+            re.S,
+        )
+        self.assertIsNotNone(ready_block)
+        self.assertNotIn("playSound('correct')", ready_block.group(1))
+        self.assertIn("round-stop-btn", ready_block.group(1))
+
     def test_rounding_can_stop_or_continue_after_guard_digit(self):
         self.assertIn("const ROUNDING_MAX_DECIMAL_PLACES = 5;", self.page)
         self.assertIn('id="round-extend-btn"', self.page)
