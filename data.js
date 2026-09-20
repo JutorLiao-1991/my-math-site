@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月18日"
+    lastUpdated: "2026年9月20日"
 };
 
 // --- 課程資料區 ---
@@ -124,6 +124,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "熟練底數 2～10 的常見次方，並挑戰單人快問快答與雙人搶答。"
+    },
+    {
+        title: "完全平方大挑戰（國二）",
+        category: "junior",
+        url: "junior/math/perfect_square_challenge.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "從 1～20 或 1～40 的底數中辨認平方值，挑戰單人快答與雙人搶答。"
     },
     {
         title: "物質加熱曲線與三態變化（國二）",
