@@ -118,7 +118,7 @@ const lessonData = [
         desc: "先移動除數與被除數的小數點，再完成整數除以小數、小數除以小數的直式計算。"
     },
     {
-        title: "間隔問題（小六）",
+        title: "間隔問題（六年級）",
         category: "elementary",
         url: "elementary/interval_problems_grade6.html",
         tagClass: "math",
