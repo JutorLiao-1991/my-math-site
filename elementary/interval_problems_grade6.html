@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>鳩特數理｜間隔問題（小六）</title>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background-size: 20px 20px; }
+    button, input { font: inherit; touch-action: manipulation; }
+    button { cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 22px; color: #fff; }
+    .page-title { margin: 0; font-size: 1.2rem; }
+    .back-btn { padding: 7px 14px; border: 1px solid; border-radius: 24px; text-decoration: none; font-weight: 700; }
+    .main-wrapper { max-width: 1400px; margin: auto; padding: 16px; display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+    .panel { min-width: 0; background: #fff; border-radius: 14px; padding: 24px; }
+    .welcome { padding: 50px 16px; text-align: center; color: #586a80; line-height: 1.8; }
+    .welcome h2 { color: #2563a8; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: #2563a8; font-weight: 700; margin-bottom: 14px; }
+    .question { margin: 0 0 22px; font-size: clamp(1.15rem, 2vw, 1.45rem); line-height: 1.85; overflow-wrap: anywhere; }
+    .step { margin: 16px 0; padding: 18px; background: #eef6fc; border-radius: 10px; }
+    .step h3 { margin: 0 0 12px; font-size: 1.05rem; }
+    .step.locked { background: #f8fafc; color: #64748b; border: 1px dashed #dbe4ee; }
+    .entry { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .answer-input { width: 126px; max-width: 100%; height: 50px; border: 2px solid #38bdf8; border-radius: 8px; padding: 8px 10px; background: #fff; color: #2563a8; font-size: 1.5rem; font-weight: 700; }
+    .solution { white-space: pre-line; line-height: 1.8; color: #236b3c; font-weight: 700; }
+    .feedback { min-height: 3em; margin: 14px 0; line-height: 1.7; }
+    .feedback[data-status="error"] { color: #b42318; }
+    .feedback[data-status="success"] { color: #236b3c; }
+    .secondary-btn { min-height: 44px; padding: 9px 14px; color: #2563a8; background: #fff; border: 1px solid #a7c8e5; border-radius: 9px; }
+    .diagram { background: #eef6fc; padding: 14px; margin-top: 14px; border-radius: 10px; }
+    .diagram svg { width: 100%; display: block; }
+    .diagram-caption { font-size: .9rem; color: #586a80; line-height: 1.6; }
+    .controls-title { margin: 0 0 12px; font-size: 1.05rem; }
+    .settings-summary { cursor: pointer; font-weight: 700; min-height: 44px; padding: 10px 0; color: #2563a8; }
+    #settings[open] .settings-summary { margin-bottom: 10px; }
+    .difficulty { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 14px; }
+    .menu-btn { min-height: 54px; padding: 10px 6px; border: 1px solid #dbe4ee; border-radius: 8px; line-height: 1.5; font-weight: 700; }
+    .menu-btn.wide { grid-column: 1 / -1; }
+    .exam-description { color: #586a80; font-size: .9rem; line-height: 1.6; margin: 8px 0 20px; }
+    .status { border-left: 5px solid; border-radius: 6px; padding: 14px; margin-top: 18px; }
+    .stats-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-weight: 700; margin-bottom: 12px; }
+    .phase-note { color: #2563a8; margin: 12px 0; line-height: 1.5; }
+    .numpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+    .num-btn { min-height: 50px; padding: 8px; border: 1px solid #dbe4ee; border-radius: 9px; background: #fff; color: #334155; font-size: 1.4rem; font-weight: 700; }
+    .primary-action { width: 100%; min-height: 48px; padding: 11px; border: 0; border-radius: 9px; background: #4a90e2; color: #fff; font-weight: 700; margin-top: 12px; }
+    .minor-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    .watermark { text-align: right; margin-top: 26px; font-style: italic; font-size: 1rem; }
+    .result-heading { margin: 0; }
+    .score-display { font-size: 3.5rem; font-weight: 800; margin: 16px 0; }
+    .review { margin-top: 20px; border-top: 1px solid #dbe4ee; padding-top: 16px; }
+    .review details { border-bottom: 1px solid #dbe4ee; padding: 12px 0; }
+    .review summary { cursor: pointer; line-height: 1.6; font-weight: 700; }
+    .review p { line-height: 1.7; }
+    .review .review-answer { color: #586a80; }
+    @media (max-width: 800px) {
+      .main-wrapper { grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 10px; }
+      .panel { padding: 18px; }
+      .nav-bar { padding: 10px 14px; }
+      .page-title { font-size: 1.05rem; }
+      .welcome { padding: 20px 0; }
+      .step { padding: 14px; }
+    }
+    @media (min-width: 801px) { .settings-summary { display: none; } }
+  </style>
+  <link rel="stylesheet" href="elementary_theme.css">
+  <script src="interval_questions_grade6.js" defer></script>
+  <script src="interval_problems_grade6.js" defer></script>
+</head>
+<body>
+  <header class="nav-bar">
+    <a href="../index.html" class="back-btn">⬅ 回主選單</a>
+    <h1 class="page-title">🦔 間隔問題（小六）</h1>
+  </header>
+  <main class="main-wrapper">
+    <section class="panel" id="work-panel" aria-label="作答區">
+      <div class="welcome" id="welcome">
+        <h2>先找間隔，再算答案</h2>
+        <p>從題型選單開始分步練習。<br>熟悉後，再挑戰綜合測驗。</p>
+      </div>
+      <div id="workspace" hidden>
+        <div class="meta"><span id="mode-label"></span><span id="category-label"></span></div>
+        <p class="question" id="question-text"></p>
+        <section class="step" id="interval-step">
+          <h3>① 先找間隔數</h3>
+          <div class="entry" id="interval-entry"><label for="interval-input">共有</label><input id="interval-input" class="answer-input" type="text" readonly inputmode="none" autocomplete="off" aria-label="間隔數"><span>個間隔</span></div>
+          <div class="solution" id="interval-solution" hidden></div>
+        </section>
+        <section class="step locked" id="answer-step">
+          <h3 id="answer-heading">② 再計算答案</h3>
+          <div id="answer-locked">完成第一步後，開啟答案欄位。</div>
+          <div class="entry" id="answer-entry" hidden><label id="answer-label" for="answer-input"></label><input id="answer-input" class="answer-input" type="text" readonly inputmode="none" autocomplete="off" aria-label="最後答案"><span id="answer-unit"></span></div>
+          <div class="solution" id="answer-solution" hidden></div>
+        </section>
+        <button type="button" class="secondary-btn" id="diagram-button" aria-expanded="false" aria-controls="diagram">看示意圖</button>
+        <div class="diagram" id="diagram" hidden><div id="diagram-drawing"></div><div class="diagram-caption" id="diagram-caption"></div></div>
+        <p class="feedback" id="feedback" aria-live="polite"></p>
+      </div>
+      <section id="results" hidden aria-label="測驗結果">
+        <h2 class="result-heading" id="result-heading">測驗完成</h2>
+        <div class="score-display" id="final-score"></div>
+        <p id="result-summary"></p>
+        <button type="button" class="secondary-btn" id="retry-exam">再測一次</button>
+        <div class="review" id="review-list"></div>
+      </section>
+      <div class="watermark">Presented by Jutor</div>
+    </section>
+    <aside class="panel" id="controls-panel" aria-label="題型與作答控制">
+      <details id="settings" open>
+      <summary class="settings-summary">題型與難度</summary>
+      <h2 class="controls-title">數字難度</h2>
+      <div class="difficulty" aria-label="數字難度">
+        <button type="button" class="menu-btn active" data-difficulty="basic" aria-pressed="true">基礎<br>整數</button>
+        <button type="button" class="menu-btn" data-difficulty="advanced" aria-pressed="false">進階<br>小數／換算</button>
+      </div>
+      <h2 class="controls-title">分步練習</h2>
+      <div class="menu-grid">
+        <button type="button" class="menu-btn" data-type="index" aria-pressed="false">編號之間的距離</button>
+        <button type="button" class="menu-btn" data-type="both" aria-pressed="false">兩端都放</button>
+        <button type="button" class="menu-btn" data-type="one" aria-pressed="false">只有一端放</button>
+        <button type="button" class="menu-btn" data-type="neither" aria-pressed="false">兩端都不放</button>
+        <button type="button" class="menu-btn" data-type="loop" aria-pressed="false">封閉一圈</button>
+        <button type="button" class="menu-btn" data-type="mixed" aria-pressed="false">綜合練習</button>
+        <button type="button" class="menu-btn wide" id="start-exam">綜合測驗（10 題）</button>
+      </div>
+      <p class="exam-description">五類各 2 題，每題 10 分，限時 10 分鐘。<br>直接填答案，交卷後查看解析。</p>
+      </details>
+      <div class="status" id="game-status" hidden>
+        <div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div>
+        <div class="phase-note" id="phase-note"></div>
+        <div class="numpad" id="numpad">
+          <button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button>
+          <button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button>
+          <button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button>
+          <button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除一位">⌫</button>
+        </div>
+        <button type="button" class="primary-action" id="check-answer">確認間隔數</button>
+        <button type="button" class="primary-action" id="next-question" hidden>下一題</button>
+        <div class="minor-actions" id="exam-actions" hidden>
+          <button type="button" class="secondary-btn" id="previous-question">上一題</button>
+          <button type="button" class="secondary-btn" id="skip-question">先跳過</button>
+          <button type="button" class="secondary-btn" id="finish-exam">交卷</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>

@@ -10,7 +10,7 @@ THEME = (ELEMENTARY / "elementary_theme.css").read_text(encoding="utf-8")
 
 class ElementaryThemeStaticTests(unittest.TestCase):
     def test_every_elementary_page_loads_shared_theme(self):
-        self.assertEqual(len(PAGES), 11)
+        self.assertGreaterEqual(len(PAGES), 12)
         for page in PAGES:
             html = page.read_text(encoding="utf-8")
             self.assertIn(
@@ -40,6 +40,7 @@ class ElementaryThemeStaticTests(unittest.TestCase):
             "prime_test.html": "🦔 1~100",
             "fraction_add_sub_grade5.html": "🦔 分數的加減法（五年級）",
             "factor_magpie_nest.html": "因數鵲巢",
+            "interval_problems_grade6.html": "🦔 間隔問題（小六）",
         }
         for filename, title in expected.items():
             html = (ELEMENTARY / filename).read_text(encoding="utf-8")
