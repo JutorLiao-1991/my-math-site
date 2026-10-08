@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年9月20日"
+    lastUpdated: "2026年10月8日"
 };
 
 // --- 課程資料區 ---
@@ -116,6 +116,14 @@ const lessonData = [
         tagClass: "math",
         tagName: "國小數學",
         desc: "先移動除數與被除數的小數點，再完成整數除以小數、小數除以小數的直式計算。"
+    },
+    {
+        title: "間隔問題（小六）",
+        category: "elementary",
+        url: "elementary/interval_problems_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "先找間隔數，再計算距離、數量與間距；練習端點配置、封閉一圈與十題綜合測驗。"
     },
     {
         title: "常見次方表（國一）",
