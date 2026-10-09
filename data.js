@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月8日"
+    lastUpdated: "2026年10月9日"
 };
 
 // --- 課程資料區 ---
@@ -32,6 +32,7 @@ const lessonData = [
     {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
+        grades: [2],
         url: "elementary/multiplication_table_trial.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -40,6 +41,7 @@ const lessonData = [
     {
         title: "五位數加減法（四年級）",
         category: "elementary",
+        grades: [4],
         url: "elementary/five_digit_add_sub.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -48,6 +50,7 @@ const lessonData = [
     {
         title: "三位數以內的乘法（四年級）",
         category: "elementary",
+        grades: [4],
         url: "elementary/multiplication_upto_three_digits.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -56,6 +59,7 @@ const lessonData = [
     {
         title: "小數乘法與除法（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/decimal_times_div.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -64,6 +68,7 @@ const lessonData = [
     {
         title: "分數的加減法（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/fraction_add_sub_grade5.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -72,6 +77,7 @@ const lessonData = [
     {
         title: "單位換算特訓（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/unit_convert.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -80,6 +86,7 @@ const lessonData = [
     {
         title: "時間乘法與除法（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/time_times_div.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -88,6 +95,7 @@ const lessonData = [
     {
         title: "比率與百分率（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/rate_ratio_percentage.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -96,6 +104,7 @@ const lessonData = [
     {
         title: "質數合數大挑戰（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/prime_test.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -104,6 +113,7 @@ const lessonData = [
     {
         title: "因數鵲巢（五年級）",
         category: "elementary",
+        grades: [5],
         url: "elementary/factor_magpie_nest.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -112,6 +122,7 @@ const lessonData = [
     {
         title: "小數的除法（六年級）",
         category: "elementary",
+        grades: [6],
         url: "elementary/decimal_division_grade6.html",
         tagClass: "math",
         tagName: "國小數學",
@@ -120,14 +131,25 @@ const lessonData = [
     {
         title: "間隔問題（六年級）",
         category: "elementary",
+        grades: [6],
         url: "elementary/interval_problems_grade6.html",
         tagClass: "math",
         tagName: "國小數學",
         desc: "先找間隔數，再計算距離、數量與間距；練習端點配置、封閉一圈與十題綜合測驗。"
     },
     {
+        title: "比與比值（六年級）",
+        category: "elementary",
+        grades: [6],
+        url: "elementary/ratio_value_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "按順序寫出比、求比值、化成最簡整數比，再練習按比分配與十題綜合測驗。"
+    },
+    {
         title: "常見次方表（國一）",
         category: "junior",
+        grades: [7],
         url: "junior/math/common_powers_trial.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -136,6 +158,7 @@ const lessonData = [
     {
         title: "完全平方大挑戰（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/perfect_square_challenge.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -144,6 +167,7 @@ const lessonData = [
     {
         title: "物質加熱曲線與三態變化（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/science/heating_curve.html",
         tagClass: "phys",
         tagName: "國中理化",
@@ -152,6 +176,7 @@ const lessonData = [
     {
         title: "尺規作圖基本技巧（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/CAR.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -160,6 +185,7 @@ const lessonData = [
     {
         title: "尺規作圖做三角形（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/CAR_Triangle.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -168,6 +194,7 @@ const lessonData = [
     {
         title: "乘法公式基礎練習（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/multiplication_formulas.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -176,6 +203,7 @@ const lessonData = [
     {
         title: "多項式的加減法（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/polynomial_add_sub_grade8.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -184,6 +212,7 @@ const lessonData = [
     {
         title: "多項式乘除法（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/math/polynomial_mul_div_grade8.html",
         tagClass: "math",
         tagName: "國中數學",
@@ -192,6 +221,7 @@ const lessonData = [
     {
         title: "常見元素的週期表（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/science/periodic_table.html",
         tagClass: "chem",
         tagName: "國中理化",
@@ -200,6 +230,7 @@ const lessonData = [
     {
         title: "元素JUNO！（國二）",
         category: "junior",
+        grades: [8],
         url: "junior/science/element_uno.html",
         tagClass: "chem",
         tagName: "國中理化",
@@ -208,6 +239,7 @@ const lessonData = [
     {
         title: "多項式函數圖形（高一）",
         category: "senior",
+        grades: [10],
         url: "senior/math/poly_function_graphing.html",
         tagClass: "math",
         tagName: "高中數學",
@@ -216,6 +248,7 @@ const lessonData = [
     {
         title: "光電效應實驗室（高一）",
         category: "senior",
+        grades: [10],
         url: "senior/physics/photoelectric_effect.html",
         tagClass: "phys",
         tagName: "高中物理",
@@ -224,6 +257,7 @@ const lessonData = [
     {
         title: "高中光譜實驗（高一）",
         category: "senior",
+        grades: [10],
         url: "senior/physics/spectrum.html",
         tagClass: "phys",
         tagName: "高中物理",
@@ -232,6 +266,7 @@ const lessonData = [
     {
         title: "圓周運動與簡諧投影（高二）",
         category: "senior",
+        grades: [11],
         url: "senior/physics/shm_circle.html",
         tagClass: "phys",
         tagName: "高中物理",
@@ -240,6 +275,7 @@ const lessonData = [
     {
         title: "平面族示意動畫（高二）",
         category: "senior",
+        grades: [11],
         url: "senior/math/Family_of_planes.html",
         tagClass: "math",
         tagName: "高中數學",
