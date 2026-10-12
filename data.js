@@ -99,7 +99,7 @@ const lessonData = [
         url: "elementary/rate_ratio_percentage.html",
         tagClass: "math",
         tagName: "國小數學",
-        desc: "試著在此精熟比率與百分率吧！"
+        desc: "練習比率、百分率換算與折扣應用；十題考卷可跳題、標記待檢查，交卷後查看解析。"
     },
     {
         title: "質數合數大挑戰（五年級）",
@@ -135,7 +135,7 @@ const lessonData = [
         url: "elementary/interval_problems_grade6.html",
         tagClass: "math",
         tagName: "國小數學",
-        desc: "先找間隔數，再計算距離、數量與間距；練習端點配置、封閉一圈與十題綜合測驗。"
+        desc: "先找間隔數，再計算距離、數量與間距；練習端點配置、封閉一圈；十題考卷可跳題與標記待檢查。"
     },
     {
         title: "比與比值（六年級）",
