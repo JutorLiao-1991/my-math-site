@@ -15,6 +15,19 @@ test('exact fractions, finite decimals and mixed numbers; reject approximate or 
   assert.ok(!Q.correct('1 3/3', { expected: 2 }));
 });
 
+test('fraction display preserves entered values and renders mixed and incomplete answers vertically', () => {
+  assert.match(Q.displayNumber('4/6'), /<span>4<\/span><span>6<\/span>/);
+  assert.match(Q.displayNumber({ n: 5, d: 3 }), /<span>5<\/span><span>3<\/span>/);
+  assert.match(Q.displayNumber('1 2/3'), /mixed-number.*<span>1<\/span>.*<span>2<\/span><span>3<\/span>/);
+  assert.match(Q.displayNumber('2/', true), /<span>2<\/span><span>□<\/span>/);
+  assert.match(Q.displayNumber('1 ', true), /mixed-number.*<span>1<\/span>.*<span>□<\/span><span>□<\/span>/);
+  assert.equal(Q.displayNumber('0.125'), '0.125');
+  const html = Q.displayText('答案：1 2/3；比值：4/6。<img src=x onerror=alert(1)>');
+  assert.match(html, /mixed-number/);
+  assert.ok(!html.includes('2/3') && !html.includes('4/6'));
+  assert.ok(!html.includes('<img'));
+});
+
 test('all four kinds and all numerical forms generate valid steps and final answers', () => {
   for (const type of Object.keys(Q.categories)) for (let i = 0; i < 160; i++) {
     const q = Q.generate(type, ['integer', 'decimal', 'fraction', 'mixed'], rng, i);

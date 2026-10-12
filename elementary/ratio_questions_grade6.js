@@ -6,7 +6,20 @@
   const R = (n, d = 1) => { const g = gcd(n, d); return { n: n / g, d: d / g }; };
   const divide = (a, b) => R(a.n * b.d, a.d * b.n);
   const format = a => typeof a !== 'object' ? String(a) : a.d === 1 ? String(a.n) : `${a.n}/${a.d}`;
-  const fraction = (n, d) => `<span class="fraction"><span>${n}</span><span>${d}</span></span>`;
+  const escapeHtml = text => String(text).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+  const fraction = (n, d) => `<span class="fraction"><span>${escapeHtml(n)}</span><span>${escapeHtml(d)}</span></span>`;
+  function displayNumber(value, editing = false) {
+    const raw = typeof value === 'object' ? format(value) : String(value);
+    const blank = editing ? '□' : '';
+    const mixed = raw.match(/^(\d*)\s+(\d*)(?:\/(\d*))?$/);
+    if (mixed && (editing || mixed[3])) return `<span class="mixed-number"><span>${escapeHtml(mixed[1] || blank)}</span>${fraction(mixed[2] || blank, mixed[3] || blank)}</span>`;
+    const parts = raw.match(/^(\d*)\/(\d*)$/);
+    if (parts && (editing || (parts[1] && parts[2]))) return fraction(parts[1] || blank, parts[2] || blank);
+    return escapeHtml(raw || blank);
+  }
+  function displayText(text) {
+    return escapeHtml(text).replace(/\b\d+\s+\d+\/\d+|\b\d+\/\d+/g, number => displayNumber(number));
+  }
   const htmlNumber = (a, form) => {
     if (a.d === 1) return String(a.n);
     if (form === 'decimal') return String(a.n / a.d);
@@ -152,7 +165,7 @@
     for (let i = questions.length - 1; i > 0; i--) { const j = Math.floor(rng() * (i + 1)); [questions[i], questions[j]] = [questions[j], questions[i]]; }
     return questions;
   }
-  const api = { categories, generate, buildExam, parse, correct, format, gcd, lcm };
+  const api = { categories, generate, buildExam, parse, correct, format, displayNumber, displayText, gcd, lcm };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.RatioQuestions = api;
 })(typeof window !== 'undefined' ? window : globalThis);
