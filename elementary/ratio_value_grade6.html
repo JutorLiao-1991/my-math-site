@@ -71,6 +71,10 @@
     .answer-input.active { box-shadow: 0 0 0 4px rgba(56,189,248,.2); }
     .answer-input:disabled { border-color: #dbe4ee; color: #64748b; cursor: default; }
     .answer-input.rational { width: 180px; }
+    .rational-shell { display: inline-block; position: relative; max-width: 100%; }
+    .rational-shell .answer-input { height: 96px; color: transparent; caret-color: transparent; user-select: none; }
+    .rational-preview { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #2563a8; font-size: 1.4rem; font-weight: 700; padding: 8px; }
+    .rational-shell:has(input:disabled) .rational-preview { color: #64748b; }
     .field-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; line-height: 2; }
     .field-box { display: inline-flex; flex-direction: column; gap: 4px; margin: 5px; }
     .field-box label { font-size: .85rem; color: #586a80; }
@@ -118,8 +122,8 @@
     <p class="exam-description">比的認識 2 題、比值 2 題、相等的比與化簡 4 題、應用 2 題。每題 10 分，限時 10 分鐘，交卷後查看解析。</p>
   </details>
   <div class="status" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div class="exam-jump" id="exam-jump" hidden aria-label="測驗題號"></div><div class="phase-note" id="phase-note" aria-live="polite"></div>
-    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="/" aria-label="分數線">／</button><button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="space">帶分數<br>空格</button><button type="button" class="num-btn" data-key="next">下一格</button></div>
-    <p class="key-hint" id="key-hint">點選欄位，再用數字鍵盤輸入。分數如 2/3；帶分數如 1 2/3。</p>
+    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="/" aria-label="分數：接著填分母">分數</button><button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="space">帶分數</button><button type="button" class="num-btn" data-key="next">下一格</button></div>
+    <p class="key-hint" id="key-hint">先填分子，按「分數」再填分母。帶分數先填整數、按「帶分數」，再依序填分子和分母。</p>
     <button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button>
     <div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div>
   </div>

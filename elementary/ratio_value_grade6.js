@@ -33,7 +33,13 @@
   function fieldHtml(f, locked) {
     const label = `<label for="input-${f.key}">${f.label}</label>`;
     if (f.type === 'decision') return `<span class="field-box"><span>${f.label}</span><span class="decision" role="group" aria-label="${f.label}">${['yes', 'no'].map(v => `<button type="button" class="secondary-btn" data-field="${f.key}" data-decision="${v}" aria-pressed="false" ${locked ? 'disabled' : ''}>${v === 'yes' ? '是' : '不是'}</button>`).join('')}</span></span>`;
-    return `<span class="field-box">${label}<input id="input-${f.key}" class="answer-input ${f.type === 'rational' ? 'rational' : ''}" data-field="${f.key}" type="text" readonly inputmode="none" autocomplete="off" ${locked ? 'disabled' : ''}></span>`;
+    const input = `<input id="input-${f.key}" class="answer-input ${f.type === 'rational' ? 'rational' : ''}" data-field="${f.key}" type="text" readonly inputmode="none" autocomplete="off" ${locked ? 'disabled' : ''}>`;
+    const entry = f.type === 'rational' ? `<span class="rational-shell">${input}<span class="rational-preview" id="preview-${f.key}" aria-hidden="true"></span></span>` : input;
+    return `<span class="field-box">${label}${entry}</span>`;
+  }
+  function updatePreview(key) {
+    const preview = $(`preview-${key}`);
+    if (preview) preview.innerHTML = Q.displayNumber(state.values[key] || '', true);
   }
   function render() {
     const q = state.question, exam = state.mode === 'exam'; state.step = 0; state.done = false;
@@ -46,7 +52,7 @@
       let pattern = s.pattern; s.fields.forEach(f => { pattern = pattern.replace(`{${f.key}}`, fieldHtml(f, !exam && i > 0)); });
       return `<section class="step ${!exam && i > 0 ? 'locked' : ''}" id="step-${i}"><h3>${exam ? '' : `${i + 1}. `}${s.title}</h3><div class="lock-note">完成前一步後，開啟這一步。</div><div class="field-row">${pattern}</div><div class="solution" hidden></div></section>`;
     }).join('');
-    $('steps').querySelectorAll('input').forEach(el => { el.value = state.values[el.dataset.field] || ''; el.addEventListener('click', () => activate(el.dataset.field)); });
+    $('steps').querySelectorAll('input').forEach(el => { el.value = state.values[el.dataset.field] || ''; updatePreview(el.dataset.field); el.addEventListener('click', () => activate(el.dataset.field)); });
     $('steps').querySelectorAll('[data-decision]').forEach(el => {
       el.setAttribute('aria-pressed', String(state.values[el.dataset.field] === el.dataset.decision));
       el.addEventListener('click', () => { if (expired() || state.done) return; state.values[el.dataset.field] = el.dataset.decision; document.querySelectorAll(`[data-decision][data-field="${el.dataset.field}"]`).forEach(b => b.setAttribute('aria-pressed', String(b === el))); message('已選擇，按確認繼續。'); updateJump(); });
@@ -76,8 +82,13 @@
     let value = state.values[f.key] || '';
     if (key === 'delete') value = value.slice(0, -1);
     else if (key === 'clear') value = '';
-    else if (value.length < 18 && (/^[0-9.]$/.test(key) || (f.type === 'rational' && (key === '/' || key === 'space')))) value += key === 'space' ? ' ' : key;
-    state.values[f.key] = value; el.value = value; updateJump(); message('');
+    else if (value.length < 18) {
+      if (/^[0-9]$/.test(key)) value += key;
+      else if (key === '.' && !/[. /]/.test(value)) value += key;
+      else if (f.type === 'rational' && key === '/' && !/[./]/.test(value)) value += '/';
+      else if (f.type === 'rational' && key === 'space' && !/[. /]/.test(value)) value += ' ';
+    }
+    state.values[f.key] = value; el.value = value; updatePreview(f.key); updateJump(); message('');
   }
   function check() {
     if (!state.question || expired()) return;
@@ -88,7 +99,7 @@
     if (wrong) { activate(wrong.key); message(`「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return; }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
     card.querySelectorAll('input, button').forEach(el => { el.disabled = true; el.classList.remove('active'); });
-    const solution = card.querySelector('.solution'); solution.hidden = false; solution.textContent = `✓ ${s.explanation}`;
+    const solution = card.querySelector('.solution'); solution.hidden = false; solution.innerHTML = Q.displayText(`✓ ${s.explanation}`);
     state.step++; $('hint').hidden = true; $('hint-button').setAttribute('aria-expanded', 'false');
     if (state.step === state.question.steps.length) {
       state.done = true; $('numpad').hidden = true; $('key-hint').hidden = true; $('hint-button').hidden = true;
@@ -127,8 +138,8 @@
       const details = document.createElement('details'), summary = document.createElement('summary'), question = document.createElement('p'), solution = document.createElement('div');
       summary.textContent = `${i + 1}. ${q.finalFields.every(f => Q.correct(state.answers[i][f.key] || '', f)) ? '✓ 答對' : '✕ 未答對'}｜${q.category}`;
       question.innerHTML = q.textHtml; details.append(summary, question);
-      q.finalFields.forEach(f => { const p = document.createElement('p'); p.className = 'review-answer'; const v = state.answers[i][f.key]; const display = f.type === 'decision' ? x => x === 'yes' ? '是' : '不是' : Q.format; p.textContent = `${f.label}：你的答案 ${v ? display(v) : '未作答'}；正確答案 ${display(f.expected)}`; details.append(p); });
-      solution.className = 'solution'; solution.textContent = q.explanation; details.append(solution); list.append(details);
+      q.finalFields.forEach(f => { const p = document.createElement('p'); p.className = 'review-answer'; const v = state.answers[i][f.key]; const display = f.type === 'decision' ? x => x === 'yes' ? '是' : '不是' : Q.format; p.innerHTML = Q.displayText(`${f.label}：你的答案 ${v ? display(v) : '未作答'}；正確答案 ${display(f.expected)}`); details.append(p); });
+      solution.className = 'solution'; solution.innerHTML = Q.displayText(q.explanation); details.append(solution); list.append(details);
     });
     $('work-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -142,7 +153,7 @@
   $('next-question').addEventListener('click', () => { if (state.mode === 'practice' && state.done) newPractice(); });
   $('previous-question').addEventListener('click', () => move(-1)); $('skip-question').addEventListener('click', () => move(1));
   $('finish-exam').addEventListener('click', () => { if (!expired()) finish(false); });
-  $('hint-button').addEventListener('click', () => { if (state.mode !== 'practice' || state.done) return; $('hint').hidden = !$('hint').hidden; $('hint').textContent = state.question.steps[state.step].hint; $('hint-button').setAttribute('aria-expanded', String(!$('hint').hidden)); });
+  $('hint-button').addEventListener('click', () => { if (state.mode !== 'practice' || state.done) return; $('hint').hidden = !$('hint').hidden; $('hint').innerHTML = Q.displayText(state.question.steps[state.step].hint); $('hint-button').setAttribute('aria-expanded', String(!$('hint').hidden)); });
   document.addEventListener('keydown', event => {
     if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || !state.question || state.done || event.target.matches('a, select, textarea, input[type="checkbox"]')) return;
     if (/^[0-9./]$/.test(event.key)) { event.preventDefault(); inputKey(event.key); }
