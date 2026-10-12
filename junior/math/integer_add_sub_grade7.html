@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="正負整數加減心算：自選題型與數字範圍，練習、十分鐘考試與連續答對闖關。">
+  <title>鳩特數理｜整數加減闖關（國一）</title>
+  <link rel="stylesheet" href="../../elementary/elementary_theme.css">
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; font-family: "Microsoft JhengHei", "Segoe UI", sans-serif; background-size: 20px 20px; color: #334155; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; touch-action: manipulation; }
+    button:disabled { opacity: .5; cursor: default; }
+    button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
+    .nav-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 22px; color: white; }
+    .back-btn { padding: 7px 12px; border: 1px solid; border-radius: 24px; text-decoration: none; font-weight: 700; white-space: nowrap; }
+    .page-title { margin: 0; font-size: clamp(1rem, 2.3vw, 1.25rem); }
+    #sound { border: 1px solid #64748b; background: transparent; color: white; border-radius: 8px; min-height: 40px; padding: 7px 10px; white-space: nowrap; font-size: .85rem; }
+    .main-wrapper { max-width: 1280px; margin: auto; padding: 16px; display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(330px, 1fr); gap: 16px; align-items: start; }
+    .panel { min-width: 0; background: white; border-radius: 16px; padding: 24px; }
+    .workspace-panel { min-height: 560px; display: flex; flex-direction: column; }
+    .welcome { padding: 60px 12px; text-align: center; }
+    .welcome .symbol { display: block; color: #4a90e2; font-size: 4rem; font-weight: 800; letter-spacing: .1em; }
+    h2 { margin: 0 0 12px; color: #2563a8; font-size: 1.35rem; }
+    .welcome p, .muted { color: #64748b; }
+    .welcome p { line-height: 1.8; }
+    .welcome .note { margin: 28px auto 0; max-width: 360px; padding: 16px; border-radius: 12px; background: #eef6fc; text-align: left; }
+    .watermark { margin-top: auto; padding-top: 20px; text-align: right; color: rgba(37,99,168,.18); font-style: italic; }
+    .section-title { font-size: 1rem; margin: 20px 0 10px; color: #334155; }
+    .mode-tabs { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; }
+    .choice, .menu-btn { border: 1px solid #dbe4ee; border-radius: 10px; padding: 10px 8px; font-weight: 700; min-height: 44px; }
+    .mode-description { min-height: 3em; margin: 10px 0 18px; font-size: .9rem; color: #64748b; }
+    .shortcuts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .secondary-btn { border: 1px solid #b4cde3; border-radius: 8px; padding: 7px 10px; min-height: 40px; color: #2563a8; background: white; }
+    .shortcuts button { font-size: .85rem; }
+    .type-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .type-grid button { text-align: left; }
+    .type-grid button small { display: block; margin-top: 4px; opacity: .85; font-weight: 400; }
+    .range-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .range-card { background: #eef6fc; padding: 12px; border-radius: 10px; min-width: 0; }
+    .range-card strong { display: block; margin-bottom: 8px; font-size: .9rem; }
+    .range-fields { display: flex; gap: 5px; align-items: end; }
+    .range-fields label { flex: 1; min-width: 0; font-size: .75rem; color: #64748b; }
+    .range-fields input { display: block; width: 100%; min-height: 42px; margin-top: 4px; padding: 7px 5px; border: 1px solid #b4cde3; border-radius: 7px; font-size: 1rem; color: #334155; background: white; }
+    .range-note { font-size: .8rem; color: #64748b; margin: 8px 0 16px; }
+    .target-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+    .target-row select { border: 1px solid #b4cde3; border-radius: 8px; min-height: 44px; padding: 8px; background: white; }
+    .primary-action { width: 100%; min-height: 48px; margin-top: 12px; padding: 11px; color: white; background: #4a90e2; border: 0; border-radius: 10px; font-weight: 800; }
+    .setup-error { color: #b42318; margin: 12px 0 0; }
+    .session-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; color: #2563a8; font-weight: 700; font-size: .9rem; }
+    .progress { height: 8px; overflow: hidden; background: #e8eef5; border-radius: 8px; margin: 12px 0 8px; }
+    .progress > div { background: #4a90e2; width: 0; height: 100%; transition: width .2s; }
+    .live-stats { color: #64748b; font-size: .85rem; margin: 8px 0; }
+    .question-area { padding: 55px 0 30px; text-align: center; }
+    .topic-badge { display: inline-block; border-radius: 20px; background: #eef6fc; color: #2563a8; font-size: .9rem; padding: 5px 12px; }
+    .question { margin: 25px 0 22px; font-size: clamp(2rem, 5vw, 3.25rem); font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.4; }
+    .answer-row { display: flex; gap: 10px; align-items: center; justify-content: center; }
+    .answer { width: min(260px, 100%); min-height: 64px; border: 2px solid #38bdf8; border-radius: 12px; background: white; font-size: 2rem; text-align: center; color: #2563a8; font-weight: 800; caret-color: transparent; }
+    .answer::placeholder { font-size: 1.1rem; font-weight: 400; color: #64748b; }
+    .answer[data-status="success"] { background: #e8f5e9; border-color: #4caf50 !important; }
+    .answer[data-status="error"] { background: #fff0f0; border-color: #e74c3c !important; }
+    .feedback { min-height: 3em; margin: 14px 0 0; font-weight: 700; }
+    .feedback[data-status="error"] { color: #b42318; }
+    .feedback[data-status="success"] { color: #236b3c; }
+    .key-heading { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: .9rem; color: #64748b; }
+    .numpad { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; }
+    .num-btn { min-height: 56px; border: 1px solid #dbe4ee; border-radius: 10px; color: #334155; background: #f8fafc; font-size: 1.5rem; font-weight: 700; }
+    .num-btn.sign { background: #eef6fc; color: #2563a8; }
+    #end-session { margin-top: 12px; width: 100%; }
+    .playing .workspace-panel { min-height: 560px; }
+    .result-heading { text-align: center; margin-top: 18px; }
+    .result-score { color: #2563a8; font-size: 3rem; font-weight: 800; text-align: center; margin: 12px 0; }
+    .result-note { color: #64748b; text-align: center; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 24px 0; }
+    .result-card { padding: 18px 10px; border-radius: 12px; background: #eef6fc; text-align: center; }
+    .result-card span { color: #64748b; font-size: .85rem; display: block; }
+    .result-card strong { display: block; margin-top: 5px; font-size: 1.35rem; color: #2563a8; }
+    .result-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .result-actions .primary-action { width: auto; margin: 0; padding: 11px 24px; }
+    .results-view .main-wrapper { grid-template-columns: minmax(0,1fr); max-width: 960px; }
+    .review { margin-top: 28px; border-top: 1px solid #dbe4ee; padding-top: 20px; }
+    .review ul { padding-left: 24px; }
+    .review li { padding: 8px 0; }
+    @media (max-width: 800px) {
+      .nav-bar { padding: 8px 10px; gap: 8px; }
+      .back-btn { padding: 6px 9px; font-size: .8rem; }
+      .page-title { font-size: .95rem; }
+      #sound { padding: 6px; font-size: .75rem; }
+      .main-wrapper { grid-template-columns: minmax(0,1fr); padding: 10px; gap: 10px; }
+      .panel { padding: 18px; }
+      .workspace-panel { min-height: 0; }
+      .welcome { padding: 4px 0; }
+      .welcome .symbol { font-size: 2rem; }
+      .welcome h2 { font-size: 1.1rem; margin: 4px 0; }
+      .welcome p { margin: 4px 0; font-size: .9rem; }
+      .welcome .note, .watermark { display: none; }
+      body.playing { height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+      .playing .nav-bar { flex: none; }
+      .playing .main-wrapper { flex: 1; min-height: 0; width: 100%; margin: 0; grid-template-rows: minmax(0,1fr) auto; align-items: stretch; padding: 8px; gap: 8px; }
+      .playing .workspace-panel { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 14px; }
+      .playing .controls-panel { padding: 12px; padding-bottom: max(12px,env(safe-area-inset-bottom)); }
+      .question-area { padding: 12px 0 0; }
+      .question { margin: 12px 0; font-size: clamp(1.8rem, 7vw, 2.6rem); }
+      .answer { min-height: 52px; font-size: 1.8rem; }
+      .feedback { min-height: 2.5em; margin-top: 10px; font-size: .9rem; }
+      .key-heading { margin-bottom: 8px; }
+      .key-heading .secondary-btn { min-height: 32px; padding: 4px 9px; font-size: .8rem; }
+      .numpad { gap: 6px; }
+      .num-btn { min-height: 44px; }
+      #submit-answer { margin-top: 8px; min-height: 44px; }
+      #end-session { min-height: 32px; margin-top: 8px; padding: 4px; font-size: .85rem; }
+      .result-grid { gap: 8px; }
+    }
+    @media (max-width: 800px) and (max-height: 680px) {
+      .playing .controls-panel { padding-top: 8px; }
+      .num-btn { min-height: 36px; font-size: 1.25rem; }
+      .question-area { padding-top: 4px; }
+      .question { margin: 6px 0; }
+      .topic-badge { font-size: .8rem; padding: 3px 8px; }
+      .answer { min-height: 44px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+  <script src="integer_add_sub_core.js" defer></script>
+  <script src="integer_add_sub_grade7.js" defer></script>
+</head>
+<body>
+<header class="nav-bar"><a href="../../index.html" class="back-btn">⬅ 主選單</a><h1 class="page-title">整數加減闖關（國一）</h1><button id="sound" type="button" aria-pressed="true" aria-label="切換作答音效">音效：開</button></header>
+<main class="main-wrapper">
+  <section class="panel workspace-panel" aria-label="作答區">
+    <div class="welcome" id="welcome"><span class="symbol" aria-hidden="true">＋ −</span><h2>看懂正負號，心算快又準</h2><p>選好題型與範圍，直接輸入最後答案。</p><div class="note">先練熟，再測驗，最後挑戰連續答對。<br>每題按「確定」作答，答對自動換題。</div></div>
+    <div id="workspace" hidden>
+      <div class="session-meta"><span id="mode-label"></span><span id="question-number"></span><span id="timer" hidden></span></div>
+      <div class="progress" id="progress" role="progressbar" aria-label="作答進度" aria-valuemin="0" aria-valuemax="30" aria-valuenow="0" hidden><div id="progress-fill"></div></div>
+      <p class="live-stats" id="live-stats"></p>
+      <div class="question-area"><span class="topic-badge" id="type-label"></span><p class="question" id="question-text"></p><label class="answer-row" for="answer"><input id="answer" class="answer active" type="text" readonly inputmode="none" autocomplete="off" aria-label="心算答案，使用下方鍵盤輸入" placeholder="輸入答案"></label><p id="feedback" class="feedback" aria-live="polite"></p></div>
+    </div>
+    <section id="results" hidden aria-label="作答結果" tabindex="-1">
+      <h2 id="result-heading" class="result-heading"></h2><div id="result-score" class="result-score"></div><p id="result-note" class="result-note"></p>
+      <div class="result-grid"><div class="result-card"><span>總耗時</span><strong id="elapsed"></strong></div><div class="result-card"><span>平均每題耗時（含訂正）</span><strong id="average"></strong></div><div class="result-card"><span>首次作答正確率</span><strong id="accuracy"></strong></div><div class="result-card"><span>完成題數</span><strong id="completed"></strong></div></div>
+      <div class="result-actions"><button id="retry" class="primary-action" type="button">再來一次</button><button id="change-settings" class="secondary-btn" type="button">調整設定</button></div>
+      <div class="review" id="review"></div>
+    </section>
+    <div class="watermark">Presented by Jutor</div>
+  </section>
+  <aside class="panel controls-panel" id="controls-panel" aria-label="設定與作答鍵盤">
+    <form id="settings" novalidate>
+      <h2>選擇挑戰</h2>
+      <div class="mode-tabs" aria-label="作答模式"><button type="button" class="choice active" data-mode="practice" aria-pressed="true">練習</button><button type="button" class="choice" data-mode="exam" aria-pressed="false">考試</button><button type="button" class="choice" data-mode="challenge" aria-pressed="false">闖關</button></div>
+      <p id="mode-description" class="mode-description"></p>
+      <h3 class="section-title">題型複選</h3>
+      <div class="shortcuts" aria-label="快捷選擇"><button type="button" class="secondary-btn" data-select="+">全部加法</button><button type="button" class="secondary-btn" data-select="-">全部減法</button><button type="button" class="secondary-btn" data-select="all">全部混合</button><button type="button" class="secondary-btn" data-select="none">清除</button></div>
+      <div class="type-grid" id="type-grid" aria-label="整數加減題型"></div>
+      <h3 class="section-title">數字的絕對值範圍</h3>
+      <div class="range-grid"><div class="range-card"><strong>第一個數</strong><div class="range-fields"><label>最小值<input id="a-min" type="number" min="1" max="999" step="1" value="1" required></label><span>～</span><label>最大值<input id="a-max" type="number" min="1" max="999" step="1" value="20" required></label></div></div><div class="range-card"><strong>第二個數</strong><div class="range-fields"><label>最小值<input id="b-min" type="number" min="1" max="999" step="1" value="1" required></label><span>～</span><label>最大值<input id="b-max" type="number" min="1" max="999" step="1" value="20" required></label></div></div></div>
+      <p class="range-note">可填 1～999；數字的正負由所選題型決定。</p>
+      <label class="target-row" id="target-row" hidden>連續答對目標<select id="target"><option value="10">10 題</option><option value="20">20 題</option><option value="30" selected>30 題</option></select></label>
+      <p id="setup-error" class="setup-error" role="alert" hidden></p><button id="start" class="primary-action" type="submit">開始練習</button>
+    </form>
+    <div id="keypad-panel" hidden>
+      <div class="key-heading"><span>± 切換正負號</span><button id="clear-answer" type="button" class="secondary-btn">清除</button></div>
+      <div id="numpad" class="numpad" aria-label="心算數字鍵盤"><button class="num-btn" type="button" data-key="7">7</button><button class="num-btn" type="button" data-key="8">8</button><button class="num-btn" type="button" data-key="9">9</button><button class="num-btn" type="button" data-key="4">4</button><button class="num-btn" type="button" data-key="5">5</button><button class="num-btn" type="button" data-key="6">6</button><button class="num-btn" type="button" data-key="1">1</button><button class="num-btn" type="button" data-key="2">2</button><button class="num-btn" type="button" data-key="3">3</button><button class="num-btn sign" type="button" data-key="sign" aria-label="切換正負號">±</button><button class="num-btn" type="button" data-key="0">0</button><button class="num-btn" type="button" data-key="delete" aria-label="刪除一位">⌫</button></div>
+      <button id="submit-answer" class="primary-action" type="button">確定</button><button id="end-session" class="secondary-btn" type="button">結束練習</button>
+    </div>
+  </aside>
+</main>
+</body>
+</html>
