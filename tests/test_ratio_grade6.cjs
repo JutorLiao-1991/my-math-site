@@ -1,6 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const Q = require('../elementary/ratio_questions_grade6.js');
+const E = require('../elementary/ratio_input_grade6.js');
 const vm = require('node:vm');
 const fs = require('node:fs');
 let seed = 82719;
@@ -26,6 +27,34 @@ test('fraction display preserves entered values and renders mixed and incomplete
   assert.match(html, /mixed-number/);
   assert.ok(!html.includes('2/3') && !html.includes('4/6'));
   assert.ok(!html.includes('<img'));
+});
+
+test('fraction parts can be edited in any order without changing other cells', () => {
+  const f = E.fromValue();
+  E.edit(f, 'denominator', '6');
+  assert.equal(E.value(f), '□/6'); assert.equal(E.complete(f), false);
+  E.edit(f, 'numerator', '4');
+  assert.equal(E.value(f), '4/6'); assert.ok(Q.correct(E.value(f), { type: 'rational', expected: { n: 2, d: 3 } }));
+  E.edit(f, 'numerator', 'clear'); assert.equal(f.denominator, '6');
+  assert.equal(E.complete(f), false); assert.ok(!Q.correct(E.value(f), { expected: { n: 2, d: 3 } }));
+  E.edit(f, 'numerator', '.'); assert.equal(f.numerator, '');
+  const m = E.fromValue('1 2/3'); E.edit(m, 'whole', 'clear');
+  assert.ok(!Q.correct(E.value(m), { expected: { n: 2, d: 3 } }), 'An empty whole-number cell cannot become a valid proper fraction');
+  E.edit(m, 'whole', '1'); assert.ok(Q.correct(E.value(m), { expected: { n: 5, d: 3 } }));
+  E.edit(m, 'denominator', 'delete'); assert.equal(m.whole, '1'); assert.equal(m.numerator, '2');
+  const d = E.fromValue('0.125'); E.edit(d, 'number', '.'); assert.equal(E.value(d), '0.125');
+});
+
+test('ratio and ratio-value fields explicitly state simplification requirements and enforce integer format', () => {
+  const q = Q.generate('value', ['integer'], rng);
+  assert.ok(q.finalFields.slice(0, 2).every(f => f.requirement.includes('不須簡化至最簡整數比')));
+  assert.equal(q.finalFields[2].requirement, '不須簡化至最簡分數');
+  const s = Q.generate('equal', ['integer'], rng, 3);
+  assert.ok(s.finalFields.every(f => f.requirement === '須簡化至最簡整數比' && f.integerOnly));
+  const f = s.finalFields[0];
+  assert.ok(Q.correct(String(f.expected), f));
+  assert.ok(!Q.correct(`${f.expected}.0`, f));
+  assert.ok(!Q.correct(`${f.expected * 2}/2`, f));
 });
 
 test('all four kinds and all numerical forms generate valid steps and final answers', () => {
