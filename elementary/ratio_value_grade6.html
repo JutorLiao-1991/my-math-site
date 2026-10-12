@@ -2,130 +2,166 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>鳩特數理｜比與比值（六年級）</title>
+  <link rel="stylesheet" href="elementary_theme.css">
   <style>
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    body { margin: 0; min-height: 100vh; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background-size: 20px 20px; }
+    :root { --dock-space: 0px; }
+    body { margin: 0; min-height: 100vh; padding-bottom: var(--dock-space); font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background-size: 20px 20px; color: #334155; }
     button, input { font: inherit; touch-action: manipulation; }
     button { cursor: pointer; }
     button:disabled { opacity: .5; cursor: default; }
     button:focus-visible, input:focus-visible, a:focus-visible { outline: 3px solid #38bdf8; outline-offset: 3px; }
-    .nav-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 22px; color: #fff; }
+    .nav-bar { position: sticky; top: 0; z-index: 30; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 22px; color: #fff; }
     .page-title { margin: 0; font-size: 1.2rem; }
-    .back-btn { padding: 7px 14px; border: 1px solid; border-radius: 24px; text-decoration: none; font-weight: 700; }
-    .main-wrapper { max-width: 1400px; margin: auto; padding: 16px; display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 16px; align-items: start; }
+    .back-btn { padding: 7px 14px; border: 1px solid; border-radius: 24px; text-decoration: none; font-weight: 700; white-space: nowrap; }
+    .mode-trigger { background: #eef6fc; color: #2563a8; border: 1px solid #a7c8e5; border-radius: 9px; min-height: 42px; padding: 8px 12px; font-weight: 700; white-space: nowrap; }
+    .main-wrapper { max-width: 1100px; margin: auto; padding: 16px; }
     .panel { min-width: 0; background: #fff; border-radius: 14px; padding: 24px; }
     .welcome { padding: 50px 16px; text-align: center; color: #586a80; line-height: 1.8; }
     .welcome h2 { color: #2563a8; }
-    .meta { display: flex; flex-wrap: wrap; gap: 8px 18px; color: #2563a8; font-weight: 700; margin-bottom: 14px; }
-    .question { margin: 0 0 22px; font-size: clamp(1.15rem, 2vw, 1.45rem); line-height: 1.85; overflow-wrap: anywhere; }
+    .meta, .stats-header { display: flex; flex-wrap: wrap; gap: 8px 18px; font-weight: 700; }
+    .meta { color: #2563a8; margin-bottom: 14px; }
+    .stats-header { justify-content: space-between; }
+    .question { margin: 0 0 20px; font-size: clamp(1.15rem, 2vw, 1.45rem); line-height: 1.85; overflow-wrap: anywhere; }
     .step { margin: 16px 0; padding: 18px; background: #eef6fc; border-radius: 10px; }
     .step h3 { margin: 0 0 12px; font-size: 1.05rem; }
     .step.locked { background: #f8fafc; color: #64748b; border: 1px dashed #dbe4ee; }
-    .entry { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-    .answer-input { width: 126px; max-width: 100%; height: 50px; border: 2px solid #38bdf8; border-radius: 8px; padding: 8px 10px; background: #fff; color: #2563a8; font-size: 1.5rem; font-weight: 700; }
-    .solution { white-space: pre-line; line-height: 1.8; color: #236b3c; font-weight: 700; }
-    .feedback { min-height: 3em; margin: 14px 0; line-height: 1.7; }
+    .locked .field-row { display: none; }
+    .lock-note { color: #64748b; font-size: .9rem; }
+    .step:not(.locked) .lock-note { display: none; }
+    .field-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; line-height: 2; }
+    .field-row > .equation-text { padding-bottom: 13px; }
+    .field-box { display: inline-flex; flex-direction: column; gap: 7px; margin: 5px; max-width: 100%; }
+    .field-label { font-size: .95rem; font-weight: 700; color: #2563a8; line-height: 1.6; }
+    .requirement { font-weight: 400; font-size: .85rem; color: #586a80; }
+    .ratio-note { flex-basis: 100%; line-height: 1.6; }
+    .answer-input { width: 110px; max-width: 100%; height: 48px; border: 2px solid #dbe4ee; border-radius: 8px; padding: 8px; background: #fff; color: #2563a8; font-size: 1.3rem; font-weight: 700; cursor: pointer; text-align: center; scroll-margin-top: 100px; scroll-margin-bottom: var(--dock-space); }
+    .answer-input.active { border-color: #38bdf8 !important; box-shadow: 0 0 0 4px rgba(56,189,248,.2); }
+    .answer-input:disabled { color: #64748b; cursor: default; }
+    .answer-input::placeholder { color: #7a8da3; font-size: .8rem; font-weight: 400; }
+    .part-input { width: 80px; }
+    .number-entry { display: inline-flex; align-items: center; gap: 10px; }
+    .number-entry .equation-text { line-height: 1.6; font-size: 1.05rem; }
+    .fraction { display: inline-grid; grid-template-rows: auto auto; vertical-align: middle; text-align: center; line-height: 1.15; margin: 0 4px; }
+    .fraction > span { padding: 3px 6px; }
+    .fraction > span:first-child { border-bottom: 2px solid currentColor; }
+    .entry-fraction > span { padding: 5px 2px; }
+    .mixed-number { display: inline-flex; align-items: center; gap: 8px; }
+    .entry-formats { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 10px; }
+    .format-btn { min-height: 36px; border: 1px solid #a7c8e5; border-radius: 8px; color: #586a80; background: #fff; padding: 5px 9px; font-size: .85rem; }
+    .format-btn[aria-pressed="true"] { background: #4a90e2; color: white; border-color: #4a90e2; }
+    .solution { white-space: pre-line; line-height: 1.8; color: #236b3c; font-weight: 700; margin-top: 12px; }
+    .feedback { margin: 14px 0; line-height: 1.7; }
+    .feedback:empty { margin: 0; }
     .feedback[data-status="error"] { color: #b42318; }
     .feedback[data-status="success"] { color: #236b3c; }
-    .secondary-btn { min-height: 44px; padding: 9px 14px; color: #2563a8; background: #fff; border: 1px solid #a7c8e5; border-radius: 9px; }
-    .diagram { background: #eef6fc; padding: 14px; margin-top: 14px; border-radius: 10px; }
-    .diagram svg { width: 100%; display: block; }
-    .diagram-caption { font-size: .9rem; color: #586a80; line-height: 1.6; }
-    .controls-title { margin: 0 0 12px; font-size: 1.05rem; }
-    .settings-summary { cursor: pointer; font-weight: 700; min-height: 44px; padding: 10px 0; color: #2563a8; }
-    #settings[open] .settings-summary { margin-bottom: 10px; }
-    .difficulty { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
-    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 14px; }
-    .menu-btn { min-height: 54px; padding: 10px 6px; border: 1px solid #dbe4ee; border-radius: 8px; line-height: 1.5; font-weight: 700; }
-    .menu-btn.wide { grid-column: 1 / -1; }
-    .exam-description { color: #586a80; font-size: .9rem; line-height: 1.6; margin: 8px 0 20px; }
-    .status { border-left: 5px solid; border-radius: 6px; padding: 14px; margin-top: 18px; }
-    .stats-header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; font-weight: 700; margin-bottom: 12px; }
-    .phase-note { color: #2563a8; margin: 12px 0; line-height: 1.5; }
-    .numpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
-    .num-btn { min-height: 50px; padding: 8px; border: 1px solid #dbe4ee; border-radius: 9px; background: #fff; color: #334155; font-size: 1.4rem; font-weight: 700; }
-    .primary-action { width: 100%; min-height: 48px; padding: 11px; border: 0; border-radius: 9px; background: #4a90e2; color: #fff; font-weight: 700; margin-top: 12px; }
-    .minor-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    .watermark { text-align: right; margin-top: 26px; font-style: italic; font-size: 1rem; }
-    .result-heading { margin: 0; }
+    .secondary-btn { min-height: 42px; padding: 8px 12px; color: #2563a8; background: #fff; border: 1px solid #a7c8e5; border-radius: 9px; }
+    .decision { display: inline-flex; gap: 8px; }
+    .decision button[aria-pressed="true"] { color: #fff; background: #4a90e2; }
+    .session-bar { border-radius: 9px; padding: 12px 14px; background: #eef6fc; margin-bottom: 16px; }
+    .exam-jump { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+    .exam-jump button { min-width: 38px; min-height: 38px; border: 1px solid #a7c8e5; border-radius: 8px; background: white; color: #2563a8; }
+    .exam-jump button.answered { background: #dceee4; }
+    .exam-jump button.current { outline: 2px solid #4a90e2; }
+    .hint { padding: 12px; background: #fff7df; border-radius: 8px; line-height: 1.6; }
+    .watermark { text-align: right; margin-top: 26px; color: #a7c8e5; font-style: italic; }
     .score-display { font-size: 3.5rem; font-weight: 800; margin: 16px 0; }
     .review { margin-top: 20px; border-top: 1px solid #dbe4ee; padding-top: 16px; }
     .review details { border-bottom: 1px solid #dbe4ee; padding: 12px 0; }
     .review summary { cursor: pointer; line-height: 1.6; font-weight: 700; }
-    .review p { line-height: 1.7; }
-    .review .review-answer { color: #586a80; }
-    @media (max-width: 800px) {
-      .main-wrapper { grid-template-columns: minmax(0, 1fr); padding: 10px; gap: 10px; }
-      .panel { padding: 18px; }
-      .nav-bar { padding: 10px 14px; }
-      .page-title { font-size: 1.05rem; }
-      .welcome { padding: 20px 0; }
-      .step { padding: 14px; }
-    }
-    @media (min-width: 801px) { .settings-summary { display: none; } }
-
-    .answer-input { width: 110px; font-size: 1.3rem; cursor: pointer; }
-    .answer-input.active { box-shadow: 0 0 0 4px rgba(56,189,248,.2); }
-    .answer-input:disabled { border-color: #dbe4ee; color: #64748b; cursor: default; }
-    .answer-input.rational { width: 180px; }
-    .rational-shell { display: inline-block; position: relative; max-width: 100%; }
-    .rational-shell .answer-input { height: 96px; color: transparent; caret-color: transparent; user-select: none; }
-    .rational-preview { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; color: #2563a8; font-size: 1.4rem; font-weight: 700; padding: 8px; }
-    .rational-shell:has(input:disabled) .rational-preview { color: #64748b; }
-    .field-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; line-height: 2; }
-    .field-box { display: inline-flex; flex-direction: column; gap: 4px; margin: 5px; }
-    .field-box label { font-size: .85rem; color: #586a80; }
-    .fraction { display: inline-grid; grid-template-rows: auto auto; vertical-align: middle; text-align: center; line-height: 1.15; margin: 0 4px; }
-    .fraction > span { padding: 3px 6px; }
-    .fraction > span:first-child { border-bottom: 2px solid currentColor; }
-    .mixed-number { display: inline-flex; align-items: center; gap: 2px; }
+    .review p { line-height: 1.8; }
+    .review-answer { color: #586a80; }
+    .keyboard-dock { position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; padding: 10px 16px max(10px, env(safe-area-inset-bottom)); background: #f7fbff; border-top: 1px solid #b9d5ed; box-shadow: 0 -5px 24px rgba(30,41,59,.12); }
+    .dock-inner { max-width: 780px; margin: auto; display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 8px 16px; }
+    .dock-heading { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .phase-note { color: #2563a8; font-size: .9rem; font-weight: 700; line-height: 1.4; }
+    .dock-heading .mode-trigger { min-height: 34px; padding: 5px 10px; font-size: .85rem; }
+    .numpad { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .num-btn { min-height: 42px; padding: 6px; border: 1px solid #dbe4ee; border-radius: 9px; background: #fff; color: #334155; font-size: 1.3rem; font-weight: 700; }
+    .num-btn[data-key="space"], .num-btn[data-key="next"] { font-size: .9rem; white-space: nowrap; padding-left: 2px; padding-right: 2px; }
+    .dock-actions .feedback { margin: 0; font-size: .85rem; line-height: 1.5; }
+    .dock-actions { display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+    .primary-action { width: 100%; min-height: 46px; padding: 9px; border: 0; border-radius: 9px; background: #4a90e2; color: #fff; font-weight: 700; }
+    .minor-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .minor-actions .secondary-btn { min-height: 38px; padding: 5px; font-size: .85rem; }
+    .key-hint { color: #586a80; font-size: .82rem; line-height: 1.5; margin: 0; }
+    .mode-dialog { width: min(92vw, 640px); max-height: 85vh; padding: 22px; border: 1px solid #dbe4ee; border-radius: 16px; color: #334155; background: #fff; overflow: auto; box-shadow: 0 20px 80px rgba(15,23,42,.25); }
+    .mode-dialog::backdrop { background: rgba(15,23,42,.45); }
+    .dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+    .dialog-heading h2 { margin: 0; color: #2563a8; font-size: 1.15rem; }
+    .controls-title { margin: 16px 0 10px; font-size: 1rem; }
     .number-forms { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
     .number-forms label { display: flex; align-items: center; gap: 4px; min-height: 38px; }
     .number-forms input { width: 20px; height: 20px; }
-    .decision { display: inline-flex; gap: 8px; }
-    .decision button[aria-pressed="true"] { color: #fff; background: #4a90e2; }
-    .numpad { grid-template-columns: repeat(4,minmax(0,1fr)); }
-    .num-btn[data-key="space"] { font-size: .9rem; }
-    .feedback:empty { min-height: 0; margin: 0; }
-    .locked .field-row { display: none; }
-    .lock-note { color: #64748b; font-size: .9rem; }
-    .step:not(.locked) .lock-note { display: none; }
-    .key-hint { color: #586a80; font-size: .9rem; line-height: 1.6; }
-    .hint { padding: 12px; background: #fff7df; border-radius: 8px; line-height: 1.6; }
-    .exam-jump { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-    .exam-jump button { min-width: 40px; min-height: 40px; border: 1px solid #a7c8e5; border-radius: 8px; background: white; color: #2563a8; }
-    .exam-jump button.answered { background: #dceee4; }
-    .exam-jump button.current { outline: 2px solid #4a90e2; }
-</style>
-  <link rel="stylesheet" href="elementary_theme.css">
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .menu-btn { min-height: 50px; padding: 10px 6px; border: 1px solid #dbe4ee; border-radius: 8px; line-height: 1.5; font-weight: 700; }
+    .menu-btn.wide { grid-column: 1 / -1; }
+    .exam-description { color: #586a80; font-size: .9rem; line-height: 1.6; margin: 10px 0; }
+    #mode-error { color: #b42318; }
+    @media (max-width: 650px) {
+      .nav-bar { padding: 8px 10px; flex-wrap: wrap; gap: 8px; }
+      .page-title { font-size: .95rem; order: 3; width: 100%; text-align: center; }
+      .back-btn { font-size: .85rem; padding: 6px 10px; }
+      .main-wrapper { padding: 10px; }
+      .panel { padding: 16px; }
+      .welcome { padding: 25px 0; }
+      .step { padding: 12px; }
+      .field-box { margin: 4px 0; }
+      .keyboard-dock { padding: 8px 10px max(8px, env(safe-area-inset-bottom)); }
+      .dock-inner { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+      .dock-heading { grid-column: 1; }
+      .num-btn { min-height: 37px; padding: 4px; font-size: 1.15rem; }
+      .numpad { gap: 5px; }
+      .dock-actions { gap: 5px; }
+      .key-hint { display: none; }
+      .primary-action { min-height: 42px; padding: 7px; }
+      .mode-dialog { padding: 16px; }
+    }
+    @media (max-height: 520px) and (min-width: 550px) {
+      .keyboard-dock { padding-top: 6px; }
+      .dock-inner { max-width: 1000px; grid-template-columns: minmax(0, 1fr) 175px; gap: 5px 10px; }
+      .dock-heading { grid-column: 1 / -1; }
+      .numpad { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 5px; }
+      .num-btn { min-height: 36px; font-size: 1rem; padding: 4px; }
+      .key-hint { display: none; }
+      .nav-bar { position: static; }
+    }
+  </style>
   <script src="ratio_questions_grade6.js" defer></script>
+  <script src="ratio_input_grade6.js" defer></script>
   <script src="ratio_value_grade6.js" defer></script>
 </head>
 <body>
-<header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">🦔 比與比值（六年級）</h1></header>
+<header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">🦔 比與比值（六年級）</h1><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></header>
 <main class="main-wrapper">
-<section class="panel" id="work-panel" aria-label="作答區">
-  <div class="welcome" id="welcome"><h2>看清順序，分清比與比值</h2><p>選擇題型開始分步練習。<br>每一步填對後解鎖下一步，再挑戰綜合測驗。</p></div>
-  <div id="workspace" hidden><div class="meta"><span id="mode-label"></span><span id="category-label"></span></div><p class="question" id="question-text"></p><div id="steps"></div><button type="button" class="secondary-btn" id="hint-button" aria-expanded="false" aria-controls="hint">看提示</button><p class="hint" id="hint" hidden></p><p class="feedback" id="feedback" aria-live="polite"></p></div>
-  <section id="results" hidden aria-label="測驗結果"><h2 id="result-heading">測驗完成</h2><div class="score-display" id="final-score"></div><p id="result-summary"></p><button type="button" class="secondary-btn" id="retry-exam">再測一次</button><div class="review" id="review-list"></div></section>
-  <div class="watermark">Presented by Jutor</div>
-</section>
-<aside class="panel" aria-label="題型與作答控制">
-  <details id="settings" open><summary class="settings-summary">題型與數字設定</summary>
-    <h2 class="controls-title">化簡題的數字類型</h2>
-    <div class="number-forms"><label><input type="checkbox" value="integer" checked>整數</label><label><input type="checkbox" value="decimal" checked>小數</label><label><input type="checkbox" value="fraction" checked>分數</label><label><input type="checkbox" value="mixed" checked>帶分數</label></div>
-    <h2 class="controls-title">分步練習</h2>
-    <div class="menu-grid"><button type="button" class="menu-btn" data-type="ratio" aria-pressed="false">① 比的認識</button><button type="button" class="menu-btn" data-type="value" aria-pressed="false">② 求比值</button><button type="button" class="menu-btn" data-type="equal" aria-pressed="false">③ 相等的比與化簡</button><button type="button" class="menu-btn" data-type="apply" aria-pressed="false">④ 比的應用</button><button type="button" class="menu-btn wide" data-type="mixed" aria-pressed="false">綜合練習</button><button type="button" class="menu-btn wide" id="start-exam">綜合測驗（10 題）</button></div>
-    <p class="exam-description">比的認識 2 題、比值 2 題、相等的比與化簡 4 題、應用 2 題。每題 10 分，限時 10 分鐘，交卷後查看解析。</p>
-  </details>
-  <div class="status" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div class="exam-jump" id="exam-jump" hidden aria-label="測驗題號"></div><div class="phase-note" id="phase-note" aria-live="polite"></div>
-    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="/" aria-label="分數：接著填分母">分數</button><button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="space">帶分數</button><button type="button" class="num-btn" data-key="next">下一格</button></div>
-    <p class="key-hint" id="key-hint">先填分子，按「分數」再填分母。帶分數先填整數、按「帶分數」，再依序填分子和分母。</p>
-    <button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button>
-    <div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div>
+  <section class="panel" id="work-panel" aria-label="作答區">
+    <div class="welcome" id="welcome"><h2>看清順序，分清比與比值</h2><p>選擇題型開始分步練習。<br>點選想填的格子，用下方固定鍵盤作答。</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
+    <div class="session-bar" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div class="exam-jump" id="exam-jump" hidden aria-label="測驗題號"></div></div>
+    <div id="workspace" hidden><div class="meta"><span id="mode-label"></span><span id="category-label"></span></div><p class="question" id="question-text"></p><div id="steps"></div><button type="button" class="secondary-btn" id="hint-button" aria-expanded="false" aria-controls="hint">看提示</button><p class="hint" id="hint" hidden></p></div>
+    <section id="results" hidden aria-label="測驗結果"><h2 id="result-heading">測驗完成</h2><div class="score-display" id="final-score"></div><p id="result-summary"></p><button type="button" class="secondary-btn" id="retry-exam">再測一次</button><div class="review" id="review-list"></div></section>
+    <div class="watermark">Presented by Jutor</div>
+  </section>
+</main>
+<footer class="keyboard-dock" id="keyboard-dock" hidden aria-label="固定作答鍵盤">
+  <div class="dock-inner">
+    <div class="dock-heading"><div class="phase-note" id="phase-note" aria-live="polite"></div><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></div>
+    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除目前格子的一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="fraction">分數</button><button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="space">帶分數</button><button type="button" class="num-btn" data-key="next">下一格</button></div>
+    <div class="dock-actions"><p class="feedback" id="feedback" aria-live="polite"></p><p class="key-hint" id="key-hint">點選整數、分子或分母的格子，便可直接填寫或修改。</p><button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button><div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div></div>
   </div>
-</aside>
-</main></body></html>
+</footer>
+<dialog class="mode-dialog" id="mode-dialog" aria-labelledby="mode-dialog-title">
+  <div class="dialog-heading"><h2 id="mode-dialog-title">選擇模式與題型</h2><button type="button" class="secondary-btn" id="close-modes">返回作答</button></div>
+  <h3 class="controls-title">化簡題的數字類型</h3>
+  <div class="number-forms"><label><input type="checkbox" value="integer" checked>整數</label><label><input type="checkbox" value="decimal" checked>小數</label><label><input type="checkbox" value="fraction" checked>分數</label><label><input type="checkbox" value="mixed" checked>帶分數</label></div>
+  <h3 class="controls-title">練習模式</h3>
+  <div class="menu-grid"><button type="button" class="menu-btn" data-type="ratio" aria-pressed="false">① 比的認識</button><button type="button" class="menu-btn" data-type="value" aria-pressed="false">② 求比值</button><button type="button" class="menu-btn" data-type="equal" aria-pressed="false">③ 相等的比與化簡</button><button type="button" class="menu-btn" data-type="apply" aria-pressed="false">④ 比的應用</button><button type="button" class="menu-btn wide" data-type="mixed" aria-pressed="false">綜合練習</button></div>
+  <h3 class="controls-title">測驗模式</h3>
+  <button type="button" class="menu-btn" id="start-exam">綜合測驗（10 題）</button>
+  <p class="exam-description">比的認識 2 題、比值 2 題、相等的比與化簡 4 題、應用 2 題。每題 10 分，限時 10 分鐘，交卷後查看解析。</p>
+  <p id="mode-error" role="status"></p>
+</dialog>
+</body>
+</html>

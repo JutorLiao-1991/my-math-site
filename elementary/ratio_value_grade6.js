@@ -1,23 +1,39 @@
 (function () {
   'use strict';
-  const Q = window.RatioQuestions, $ = id => document.getElementById(id);
+  const Q = window.RatioQuestions, E = window.RatioInput, $ = id => document.getElementById(id);
+  const partLabels = { number: '整數／小數', whole: '整數', numerator: '分子', denominator: '分母' };
   const state = { mode: 'idle', type: 'ratio', question: null, number: 0, step: 0, done: false,
-    questions: [], answers: [], index: 0, activeKey: null, values: {}, deadline: 0, timer: null };
+    questions: [], answers: [], examEntries: [], entries: {}, equations: {}, index: 0, activeKey: null, activePart: null,
+    values: {}, forms: ['integer', 'decimal', 'fraction', 'mixed'], deadline: 0, timer: null };
   function message(text, status = '') { $('feedback').textContent = text; $('feedback').dataset.status = status; }
   function forms() { return [...document.querySelectorAll('.number-forms input:checked')].map(el => el.value); }
   function stopTimer() { if (state.timer !== null) clearInterval(state.timer); state.timer = null; }
-  function canRestart() { return state.mode === 'idle' || state.done || confirm('要結束目前的練習或測驗，重新開始嗎？'); }
+  function availableFields() {
+    if (!state.question || state.done) return [];
+    return state.mode === 'exam' ? state.question.finalFields : state.question.steps[state.step].fields;
+  }
+  function entry(f) { return state.entries[f.key] || (state.entries[f.key] = E.fromValue(state.values[f.key] || '')); }
+  function openModes() {
+    $('mode-error').textContent = '';
+    if (!$('mode-dialog').open) $('mode-dialog').showModal();
+  }
+  function closeModes() { $('mode-dialog').close(); }
   function start(mode, type = state.type) {
-    if (!forms().length) { alert('請至少勾選一種化簡題的數字類型。'); return; }
-    if (!canRestart()) return;
-    stopTimer(); state.mode = mode; state.type = type; state.number = 0; state.index = 0; state.done = false;
-    state.questions = mode === 'exam' ? Q.buildExam(forms()) : [];
-    state.answers = state.questions.map(() => ({}));
-    $('welcome').hidden = true; $('results').hidden = true; $('workspace').hidden = false; $('game-status').hidden = false;
+    const chosen = forms();
+    if (!chosen.length) { $('mode-error').textContent = '請至少勾選一種化簡題的數字類型。'; return; }
+    if (state.mode === 'exam' && !state.done && !confirm('切換模式會結束目前尚未交卷的測驗，確定切換嗎？')) return;
+    stopTimer(); state.mode = mode; state.type = type; state.forms = chosen;
+    state.number = 0; state.index = 0; state.done = false;
+    state.questions = mode === 'exam' ? Q.buildExam(state.forms) : [];
+    state.answers = state.questions.map(() => ({})); state.examEntries = state.questions.map(() => ({}));
+    closeModes();
+    $('welcome').hidden = true; $('results').hidden = true; $('workspace').hidden = false;
+    $('game-status').hidden = false; $('keyboard-dock').hidden = false;
     $('timer').hidden = mode !== 'exam'; $('exam-actions').hidden = mode !== 'exam'; $('exam-jump').hidden = mode !== 'exam';
-    document.querySelectorAll('.number-forms input').forEach(el => { el.disabled = true; });
-    $('settings').open = !matchMedia('(max-width: 800px)').matches;
-    document.querySelectorAll('[data-type]').forEach(el => { const active = mode === 'practice' && type === el.dataset.type; el.classList.toggle('active', active); el.setAttribute('aria-pressed', String(active)); });
+    document.querySelectorAll('[data-type]').forEach(el => {
+      const active = mode === 'practice' && type === el.dataset.type;
+      el.classList.toggle('active', active); el.setAttribute('aria-pressed', String(active));
+    });
     $('start-exam').classList.toggle('active', mode === 'exam');
     if (mode === 'exam') {
       state.deadline = Date.now() + 600000; state.question = state.questions[0]; render(); updateTimer();
@@ -26,74 +42,171 @@
   }
   function newPractice() {
     let q; const previous = state.question && state.question.text;
-    for (let i = 0; i < 10; i++) { q = Q.generate(state.type, forms(), Math.random, state.number); if (q.text !== previous) break; }
+    for (let i = 0; i < 10; i++) { q = Q.generate(state.type, state.forms, Math.random, state.number); if (q.text !== previous) break; }
     state.question = q; state.number++; render();
   }
-  function availableFields() { return state.mode === 'exam' ? state.question.finalFields : state.question.steps[state.step].fields; }
-  function fieldHtml(f, locked) {
-    const label = `<label for="input-${f.key}">${f.label}</label>`;
-    if (f.type === 'decision') return `<span class="field-box"><span>${f.label}</span><span class="decision" role="group" aria-label="${f.label}">${['yes', 'no'].map(v => `<button type="button" class="secondary-btn" data-field="${f.key}" data-decision="${v}" aria-pressed="false" ${locked ? 'disabled' : ''}>${v === 'yes' ? '是' : '不是'}</button>`).join('')}</span></span>`;
-    const input = `<input id="input-${f.key}" class="answer-input ${f.type === 'rational' ? 'rational' : ''}" data-field="${f.key}" type="text" readonly inputmode="none" autocomplete="off" ${locked ? 'disabled' : ''}>`;
-    const entry = f.type === 'rational' ? `<span class="rational-shell">${input}<span class="rational-preview" id="preview-${f.key}" aria-hidden="true"></span></span>` : input;
-    return `<span class="field-box">${label}${entry}</span>`;
+  function inputHtml(f, part, locked, rational = false) {
+    const suffix = rational ? `-${part}` : '', label = rational ? `${f.label}的${partLabels[part]}` : f.label;
+    return `<input id="input-${f.key}${suffix}" class="answer-input ${rational && part !== 'number' ? 'part-input' : ''}" data-field="${f.key}" data-part="${part}" type="text" readonly inputmode="none" autocomplete="off" aria-label="${label}" placeholder="${rational ? partLabels[part] : '填數字'}" ${locked ? 'disabled' : ''}>`;
   }
-  function updatePreview(key) {
-    const preview = $(`preview-${key}`);
-    if (preview) preview.innerHTML = Q.displayNumber(state.values[key] || '', true);
+  function entryMarkup(f, locked) {
+    const model = entry(f);
+    const formats = `<span class="entry-formats" role="group" aria-label="${f.label}的表示方式">${[['number', '整數／小數'], ['fraction', '分數'], ['mixed', '帶分數']].map(([kind, label]) => `<button type="button" class="format-btn" data-field="${f.key}" data-form="${kind}" aria-pressed="${kind === model.kind}" ${locked ? 'disabled' : ''}>${label}</button>`).join('')}</span>`;
+    const fraction = `<span class="fraction entry-fraction"><span>${inputHtml(f, 'numerator', locked, true)}</span><span>${inputHtml(f, 'denominator', locked, true)}</span></span>`;
+    const cells = model.kind === 'number' ? inputHtml(f, 'number', locked, true) : model.kind === 'mixed' ? `<span class="mixed-number">${inputHtml(f, 'whole', locked, true)}${fraction}</span>` : fraction;
+    const equation = state.equations[f.key] || { before: '', after: '' };
+    return `${formats}<span class="number-entry">${equation.before ? `<span class="equation-text">${Q.displayText(equation.before)}</span>` : ''}${cells}${equation.after ? `<span class="equation-text">${Q.displayText(equation.after)}</span>` : ''}</span>`;
+  }
+  function fieldHtml(f, locked, showNote = true) {
+    const note = f.requirement && showNote ? `<span class="requirement">（${f.requirement}）</span>` : '';
+    const label = `<span class="field-label">${f.label}${note}</span>`;
+    if (f.type === 'decision') return `<span class="field-box">${label}<span class="decision" role="group" aria-label="${f.label}">${['yes', 'no'].map(v => `<button type="button" class="secondary-btn" data-field="${f.key}" data-decision="${v}" aria-pressed="false" ${locked ? 'disabled' : ''}>${v === 'yes' ? '是' : '不是'}</button>`).join('')}</span></span>`;
+    return `<span class="field-box">${label}${f.type === 'rational' ? `<span id="entry-${f.key}" class="rational-entry">${entryMarkup(f, locked)}</span>` : inputHtml(f, 'number', locked)}</span>`;
+  }
+  function bindField(f) {
+    document.querySelectorAll(`input[data-field="${f.key}"]`).forEach(el => {
+      el.value = f.type === 'rational' ? entry(f)[el.dataset.part] : state.values[f.key] || '';
+      const select = () => { if (!el.disabled && !expired()) activate(f.key, el.dataset.part); };
+      el.addEventListener('focus', select); el.addEventListener('click', select);
+    });
+    document.querySelectorAll(`[data-form][data-field="${f.key}"]`).forEach(el => el.addEventListener('click', () => changeForm(f, el.dataset.form)));
+    document.querySelectorAll(`[data-decision][data-field="${f.key}"]`).forEach(el => {
+      el.setAttribute('aria-pressed', String(state.values[f.key] === el.dataset.decision));
+      el.addEventListener('click', () => {
+        if (el.disabled || expired()) return;
+        state.values[f.key] = el.dataset.decision;
+        document.querySelectorAll(`[data-decision][data-field="${f.key}"]`).forEach(b => b.setAttribute('aria-pressed', String(b === el)));
+        message('已選擇，按確認繼續。'); updateJump();
+      });
+    });
   }
   function render() {
     const q = state.question, exam = state.mode === 'exam'; state.step = 0; state.done = false;
     state.values = exam ? state.answers[state.index] : {};
+    state.entries = exam ? state.examEntries[state.index] : {};
+    state.equations = {};
     $('mode-label').textContent = exam ? '綜合測驗' : '分步練習'; $('category-label').textContent = exam ? '' : q.category;
     $('question-text').innerHTML = q.textHtml;
     $('question-number').textContent = exam ? `題號：${state.index + 1} / 10` : `練習第 ${state.number} 題`;
-    const steps = exam ? [{ title: '填入答案', fields: q.finalFields, pattern: q.finalFields.map(f => `{${f.key}}`).join('　') }] : q.steps;
+    const steps = exam ? (q.type === 'value' ? [
+      { title: '填入比', fields: q.finalFields.slice(0, 2), pattern: `{${q.finalFields[0].key}}：{${q.finalFields[1].key}}` },
+      { title: '填入比值', fields: [q.finalFields[2]], pattern: `{${q.finalFields[2].key}}` }
+    ] : [{ title: '填入答案', fields: q.finalFields, pattern: q.finalFields.map(f => `{${f.key}}`).join('　') }]) : q.steps;
     $('steps').innerHTML = steps.map((s, i) => {
-      let pattern = s.pattern; s.fields.forEach(f => { pattern = pattern.replace(`{${f.key}}`, fieldHtml(f, !exam && i > 0)); });
+      const sharedNote = s.fields.length === 2 && s.fields[0].requirement && s.fields.every(f => f.requirement === s.fields[0].requirement) ? s.fields[0].requirement : '';
+      let pattern;
+      if (s.fields.length === 1 && s.fields[0].type === 'rational') {
+        const f = s.fields[0], [before, after] = s.pattern.split(`{${f.key}}`);
+        state.equations[f.key] = { before, after };
+        pattern = fieldHtml(f, !exam && i > 0);
+      } else {
+        pattern = s.pattern.split(/(\{f\d+\})/).map(piece => {
+          const f = s.fields.find(f => piece === `{${f.key}}`);
+          return f ? fieldHtml(f, !exam && i > 0, !sharedNote) : piece.trim() ? `<span class="equation-text">${Q.displayText(piece)}</span>` : '';
+        }).join('');
+      }
+      if (sharedNote) pattern += `<span class="ratio-note requirement">（${sharedNote}）</span>`;
       return `<section class="step ${!exam && i > 0 ? 'locked' : ''}" id="step-${i}"><h3>${exam ? '' : `${i + 1}. `}${s.title}</h3><div class="lock-note">完成前一步後，開啟這一步。</div><div class="field-row">${pattern}</div><div class="solution" hidden></div></section>`;
     }).join('');
-    $('steps').querySelectorAll('input').forEach(el => { el.value = state.values[el.dataset.field] || ''; updatePreview(el.dataset.field); el.addEventListener('click', () => activate(el.dataset.field)); });
-    $('steps').querySelectorAll('[data-decision]').forEach(el => {
-      el.setAttribute('aria-pressed', String(state.values[el.dataset.field] === el.dataset.decision));
-      el.addEventListener('click', () => { if (expired() || state.done) return; state.values[el.dataset.field] = el.dataset.decision; document.querySelectorAll(`[data-decision][data-field="${el.dataset.field}"]`).forEach(b => b.setAttribute('aria-pressed', String(b === el))); message('已選擇，按確認繼續。'); updateJump(); });
-    });
+    steps.flatMap(s => s.fields).forEach(bindField);
     $('hint-button').hidden = exam; $('hint').hidden = true; $('hint-button').setAttribute('aria-expanded', 'false');
     $('check-answer').hidden = false; $('next-question').hidden = true;
     $('check-answer').textContent = exam ? state.index === 9 ? '儲存答案並交卷' : '儲存答案，下一題' : '確認這一步';
     $('previous-question').disabled = state.index === 0;
-    message(''); activate(availableFields()[0].key); updateJump();
+    message(''); activate(availableFields()[0].key); updateJump(); measureDock();
   }
-  function activate(key) {
+  function activeElement() {
+    const f = availableFields().find(f => f.key === state.activeKey);
+    if (!f || f.type === 'decision') return null;
+    return $(`input-${f.key}${f.type === 'rational' ? `-${state.activePart}` : ''}`);
+  }
+  function ensureVisible() {
+    if ($('mode-dialog').open) return;
+    const el = activeElement(); if (!el) return;
+    const rect = el.getBoundingClientRect(), dockTop = $('keyboard-dock').getBoundingClientRect().top;
+    const headerBottom = document.querySelector('.nav-bar').getBoundingClientRect().bottom;
+    if (rect.bottom > dockTop - 10) window.scrollBy(0, rect.bottom - dockTop + 20);
+    else if (rect.top < Math.max(0, headerBottom) + 10) window.scrollBy(0, rect.top - Math.max(0, headerBottom) - 20);
+  }
+  function measureDock() {
+    const height = $('keyboard-dock').hidden ? 0 : $('keyboard-dock').getBoundingClientRect().height + 16;
+    document.documentElement.style.setProperty('--dock-space', `${height}px`);
+    requestAnimationFrame(ensureVisible);
+  }
+  function activate(key, part) {
     if (state.done) return;
+    const f = availableFields().find(f => f.key === key); if (!f) return;
     state.activeKey = key;
-    document.querySelectorAll('.answer-input').forEach(el => el.classList.toggle('active', el.dataset.field === key));
-    const f = availableFields().find(f => f.key === key);
-    if (!f) return;
-    $('phase-note').textContent = `目前作答：${f.label}`;
+    state.activePart = f.type === 'rational' ? (E.parts(entry(f)).includes(part) ? part : E.parts(entry(f))[0]) : 'number';
+    document.querySelectorAll('.answer-input').forEach(el => el.classList.toggle('active', el.dataset.field === key && el.dataset.part === state.activePart));
+    $('phase-note').textContent = `目前作答：${f.label}${f.type === 'rational' ? `・${partLabels[state.activePart]}` : ''}`;
     $('numpad').hidden = f.type === 'decision'; $('key-hint').hidden = f.type !== 'rational';
-    document.querySelectorAll('[data-key="/"], [data-key="space"]').forEach(el => { el.disabled = f.type !== 'rational'; });
+    document.querySelectorAll('[data-key="fraction"], [data-key="space"]').forEach(el => { el.disabled = f.type !== 'rational'; });
+    $('numpad').querySelectorAll('button').forEach(el => {
+      if (!['fraction', 'space'].includes(el.dataset.key)) el.disabled = false;
+    });
+    $('numpad').querySelector('[data-key="."]').disabled = f.type === 'rational' ? state.activePart !== 'number' : !!f.integerOnly;
+    measureDock();
   }
-  function expired() { if (state.mode === 'exam' && !state.done && Date.now() >= state.deadline) { finish(true); return true; } return state.done; }
-  function inputKey(key) {
-    if (!state.question || expired()) return;
-    const fields = availableFields(), f = fields.find(f => f.key === state.activeKey); if (!f || f.type === 'decision') return;
-    const el = $(`input-${f.key}`); if (!el || el.disabled) return;
-    if (key === 'next') { const i = fields.indexOf(f); const next = fields[(i + 1) % fields.length]; activate(next.key); return; }
-    let value = state.values[f.key] || '';
-    if (key === 'delete') value = value.slice(0, -1);
-    else if (key === 'clear') value = '';
-    else if (value.length < 18) {
-      if (/^[0-9]$/.test(key)) value += key;
-      else if (key === '.' && !/[. /]/.test(value)) value += key;
-      else if (f.type === 'rational' && key === '/' && !/[./]/.test(value)) value += '/';
-      else if (f.type === 'rational' && key === 'space' && !/[. /]/.test(value)) value += ' ';
+  function expired() {
+    if (state.mode === 'exam' && !state.done && Date.now() >= state.deadline) { finish(true); return true; }
+    return state.done;
+  }
+  function changeForm(f, kind) {
+    if (expired() || !availableFields().includes(f)) return;
+    const model = entry(f), oldKind = model.kind;
+    if (oldKind !== kind) {
+      const parsed = E.complete(model) && Q.parse(E.value(model));
+      if (parsed) {
+        if (kind === 'fraction') {
+          model.numerator = String(oldKind === 'mixed' ? Number(model.whole) * Number(model.denominator) + Number(model.numerator) : parsed.n);
+          model.denominator = oldKind === 'mixed' ? model.denominator : String(parsed.d);
+        } else if (kind === 'mixed') {
+          const n = oldKind === 'fraction' ? Number(model.numerator) : parsed.n, d = oldKind === 'fraction' ? Number(model.denominator) : parsed.d;
+          model.whole = String(Math.floor(n / d)); model.numerator = String(n % d); model.denominator = String(d);
+        } else {
+          const decimal = String(parsed.n / parsed.d);
+          model.number = Q.correct(decimal, { expected: parsed }) ? decimal : '';
+        }
+      }
+      model.kind = kind;
+      state.values[f.key] = E.value(model);
+      $(`entry-${f.key}`).innerHTML = entryMarkup(f, false); bindField(f);
     }
-    state.values[f.key] = value; el.value = value; updatePreview(f.key); updateJump(); message('');
+    activate(f.key, E.parts(model)[0]); updateJump(); message('點選想填的格子即可輸入或修改。');
   }
+  function nextCell() {
+    const cells = availableFields().flatMap(f => f.type === 'decision' ? [] : (f.type === 'rational' ? E.parts(entry(f)) : ['number']).map(part => ({ key: f.key, part })));
+    if (!cells.length) return;
+    const i = cells.findIndex(cell => cell.key === state.activeKey && cell.part === state.activePart), next = cells[(i + 1) % cells.length];
+    activate(next.key, next.part);
+  }
+  function inputKey(key) {
+    if ($('mode-dialog').open || !state.question || expired()) return;
+    const f = availableFields().find(f => f.key === state.activeKey); if (!f || f.type === 'decision') return;
+    if (key === 'next') { nextCell(); return; }
+    if (f.type === 'rational' && ['fraction', 'space'].includes(key)) { changeForm(f, key === 'space' ? 'mixed' : 'fraction'); return; }
+    if (f.type === 'rational' && key === 'separator') { if (entry(f).kind === 'number') changeForm(f, 'fraction'); activate(f.key, 'denominator'); return; }
+    const el = activeElement(); if (!el || el.disabled) return;
+    if (f.type === 'rational') {
+      E.edit(entry(f), state.activePart, key); state.values[f.key] = E.value(entry(f)); el.value = entry(f)[state.activePart];
+    } else {
+      let value = state.values[f.key] || '';
+      if (key === 'delete') value = value.slice(0, -1);
+      else if (key === 'clear') value = '';
+      else if (value.length < 8 && (/^[0-9]$/.test(key) || (key === '.' && !f.integerOnly && !value.includes('.')))) value += key;
+      state.values[f.key] = value; el.value = value;
+    }
+    updateJump(); message('');
+  }
+  function hasAnswer(f, values, entries) { return f.type === 'rational' ? !!entries[f.key] && E.complete(entries[f.key]) : !!(values[f.key] || '').trim(); }
   function check() {
-    if (!state.question || expired()) return;
-    const fields = availableFields(), empty = fields.find(f => !(state.values[f.key] || '').trim());
-    if (empty) { activate(empty.key); message(`請先填寫「${empty.label}」。`, 'error'); return; }
+    if ($('mode-dialog').open || !state.question || expired()) return;
+    const fields = availableFields(), empty = fields.find(f => !hasAnswer(f, state.values, state.entries));
+    if (empty) {
+      const part = empty.type === 'rational' ? E.parts(entry(empty)).find(p => entry(empty)[p] === '') : undefined;
+      activate(empty.key, part); message(`請先填寫「${empty.label}${part ? `的${partLabels[part]}` : ''}」。`, 'error'); return;
+    }
     if (state.mode === 'exam') { move(1); return; }
     const wrong = fields.find(f => !Q.correct(state.values[f.key], f));
     if (wrong) { activate(wrong.key); message(`「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return; }
@@ -103,8 +216,8 @@
     state.step++; $('hint').hidden = true; $('hint-button').setAttribute('aria-expanded', 'false');
     if (state.step === state.question.steps.length) {
       state.done = true; $('numpad').hidden = true; $('key-hint').hidden = true; $('hint-button').hidden = true;
-      $('check-answer').hidden = true; $('next-question').hidden = false; $('phase-note').textContent = '這一題完成了！'; message('答對了！按「下一題」繼續練習。', 'success'); playSuccess();
-      document.querySelectorAll('.number-forms input').forEach(el => { el.disabled = false; });
+      $('check-answer').hidden = true; $('next-question').hidden = false; $('phase-note').textContent = '這一題完成了！';
+      message('答對了！按「下一題」繼續練習。', 'success'); playSuccess(); measureDock();
     } else {
       const next = $(`step-${state.step}`); next.classList.remove('locked'); next.querySelectorAll('input, button').forEach(el => { el.disabled = false; });
       activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success');
@@ -120,16 +233,19 @@
   function updateJump() {
     if (state.mode !== 'exam') return;
     const box = $('exam-jump'); box.replaceChildren();
-    state.questions.forEach((q, i) => { const el = document.createElement('button'); el.type = 'button'; el.textContent = i + 1;
-      const answered = q.finalFields.every(f => (state.answers[i][f.key] || '').trim());
-      el.classList.toggle('answered', !!answered); el.classList.toggle('current', i === state.index); el.setAttribute('aria-label', `第${i + 1}題${answered ? '已作答' : '未完成'}`); if (i === state.index) el.setAttribute('aria-current', 'true'); el.addEventListener('click', () => move(0, i)); box.append(el); });
+    state.questions.forEach((q, i) => {
+      const el = document.createElement('button'); el.type = 'button'; el.textContent = i + 1;
+      const answered = q.finalFields.every(f => hasAnswer(f, state.answers[i], state.examEntries[i]));
+      el.classList.toggle('answered', answered); el.classList.toggle('current', i === state.index);
+      el.setAttribute('aria-label', `第${i + 1}題${answered ? '已作答' : '未完成'}`);
+      if (i === state.index) el.setAttribute('aria-current', 'true'); el.addEventListener('click', () => move(0, i)); box.append(el);
+    });
   }
   function finish(timedOut) {
     if (state.mode !== 'exam' || state.done) return;
-    const unanswered = state.questions.filter((q, i) => q.finalFields.some(f => !(state.answers[i][f.key] || '').trim())).length;
+    const unanswered = state.questions.filter((q, i) => q.finalFields.some(f => !hasAnswer(f, state.answers[i], state.examEntries[i]))).length;
     if (!timedOut && !confirm(unanswered ? `還有${unanswered}題未完成，確定交卷嗎？` : '確定交卷並查看成績嗎？')) return;
-    stopTimer(); state.done = true; $('workspace').hidden = true; $('game-status').hidden = true; $('results').hidden = false;
-    document.querySelectorAll('.number-forms input').forEach(el => { el.disabled = false; });
+    stopTimer(); state.done = true; $('workspace').hidden = true; $('game-status').hidden = true; $('keyboard-dock').hidden = true; $('results').hidden = false;
     const correct = state.questions.filter((q, i) => q.finalFields.every(f => Q.correct(state.answers[i][f.key] || '', f))).length;
     $('result-heading').textContent = timedOut ? '時間到，已交卷' : '測驗完成'; $('final-score').textContent = `${correct * 10} 分`;
     $('result-summary').textContent = `答對${correct}／10題。每題全部答案正確得10分。點開各題查看解析。`;
@@ -138,14 +254,37 @@
       const details = document.createElement('details'), summary = document.createElement('summary'), question = document.createElement('p'), solution = document.createElement('div');
       summary.textContent = `${i + 1}. ${q.finalFields.every(f => Q.correct(state.answers[i][f.key] || '', f)) ? '✓ 答對' : '✕ 未答對'}｜${q.category}`;
       question.innerHTML = q.textHtml; details.append(summary, question);
-      q.finalFields.forEach(f => { const p = document.createElement('p'); p.className = 'review-answer'; const v = state.answers[i][f.key]; const display = f.type === 'decision' ? x => x === 'yes' ? '是' : '不是' : Q.format; p.innerHTML = Q.displayText(`${f.label}：你的答案 ${v ? display(v) : '未作答'}；正確答案 ${display(f.expected)}`); details.append(p); });
+      q.finalFields.forEach(f => {
+        const p = document.createElement('p'); p.className = 'review-answer'; const v = state.answers[i][f.key];
+        const display = f.type === 'decision' ? x => x === 'yes' ? '是' : '不是' : Q.format;
+        const answer = f.type === 'rational' && v ? Q.displayNumber(E.visual(state.examEntries[i][f.key]), true) : Q.displayText(v ? display(v) : '未作答');
+        p.innerHTML = `${Q.displayText(f.label + (f.requirement ? `（${f.requirement}）` : '') + '：你的答案 ')}${answer}${Q.displayText(`；正確答案 ${display(f.expected)}`)}`;
+        details.append(p);
+      });
       solution.className = 'solution'; solution.innerHTML = Q.displayText(q.explanation); details.append(solution); list.append(details);
     });
-    $('work-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    measureDock(); $('work-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-  function updateTimer() { if (state.done) return; const seconds = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000)); $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`; if (!seconds) finish(true); }
+  function updateTimer() {
+    if (state.done) return;
+    const seconds = Math.max(0, Math.ceil((state.deadline - Date.now()) / 1000));
+    $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+    if (!seconds) finish(true);
+  }
   let audio;
-  function playSuccess() { try { const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return; if (!audio) audio = new Audio(); audio.resume().catch(() => {}); [523.25, 659.25, 783.99].forEach((frequency, i) => { const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1; tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination); gain.gain.setValueAtTime(.1, t); gain.gain.exponentialRampToValueAtTime(.001, t + .2); tone.start(t); tone.stop(t + .2); }); } catch (_) { /* Optional audio. */ } }
+  function playSuccess() {
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
+      if (!audio) audio = new Audio(); audio.resume().catch(() => {});
+      [523.25, 659.25, 783.99].forEach((frequency, i) => {
+        const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1;
+        tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination);
+        gain.gain.setValueAtTime(.1, t); gain.gain.exponentialRampToValueAtTime(.001, t + .2); tone.start(t); tone.stop(t + .2);
+      });
+    } catch (_) { /* Optional audio. */ }
+  }
+  document.querySelectorAll('[data-open-modes]').forEach(el => el.addEventListener('click', openModes));
+  $('close-modes').addEventListener('click', closeModes);
   document.querySelectorAll('[data-type]').forEach(el => el.addEventListener('click', () => start('practice', el.dataset.type)));
   document.querySelectorAll('[data-key]').forEach(el => el.addEventListener('click', () => inputKey(el.dataset.key)));
   $('start-exam').addEventListener('click', () => start('exam')); $('retry-exam').addEventListener('click', () => start('exam'));
@@ -153,14 +292,19 @@
   $('next-question').addEventListener('click', () => { if (state.mode === 'practice' && state.done) newPractice(); });
   $('previous-question').addEventListener('click', () => move(-1)); $('skip-question').addEventListener('click', () => move(1));
   $('finish-exam').addEventListener('click', () => { if (!expired()) finish(false); });
-  $('hint-button').addEventListener('click', () => { if (state.mode !== 'practice' || state.done) return; $('hint').hidden = !$('hint').hidden; $('hint').innerHTML = Q.displayText(state.question.steps[state.step].hint); $('hint-button').setAttribute('aria-expanded', String(!$('hint').hidden)); });
+  $('hint-button').addEventListener('click', () => {
+    if (state.mode !== 'practice' || state.done) return;
+    $('hint').hidden = !$('hint').hidden; $('hint').innerHTML = Q.displayText(state.question.steps[state.step].hint);
+    $('hint-button').setAttribute('aria-expanded', String(!$('hint').hidden));
+  });
   document.addEventListener('keydown', event => {
-    if (event.ctrlKey || event.metaKey || event.altKey || event.isComposing || !state.question || state.done || event.target.matches('a, select, textarea, input[type="checkbox"]')) return;
-    if (/^[0-9./]$/.test(event.key)) { event.preventDefault(); inputKey(event.key); }
+    if ($('mode-dialog').open || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || !state.question || state.done || event.target.matches('a, select, textarea, input[type="checkbox"]')) return;
+    if (/^[0-9.]$/.test(event.key)) { event.preventDefault(); inputKey(event.key); }
+    else if (event.key === '/') { event.preventDefault(); inputKey('separator'); }
     else if (event.key === 'Backspace') { event.preventDefault(); inputKey('delete'); }
-    else if (event.key === ' ' && event.target.matches('.answer-input')) { event.preventDefault(); inputKey('space'); }
     else if (event.key === 'Enter' && event.target.matches('.answer-input')) { event.preventDefault(); check(); }
   });
   document.addEventListener('visibilitychange', () => { if (state.mode === 'exam' && !state.done) updateTimer(); });
-  window.addEventListener('resize', () => { if (!matchMedia('(max-width: 800px)').matches) $('settings').open = true; });
+  if (window.ResizeObserver) new ResizeObserver(measureDock).observe($('keyboard-dock'));
+  window.addEventListener('resize', measureDock);
 })();

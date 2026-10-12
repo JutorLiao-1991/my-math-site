@@ -40,6 +40,7 @@
   }
   function correct(raw, field) {
     if (field.type === 'decision') return String(raw) === field.expected;
+    if (field.integerOnly && !/^\d+$/.test(String(raw).trim())) return false;
     const a = parse(raw), b = typeof field.expected === 'number' ? R(field.expected) : field.expected;
     return !!a && a.n * b.d === b.n * a.d;
   }
@@ -49,13 +50,16 @@
     if (type === 'mixed') type = pick(Object.keys(categories));
     const q = { type, category: categories[type], steps: [], finalFields: [], explanations: [] };
     let id = 0;
-    function field(label, expected, kind = 'number') { return { key: `f${id++}`, label, expected, type: kind }; }
+    function field(label, expected, kind = 'number', requirement = '', integerOnly = false) {
+      return { key: `f${id++}`, label, expected, type: kind, requirement, integerOnly };
+    }
     function step(title, fields, pattern, explanation, hint) {
       q.steps.push({ title, fields, pattern, explanation, hint }); q.explanations.push(explanation);
     }
     const blanks = fields => fields.map(f => `{${f.key}}`);
     function ratioStep(a, b, title = '按指定順序寫出比') {
-      const fields = [field('比的前項', a), field('比的後項', b)];
+      const note = '不須簡化至最簡整數比，請填原數量';
+      const fields = [field('比的前項', a, 'number', note), field('比的後項', b, 'number', note)];
       const [x, y] = blanks(fields);
       step(title, fields, `${x}：${y}`, `比是 ${a}：${b}，前項是 ${a}，後項是 ${b}。`, '「A 對 B」先寫 A 的量，再寫 B 的量；這一步填實際數量。');
       return fields;
@@ -83,7 +87,7 @@
       q.text = text; q.textHtml = text;
       q.finalFields = [...ratioStep(a, b)];
       if (type === 'value') {
-        const f = field('比值', R(a, b), 'rational');
+        const f = field('比值', R(a, b), 'rational', '不須簡化至最簡分數');
         step('前項除以後項，求出比值', [f], `${a}÷${b}＝{${f.key}}`, `${a}÷${b}＝${format(R(a, b))}。`, '比值＝前項÷後項。可以填分數，或與它相等的有限小數。');
         q.finalFields.push(f);
       }
@@ -105,7 +109,7 @@
         q.text = left ? `${a}：${b}＝□：${b * k}，□是多少？` : `${a}：${b}＝${a * k}：□，□是多少？`; q.textHtml = q.text;
         const factor = field('放大倍數', k);
         step('找出同乘的倍數', [factor], `${left ? b * k : a * k}÷${left ? b : a}＝{${factor.key}}`, `前項與後項都乘以${k}。`, '用已知的對應項，找出放大幾倍。');
-        const f = field('□的值', answer); step('求出缺少的項', [f], `${left ? a : b}×${k}＝{${f.key}}`, `□＝${answer}。`, '另一項也要乘以相同的倍數。'); q.finalFields = [f];
+        const f = field('□的值', answer, 'number', '不須簡化至最簡整數比，請填對應數值'); step('求出缺少的項', [f], `${left ? a : b}×${k}＝{${f.key}}`, `□＝${answer}。`, '另一項也要乘以相同的倍數。'); q.finalFields = [f];
       } else {
         const form = pick(forms), denA = form === 'integer' ? 1 : form === 'decimal' ? 10 : pick([3, 4, 6, 8, 12]);
         const denB = form === 'integer' ? 1 : form === 'decimal' ? 10 : pick([3, 4, 6, 8, 12]);
@@ -124,7 +128,7 @@
         }
         const f = field('最大公因數', divisor);
         step('找出前後項的最大公因數', [f], `${intA}與${intB}的最大公因數是 {${f.key}}`, `最大公因數是${divisor}${divisor === 1 ? '，整數比已經最簡' : ''}。`, '找出能同時整除兩個數的最大整數。');
-        const fields = [field('最簡整數比的前項', A), field('最簡整數比的後項', B)], [u, v] = blanks(fields);
+        const fields = [field('最簡整數比的前項', A, 'number', '須簡化至最簡整數比', true), field('最簡整數比的後項', B, 'number', '須簡化至最簡整數比', true)], [u, v] = blanks(fields);
         step('同除以最大公因數', fields, `${intA}：${intB}＝${u}：${v}`, `最簡整數比是${A}：${B}。`, '前項與後項都除以最大公因數。'); q.finalFields = fields;
       }
     } else if (type === 'apply') {

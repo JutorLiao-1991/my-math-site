@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月12日"
+    lastUpdated: "2026年10月13日"
 };
 
 // --- 課程資料區 ---
