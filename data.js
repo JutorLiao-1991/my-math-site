@@ -147,6 +147,15 @@ const lessonData = [
         desc: "按順序寫出比、求比值、化成最簡整數比，再練習按比分配與十題綜合測驗。"
     },
     {
+        title: "整數加減闖關（國一）",
+        category: "junior",
+        grades: [7],
+        url: "junior/math/integer_add_sub_grade7.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "自由選擇正負整數加減題型，直接心算作答，再挑戰十題考試與連續答對闖關。"
+    },
+    {
         title: "常見次方表（國一）",
         category: "junior",
         grades: [7],
