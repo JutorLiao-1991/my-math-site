@@ -6,17 +6,21 @@
   <title>鳩特數理｜比與比值（六年級）</title>
   <link rel="stylesheet" href="elementary_theme.css">
   <link rel="stylesheet" href="paper_practice.css">
+  <link rel="stylesheet" href="ratio_self_study.css">
   <script src="ratio_questions_grade6.js" defer></script>
   <script src="ratio_input_grade6.js" defer></script>
   <script src="paper_exam_status.js" defer></script>
   <script src="ratio_value_grade6.js" defer></script>
   <script src="paper_practice.js" defer></script>
+  <script src="ratio_self_study.js" defer></script>
+  <script src="ratio_self_study_ui.js" defer></script>
 </head>
 <body>
 <header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">🦔 比與比值（六年級）</h1><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></header>
 <main class="main-wrapper">
   <section class="panel" id="work-panel" aria-label="作答區">
-    <div class="welcome" id="welcome"><h2>看清順序，分清比與比值</h2><p>選擇題型開始分步練習。<br>點選想填的格子，用下方固定鍵盤作答。</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
+    <div class="welcome" id="welcome"><h2>看清順序，分清比與比值</h2><p>想先學懂觀念，可以從自修開始。<br>已經學過，也能直接選擇練習或測驗。</p><div class="study-welcome-actions"><button type="button" class="mode-trigger" data-start-study>🦔 開始自修</button><button type="button" class="secondary-btn" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></div></div>
+    <section id="self-study" hidden aria-label="比與比值自修模式"></section>
     <div class="session-bar" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div id="exam-overview" hidden>
       <div class="exam-jump" id="exam-jump" aria-label="測驗題號"></div>
       <div class="exam-tools"><button type="button" class="secondary-btn review-toggle" id="mark-review" aria-pressed="false">標記待檢查</button><span class="exam-status" id="answer-status" aria-live="polite"></span></div>
@@ -35,8 +39,19 @@
     <div class="dock-actions"><p class="feedback" id="feedback" aria-live="polite"></p><p class="key-hint" id="key-hint">點選整數、分子或分母的格子，便可直接填寫或修改。</p><button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button><div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div></div>
   </div>
 </footer>
+<footer class="keyboard-dock study-dock" id="study-dock" hidden aria-label="自修操作區">
+  <div class="dock-inner">
+    <div class="dock-heading"><div class="phase-note" id="study-phase-note" aria-live="polite"></div><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></div>
+    <div class="numpad" id="study-numpad" hidden><button type="button" class="num-btn" data-study-key="1">1</button><button type="button" class="num-btn" data-study-key="2">2</button><button type="button" class="num-btn" data-study-key="3">3</button><button type="button" class="num-btn" data-study-key="delete" aria-label="刪除自修目前格子的一位">⌫</button><button type="button" class="num-btn" data-study-key="4">4</button><button type="button" class="num-btn" data-study-key="5">5</button><button type="button" class="num-btn" data-study-key="6">6</button><button type="button" class="num-btn" data-study-key="clear">清除</button><button type="button" class="num-btn" data-study-key="7">7</button><button type="button" class="num-btn" data-study-key="8">8</button><button type="button" class="num-btn" data-study-key="9">9</button><button type="button" class="num-btn" data-study-key="fraction">分數</button><button type="button" class="num-btn" data-study-key=".">.</button><button type="button" class="num-btn" data-study-key="0">0</button><button type="button" class="num-btn" data-study-key="space">帶分數</button><button type="button" class="num-btn" data-study-key="next">下一格</button></div>
+    <div class="dock-actions"><p class="feedback" id="study-feedback" aria-live="polite"></p><button type="button" class="primary-action" id="study-next">開始驗證</button><button type="button" class="secondary-btn" id="study-back" hidden>回看教具</button></div>
+  </div>
+</footer>
 <dialog class="mode-dialog" id="mode-dialog" aria-labelledby="mode-dialog-title">
   <div class="dialog-heading"><h2 id="mode-dialog-title">選擇模式與題型</h2><button type="button" class="secondary-btn" id="close-modes">返回作答</button></div>
+  <h3 class="controls-title">自修模式</h3>
+  <button type="button" class="menu-btn study-menu" data-start-study>🦔 自修模式｜先理解，再練熟</button>
+  <p class="exam-description">比的認識 → 比值 → 等值比 → 最簡整數比。透過教具探索，每段都有小檢核。</p>
+  <button type="button" class="secondary-btn" id="resume-paper-session" hidden>繼續原本作答</button>
   <h3 class="controls-title">化簡題的數字類型</h3>
   <div class="number-forms"><label><input type="checkbox" value="integer" checked>整數</label><label><input type="checkbox" value="decimal" checked>小數</label><label><input type="checkbox" value="fraction" checked>分數</label><label><input type="checkbox" value="mixed" checked>帶分數</label></div>
   <h3 class="controls-title">練習模式</h3>
