@@ -4,12 +4,29 @@
   const partLabels = { number: '整數／小數', whole: '整數', numerator: '分子', denominator: '分母' };
   const state = { mode: 'idle', type: Q.defaultType || 'ratio', question: null, number: 0, step: 0, done: false,
     questions: [], answers: [], review: [], examEntries: [], entries: {}, equations: {}, index: 0, activeKey: null, activePart: null,
-    values: {}, forms: ['integer', 'decimal', 'fraction', 'mixed'], deadline: 0, timer: null };
+    values: {}, forms: ['integer', 'decimal', 'fraction', 'mixed'], deadline: 0, timer: null, suspended: false };
+  let suspendedView;
+  const paperRegions = ['welcome', 'results', 'workspace', 'game-status', 'keyboard-dock'];
+  function suspend() {
+    if (!state.suspended) {
+      suspendedView = Object.fromEntries(paperRegions.map(id => [id, $(id).hidden]));
+      state.suspended = true;
+      paperRegions.forEach(id => { $(id).hidden = true; });
+    }
+    return state.mode !== 'idle';
+  }
+  function resume() {
+    if (!state.suspended) return;
+    state.suspended = false;
+    paperRegions.forEach(id => { $(id).hidden = suspendedView[id]; });
+    if (state.mode === 'exam' && !state.done) updateTimer();
+    measureDock();
+  }
   function message(text, status = '') { $('feedback').textContent = text; $('feedback').dataset.status = status; }
   function forms() { return Q.settings ? Q.settings() : [...document.querySelectorAll('.number-forms input:checked')].map(el => el.value); }
   function stopTimer() { if (state.timer !== null) clearInterval(state.timer); state.timer = null; }
   function availableFields() {
-    if (!state.question || state.done) return [];
+    if (!state.question || state.done || state.suspended) return [];
     return state.mode === 'exam' ? state.question.finalFields : state.question.steps[state.step].fields;
   }
   function entry(f) { return state.entries[f.key] || (state.entries[f.key] = E.fromValue(state.values[f.key] || '')); }
@@ -19,9 +36,13 @@
   }
   function closeModes() { $('mode-dialog').close(); }
   function start(mode, type = state.type) {
+    if (state.suspended && mode === state.mode && (mode === 'exam' || type === state.type)) {
+      resume(); closeModes(); document.dispatchEvent(new Event('paper-session-start')); return;
+    }
     const chosen = forms();
     if (Array.isArray(chosen) && !chosen.length) { $('mode-error').textContent = '請至少勾選一種化簡題的數字類型。'; return; }
     if (state.mode === 'exam' && !state.done && !confirm('切換模式會結束目前尚未交卷的測驗，確定切換嗎？')) return;
+    resume(); document.dispatchEvent(new Event('paper-session-start'));
     stopTimer(); state.mode = mode; state.type = type; state.forms = chosen;
     state.number = 0; state.index = 0; state.done = false;
     state.questions = mode === 'exam' ? Q.buildExam(state.forms) : [];
@@ -132,6 +153,7 @@
     else if (rect.top < Math.max(0, headerBottom) + 10) window.scrollBy(0, rect.top - Math.max(0, headerBottom) - 20);
   }
   function measureDock() {
+    if (state.suspended) return;
     const height = $('keyboard-dock').hidden ? 0 : $('keyboard-dock').getBoundingClientRect().height + 16;
     document.documentElement.style.setProperty('--dock-space', `${height}px`);
     requestAnimationFrame(ensureVisible);
@@ -152,6 +174,7 @@
     measureDock();
   }
   function expired() {
+    if (state.suspended) return true;
     if (state.mode === 'exam' && !state.done && Date.now() >= state.deadline) { finish(true); return true; }
     return state.done;
   }
@@ -281,7 +304,12 @@
       });
       solution.className = 'solution'; solution.innerHTML = Q.displayText(q.explanation); details.append(solution); list.append(details);
     });
-    measureDock(); $('work-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (state.suspended) {
+      suspendedView = { welcome: true, results: false, workspace: true, 'game-status': true, 'keyboard-dock': true };
+      $('results').hidden = true;
+    } else {
+      measureDock(); $('work-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
   function updateTimer() {
     if (state.done) return;
@@ -321,7 +349,7 @@
     if (Q.showHint) Q.showHint(state.question, !$('hint').hidden);
   });
   document.addEventListener('keydown', event => {
-    if ($('mode-dialog').open || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || !state.question || state.done || event.target.matches('a, select, textarea, input[type="checkbox"]')) return;
+    if (state.suspended || $('mode-dialog').open || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || !state.question || state.done || event.target.matches('a, select, textarea, input[type="checkbox"]')) return;
     if (/^[0-9.]$/.test(event.key)) { event.preventDefault(); inputKey(event.key); }
     else if (event.key === '/') { event.preventDefault(); inputKey('separator'); }
     else if (event.key === 'Backspace') { event.preventDefault(); inputKey('delete'); }
@@ -330,4 +358,5 @@
   document.addEventListener('visibilitychange', () => { if (state.mode === 'exam' && !state.done) updateTimer(); });
   if (window.ResizeObserver) new ResizeObserver(measureDock).observe($('keyboard-dock'));
   window.addEventListener('resize', measureDock);
+  window.PaperPractice = { suspend, resume, startPractice: type => start('practice', type) };
 })();
