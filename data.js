@@ -273,6 +273,15 @@ const lessonData = [
         desc: "操作燃燒分析裝置，由吸收管增重推算元素含量、實驗式與分子式，再判斷裝置順序及實驗誤差。"
     },
     {
+        title: "水波與光波：干涉與繞射（高一）",
+        category: "senior",
+        grades: [10],
+        url: "senior/physics/wave_interference.html",
+        tagClass: "phys",
+        tagName: "高中物理",
+        desc: "追蹤水波波峰、波谷與觀測點，再比較單、雙狹縫光紋，透過定性自修題連結生活應用。"
+    },
+    {
         title: "光電效應實驗室（高一）",
         category: "senior",
         grades: [10],
