@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月13日"
+    lastUpdated: "2026年10月23日"
 };
 
 // --- 課程資料區 ---
@@ -253,6 +253,24 @@ const lessonData = [
         tagClass: "math",
         tagName: "高中數學",
         desc: "透過調整係數，即時觀察一次、二次、三次多項式函數圖形的變化。"
+    },
+    {
+        title: "化學反應式平衡（高一）",
+        category: "senior",
+        grades: [10],
+        url: "senior/chemistry/equation_balance.html",
+        tagClass: "chem",
+        tagName: "高中化學",
+        desc: "調整係數、觀察微觀組成與原子守恆，再以自修模式練習配平觀念與最簡整數比。"
+    },
+    {
+        title: "燃燒分析法（高一）",
+        category: "senior",
+        grades: [10],
+        url: "senior/chemistry/combustion_analysis.html",
+        tagClass: "chem",
+        tagName: "高中化學",
+        desc: "操作燃燒分析裝置，由吸收管增重推算元素含量、實驗式與分子式，再判斷裝置順序及實驗誤差。"
     },
     {
         title: "光電效應實驗室（高一）",
