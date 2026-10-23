@@ -300,6 +300,15 @@ const lessonData = [
         desc: "親手操作當年的光譜實驗，並以能階理解現象。"
     },
     {
+        title: "指數與對數圖形探索（高二）",
+        category: "senior",
+        grades: [11],
+        url: "senior/math/exp_log_explorer.html",
+        tagClass: "math",
+        tagName: "高中數學",
+        desc: "調整底數、拖曳觀察點，比較遞增遞減與凹口，探索圖形平移、對稱及指對數互為反函數。"
+    },
+    {
         title: "圓周運動與簡諧投影（高二）",
         category: "senior",
         grades: [11],
