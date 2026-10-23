@@ -1,5 +1,21 @@
 const{test}=require('node:test');const assert=require('node:assert/strict');const C=require('../senior/chemistry/chemistry_core.js');
 const W=require('../senior/physics/wave_core.js');
+test('node meeting preset places an actual crest and trough at P, then swaps them after half a cycle',()=>{
+  for(const [d,lambda,y]of [[120,40,180],[60,80,180],[220,16,100]]){
+    const x=W.pointAtDifference(lambda/2,y,d);
+    const r=W.point(x,y,d,lambda);
+    const t=W.timeAtCrest(r.r1,lambda);
+    const p=W.point(x,y,d,lambda,t);
+    assert.ok(Math.abs(p.u1-1)<1e-10);
+    assert.ok(Math.abs(p.u2+1)<1e-10);
+    assert.ok(Math.abs(p.displacement)<1e-10);
+    assert.ok(Math.abs((p.r1/lambda-t)-Math.round(p.r1/lambda-t))<1e-10);
+    const swapped=W.point(x,y,d,lambda,t+.5);
+    assert.ok(Math.abs(swapped.u1+1)<1e-10);
+    assert.ok(Math.abs(swapped.u2-1)<1e-10);
+    assert.ok(Math.abs(swapped.displacement)<1e-10);
+  }
+});
 test('water antinode can have zero instantaneous displacement while amplitude stays two',()=>{const y=180,d=120,lambda=40,r=Math.hypot(d/2,y),time=r/lambda-.25;const p=W.point(0,y,d,lambda,time);assert.ok(Math.abs(p.displacement)<1e-10);assert.equal(p.amplitude,2);assert.equal(p.type,'constructive');});
 test('water node cancels at all times and becomes an antinode after frequency doubles',()=>{const x=W.pointAtDifference(20,180,120);for(const t of[0,.125,.25,.7,1.25]){const p=W.point(x,180,120,40,t);assert.ok(Math.abs(p.displacement)<1e-10);assert.ok(p.amplitude<1e-10);}const p=W.point(x,180,120,20,.3);assert.ok(Math.abs(p.amplitude-2)<1e-10);assert.equal(p.type,'constructive');});
 test('single-slit minima bound a central band twice the adjacent-band width in sin(theta)',()=>{const a=40,lambda=.55;assert.equal(W.singleIntensity(0,a,lambda),1);for(const m of[-2,-1,1,2])assert.ok(W.singleIntensity(m*lambda/a,a,lambda)<1e-20);const central=2*lambda/a,side=2*lambda/a-lambda/a;assert.ok(Math.abs(central/side-2)<1e-10);assert.ok(W.singleIntensity(1.5*lambda/a,a,lambda)<.05);});
