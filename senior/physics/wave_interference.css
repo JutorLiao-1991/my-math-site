@@ -23,3 +23,8 @@
 .probe-explain{margin:8px 0 0;line-height:1.6;color:#38516b}
 .probe-help{font-size:.85rem;color:#596c80;margin-top:10px}
 @media(max-width:500px){.probe-inspector{padding:11px 9px}.probe-waves{gap:5px}.probe-wave{padding:7px 3px}.probe-wave strong{font-size:.82rem}.probe-wave .phase-name{font-size:.76rem;min-height:26px}.probe-equation{font-size:1.1rem}.probe-value{font-size:1.05rem}}
+
+.wave-control-group{display:flex;align-items:flex-start;gap:10px;margin:12px 0;padding:12px 0;border-bottom:1px solid #d7e1eb}
+.wave-control-label{color:#435c73;font-size:.9rem;font-weight:700;white-space:nowrap;padding-top:9px}
+.wave-control-group>.actions{flex:1;min-width:0;gap:8px}
+@media(max-width:500px){.wave-control-group{flex-direction:column;gap:7px}.wave-control-label{padding-top:0}.wave-control-group button,.wave-control-group select{font-size:.9rem;padding:7px 10px}}
