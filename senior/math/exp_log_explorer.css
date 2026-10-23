@@ -1,3 +1,54 @@
 :root{--exp:#b34f1f;--log:#7441ae;--green:#1b725a;--gold:#8d6213}
 .shell{padding-bottom:30px;max-width:1320px}.toolbar p{margin-bottom:0}.tabs{gap:7px}.tabs button{font-size:.94rem}.explorer-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(320px,1fr);gap:18px;align-items:start}.graph-panel{position:sticky;top:12px;padding:20px}.graph-heading{display:flex;align-items:start;justify-content:space-between;gap:8px}.graph-heading h2{margin:0 0 4px}.graph-heading p{margin:0}.graph-heading .badge{white-space:nowrap;font-size:.72rem}.formula{font:600 1.5rem/1.7 Georgia,'Times New Roman',serif;text-align:center;padding:12px 4px;color:var(--exp);min-height:66px}.formula sub{font-size:.65em}.formula .log-color{color:var(--log)}.formula .original{color:var(--muted);font-size:1rem;margin-right:18px}.plot-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#fff}#plot{display:block;width:100%;height:auto;aspect-ratio:1/1;touch-action:pan-y;user-select:none}#plot.dragging{touch-action:none;cursor:grabbing}#plot [data-handle]{cursor:grab;touch-action:none}.legend{margin:9px 0;font-size:.83rem;gap:8px 14px;min-height:24px}.legend i{border-width:3px}.view-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.view-controls button{padding:5px 10px;font-size:.85rem;min-height:40px}.view-controls #zoom-in,.view-controls #zoom-out{min-width:40px}.graph-panel .note{margin:12px 0 0;font-size:.86rem}.live-reading{font-size:.93rem;margin-top:12px;min-height:48px;font-variant-numeric:tabular-nums}.live-reading strong{color:var(--accent)}.control{gap:8px}.control label{min-width:65px;font-size:.95rem}.control output{min-width:55px;font-weight:650}.controls-panel .control input{min-width:70px}.small{font-size:.8rem}.presets{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.presets button{padding:5px 12px;min-width:44px}#base-form{gap:7px;font-size:.9rem}#base-input{border:1px solid var(--line);border-radius:8px;width:85px;min-height:44px;padding:7px;color:var(--ink);background:white}#base-error{font-size:.82rem;min-height:0;margin:4px 0}#base-error:empty{display:none}#topic-controls{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}#kind-controls{gap:7px}#kind-controls button{flex:1;padding:7px 9px}.check-row{display:flex;align-items:center;gap:8px;min-height:44px;font-size:.92rem}.check-row input{width:19px;height:19px;accent-color:var(--accent)}.section-label{font-size:.9rem;font-weight:700;margin:12px 0 8px}.saved-row{display:flex;align-items:center;justify-content:space-between;gap:6px;border-bottom:1px solid var(--line);font-size:.9rem;padding:6px 0}.saved-row button{padding:2px 10px;font-size:.8rem}.saved-row strong{border-left:4px solid var(--green);padding-left:8px}.observe-heading{display:flex;gap:8px;justify-content:space-between;align-items:center}.observe-heading h2{margin:0;font-size:1.1rem}.observe-heading button{font-size:.82rem;padding:5px 10px}.observe-panel p{font-size:.93rem}.property-list{display:grid;grid-template-columns:75px minmax(0,1fr);font-size:.92rem;gap:8px 10px;margin:14px 0}.property-list dt{color:var(--muted)}.property-list dd{margin:0;font-weight:600}.discovery{border-left:3px solid var(--accent);background:var(--light);padding:10px 12px;margin:12px 0;font-size:.91rem}.math-line{font-family:Georgia,'Times New Roman',serif;font-size:1.12rem;overflow-wrap:anywhere}.reflection-buttons{display:grid;grid-template-columns:1fr 1fr;gap:6px}.reflection-buttons button{font-size:.88rem;padding:7px}.chips{display:flex;gap:7px;flex-wrap:wrap}.chips button{font-size:.83rem;padding:6px 9px}details p{font-size:.87rem}.footer-note{color:var(--muted);font-size:.8rem;margin-top:20px}.muted b{color:var(--ink)}
 @media(min-width:1050px){.plot-wrap{max-width:650px;margin:auto}}@media(max-width:900px){.explorer-grid{grid-template-columns:1fr}.graph-panel{position:static}.explorer-grid>aside{display:grid;grid-template-columns:1fr 1fr;align-items:start;gap:16px}aside .panel+.panel{margin-top:0}.plot-wrap{max-width:600px;margin:auto}.graph-panel{padding:17px}}@media(max-width:600px){.shell{padding:13px 12px 26px}.tabs{display:grid;grid-template-columns:1fr 1fr}.tabs button:last-child{grid-column:1/-1}.tabs button{padding:8px 5px;font-size:.86rem}.explorer-grid>aside{display:block}aside .panel+.panel{margin-top:16px}.graph-panel{padding:13px}.graph-heading{display:block}.graph-heading .badge{margin-top:4px}.graph-heading h2{font-size:1.07rem}.graph-heading p{font-size:.82rem}.formula{font-size:1.23rem;min-height:60px}.formula .original{display:block;margin:0;font-size:.87rem}.view-controls{gap:5px}.view-controls button{font-size:.78rem}.live-reading{font-size:.85rem}.controls-panel{padding:17px}.graph-panel .note{font-size:.8rem}header h1{font-size:1.05rem}}
+
+/* Tablets, including portrait iPads: keep the graph beside the controls. */
+@media (min-width:700px) {
+  .explorer-grid{grid-template-columns:minmax(0,1.35fr) minmax(290px,1fr);gap:14px}
+  .explorer-grid>aside{display:block;min-width:0}
+  aside .panel+.panel{margin-top:16px}
+  .graph-panel{position:sticky;top:12px}
+  .graph-heading{flex-wrap:wrap}
+  .controls-panel,.observe-panel{padding:16px}
+}
+
+/* Short landscape screens: let each column scroll without moving the other. */
+@media (orientation:landscape) and (min-width:568px) and (max-height:600px) {
+  body{height:100vh;height:100dvh;overflow:hidden}
+  header{height:44px;min-height:44px;padding:5px 112px 5px 12px;gap:10px;flex-wrap:nowrap}
+  header a{font-size:.8rem}
+  header h1{font-size:1rem;white-space:nowrap}
+  header>.badge{display:none}
+  .shell{height:calc(100vh - 44px);height:calc(100dvh - 44px);padding:8px;display:flex;flex-direction:column}
+  .toolbar{height:0;margin:0;flex:none}
+  .toolbar>div{display:none}
+  #reset{position:fixed;right:10px;top:5px;z-index:10;min-height:34px;padding:4px 10px;font-size:.8rem}
+  .tabs{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:5px;margin:0 0 8px;flex:none;min-height:38px}
+  .tabs button{white-space:nowrap;flex:none;min-height:36px;padding:5px 8px;font-size:.78rem}
+  .explorer-grid{grid-template-columns:minmax(0,1.2fr) minmax(240px,1fr);gap:8px;align-items:stretch;flex:1;min-height:0;overflow:hidden}
+  .graph-panel{position:static;min-height:0;padding:10px;overflow-y:auto;overscroll-behavior-y:contain}
+  .explorer-grid>aside{display:block;min-width:0;min-height:0;overflow-y:auto;overscroll-behavior-y:contain;padding-right:3px}
+  .graph-heading{display:flex;flex-wrap:wrap}
+  .graph-heading h2{font-size:.95rem;margin:0}
+  .graph-heading p,.graph-heading>.badge{display:none}
+  .formula{font-size:1.1rem;min-height:0;padding:5px 0}
+  .formula .original{display:inline;font-size:.8rem;margin-right:8px}
+  .plot-wrap{width:min(100%,max(140px,calc(100vh - 205px)));width:min(100%,max(140px,calc(100dvh - 205px)));margin:0 auto;flex:none}
+  .graph-panel .legend{font-size:.76rem;gap:4px 10px;margin:6px 0}
+  .graph-panel .note{font-size:.76rem;padding:8px}
+  .graph-panel .live-reading{font-size:.8rem;min-height:0}
+  .controls-panel,.observe-panel{padding:12px}
+  aside .panel+.panel{margin-top:10px}
+  .controls-panel .control{margin:8px 0}
+  .controls-panel .control label{font-size:.85rem;min-width:58px}
+  .controls-panel .control output{min-width:42px;font-size:.85rem}
+  #base-form{font-size:.85rem}
+  #base-input{width:74px}
+  #topic-controls{margin-top:12px;padding-top:10px}
+  .observe-heading{flex-wrap:wrap}
+  .footer-note{display:none}
+}
+
+@media (orientation:landscape) and (min-width:568px) and (max-height:360px) {
+  .graph-heading{display:none}
+}
