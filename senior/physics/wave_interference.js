@@ -2,6 +2,21 @@
  'use strict';const W=WaveCore,L=ScienceLab,$=id=>document.getElementById(id),canvas=$('wave'),ctx=canvas.getContext('2d');let topic='water-int',time=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,last=0,lastText=0,study=false;
  const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false};let field=null;
  const colors={'.45':'#6c9dff','.55':'#5cdd9c','.65':'#ff777c'};
+ // A cached HTML page may still contain the previous meeting shortcut.
+ // Normalize that older shell before binding the new shared controls.
+ if(!$('observation-controls')){
+   const group=document.createElement('div');
+   group.id='observation-controls';group.className='wave-control-group';
+   group.setAttribute('role','group');group.setAttribute('aria-label','觀測位置');
+   group.innerHTML='<span class="wave-control-label">觀測位置</span><div class="actions"><button id="probe-antinode" aria-pressed="false">觀察波腹</button><button id="probe-node" aria-pressed="false">觀察波節</button><span id="probe-selection" class="muted"></span></div>';
+   const previous=$('meeting-actions');
+   if(previous)previous.replaceWith(group);else $('legend').after(group);
+   const clock=$('time-controls');clock.className='wave-control-group';
+   clock.setAttribute('role','group');clock.setAttribute('aria-label','時間控制');
+   clock.innerHTML='<span class="wave-control-label">時間控制</span><div class="actions"><button id="pause">暫停</button><button id="quarter">前進 ¼ 週期</button><button id="half-period">前進 ½ 週期</button><button id="reset-time">重設時間</button><select id="speed" aria-label="播放速度"><option value="1">正常速度</option><option value="0.25">慢放 ¼ 倍</option></select></div>';
+   $('probe').before(clock);
+ }
+
  const questions={
  'water-int':[
  {id:'crest-crest',question:'同相的兩波源，某點同時遇到波峰＋波峰，屬於哪一種干涉？',options:['建設性干涉','破壞性干涉','沒有干涉'],answer:0,hint:'兩個位移方向相同，相加後更大。',explain:'波峰＋波峰加強向上的位移；波谷＋波谷加強向下的位移，兩者都對應建設性干涉。'},
