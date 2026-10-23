@@ -113,6 +113,21 @@
      $('probe-dot-'+i).setAttribute('cy',60-v*24);
    });
  }
+ // Build troughs from separate arc subpaths: their gaps survive canvas
+ // implementations that render setLineDash() arcs as continuous circles.
+ function wavefront(sx,r,trough,emphasized=false){
+   if(r<=0)return;
+   ctx.beginPath();
+   if(trough){
+     const dash=emphasized?18:14,gap=14;
+     for(let length=0;length<Math.PI*r;length+=dash+gap){
+       const start=Math.PI+length/r,end=Math.min(Math.PI*2,start+dash/r);
+       ctx.moveTo(sx+r*Math.cos(start),380+r*Math.sin(start));
+       ctx.arc(sx,380,r,start,end);
+     }
+   }else ctx.arc(sx,380,r,Math.PI,Math.PI*2);
+   ctx.stroke();
+ }
  function waterInterference(){
    const p=W.point(state.px,state.py,state.separation,state.wavelength,time);
    const sources=[360-state.separation/2,360+state.separation/2];
@@ -121,10 +136,11 @@
    ctx.save();ctx.beginPath();ctx.rect(0,0,720,381);ctx.clip();
    sources.forEach((sx,i)=>{
      for(let kind=0;kind<(state.troughs?2:1);kind++){
-       ctx.setLineDash(kind?[12,8]:[]);
-       ctx.strokeStyle=sourceColors[i];ctx.lineWidth=1.8;ctx.globalAlpha=.5;
-       for(let r=((time+(kind?.5:0))%1)*state.wavelength;r<900;r+=state.wavelength){
-         ctx.beginPath();ctx.arc(sx,380,r,Math.PI,Math.PI*2);ctx.stroke();
+       ctx.setLineDash([]);
+       ctx.strokeStyle=sourceColors[i];ctx.lineWidth=1.8;ctx.globalAlpha=.4;
+       const farthest=Math.hypot(Math.max(sx,720-sx),380);
+       for(let r=((time+(kind?.5:0))%1)*state.wavelength;r<=farthest;r+=state.wavelength){
+         wavefront(sx,r,kind===1);
        }
      }
    });
@@ -132,10 +148,10 @@
    [p.u1,p.u2].forEach((v,i)=>{
      if(Math.abs(v)<.999||(!state.troughs&&v<0))return;
      ctx.globalAlpha=1;ctx.strokeStyle=sourceColors[i];ctx.lineWidth=4;
-     ctx.setLineDash(v<0?[12,8]:[]);
+     ctx.setLineDash([]);
      const distance=i?p.r2:p.r1,offset=v<0?.5:0;
      const radius=(Math.round(distance/state.wavelength-time-offset)+time+offset)*state.wavelength;
-     ctx.beginPath();ctx.arc(sources[i],380,radius,Math.PI,Math.PI*2);ctx.stroke();
+     wavefront(sources[i],radius,v<0,true);
    });
    ctx.restore();ctx.setLineDash([]);
    sources.forEach((x,i)=>{
