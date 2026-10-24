@@ -1,0 +1,36 @@
+.teaching-lab .diagram{border:1px solid var(--line);border-radius:12px;background:white;overflow:hidden;margin:10px 0}
+.teaching-lab .diagram svg{display:block;width:100%;height:auto;font-family:inherit}
+.teaching-lab .diagram [data-handle]{cursor:grab;touch-action:none}
+.teaching-lab .drag-plot{touch-action:pan-y;user-select:none}
+.teaching-lab .drag-plot [data-handle]{touch-action:none}
+.teaching-lab .shell{padding-bottom:24px}
+.teaching-lab .formula{font:600 1.35rem/1.8 Georgia,'Times New Roman',serif;text-align:center;margin:10px 0;overflow-wrap:anywhere}
+.teaching-lab .lab-operation-panel .control label{min-width:84px}
+.teaching-lab .lab-operation-panel .control input{min-width:50px}
+.teaching-lab .lab-operation-panel .control output{min-width:52px}
+.teaching-lab .lab-operation-panel>select{width:100%;margin-bottom:8px}
+.teaching-lab .check-row{display:flex;align-items:center;gap:9px;min-height:44px}
+.teaching-lab .check-row input{width:19px;height:19px;accent-color:var(--accent)}
+.teaching-lab .actions{margin:12px 0}
+.teaching-lab .reading strong{font-size:1.1rem}
+.teaching-lab .mini-label{font-size:.86rem;font-weight:650;margin:12px 0 5px}
+.teaching-lab .quantity{font-variant-numeric:tabular-nums}
+.teaching-lab .energy-bar{height:18px;background:#e5edf4;overflow:hidden;border-radius:12px;display:flex;margin:8px 0}
+.teaching-lab .energy-bar span{height:100%;display:block}
+.teaching-lab .particle-row{display:flex;flex-wrap:wrap;gap:4px;padding:8px 0}
+.teaching-lab .particle{border:1px solid var(--line);border-radius:20px;padding:3px 8px;background:#eaf2f9;font-size:.85rem}
+.teaching-lab .model-table{overflow-x:auto}
+.teaching-lab .model-table table{font-size:.9rem}
+.teaching-lab .lab-operation-panel input[type=number]{width:90px;max-width:100%;min-height:44px;border:1px solid var(--line);border-radius:7px;padding:6px;color:var(--ink);background:white}
+.teaching-lab .legend{font-size:.85rem}
+@media(orientation:landscape) and (min-width:568px) and (max-height:600px){.teaching-lab .diagram{max-width:100%;margin:6px auto}.teaching-lab .main-diagram{width:min(100%,calc((100dvh - 140px)*1.5))}.teaching-lab .square-diagram{width:min(100%,calc(100dvh - 120px))}.teaching-lab .formula{font-size:1rem;margin:4px 0}.teaching-lab .lab-main-panel>p.muted{display:none}.teaching-lab .lab-operation-panel h2{font-size:1rem}.teaching-lab .readings{margin:8px 0}.teaching-lab .reading strong{font-size:.9rem}}
+@media(max-width:600px){.teaching-lab .formula{font-size:1.12rem}.teaching-lab .control label{font-size:.9rem}.teaching-lab .readings{grid-template-columns:repeat(3,minmax(0,1fr))}.teaching-lab .reading{overflow-wrap:anywhere}}
+/* SVG labels stay legible when a diagram is reduced on a touch screen. */
+.teaching-lab .diagram svg text{font-size:19px}
+.teaching-lab .square-diagram svg text{font-size:22px}
+@media(orientation:landscape) and (min-width:568px) and (max-height:600px){
+ .teaching-lab .square-diagram{width:min(100%,max(130px,calc(100dvh - 205px)))}
+ .teaching-lab .square-diagram svg text{font-size:32px}
+ .teaching-lab .main-diagram svg text{font-size:24px}
+ .sun-lab .main-diagram{width:min(100%,calc((100dvh - 185px)*720/520))}
+}
