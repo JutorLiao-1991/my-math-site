@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月23日"
+    lastUpdated: "2026年10月24日"
 };
 
 // --- 課程資料區 ---
@@ -300,6 +300,42 @@ const lessonData = [
         desc: "親手操作當年的光譜實驗，並以能階理解現象。"
     },
     {
+        title: "向量加減與內積（高二）",
+        category: "senior",
+        grades: [11],
+        url: "senior/math/vector_explorer.html",
+        tagClass: "math",
+        tagName: "高中數學",
+        desc: "拖曳向量端點，連動分量、加減法、夾角、內積與投影，並辨別零向量的特殊情況。"
+    },
+    {
+        title: "化學計量與限量試劑（高中）",
+        category: "senior",
+        grades: [10, 11],
+        url: "senior/chemistry/stoichiometry.html",
+        tagClass: "chem",
+        tagName: "高中化學",
+        desc: "由粒子數、莫耳數與質量判斷限量試劑，追蹤反應前後的消耗、產物與剩餘量。"
+    },
+    {
+        title: "酸鹼滴定與 pH（高中）",
+        category: "senior",
+        grades: [11, 12],
+        url: "senior/chemistry/acid_base_titration.html",
+        tagClass: "chem",
+        tagName: "高中化學",
+        desc: "逐滴加入強鹼，比較強酸、弱酸的滴定曲線，區分當量點與指示劑的變色終點。"
+    },
+    {
+        title: "天球與太陽軌跡（高中）",
+        category: "senior",
+        grades: [10, 11, 12],
+        url: "senior/earth/celestial_sun.html",
+        tagClass: "phys",
+        tagName: "高中地科",
+        desc: "調整緯度、季節與真太陽時，同時觀察天球、太陽高度、白晝長度與直立竿影。"
+    },
+    {
         title: "指數與對數圖形探索（高二）",
         category: "senior",
         grades: [11],
@@ -315,7 +351,7 @@ const lessonData = [
         url: "senior/physics/shm_circle.html",
         tagClass: "phys",
         tagName: "高中物理",
-        desc: "透過動態投影，理解等速圓周運動、正弦波與簡諧運動(SHM)的數學關聯。"
+        desc: "調整振幅、角頻率、初相與平衡位置，連動圓周投影、位置／速度／加速度時間圖及能量。"
     },
     {
         title: "平面族示意動畫（高二）",
