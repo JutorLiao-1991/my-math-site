@@ -1,0 +1,14 @@
+.guide-workflow h2:focus{outline:none}
+.guide-stages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));list-style:none;padding:0;gap:7px;margin:16px 0}
+.guide-stages li{padding:7px 9px;border:1px solid var(--line);border-radius:8px;color:var(--muted);font-size:.85rem}
+.guide-stages [aria-current=step]{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700}
+.guide-stages .done{background:#edf8f1;color:var(--good)}
+.guide-prediction{border-left:3px solid var(--accent);padding:8px 12px;background:var(--light)}
+.guide-complete{border:1px solid #a9cdbc;background:#f0f8f3;padding:14px;border-radius:10px;margin:12px 0}
+.guide-notebook article{padding:10px 0;border-bottom:1px solid var(--line)}
+.guide-notebook p,.guide-complete p{font-size:.9rem;overflow-wrap:anywhere}
+.guide-extra{border-top:1px solid var(--line);padding-top:14px;margin-top:18px}
+.guide-workflow .actions>button{white-space:normal;text-align:left}
+.guide-workflow .study-track .done[aria-pressed=true]:after{color:#fff}
+.guide-operation-check{border-top:1px solid var(--line);padding-top:12px;margin-top:14px}
+body:not([data-study=true]) .guide-operation-check{display:none}

@@ -1,7 +1,7 @@
 (()=>{
  'use strict';const W=WaveCore,L=ScienceLab,$=id=>document.getElementById(id),canvas=$('wave'),ctx=canvas.getContext('2d');let topic='water-int',time=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,last=0,lastText=0,study=false;
  const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false};let field=null;
- const colors={'.45':'#6c9dff','.55':'#5cdd9c','.65':'#ff777c'};
+ const colors={'.45':'#6c9dff','.55':'#5cdd9c','.65':'#ff777c'};let guide=null;
  // A cached HTML page may still contain the previous meeting shortcut.
  // Normalize that older shell before binding the new shared controls.
  if(!$('observation-controls')){
@@ -42,9 +42,67 @@
  {id:'narrow',question:'光色與屏幕位置不變，把單狹縫變窄，中央亮帶如何改變？',options:['變寬','變窄','寬度一定不變'],answer:0,hint:'狹縫越窄，繞射角度越大。',explain:'開口較窄時，繞射擴展更明顯，中央亮帶變寬。圖中亮度正規化，主要比較形狀，不能用來判斷總通光量。'},
  {id:'red',question:'同一狹縫與屏幕位置，紅光相較於藍光的中央亮帶通常如何？',options:['較寬','較窄','紅光不會繞射'],answer:0,hint:'紅光波長比藍光長。',explain:'其他條件相同時，波長越長，繞射越明顯，因此紅光中央亮帶較寬。'}
  ]};
+ function prepareWave(){
+   Object.assign(state,{wavelength:40,separation:120,aperture:160,troughs:true,px:0,py:180,opticalLambda:.55,slitWidth:80,slitDistance:100,screenDistance:1000,orientation:'vertical',envelope:false});
+   paused=true;time=0;field=null;
+   for(const [id,key,unit]of [['lambda','wavelength',' cm'],['separation','separation',' cm'],['aperture','aperture',' cm'],['slit-width','slitWidth',' μm'],['slit-distance','slitDistance',' μm'],['screen-distance','screenDistance',' mm']])if($(id)){$(id).value=state[key];$(id+'-out').textContent=state[key]+unit;}
+   if($('light-color'))$('light-color').value='0.55';if($('orientation'))$('orientation').value='vertical';if($('envelope'))$('envelope').checked=false;
+   if(topic==='water-int')showAntinode();else{buildField();draw();}
+ }
+ function opticalConditions(){return state.opticalLambda===.55&&state.screenDistance===1000&&state.orientation==='vertical'&&!state.envelope;}
+ const guidedLessons={
+  'water-int':[
+   {id:'node-meeting',title:'波節真的是一峰一谷相遇嗎？',
+    prediction:{question:'在等振幅的模型中，一個波峰與另一個波谷在 P 相遇，合成位移會是多少？',options:['向上加倍','相互抵銷為 0','兩個波從此消失']},
+    task:'由波腹開始，按「觀察波節」。比較主圖實線／虛線，以及 S₁、S₂ 與疊加結果三張波形圖，再讀取此刻結果。',
+    prepare:prepareWave,
+    check(){const p=W.point(state.px,state.py,state.separation,state.wavelength,time);if(!paused||p.type!=='destructive'||Math.abs(p.u1)<.999||Math.abs(p.u2)<.999)return{ok:false,message:'按「觀察波節」，停在一個波峰與另一個波谷相遇的時刻，再比較三張波形圖。'};return{ok:true,evidence:'S₁ 位移 '+signed(p.u1)+'、S₂ 位移 '+signed(p.u2)+'；相加 '+signed(p.displacement)+'，合成振幅 '+p.amplitude.toFixed(2)+'（單波振幅＝1）。'};},
+    observation:{question:'這個 P 點的兩個分波與合成結果是？',options:['兩分波方向相反、大小相等，合成位移為 0','兩個都是波峰，合成為 +2','主圖沒畫線，所以沒有波'],answer:0,hint:'比較 S₁、S₂ 的正負號；實線是波峰，虛線是波谷。'},
+    reason:{question:'為什麼這裡是波節？',options:['兩波在此停止傳播','兩分波始終反相，在等振幅模型中持續抵銷','任何瞬間位移為 0 的點都是波節'],answer:1,hint:'波節不只這一瞬間位移為 0，而是全程抵銷。'},
+    conclusion:'此刻 +1 與 −1 抵銷；兩個波仍繼續傳播。波節在這個理想模型中全程合成位移為 0。'},
+   {id:'antinode-zero',title:'位移為 0，振幅也會是 0 嗎？',
+    prediction:{question:'波腹從波峰經過 ¼ 週期到平衡位置，會變成波節嗎？',options:['會，位移為 0 就是波節','不會，振幅仍為最大','代表波源停止振動']},
+    task:'準備後先看波腹兩個分波都在波峰。按一次「前進 ¼ 週期」，比較瞬時位移與合成振幅，再讀取結果。',
+    prepare:prepareWave,onChange(c,e){if(e.target.closest?.('#quarter'))c.advanced=true;},
+    check(c){const p=W.point(state.px,state.py,state.separation,state.wavelength,time);if(!c.advanced||!paused||p.type!=='constructive'||Math.abs(p.displacement)>.005)return{ok:false,message:'按「觀察波腹」後，按一次「前進 ¼ 週期」，停在通過平衡位置的時刻。'};return{ok:true,evidence:'此刻兩分波都通過平衡位置，合成位移 '+signed(p.displacement)+'；合成振幅仍為 '+p.amplitude.toFixed(2)+'。'};},
+    observation:{question:'位移與振幅的讀值支持什麼？',options:['位移與振幅都是 0','位移為 0，振幅仍為 2','已經變成破壞性干涉'],answer:1,hint:'主圖下方分別列出瞬時位移與合成振幅，它們描述不同的事。'},
+    reason:{question:'如何區分位移與振幅？',options:['位移是現在偏離平衡位置的量；振幅是振動可達的最大位移大小','振幅只描述現在的位置','只要經過平衡位置，之後都不再振動'],answer:0,hint:'想想盪鞦韆經過最低點時，是否就不能再擺高。'},
+    conclusion:'波腹會經過平衡位置，瞬時位移可以為 0；判斷波節要看是否全程抵銷，不能只看一張靜止圖。'}
+  ],
+  'water-diff':[
+   {id:'aperture-comparison',title:'窄開口會讓波往哪裡走？',
+    prediction:{question:'固定波長，把開口從 160 cm 縮到 24 cm，側向擴散通常如何改變？',options:['更明顯','更不明顯','波速一定變快']},
+    task:'準備後先觀察 160 cm 寬開口，再按「比較窄開口」。保持波長 40 cm，比較通過後的波前形狀，再讀取設定。',
+    prepare:prepareWave,
+    check(){if(state.wavelength!==40||state.aperture!==24)return{ok:false,message:'請保持波長 40 cm，再按「比較窄開口」（24 cm），和起始的 160 cm 比較。'};return{ok:true,evidence:'同一波長 40 cm；開口從 160 cm 改為 24 cm，已重算兩種開口的波前。'};},
+    observation:{question:'與寬開口相比，窄開口後的波前有何變化？',options:['更接近向側方展開的圓弧','更接近平直，完全不擴散','波完全無法通過'],answer:0,hint:'看開口後方的波前，是否向上下兩側展開。'},
+    reason:{question:'這個比較主要說明什麼？',options:['開口大小會直接決定同介質中的波速','開口相對波長越小，繞射通常越明顯','只有水波才會繞射'],answer:1,hint:'固定波長後，改變的是開口與波長的相對尺度。'},
+    conclusion:'每次只改一個條件，才知道差異來自哪裡。這裡比較波前形狀，顏色已正規化，不能用來比較通過的總能量。'}
+  ],
+  'light-int':[
+   {id:'slit-separation',title:'兩縫拉遠，亮帶也會拉遠嗎？',
+    prediction:{question:'光色、屏幕距離不變，把兩條狹縫的中心間距加大，屏幕亮帶間距會如何？',options:['變大','變小','完全不變']},
+    task:'準備後先看兩縫中心間距 100 μm 的圖樣，再將間距滑桿拉到 300 μm。保持綠光、屏幕距離 1000 mm、直立狹縫，且不加入有限縫寬效果。',
+    prepare:prepareWave,
+    check(){if(!opticalConditions()||state.slitDistance!==300)return{ok:false,message:'請保留綠光、屏幕距離 1000 mm、直立方向、無繞射包絡，只將兩縫中心間距改到 300 μm。'};return{ok:true,evidence:'兩縫中心間距 100 → 300 μm；綠光、屏幕距離 1000 mm 與直立方向保持不變。'};},
+    observation:{question:'屏幕上的亮帶與原先相比？',options:['排列更疏','排列更密、間距較小','只剩兩個亮點'],answer:1,hint:'在相同寬度的屏幕中，比較能數到幾條亮帶。'},
+    reason:{question:'哪個說明符合這次控制變因的比較？',options:['在光色與屏距固定時，兩縫越分開，亮帶間距越小','狹縫數量變成三條','綠光的波長因兩縫拉遠而改變'],answer:0,hint:'只改了兩縫間距；光源的波長並沒有改變。'},
+    conclusion:'「兩縫更遠」與「屏上亮帶更遠」不能直接類比。在固定光色與屏幕距離時，兩縫中心間距加大，亮帶反而更密。'}
+  ],
+  'light-diff':[
+   {id:'single-slit-width',title:'狹縫變窄，中央亮帶也變窄嗎？',
+    prediction:{question:'同一光色與屏幕位置，把單狹縫從 80 μm 縮到 20 μm，中央亮帶會怎樣？',options:['變窄','變寬','寬度一定不變']},
+    task:'準備後先看 80 μm 狹縫的中央亮帶，再把單一狹縫寬度改成 20 μm。保持綠光、屏幕距離 1000 mm 與直立方向，觀察中央兩側第一條暗紋的距離。',
+    prepare:prepareWave,
+    check(){if(!opticalConditions()||state.slitWidth!==20)return{ok:false,message:'請保持綠光、屏幕距離 1000 mm、直立方向，只將單一狹縫寬度改到 20 μm。'};return{ok:true,evidence:'單狹縫寬度 80 → 20 μm；綠光、屏幕距離 1000 mm 與直立方向保持不變。'};},
+    observation:{question:'中央兩側第一條暗紋之間的範圍如何改變？',options:['變大，中央亮帶變寬','變小，中央亮帶變窄','中央變成全暗'],answer:0,hint:'以中央兩側第一條暗紋作為中央亮帶的邊界。'},
+    reason:{question:'為什麼開口縮小，中央亮帶反而更寬？',options:['光不再具有波動性','狹縫越窄，繞射向側方擴展越明顯','狹縫縮小會讓總通光量增加'],answer:1,hint:'繞射的擴展程度與開口相對波長的大小有關。'},
+    conclusion:'窄縫使繞射更明顯，中央亮帶變寬。此圖亮度正規化，不能因此認定窄縫通過的總光量比較多。'}
+  ]
+ };
  function range(id,label,min,max,value,unit,step=1){return `<div class="control"><label for="${id}">${label}</label><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"><output for="${id}" id="${id}-out">${value}${unit}</output></div>`;}
  function wire(id,key,unit='',rebuild=false){$(id).oninput=()=>{state[key]=+$(id).value;$(id+'-out').textContent=state[key]+unit;if(rebuild)buildField();draw();};}
- function mode(value){study=value;$('study-panel').hidden=!study;$('free-panel').hidden=study;$('free-mode').setAttribute('aria-pressed',!study);$('study-mode').setAttribute('aria-pressed',study);syncURL();}
+ function mode(value){study=value;document.body.dataset.study=String(study);$('study-panel').hidden=!study;$('free-panel').hidden=study;$('free-mode').setAttribute('aria-pressed',!study);$('study-mode').setAttribute('aria-pressed',study);syncURL();}
  function syncURL(){const q=new URLSearchParams({topic});if(study)q.set('mode','study');history.replaceState(null,'','?'+q);}
  function selectTopic(value){topic=value;time=0;field=null;document.querySelectorAll('[data-topic]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.topic===topic));const water=topic.startsWith('water'),interference=topic.endsWith('int');$('scene-title').textContent=({'water-int':'水波干涉｜追蹤同一點的振動','water-diff':'水波繞射｜比較開口與波長','light-int':'光波干涉｜雙狹縫與亮暗條紋','light-diff':'光波繞射｜單狹縫的中央亮帶'})[topic];$('scene-caption').textContent=water?interference?'點選水面移動 P 點，或用操作區的按鈕選波腹、波節。':'波從左方通過開口，觀察它往側方擴散的程度。':'左側為狹縫示意，右側為屏幕正視圖；亮度曲線沿垂直條紋的方向取樣。';$('time-controls').hidden=!water;$('observation-controls').hidden=!(water&&interference);$('legend').innerHTML='';delete $('legend').dataset.view;$('probe').hidden=!(water&&interference);
  if(water&&interference){$('controls').innerHTML=range('lambda','波長',16,80,state.wavelength,' cm')+range('separation','波源間距',60,220,state.separation,' cm')+'<div class="row"><button id="crest-view">只看波峰</button><button id="both-view">波峰＋波谷</button><button id="double-frequency">頻率加倍（波速固定）</button></div><p class="muted">觀測點可直接點選水面，也可用操作區的滑桿調整。</p>'+range('probe-x','P 點水平位置',-280,280,state.px,' cm')+range('probe-y','P 點離波源連線',40,330,state.py,' cm');wire('lambda','wavelength',' cm');wire('separation','separation',' cm');wire('probe-x','px',' cm');wire('probe-y','py',' cm');$('crest-view').onclick=()=>{state.troughs=false;draw();};$('both-view').onclick=()=>{state.troughs=true;draw();};$('double-frequency').onclick=()=>{if(state.wavelength<32)return;state.wavelength/=2;$('lambda').value=state.wavelength;$('lambda-out').textContent=state.wavelength+' cm';draw();};$('model-note').textContent='藍色來自 S₁，金色來自 S₂；實線是波峰、虛線是波谷。觀察波腹／波節會暫停在同峰相加／一峰一谷相遇的時刻。波節全程反相抵銷，但不代表每一瞬間都恰好是峰頂遇到谷底；也可能一起通過平衡位置。圖中的位移—時間曲線與主圖同步。';$('takeaways').innerHTML='<p>波峰＋波峰、波谷＋波谷：建設性干涉。等大波峰＋波谷：破壞性干涉。</p><p>振幅與瞬時位移不同：波腹通過平衡位置，位移為 0，仍維持最大的振幅。</p>';$('tasks').innerHTML='<p>① 按「觀察波腹」，再前進四分之一週期，觀察位移與振幅。</p><p>② 按「觀察波節」，看看兩個分波如何抵銷。</p><p>③ 觀察波節後把頻率加倍，觀察該位置是否仍是波節。</p>';
@@ -57,7 +115,7 @@
    ].map(([cls,label,color,id],i)=>`<div class="probe-wave ${cls}"><strong>${label}</strong><div class="phase-name" id="phase-${i}"></div><svg viewBox="0 0 160 120" role="img" aria-label="${label}的位移隨時間變化"><path d="M3 60H157" stroke="#b5c4d2"/><path d="M80 8V112" stroke="#9aaec0" stroke-dasharray="4 4"/><polyline id="probe-wave-${i}" fill="none" stroke="${color}" stroke-width="3"/><circle id="probe-dot-${i}" cx="80" cy="60" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg><div class="probe-value" id="${id}"></div></div>`).join('')+'</div><div class="probe-equation" id="probe-equation"></div><p class="probe-explain" id="meeting-description"></p><p class="note" id="amplitude"></p><p class="probe-help">可按操作區的「觀察波腹／觀察波節」比較加強與抵銷，或直接點選水面。播放與前進時間都會同步更新三張波形圖。</p></section>';
  }
 
- L.quiz($('study-panel'),questions[topic],'jutor.wave.'+topic+'.v1');syncURL();draw();}
+ guide?.destroy?.();guide=L.guidedStudy?L.guidedStudy($('study-panel'),guidedLessons[topic],'jutor.wave.guide.'+topic+'.v1',questions[topic],'jutor.wave.'+topic+'.v1',()=>study):L.quiz($('study-panel'),questions[topic],'jutor.wave.'+topic+'.v1');syncURL();draw();}
  function setProbe(x,y){state.px=x;state.py=y;if($('probe-x')){$('probe-x').value=x;$('probe-x-out').textContent=x.toFixed(1)+' cm';$('probe-y').value=y;$('probe-y-out').textContent=y+' cm';}draw();}
  function text(t,x,y,color='#e3edf7',size=16){ctx.fillStyle=color;ctx.font=`${size}px system-ui`;ctx.fillText(t,x,y);}
  function showAntinode(){
