@@ -1,6 +1,39 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const C=require('../junior/geography/timezone_core.js');
+test('four seasonal presets have the correct subsolar latitude and overhead sunlight',()=>{
+  assert.deepEqual(C.seasons.map(s=>[s.id,s.declination]),[['spring',0],['summer',23.44],['autumn',0],['winter',-23.44]]);
+  const t=C.fromLocal('2026-10-20',720,0);
+  for(const s of C.seasons){const v=C.solarVector(t,s.declination);assert.ok(Math.abs(Math.hypot(v.x,v.y,v.z)-1)<1e-12);assert.ok(Math.abs(C.solarCosine(C.sunLongitude(t),s.declination,t,s.declination)-1)<1e-12);}
+});
+test('solstice illumination produces polar day and night at every longitude and time',()=>{
+  const start=C.fromLocal('2026-10-20',0,0);
+  for(let minutes=0;minutes<1440;minutes+=60)for(let lon=-180;lon<180;lon+=15){const t=start+minutes*C.MINUTE;
+    assert.ok(C.solarCosine(lon,75,t,23.44)>0);assert.ok(C.solarCosine(lon,-75,t,23.44)<0);
+    assert.ok(C.solarCosine(lon,75,t,-23.44)<0);assert.ok(C.solarCosine(lon,-75,t,-23.44)>0);
+  }
+});
+test('latitude-dependent day length matches the horizon crossings and hemispheric symmetry',()=>{
+  for(const lat of [-80,-70,-60,-25,0,25,60,70,80]){
+    assert.ok(Math.abs(C.dayLengthHours(lat,0)-12)<1e-10);
+    assert.ok(Math.abs(C.dayLengthHours(lat,23.44)+C.dayLengthHours(-lat,23.44)-24)<1e-10);
+    if(Math.abs(lat)<66.56){const halfAngle=C.dayLengthHours(lat,23.44)/24*180,t=C.fromLocal('2026-10-20',720,0);assert.ok(Math.abs(C.solarCosine(halfAngle,lat,t,23.44))<1e-10);}
+  }
+  assert.equal(C.dayLengthHours(75,23.44),24);assert.equal(C.dayLengthHours(75,-23.44),0);
+  assert.equal(C.dayLengthHours(-90,-23.44),24);assert.equal(C.dayLengthHours(90,0),null);
+  const t=C.fromLocal('2026-10-20',720,0);assert.ok(C.solarCosine(95,60,t,23.44)>0);assert.ok(C.solarCosine(95,-60,t,23.44)<0);
+});
+test('globe and flat-map renderers both reverse polar lighting between solstices',()=>{
+  const fs=require('node:fs'),vm=require('node:vm');
+  const context=()=>({fillRect(){},beginPath(){},moveTo(){},lineTo(){},closePath(){},fill(){},stroke(){},arc(){},drawImage(){},setLineDash(){},fillText(){},strokeText(){},createRadialGradient(){return {addColorStop(){}};},measureText(s){return {width:s.length*8};},getImageData(x,y,w,h){const data=new Uint8ClampedArray(w*h*4);for(let i=0;i<data.length;i+=4){data[i]=100;data[i+1]=160;data[i+2]=200;data[i+3]=255;}return {data};},createImageData(w,h){return {data:new Uint8ClampedArray(w*h*4)};},putImageData(){}});
+  const canvas=()=>({width:760,height:600,getContext:context,addEventListener(){},getBoundingClientRect(){return {width:760,height:600};}});
+  const sandbox={window:{TimezoneCore:C,TimezoneLand:[]},document:{createElement:canvas},ResizeObserver:class{observe(){}}};vm.runInNewContext(fs.readFileSync(require.resolve('../junior/geography/timezone_renderer.js'),'utf8'),sandbox);
+  const map=canvas();map.width=900;map.height=270;const r=new sandbox.window.TimezoneRenderer(canvas(),map,()=>{}),t=C.fromLocal('2026-10-20',720,0);r.pitch=80;
+  const sample=(lat,lon)=>{const x=Math.floor((lon+180)/360*450),y=Math.floor((90-lat)/180*135);return r.shadeImage.data[(y*450+x)*4+3];};
+  r.update({epoch:t,from:'taipei',to:'london',season:'summer'});assert.equal(sample(75,0),0);assert.equal(sample(75,170),0);assert.ok(sample(-75,0)>150);const summerNorth=r.image.data[(195*390+195)*4];
+  r.update({epoch:t,from:'taipei',to:'london',season:'winter'});assert.ok(sample(75,0)>150);assert.ok(sample(75,170)>150);assert.equal(sample(-75,0),0);const winterNorth=r.image.data[(195*390+195)*4];assert.ok(summerNorth>winterNorth*2);
+  const summerSouth=sample(-75,0);r.pitch=-80;r.update({epoch:t,from:'taipei',to:'london',season:'winter'});assert.equal(sample(-75,0),summerSouth);assert.ok(r.image.data[(195*390+195)*4]>winterNorth*2);
+});
 test('all city pairs preserve the same instant, including half-hour and +14 offsets',()=>{
   for(const date of ['2026-01-01','2026-12-31','2028-02-29'])for(const a of C.cities)for(const b of C.cities)for(const t of [0,30,720,1439]){
     const instant=C.fromLocal(date,t,a.offset),p=C.parts(instant,b.offset);
