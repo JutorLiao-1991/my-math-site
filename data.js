@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月24日"
+    lastUpdated: "2026年10月29日"
 };
 
 // --- 課程資料區 ---
@@ -244,6 +244,15 @@ const lessonData = [
         tagClass: "chem",
         tagName: "國中理化",
         desc: "來場元素JUNO吧！"
+    },
+    {
+        title: "時區地球儀：世界現在幾點？（國一）",
+        category: "junior",
+        grades: [7],
+        url: "junior/geography/timezone_globe.html",
+        tagClass: "phys",
+        tagName: "國中地理",
+        desc: "轉動地球、比較各地時鐘與日期，在探索、引導任務與十題練習中掌握 UTC 時差、跨午夜和旅行抵達時間。"
     },
     {
         title: "多項式函數圖形（高一）",

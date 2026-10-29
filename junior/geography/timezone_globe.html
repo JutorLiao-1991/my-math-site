@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>時區地球儀：世界現在幾點？｜鳩特老師</title><meta name="description" content="轉動地球、比較世界時間，在探索、任務與練習中掌握 UTC 時差、跨午夜與飛行抵達時間。"><link rel="stylesheet" href="../../senior/science_lab.css"><link rel="stylesheet" href="../../senior/science_layout.css"><link rel="stylesheet" href="timezone_globe.css?v=1"><script defer src="timezone_core.js?v=1"></script><script defer src="world_land.js?v=1"></script><script defer src="timezone_renderer.js?v=1"></script><script defer src="timezone_globe.js?v=1"></script></head>
+<body class="science-layout timezone-lab">
+<header><a href="../../index.html">← 教材首頁</a><h1>時區地球儀</h1><span class="badge">鳩特老師 · 互動教室</span></header>
+<main class="shell">
+  <div class="toolbar"><div><div class="eyebrow">WORLD TIME EXPLORER</div><p>同一顆地球，同一個瞬間，各地現在幾點？</p></div><span class="model-badge">標準時間 · 不含夏令時間</span></div>
+  <nav class="tabs mode-tabs" aria-label="操作模式"><button type="button" data-mode="explore" aria-pressed="true">探索</button><button type="button" data-mode="mission" aria-pressed="false">任務</button><button type="button" data-mode="practice" aria-pressed="false">練習</button></nav>
+  <div class="grid lab-grid">
+    <section class="panel lab-main-panel globe-panel" aria-label="地球與世界地圖">
+      <div class="scene-top"><span class="scene-label">一個瞬間，看見全世界</span><span id="scene-state">時間已暫停</span></div>
+      <div class="globe-wrap"><canvas id="globe" width="760" height="600" tabindex="0" role="img" aria-label="可旋轉的時區地球儀。用方向鍵轉動視角，也可用下方按鈕查看城市。">世界地球儀，請使用下方城市清單查看各地時間。</canvas><div class="globe-hint">拖曳旋轉視角 · 點選城市比較時間</div></div>
+      <div class="view-tools"><button id="view-home">看基準城市</button><button id="view-target">看比較城市</button><button id="view-rotate">旋轉 90°</button><label><input id="show-grid" type="checkbox" checked> 經緯線</label><label><input id="show-labels" type="checkbox" checked> 城市名稱</label></div>
+      <div class="map-header"><h2>攤開地球看時間</h2><span class="muted">點選地圖也能轉到該處</span></div>
+      <canvas id="world-map" width="900" height="270" tabindex="0" role="img" aria-label="世界平面圖，呈現城市位置及理想春秋分的日夜分布。"></canvas>
+      <p class="scene-note">☀ 亮面＝理想模型的白晝　☾ 暗面＝黑夜<br>轉地球只改視角；調整時間才會改變各地時鐘。</p>
+      <details class="model-notes"><summary>模型說明與地圖來源</summary><p>本教具使用各城市的固定標準 UTC 時差，不含夏令時間，並非即時世界鐘。行政時區不完全依經度分割；城市換算請依標示的 UTC 數字。</p><p>日夜圖採理想春秋分：太陽直射赤道，忽略均時差、大氣折射與季節變化。日期控制只用於鐘錶換日，不改變此日夜模型。鐘錶 12:00 不一定是所在地的太陽正午。</p><p>海岸線：<a href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener">Natural Earth（公有領域）</a>。本圖用於位置與時間教學，不表示行政時區或國界。</p></details>
+    </section>
+    <aside class="lab-sidebar"><div class="lab-sidebar-content">
+      <section class="panel time-panel" id="time-panel"><div class="row spread"><h2>同一瞬間</h2><span id="utc-readout" class="muted"></span></div>
+        <div class="city-selectors"><label>基準城市<select id="reference-city" aria-label="基準城市"></select></label><label>比較城市<select id="target-city" aria-label="比較城市"></select></label></div>
+        <div class="date-time"><label>基準城市日期<input id="reference-date" type="date" min="2000-01-01" max="2099-12-31"></label><label>時間<input id="reference-time" type="time" step="60"></label></div>
+        <label class="sr-only" for="time-slider">調整基準城市當天時間</label><input id="time-slider" type="range" min="0" max="1439" step="1">
+        <div class="slider-labels"><span>00:00</span><strong id="slider-value"></strong><span>23:59</span></div>
+        <div class="time-actions"><button id="play">▶ 時間前進</button><button data-shift="-60">−1 小時</button><button data-shift="60">＋1 小時</button><button data-shift="360">＋6 小時</button></div>
+        <p class="muted small" id="time-help">播放速度：每秒經過 30 分鐘；可隨時暫停觀察。</p>
+      </section>
+      <section class="panel comparison-panel" id="comparison-panel"><div id="comparison-clocks" class="comparison-clocks"></div><div id="difference" class="difference"></div><div id="timeline" class="timeline"></div></section>
+      <section class="panel mode-content" id="explore-panel"><div class="eyebrow">探索 · 自由觀察</div><h2>先找兩座城市，再看時差</h2><div class="quick-cities" id="quick-cities"></div><p class="note" id="explore-prompt"></p></section>
+      <section class="panel mode-content" id="mission-panel" hidden><div class="row spread"><h2>任務小隊</h2><span id="mission-progress" class="badge"></span></div><nav id="mission-nav" class="mission-nav" aria-label="任務選擇"></nav><div id="mission-body"></div></section>
+      <section class="panel mode-content" id="practice-panel" hidden><div class="row spread"><h2>練習挑戰</h2><span class="badge">10 題 · 每題 10 分</span></div><label for="practice-kind">題目類型</label><select id="practice-kind"><option value="mixed">綜合挑戰</option><option value="concept">觀念判斷</option><option value="conversion">時差換算</option><option value="life">旅行應用</option></select><p class="muted small">錯一次扣 1 分，每題最低 0 分。可跳題、標記待檢查；未完成得 0 分。完成或交卷後查看解析。</p><button id="start-practice" class="primary">開始 10 題練習</button><div id="practice-body"></div></section>
+      <section class="panel" id="takeaway"><h2>鳩特的破題 SOP</h2><ol><li>找出兩地 UTC 時差。</li><li>目的地減基準地，判斷加或減。</li><li>有經過時間，先加上經過時間。</li><li>檢查是否跨過 00:00，調整日期。</li></ol><p class="muted small">任務與練習進度只存在這台裝置，不需登入。</p></section>
+    </div></aside>
+  </div>
+</main><div id="live-status" class="sr-only" aria-live="polite"></div>
+</body></html>
