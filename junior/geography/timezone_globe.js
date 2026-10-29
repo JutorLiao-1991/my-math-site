@@ -2,7 +2,7 @@
   'use strict';
   const C=window.TimezoneCore,$=id=>document.getElementById(id),KEY='jutor.timezone.v1';
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const state={mode:'explore',epoch:C.fromLocal('2026-10-20',15*60,480),from:'taipei',to:'london',playing:false,operated:false};
+  const state={mode:'explore',epoch:C.fromLocal('2026-10-20',15*60,480),from:'taipei',to:'london',playing:false,operated:false,season:'spring'};
   let completed=[],missionIndex=0,stage='predict',prediction=-1,observation=-1,evidence='',practice=null,frame=null,lastFrame=0;
   const validKinds=['mixed','concept','conversion','life'];
   function random(seed){return ()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
@@ -43,6 +43,10 @@
       const t=C.parts(state.epoch,to.offset);$('timeline').innerHTML=`<div class="timeline-row"><span>${from.name}</span><strong>${p.date} ${C.timeLabel(p)}</strong></div><div class="timeline-row${d?' timeline-midnight':''}"><span>${to.name}</span><strong>${t.date} ${C.timeLabel(t)}${d?' · '+C.relativeDay(d):''}</strong></div>`;}
     document.querySelectorAll('[data-city]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.city===state.to)));
     $('explore-prompt').textContent=to.offset===from.offset?'這兩座城市的標準時間相同。即使經度不同，也可能採用同一個時區。':`先猜：${to.name}比${from.name}快還是慢？把${from.name}時間推到接近午夜，觀察哪座城市先換日期。`;
+    const season=C.season(state.season);document.querySelectorAll('[data-season]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.season===state.season)));
+    $('direct-latitude').textContent='直射'+season.direct;$('season-note').textContent=season.note;
+    const lengthLabel=latitude=>{const hours=C.dayLengthHours(latitude,season.declination);if(hours===null)return '太陽在地平線的臨界位置';if(hours===24)return '極晝 24 小時';if(hours===0)return '極夜 0 小時';const minutes=Math.round(hours*60);return Math.floor(minutes/60)+' 小時 '+minutes%60+' 分';};
+    $('daylight-readout').textContent=from.name+'白晝約 '+lengthLabel(from.lat)+'；'+to.name+'白晝約 '+lengthLabel(to.lat)+'（幾何模型）';
     renderer.update({...state,hideTimes:hidden});
     if(state.mode==='mission'&&stage==='experiment')$('mission-live').textContent=state.operated?'已操作。符合任務條件後，按「記錄觀察」。':'請先操作地球、城市或時間，再記錄觀察。';
   }
@@ -91,6 +95,7 @@
     else{a.errors=Math.min(10,a.errors+1);save();renderPractice(q.type==='concept'?'再想想看，這次扣 1 分。':result.timeOK?'時間算對了，日期需要再檢查；這次扣 1 分。':result.dateOK?'日期選對了，時與分需要再檢查；這次扣 1 分。':'先算 UTC 時差，再檢查跨午夜；這次扣 1 分。',true);}
   }
   document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+    if(b.dataset.season){state.season=b.dataset.season;renderScene();announce(C.season(state.season).name+'：'+C.season(state.season).note);return;}
     if(b.dataset.mode){setMode(b.dataset.mode);return;}
     if(b.dataset.city){state.to=b.dataset.city;renderer.focus(state.to);renderScene();return;}
     if(b.dataset.shift){state.epoch+=Number(b.dataset.shift)*C.MINUTE;state.operated=true;renderScene();return;}
@@ -105,6 +110,8 @@
       case'play':togglePlay();break;
       case'view-home':renderer.focus(state.from);state.operated=true;renderScene();break;
       case'view-target':renderer.focus(state.to);state.operated=true;renderScene();break;
+      case'view-north':renderer.pitch=80;state.operated=true;renderScene();break;
+      case'view-south':renderer.pitch=-80;state.operated=true;renderScene();break;
       case'view-rotate':renderer.yaw+=90;state.operated=true;renderScene();break;
       case'capture-mission':captureMission();break;
       case'retry-mission':prepareMission(missionIndex);break;

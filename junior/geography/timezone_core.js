@@ -33,9 +33,22 @@
   function compare(epoch,from,to,duration=0){const arrival=epoch+duration*MINUTE,a=parts(epoch,from),b=parts(arrival,to);return {epoch:arrival,from:a,to:b,day:b.dayIndex-a.dayIndex,hour:b.hour,minute:b.minute,delta:to-from,duration};}
   function grade(expected,answer){const timeOK=Number(answer.hour)===expected.hour&&Number(answer.minute)===expected.minute&&answer.hour!==''&&answer.minute!=='';
     const dateOK=answer.day!==''&&Number(answer.day)===expected.day;return {ok:timeOK&&dateOK,timeOK,dateOK};}
-  // Equinox illustration: solar declination and equation of time are both set to zero.
+  // Four ideal seasonal scenarios, independent of the date used for clock arithmetic.
+  const OBLIQUITY=23.44;
+  const seasons=[
+    {id:'spring',name:'春分',declination:0,direct:'赤道 0°',note:'太陽直射赤道；除極點的臨界情況外，各緯度晝夜約各 12 小時。'},
+    {id:'summer',name:'夏至',declination:OBLIQUITY,direct:'北回歸線 23.44°N',note:'北半球晝長夜短；北極圈內可見極晝，南極圈內可見極夜。'},
+    {id:'autumn',name:'秋分',declination:0,direct:'赤道 0°',note:'太陽再次直射赤道；日夜分布與春分相同，季節順序不同。'},
+    {id:'winter',name:'冬至',declination:-OBLIQUITY,direct:'南回歸線 23.44°S',note:'北半球晝短夜長；北極圈內可見極夜，南極圈內可見極晝。'}
+  ];
+  const season=id=>seasons.find(s=>s.id===id)||seasons[0];
+  // Equation of time is omitted so the solar noon longitude advances uniformly.
   function sunLongitude(epoch){const d=new Date(epoch),minutes=d.getUTCHours()*60+d.getUTCMinutes()+d.getUTCSeconds()/60;return mod(180-minutes/4+180,360)-180;}
   function vector(lon,lat){const a=lon*Math.PI/180,b=lat*Math.PI/180;return {x:Math.cos(b)*Math.sin(a),y:Math.sin(b),z:Math.cos(b)*Math.cos(a)};}
+  function solarVector(epoch,declination=0){return vector(sunLongitude(epoch),declination);}
+  function illumination(normal,sun){return normal.x*sun.x+normal.y*sun.y+normal.z*sun.z;}
+  function solarCosine(lon,lat,epoch,declination=0){return illumination(vector(lon,lat),solarVector(epoch,declination));}
+  function dayLengthHours(latitude,declination){const phi=latitude*Math.PI/180,delta=declination*Math.PI/180,a=Math.sin(phi)*Math.sin(delta),b=Math.cos(phi)*Math.cos(delta);if(Math.abs(b)<1e-12)return Math.abs(a)<1e-12?null:a>0?24:0;const cosine=-a/b;if(cosine<=-1)return 24;if(cosine>=1)return 0;return 24*Math.acos(cosine)/Math.PI;}
   function project(lon,lat,yaw,pitch){const v=vector(lon-yaw,lat),p=pitch*Math.PI/180;return {x:v.x,y:v.y*Math.cos(p)-v.z*Math.sin(p),z:v.y*Math.sin(p)+v.z*Math.cos(p)};}
   function inverse(x,y,yaw,pitch){const z=Math.sqrt(Math.max(0,1-x*x-y*y)),p=pitch*Math.PI/180,Y=y*Math.cos(p)+z*Math.sin(p),Z=-y*Math.sin(p)+z*Math.cos(p);return {lon:mod(Math.atan2(x,Z)*180/Math.PI+yaw+180,360)-180,lat:Math.asin(Math.max(-1,Math.min(1,Y)))*180/Math.PI};}
   const missions=[
@@ -76,5 +89,5 @@
       result.push({id:i,type,from:from.id,to:to.id,epoch,duration,expected,prompt:type==='life'?`小鳩於 ${dateLabel(p)} ${timeLabel(p)} 從${from.name}出發，經過 ${duration/60} 小時抵達${to.name}。抵達當地的日期與時間是？`:`${from.name}是 ${dateLabel(p)} ${timeLabel(p)}，同一瞬間的${to.name}是？`});
     }return result;
   }
-  return {MINUTE,DAY,cities,city,mod,pad,parts,fromLocal,utcLabel,timeLabel,dateLabel,dayDifference,relativeDay,deltaLabel,compare,grade,sunLongitude,vector,project,inverse,missions,missionStart,checkMission,questionSet};
+  return {MINUTE,DAY,cities,city,mod,pad,parts,fromLocal,utcLabel,timeLabel,dateLabel,dayDifference,relativeDay,deltaLabel,compare,grade,OBLIQUITY,seasons,season,sunLongitude,vector,solarVector,illumination,solarCosine,dayLengthHours,project,inverse,missions,missionStart,checkMission,questionSet};
 });
