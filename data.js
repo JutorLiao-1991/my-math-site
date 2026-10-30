@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月29日"
+    lastUpdated: "2026年10月30日"
 };
 
 // --- 課程資料區 ---
@@ -246,9 +246,9 @@ const lessonData = [
         desc: "來場元素JUNO吧！"
     },
     {
-        title: "時區地球儀：世界現在幾點？（國一）",
+        title: "時區地球儀：世界現在幾點？（國三）",
         category: "junior",
-        grades: [7],
+        grades: [9],
         url: "junior/geography/timezone_globe.html",
         tagClass: "phys",
         tagName: "國中地理",
@@ -318,27 +318,27 @@ const lessonData = [
         desc: "拖曳向量端點，連動分量、加減法、夾角、內積與投影，並辨別零向量的特殊情況。"
     },
     {
-        title: "化學計量與限量試劑（高中）",
+        title: "化學計量與限量試劑（高二）",
         category: "senior",
-        grades: [10, 11],
+        grades: [11],
         url: "senior/chemistry/stoichiometry.html",
         tagClass: "chem",
         tagName: "高中化學",
         desc: "由粒子數、莫耳數與質量判斷限量試劑，追蹤反應前後的消耗、產物與剩餘量。"
     },
     {
-        title: "酸鹼滴定與 pH（高中）",
+        title: "酸鹼滴定與 pH（高三）",
         category: "senior",
-        grades: [11, 12],
+        grades: [12],
         url: "senior/chemistry/acid_base_titration.html",
         tagClass: "chem",
         tagName: "高中化學",
         desc: "逐滴加入強鹼，比較強酸、弱酸的滴定曲線，區分當量點與指示劑的變色終點。"
     },
     {
-        title: "天球與太陽軌跡（高中）",
+        title: "天球與太陽軌跡（高一）",
         category: "senior",
-        grades: [10, 11, 12],
+        grades: [10],
         url: "senior/earth/celestial_sun.html",
         tagClass: "phys",
         tagName: "高中地科",
