@@ -318,9 +318,9 @@ const lessonData = [
         desc: "拖曳向量端點，連動分量、加減法、夾角、內積與投影，並辨別零向量的特殊情況。"
     },
     {
-        title: "化學計量與限量試劑（高二）",
+        title: "化學計量與限量試劑（高一）",
         category: "senior",
-        grades: [11],
+        grades: [10],
         url: "senior/chemistry/stoichiometry.html",
         tagClass: "chem",
         tagName: "高中化學",
