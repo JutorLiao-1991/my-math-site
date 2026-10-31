@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="國二根式乘除、有理化、加減、四則及乘法公式的逐步練習與十分鐘考試。">
+    <title>鳩特數理｜根式的四則運算（國二）</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --primary-deep: #2563a6;
+            --secondary: #f5a623;
+            --bg: #f4f7f6;
+            --ink: #333333;
+            --muted: #64748b;
+            --panel: #ffffff;
+            --nav: rgba(30, 41, 59, 0.95);
+            --border: #e1e4e8;
+            --accent: #38bdf8;
+            --success: #4caf50;
+            --success-soft: #e8f5e9;
+            --error: #e74c3c;
+            --error-soft: #fff0f0;
+            --exam: #334155;
+            --shadow: 0 8px 26px rgba(30, 41, 59, 0.11);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; }
+        body {
+            min-height: 100vh;
+            color: var(--ink);
+            background-color: var(--bg);
+            background-image:
+                linear-gradient(rgba(74, 144, 226, 0.07) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(74, 144, 226, 0.07) 1px, transparent 1px);
+            background-size: 20px 20px;
+            font-family: "Microsoft JhengHei", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.5;
+        }
+
+        button, input { font: inherit; }
+        button { touch-action: manipulation; }
+        .hidden { display: none !important; }
+
+        .nav-bar {
+            min-height: 62px;
+            padding: 10px clamp(14px, 3vw, 28px);
+            color: white;
+            background: var(--nav);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.14);
+        }
+
+        .back-btn {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 800;
+            border: 1px solid var(--accent);
+            border-radius: 999px;
+            padding: 6px 13px;
+            white-space: nowrap;
+        }
+        .back-btn:hover, .back-btn:focus-visible { background: var(--accent); color: #0f172a; }
+        .page-title { margin: 0; text-align: center; font-size: clamp(1.05rem, 3vw, 1.3rem); }
+        .mode-pill {
+            min-width: 76px;
+            text-align: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            color: white;
+            background: rgba(255,255,255,0.15);
+            font-size: 0.88rem;
+            font-weight: 800;
+        }
+
+        .main-wrapper {
+            width: min(1240px, 100%);
+            margin: 0 auto;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: minmax(0, 1.65fr) minmax(330px, 0.85fr);
+            gap: 16px;
+            min-height: calc(100vh - 62px);
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 2px solid rgba(255,255,255,0.9);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .workspace-panel {
+            position: relative;
+            padding: clamp(18px, 3vw, 32px);
+            display: flex;
+            flex-direction: column;
+            min-height: 610px;
+        }
+
+        .watermark {
+            position: absolute;
+            right: 22px;
+            bottom: 14px;
+            color: rgba(30, 41, 59, 0.08);
+            font-family: Georgia, serif;
+            font-style: italic;
+            font-size: 1.25rem;
+            pointer-events: none;
+        }
+
+        .formula-intro h2 { margin: 0 0 6px; color: var(--primary-deep); }
+        .formula-intro > p { margin: 0 0 18px; color: var(--muted); }
+        .formula-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .formula-card {
+            min-height: 142px;
+            padding: 16px 12px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            background: linear-gradient(145deg, #fff, #f3f7fb);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .formula-card strong { color: var(--primary-deep); margin-bottom: 10px; }
+        .formula-math { font-family: Georgia, "Times New Roman", serif; font-size: clamp(1.15rem, 2.2vw, 1.5rem); }
+        .formula-card small { margin-top: 10px; color: var(--muted); }
+
+        .start-note {
+            margin-top: 18px;
+            padding: 14px 16px;
+            border-left: 5px solid var(--primary);
+            border-radius: 8px;
+            background: #eef6fc;
+            color: #334155;
+        }
+
+        .question-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .practice-formula {
+            margin: 0 0 14px;
+            padding: 12px 16px;
+            border: 2px solid #b9d7f5;
+            border-radius: 12px;
+            background: #eef6fc;
+            color: var(--primary-deep);
+            text-align: center;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.1rem, 3vw, 1.45rem);
+            font-weight: 800;
+        }
+        .practice-formula small {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--muted);
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-size: 0.82rem;
+        }
+        .topic-badge {
+            display: inline-block;
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: #e8f2fc;
+            color: var(--primary-deep);
+            font-weight: 900;
+            font-size: 0.88rem;
+        }
+        .question-number { color: var(--muted); font-weight: 800; white-space: nowrap; }
+        .question-prompt {
+            margin: 2px 0 18px;
+            padding: 18px;
+            border-radius: 15px;
+            background: var(--bg);
+            text-align: center;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.5rem, 5vw, 2.15rem);
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+
+        .steps { display: flex; flex-direction: column; gap: 10px; }
+        .step-row {
+            padding: 13px 14px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            background: #fff;
+            transition: opacity 0.25s, transform 0.25s, background 0.25s;
+        }
+        .step-row.current { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(74,144,226,0.14); }
+        .step-row.solved { border-color: #9ed7b8; background: var(--success-soft); }
+        .step-label { display: block; margin-bottom: 8px; color: var(--muted); font-size: 0.84rem; font-weight: 800; }
+        .equation-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            min-height: 48px;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: clamp(1.18rem, 4vw, 1.55rem);
+        }
+        .answer-field {
+            position: relative;
+            display: inline-flex;
+            width: clamp(58px, 10vw, 86px);
+            min-height: 44px;
+        }
+        .answer-input {
+            width: 100%;
+            min-height: 44px;
+            padding: 6px 7px;
+            border: 2px dashed #9fb8d0;
+            border-radius: 9px;
+            background: #f8fbff;
+            color: var(--ink);
+            text-align: center;
+            font-family: "Microsoft JhengHei", sans-serif;
+            font-size: 1rem;
+            font-weight: 800;
+            user-select: text;
+            transition: 0.15s;
+        }
+        .answer-input:focus { outline: none; border-style: solid; border-color: var(--primary-deep); box-shadow: 0 0 0 4px rgba(74,144,226,0.16); }
+        .answer-input.correct { border-style: solid; border-color: var(--success); background: var(--success-soft); color: #176c42; }
+        .answer-input.wrong { border-style: solid; border-color: var(--error); background: var(--error-soft); color: var(--error); animation: shake 0.24s linear 1; }
+        .answer-field.fraction-mode .answer-input { color: transparent; caret-color: transparent; }
+        .fraction-preview {
+            position: absolute;
+            inset: 3px 7px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            color: var(--ink);
+            pointer-events: none;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 0.92rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .answer-field.fraction-mode .fraction-preview { display: flex; }
+        .answer-input.correct + .fraction-preview { color: #176c42; }
+        .answer-input.wrong + .fraction-preview { color: var(--error); }
+        .fraction-whole:empty { display: none; }
+        .fraction-stack, .inline-fraction {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: center;
+            min-width: 1.2em;
+            text-align: center;
+            vertical-align: middle;
+            line-height: 1.05;
+        }
+        .fraction-numerator, .inline-fraction > span:first-child {
+            padding: 0 0.15em 0.08em;
+            border-bottom: 1.5px solid currentColor;
+        }
+        .fraction-denominator, .inline-fraction > span:last-child { padding: 0.08em 0.15em 0; }
+        .inline-fraction { margin: 0 0.1em; font-size: 0.82em; }
+        @keyframes shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+        .solution-box {
+            margin-top: 14px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: var(--success-soft);
+            color: #176c42;
+            font-weight: 800;
+        }
+
+        .side-panel { padding: 20px; display: flex; flex-direction: column; }
+        .side-panel h2 { margin: 0 0 12px; color: var(--primary-deep); }
+        .mode-grid { display: grid; gap: 12px; }
+        .mode-btn {
+            width: 100%;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            padding: 16px;
+            background: white;
+            color: var(--ink);
+            text-align: left;
+            cursor: pointer;
+            transition: 0.18s;
+        }
+        .mode-btn:hover, .mode-btn:focus-visible { transform: translateY(-2px); border-color: var(--primary); box-shadow: 0 7px 16px rgba(30,41,59,0.1); }
+        .mode-btn strong { display: block; margin-bottom: 4px; font-size: 1.08rem; }
+        .mode-btn small { color: var(--muted); line-height: 1.5; }
+        .mode-btn.practice strong { color: var(--primary-deep); }
+        .mode-btn.exam strong { color: var(--exam); }
+
+        .formula-selector { margin-top: 18px; }
+        .formula-selector label { display: block; margin-bottom: 6px; font-weight: 800; }
+        .formula-selector select {
+            width: 100%;
+            min-height: 46px;
+            padding: 8px 10px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            background: white;
+            color: var(--ink);
+            font-size: 1rem;
+        }
+
+        .rules-card {
+            margin-top: 18px;
+            padding: 14px;
+            border-radius: 10px;
+            background: #eef6fc;
+            color: #334155;
+            font-size: 0.94rem;
+        }
+        .rules-card ul { margin: 8px 0 0; padding-left: 1.3rem; }
+
+        .stats-card {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 9px;
+            margin-bottom: 12px;
+        }
+        .stat {
+            padding: 10px;
+            border-radius: 10px;
+            background: #f3f7fb;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+        .stat span { display: block; color: var(--muted); font-size: 0.8rem; font-weight: 800; }
+        .stat strong { display: block; margin-top: 2px; color: var(--primary-deep); font-size: 1.15rem; }
+        .timer-wrap { height: 8px; margin: 2px 0 14px; border-radius: 999px; background: #dbe4ee; overflow: hidden; }
+        .timer-bar { height: 100%; width: 100%; background: var(--exam); transition: width 0.3s linear, background 0.3s; }
+
+        .feedback {
+            min-height: 48px;
+            margin: 4px 0 12px;
+            padding: 11px 12px;
+            border-radius: 9px;
+            background: #f1f5f9;
+            color: var(--muted);
+            font-weight: 800;
+        }
+        .feedback.good { color: #176c42; background: var(--success-soft); }
+        .feedback.bad { color: var(--error); background: var(--error-soft); }
+
+        .check-btn, .secondary-btn {
+            width: 100%;
+            min-height: 48px;
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 900;
+        }
+        .check-btn { color: white; background: var(--primary-deep); box-shadow: 0 4px 0 #1f4f82; }
+        .check-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #1f4f82; }
+        .check-btn:disabled { background: #cbbfc2; box-shadow: none; cursor: not-allowed; transform: none; }
+        .secondary-btn { margin-top: 10px; color: var(--ink); background: #e2e8f0; border: 1px solid var(--border); }
+
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 14px;
+        }
+        .key-btn {
+            min-height: 47px;
+            border: 2px solid var(--border);
+            border-radius: 11px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 1.2rem;
+            font-weight: 900;
+            cursor: pointer;
+        }
+        .key-btn:active { background: var(--primary); color: white; transform: scale(0.96); }
+        .key-btn.mixed-key { font-size: 0.82rem; }
+
+        .end-card { margin: auto; width: min(540px, 100%); text-align: center; }
+        .end-icon { font-size: 3.3rem; }
+        .end-card h2 { margin: 6px 0; color: var(--primary-deep); }
+        .final-score { margin: 12px 0; color: var(--exam); font-size: clamp(3.2rem, 12vw, 5.8rem); font-weight: 900; line-height: 1; }
+        .final-details { color: var(--muted); line-height: 1.8; }
+
+        @media (max-width: 860px) {
+            .nav-bar { grid-template-columns: auto 1fr; }
+            .mode-pill { display: none; }
+            .main-wrapper { grid-template-columns: 1fr; padding: 10px; min-height: auto; }
+            .workspace-panel { min-height: 0; }
+            .side-panel { padding: 16px; }
+        }
+
+        @media (max-width: 590px) {
+            .nav-bar { padding: 9px 10px; }
+            .back-btn { padding: 5px 9px; font-size: 0.82rem; }
+            .page-title { text-align: right; }
+            .formula-grid { grid-template-columns: 1fr; }
+            .formula-card { min-height: 105px; }
+            .workspace-panel { padding: 15px 12px 24px; }
+            .question-head { align-items: center; }
+            .question-prompt { padding: 14px 8px; }
+            .step-row { padding: 12px 8px; }
+            .equation-line { gap: 3px; }
+            .answer-field { width: 62px; min-height: 42px; }
+            .answer-input { width: 100%; min-height: 42px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: 0.01ms !important; }
+        }
+    </style>
+
+<style>
+:root { --error: #b42318; --muted: #475569; }
+button, input, select, summary { -webkit-tap-highlight-color: transparent; }
+button:focus-visible, select:focus-visible { outline: 3px solid #0f766e; outline-offset: 3px; }
+.workspace-panel { min-width: 0; }
+.eyebrow { color: #475569; font-size: .85rem; font-weight: 800; letter-spacing: .04em; margin-bottom: 8px; }
+.learning-path { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin: 20px 0; }
+.stage-button { border: 1px solid #b8cadc; border-radius: 10px; background: #f8fafc; color: #334155; padding: 12px 5px; cursor: pointer; font-weight: 800; font-size: .85rem; }
+.stage-button.active { background: #2563a6; color: #fff; border-color: #2563a6; }
+.stage-preview { border: 1px solid #dbe4ee; border-radius: 14px; padding: 20px; background: #f8fbff; }
+.stage-preview h3 { margin: 12px 0 6px; color: #1e4f82; font-size: 1.35rem; }
+.stage-preview p { margin: 0 0 20px; color: #475569; }
+.stage-preview .formula-math { padding: 18px 10px; border-radius: 10px; background: #fff; text-align: center; font-size: 1.8rem; overflow-x: auto; }
+.type-list { color: #475569; font-size: .85rem; line-height: 1.9; margin-top: 18px; }
+.variant-label { margin-top: 14px; }
+.radical { display: inline-flex; align-items: stretch; white-space: nowrap; vertical-align: middle; }
+.root-symbol { line-height: 1.3; font-family: 'Times New Roman', serif; font-size: 1.12em; }
+.radicand { border-top: 1.4px solid currentColor; padding: .04em .09em .04em .02em; margin-top: .08em; display: inline-flex; align-items: center; }
+.radicand:has(.inline-fraction) { margin-top: .02em; }
+.question-prompt { overflow-x: auto; overflow-wrap: normal; line-height: 2; }
+.question-prompt .radicand { line-height: 1.2; }
+.equation-line { justify-content: flex-start; overflow-x: auto; flex-wrap: nowrap; padding: 4px 2px 8px; white-space: nowrap; font-size: 1.3rem; gap: 5px; }
+.equation-line .answer-field { width: 62px; flex-shrink: 0; margin: 0 3px; vertical-align: middle; }
+.equation-line .radical { align-items: center; }
+.equation-line .radicand { align-self: stretch; }
+.equation-line .root-symbol { font-size: 1.7em; }
+.inline-fraction { vertical-align: middle; }
+.inline-fraction > span { display: flex; align-items: center; justify-content: center; min-height: 1.15em; }
+.solution-box { font-size: 1.08rem; font-weight: 700; line-height: 2; overflow-x: auto; }
+.practice-formula { font-family: inherit; text-align: left; font-size: 1rem; }
+.feedback { min-height: 44px; }
+.answer-input:focus { background: #fff7d6; }
+.keypad-actions { display: grid; grid-template-columns: 1fr 2fr; gap: 8px; margin-top: 14px; }
+.keypad-actions .secondary-btn { margin-top: 0; }
+.check-btn:disabled { color: #334155; background: #dbe4ee; }
+.numpad { margin-top: 10px; }
+#next-stage-btn { background: #e6f4ec; color: #166534; border-color: #b5d6c0; }
+@media (min-width: 700px) and (orientation: landscape) {
+ .main-wrapper { grid-template-columns: minmax(0, 1.65fr) minmax(285px, .85fr); }
+ .nav-bar { grid-template-columns: auto 1fr auto; }
+ .workspace-panel { min-height: 530px; }
+ .side-panel { padding: 16px; }
+ .mode-pill { display: block; }
+}
+@media (max-width: 590px) {
+ .learning-path { gap: 5px; grid-template-columns: repeat(3, 1fr); }
+ .stage-button { min-height: 42px; }
+ .stage-preview { padding: 15px; }
+ .stage-preview .formula-math { font-size: 1.45rem; }
+ .is-playing { padding-bottom: 235px; }
+ .is-playing .keypad-dock { position: fixed; z-index: 110; bottom: 0; left: 0; right: 0; background: #eef3f8; padding: 8px 10px max(8px, env(safe-area-inset-bottom)); border-top: 1px solid #c5d4e3; box-shadow: 0 -4px 18px #0f172a18; }
+ .keypad-actions { margin-top: 0; gap: 6px; }
+ .keypad-actions button { min-height: 38px; font-size: .95rem; }
+ .numpad { gap: 5px; margin-top: 7px; }
+ .key-btn { min-height: 36px; border-radius: 8px; font-size: 1.05rem; }
+ .is-playing .side-panel { padding: 12px; }
+ .stats-card { grid-template-columns: repeat(4, 1fr); gap: 5px; }
+ .stat { padding: 6px 2px; }.stat strong { font-size: .95rem; }.stat span { font-size: .72rem; }
+ .nav-bar { position: relative; }
+ .page-title { font-size: 1rem; }
+ .equation-line .answer-field { width: 54px; }
+ .equation-line { font-size: 1.1rem; }
+ .is-playing .main-wrapper { gap: 10px; }
+}
+</style>
+
+<style>
+select.answer-input { min-width: 185px; width: auto; color: #334155; background: #fff; border: 2px solid #a9bfd5; }
+.exam-answer-label { display: block; margin: 14px 0 10px; font-weight: 800; color: #334155; }
+#exam-answer { width: 100%; resize: vertical; min-height: 90px; padding: 14px; font-size: 1.35rem; font-family: inherit; border: 2px solid #9fb8d0; border-radius: 12px; background: #fffdf2; color: #1e293b; }
+#exam-answer:focus { outline: 3px solid #cce3f7; border-color: #2563a6; }
+.exam-preview { min-height: 84px; margin-top: 12px; padding: 14px; border: 1px solid #dbe4ee; border-radius: 12px; background: #f8fbff; font-family: Georgia,serif; font-size: 1.8rem; line-height: 1.7; overflow-x: auto; color: #334155; }
+.input-help { color: #475569; font-size: .85rem; line-height: 1.8; }
+.exam-question-nav { display: grid; grid-template-columns: repeat(5,1fr); gap: 7px; }
+.exam-number { min-height: 39px; background: #fff; color: #334155; border: 1px solid #b8cadc; border-radius: 8px; font-size: 1rem; font-weight: 800; cursor: pointer; }
+.exam-number.entered { background: #e3eef9; }.exam-number.partial { background: #fff0b8; }
+.exam-number.current { box-shadow: 0 0 0 2px #2563a6; }
+.exam-number.flagged, #review-toggle.flagged { border: 3px solid #7e22ce; background-color: #f3e8ff; color: #581c87; }
+.nav-legend { margin: 10px 0; font-size: .75rem; color: #475569; }
+.submit-button { margin-top: 12px; }
+.submit-confirm { padding: 14px; border: 2px solid #bfd2e5; border-radius: 12px; margin-top: 12px; background: #f8fbff; color: #334155; font-size: .95rem; }
+.end-card { width: 100%; }.final-details { text-align: left; }
+.exam-result { padding: 12px 0; border-top: 1px solid #cbd5e1; color: #334155; }
+.exam-result summary { cursor: pointer; font-weight: 800; font-size: .95rem; }
+.result-question, .result-answer, .result-solution { margin-top: 12px; overflow-x: auto; font-size: 1.1rem; line-height: 2; }
+.result-solution { padding: 12px; background: #f1f7fc; border-radius: 8px; }
+@media(max-width:590px){ .is-exam { padding-bottom: 280px; }.exam-preview { font-size: 1.45rem; }.exam-question-nav { grid-template-columns: repeat(10,1fr);gap:4px; }.exam-number { min-height:34px;padding:2px;font-size:.85rem; } }
+</style>
+<style>.radicand sup { align-self: flex-start; font-size: .7em; line-height: 1; }.step-row { scroll-margin-top: 12px; scroll-margin-bottom: 280px; }</style>
+</head>
+<body>
+    <header class="nav-bar">
+        <a class="back-btn" href="../../index.html">← 回主選單</a>
+        <h1 class="page-title">🦔 根式的四則運算（國二）</h1>
+        <div id="mode-pill" class="mode-pill">準備中</div>
+    </header>
+
+    <main class="main-wrapper">
+        <section class="panel workspace-panel" aria-label="根式運算題目區">
+            <div id="intro-screen" class="formula-intro">
+                <div class="eyebrow">國二上 · 根式運算</div>
+                <h2>根式的四則運算</h2>
+                <p>一步一步算清楚：先乘除、再有理化，接著找同類，最後串起四則與乘法公式。</p>
+                <div id="learning-path" class="learning-path" role="group" aria-label="五階段學習路徑"></div>
+                <div class="stage-preview"><span id="preview-badge" class="topic-badge"></span><h3 id="preview-title"></h3><p id="preview-tip"></p><div id="preview-example" class="formula-math"></div><div id="preview-types" class="type-list"></div></div>
+                <div class="start-note">依講義安排五個階段。每階段可挑題型練習，或進行十題測驗；選「五階段綜合」會平均抽出各階段題目。</div>
+            </div>
+
+            <div id="question-screen" class="hidden">
+                <div id="practice-formula" class="practice-formula hidden" aria-label="本題適用公式"></div>
+                <div class="question-head">
+                    <div><span id="topic-badge" class="topic-badge"></span></div>
+                    <div id="question-number" class="question-number"></div>
+                </div>
+                <div id="question-prompt" class="question-prompt"></div>
+                <div id="feedback" class="feedback" role="status" aria-live="polite">請完成目前這一列。</div>
+                <div id="steps" class="steps"></div>
+                <div id="exam-answer-area" class="hidden">
+                  <label for="exam-answer" class="exam-answer-label">答案（須化為最簡，分母須有理化）</label>
+                  <textarea id="exam-answer" rows="2" maxlength="160" autocomplete="off" spellcheck="false" placeholder="直接輸入答案，例如 2√3、√6/2、3−2√5"></textarea>
+                  <div id="exam-preview" class="exam-preview" aria-live="polite"></div>
+                  <p class="input-help">√3 可輸入 sqrt(3)；分式可寫 (√2+√3)/2。答案項次可以交換。</p>
+                </div>
+                <div id="solution-box" class="solution-box hidden" aria-live="polite"></div>
+            </div>
+
+            <div id="end-screen" class="end-card hidden">
+                <div id="end-icon" class="end-icon">🏁</div>
+                <h2 id="end-title">挑戰完成</h2>
+                <div id="final-score" class="final-score"></div>
+                <div id="final-details" class="final-details"></div>
+            </div>
+            <div class="watermark">Presented by Jutor</div>
+        </section>
+
+        <aside class="panel side-panel" aria-label="模式與作答控制">
+            <div id="setup-controls">
+                <h2>練習設定</h2>
+                <div class="mode-grid">
+                    <button class="mode-btn practice" type="button" onclick="startPractice()">
+                        <strong>💪 練習模式</strong>
+                        <small>不限時間、不計分；每一列都要做到正確才會出現下一列。</small>
+                    </button>
+                    <button class="mode-btn exam" type="button" onclick="startExam()">
+                        <strong>📝 考試模式</strong>
+                        <small>依選定階段的全部題型抽 10 題、限時 10 分鐘；每題 10 分，直接填寫最簡答案，交卷後統一評分。</small>
+                    </button>
+                </div>
+                <div class="formula-selector">
+                    <label for="practice-topic">練習／考試範圍</label>
+                    <select id="practice-topic"></select>
+                    <label for="practice-variant" class="variant-label">練習題型（考試包含該範圍全部題型）</label>
+                    <select id="practice-variant"><option value="all">本階段全部題型</option></select>
+                </div>
+                <div class="rules-card">
+                    <strong>輸入方式</strong>
+                    <ul>
+                        <li>手機與平板使用下方鍵盤；桌機也可直接打字。</li>
+                        <li>按「／」後會顯示成上下分數；帶分數先按「帶分數」。</li>
+                        <li>中間係數接受等值分數、小數與帶分數；最簡答案的每個空格請填整數。</li>
+                        <li>練習按 Enter 檢查本列；考試可跳題、標記待檢查，交卷後看詳解。</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="play-controls" class="hidden">
+                <div class="stats-card">
+                    <div class="stat"><span>進度</span><strong id="stat-progress">1</strong></div>
+                    <div class="stat"><span id="score-label">已完成</span><strong id="stat-score">0</strong></div>
+                    <div class="stat"><span>本題分數</span><strong id="stat-question-score">—</strong></div>
+                    <div class="stat"><span>剩餘時間</span><strong id="stat-time">不限時</strong></div>
+                </div>
+                <div id="timer-wrap" class="timer-wrap hidden"><div id="timer-bar" class="timer-bar"></div></div>
+
+
+                <div id="exam-nav-area" class="hidden"><div id="exam-question-nav" class="exam-question-nav" role="group" aria-label="考試題號"></div><div class="nav-legend">白：未填　黃：輸入未完整　藍：已填　紫框：待檢查</div><button id="review-toggle" class="secondary-btn" onclick="toggleReview()">☆ 標記待檢查</button><button class="check-btn submit-button" onclick="requestSubmit()">交卷</button><div id="submit-confirm" class="submit-confirm hidden"><p id="submit-message"></p><button class="check-btn" onclick="submitExam(false)">確認交卷</button><button class="secondary-btn" onclick="cancelSubmit()">繼續作答</button></div></div>
+                <button class="secondary-btn" type="button" onclick="returnToSetup()">結束並返回設定</button>
+                <div class="keypad-dock"><div class="keypad-actions"><button id="next-cell-btn" class="secondary-btn" type="button" onclick="focusNextInput()">下一格</button><button id="check-btn" class="check-btn" type="button" onclick="checkCurrentRow()">檢查本列</button></div><div class="numpad" aria-label="數字鍵盤">
+                    <button class="key-btn" type="button" onclick="typeKey('7')">7</button>
+                    <button class="key-btn" type="button" onclick="typeKey('8')">8</button>
+                    <button class="key-btn" type="button" onclick="typeKey('9')">9</button>
+                    <button class="key-btn" type="button" onclick="typeKey('/')">／</button>
+                    <button class="key-btn" type="button" onclick="typeKey('4')">4</button>
+                    <button class="key-btn" type="button" onclick="typeKey('5')">5</button>
+                    <button class="key-btn" type="button" onclick="typeKey('6')">6</button>
+                    <button class="key-btn" type="button" onclick="typeKey('.')">.</button>
+                    <button class="key-btn" type="button" onclick="typeKey('1')">1</button>
+                    <button class="key-btn" type="button" onclick="typeKey('2')">2</button>
+                    <button class="key-btn" type="button" onclick="typeKey('3')">3</button>
+                    <button class="key-btn" type="button" onclick="typeKey('-')">−</button>
+                    <button class="key-btn" type="button" onclick="typeKey('0')">0</button>
+                    <button class="key-btn mixed-key" type="button" id="mixed-key" onclick="typeKey('mixed')">帶分數</button>
+                    <button class="key-btn" type="button" onclick="typeKey('backspace')">⌫</button>
+                    <button class="key-btn" type="button" onclick="typeKey('clear')">清除</button>
+                    <button class="key-btn exam-key hidden" onclick="typeKey('+')">＋</button><button class="key-btn exam-key hidden" onclick="typeKey('(')">(</button><button class="key-btn exam-key hidden" onclick="typeKey(')')">)</button>
+                </div></div>
+                <button id="next-stage-btn" class="secondary-btn hidden" type="button" onclick="nextStage()">前往下一階段</button>
+            </div>
+
+            <div id="end-controls" class="hidden">
+                <button class="check-btn" type="button" onclick="repeatMode()">再挑戰一次</button>
+                <button class="secondary-btn" type="button" onclick="returnToSetup()">回到模式選擇</button>
+            </div>
+        </aside>
+    </main>
+
+    <script src="radical_arithmetic_core.js"></script>
+    <script src="radical_arithmetic_grade8.js"></script>
+</body>
+</html>

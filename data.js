@@ -219,6 +219,15 @@ const lessonData = [
         desc: "逐步練習和的平方、差的平方與平方差，並挑戰五分鐘十題考試。"
     },
     {
+        title: "根式的四則運算（國二）",
+        category: "junior",
+        grades: [8],
+        url: "junior/math/radical_arithmetic_grade8.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "依序練習根式乘除、有理化、加減、四則與乘法公式；逐列填空檢查，再挑戰十分鐘十題測驗。"
+    },
+    {
         title: "多項式的加減法（國二）",
         category: "junior",
         grades: [8],
