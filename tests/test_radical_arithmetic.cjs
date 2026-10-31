@@ -22,6 +22,20 @@ test('all lecture-shaped questions and every filled intermediate row preserve th
  assert.deepEqual(pool.find(q=>q.variant==='三項式的平方差').answer,{1:Q.rat(-7),2:Q.rat(6)});
 });
 
+test('mixed-number labels keep fraction markup intact instead of joining digits',()=>{
+ const fraction=Q.frac(2,3);
+ assert.equal(Q.rationalHTML(Q.rat(8,3),'2'+fraction),'2'+fraction);
+ assert.equal(Q.rationalHTML(Q.rat(-8,3),'-2'+fraction),'−2'+fraction);
+ assert.ok(!Q.show(Q.rad(8,3,'2'+fraction)).includes('inline−fraction'));
+ const cases=pool.filter(q=>/帶分數/.test(q.variant));
+ assert.ok(cases.length>=10);
+ for(const q of cases){assert.ok(q.prompt.includes('class="inline-fraction"'),q.id);assert.ok(!q.prompt.includes('inline−fraction'),q.id);}
+ const q=cases.find(q=>q.variant==='根號內的帶分數與負號');
+ assert.ok(q.prompt.includes('2<span class="inline-fraction"><span>2</span><span>3</span>'));
+ assert.deepEqual(q.rows[0].answers,[Q.rat(-1),Q.rat(48)]);
+ assert.deepEqual(q.answer,{3:Q.rat(-4)});
+});
+
 test('exact roots and quotients cover rational, mixed-number and decimal radicands and negative denominators',()=>{
  assert.deepEqual(Q.rootValue(Q.rat(8,9)),{2:Q.rat(2,3)});
  assert.deepEqual(Q.rootValue(Q.rat(6,10)),{15:Q.rat(1,5)});
