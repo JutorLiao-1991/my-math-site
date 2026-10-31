@@ -29,7 +29,7 @@ const sum=(...args)=>({op:'add',args});const prod=(...args)=>({op:'mul',args});c
 function evaluate(e){if(e.op==='num')return scalar(e.r.n,e.r.d);if(e.op==='root')return rootValue(e.r);if(e.op==='add')return e.args.reduce((p,a)=>add(p,evaluate(a)),{});if(e.op==='mul')return e.args.reduce((p,a)=>mul(p,evaluate(a)),scalar(1));if(e.op==='div')return div(evaluate(e.a),evaluate(e.b));if(e.op==='square'){const a=evaluate(e.a);return mul(a,a);}throw Error('Unknown expression');}
 const frac=(a,b)=>`<span class="inline-fraction"><span>${a}</span><span>${b}</span></span>`;
 const rootHTML=a=>`<span class="radical"><span class="root-symbol">√</span><span class="radicand">${a}</span></span>`;
-function rationalHTML(r,label=null){if(label)return String(label).replace(/-/g,'−');r=asRat(r);return r.d===1?String(r.n).replace('-','−'):(r.n<0?'−':'')+frac(Math.abs(r.n),r.d);}
+function rationalHTML(r,label=null){if(label)return String(label).replace(/^-/,'−');r=asRat(r);return r.d===1?String(r.n).replace('-','−'):(r.n<0?'−':'')+frac(Math.abs(r.n),r.d);}
 function show(e){if(e.op==='num')return rationalHTML(e.r,e.label);if(e.op==='root')return rootHTML(e.argumentAST?show(e.argumentAST):rationalHTML(e.r,e.label));if(e.op==='add')return e.args.map((a,i)=>{if(a.op==='num'&&a.r.n<0)return (i?' − ':'−')+rationalHTML(rat(-a.r.n,a.r.d));if(a.op==='mul'&&a.args[0].op==='num'&&a.args[0].r.n<0){const [n,...rest]=a.args;return(i?' − ':'−')+show(prod(num(-n.r.n,n.r.d),...rest));}return(i?' ＋ ':'')+show(a);}).join('');if(e.op==='mul'){
  const args=e.args.filter(a=>!(a.op==='num'&&a.r.n===a.r.d));
  if(!args.length)return '1';if(args.length===1)return show(args[0]);
