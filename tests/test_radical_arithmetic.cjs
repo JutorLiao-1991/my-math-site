@@ -22,6 +22,38 @@ test('all lecture-shaped questions and every filled intermediate row preserve th
  assert.deepEqual(pool.find(q=>q.variant==='三項式的平方差').answer,{1:Q.rat(-7),2:Q.rat(6)});
 });
 
+test('unit radical coefficients and factor-one decompositions are omitted',()=>{
+ const q=Q.productQuestion(Q.rad(60),Q.rad(6),'div');
+ assert.equal(q.rows.length,1);assert.deepEqual(q.rows[0].answers,[Q.rat(10)]);
+ assert.ok(!q.rows[0].template.includes(' × '));assert.ok(!q.rows[0].template.includes('<sup>2</sup>'));
+ const negative=Q.productQuestion(Q.neg(Q.rad(60)),Q.rad(6),'div');
+ assert.equal(negative.rows.length,1);assert.deepEqual(negative.rows[0].answers,[Q.rat(10)]);assert.ok(negative.rows[0].template.startsWith('＝ −'));
+ const fractional=Q.finalRow({3:Q.rat(1,2)},true);
+ assert.deepEqual(fractional.answers,[Q.rat(2)]);assert.ok(fractional.template.includes('<span><span class="radical">'));
+ assert.deepEqual(Q.finalRow({1:Q.rat(1)}).answers,[Q.rat(1)]); // An actual integer answer 1 remains answerable.
+ assert.ok(pool.every(q=>q.rows.every(r=>!r.label.includes('係數 1'))));
+});
+
+test('rationalization splits the roots before multiplying top and bottom, preserving outside coefficients',()=>{
+ const q=Q.rationalQuestion(Q.rad(10,3),'test');
+ assert.equal(q.rows.length,3);
+ assert.deepEqual(q.rows[0].answers,[Q.rat(10),Q.rat(3)]);
+ assert.deepEqual(q.rows[1].answers,[Q.rat(3)]);assert.ok(q.rows[1].linked);
+ assert.deepEqual(q.rows[2].answers,[Q.rat(30),Q.rat(3)]);
+ assert.deepEqual(q.answer,{30:Q.rat(1,3)});
+ const scaled=Q.productQuestion(Q.prod(Q.num(4),Q.rad(10)),Q.prod(Q.num(6),Q.rad(3)),'div');
+ assert.deepEqual(scaled.rows[0].answers,[Q.rat(2,3),Q.rat(10),Q.rat(3)]);
+ assert.deepEqual(scaled.rows[1].answers,[Q.rat(10),Q.rat(3)]);
+ assert.deepEqual(scaled.rows[2].answers,[Q.rat(3)]);assert.ok(scaled.rows[2].linked);
+ assert.deepEqual(scaled.rows[3].answers,[Q.rat(30),Q.rat(3)]);
+ assert.deepEqual(scaled.answer,{30:Q.rat(2,9)});
+ assert.ok(scaled.rows.every(r=>!r.label.includes('平方因數')));
+ const squareDen=Q.rationalQuestion(Q.rad(8,9),'test');
+ assert.ok(squareDen.rows[0].label.includes('分數根號拆成'));
+ assert.ok(!squareDen.rows.some(r=>r.linked)); // √9 opens directly as 3.
+ for(const question of [q,scaled,squareDen])for(const row of question.rows)assert.ok(Q.samePoly(Q.rowExpression(row).value,question.answer));
+});
+
 test('mixed-number labels keep fraction markup intact instead of joining digits',()=>{
  const fraction=Q.frac(2,3);
  assert.equal(Q.rationalHTML(Q.rat(8,3),'2'+fraction),'2'+fraction);
@@ -32,7 +64,8 @@ test('mixed-number labels keep fraction markup intact instead of joining digits'
  for(const q of cases){assert.ok(q.prompt.includes('class="inline-fraction"'),q.id);assert.ok(!q.prompt.includes('inline−fraction'),q.id);}
  const q=cases.find(q=>q.variant==='根號內的帶分數與負號');
  assert.ok(q.prompt.includes('2<span class="inline-fraction"><span>2</span><span>3</span>'));
- assert.deepEqual(q.rows[0].answers,[Q.rat(-1),Q.rat(48)]);
+ assert.deepEqual(q.rows[0].answers,[Q.rat(48)]);
+ assert.ok(q.rows[0].template.startsWith('＝ −'));
  assert.deepEqual(q.answer,{3:Q.rat(-4)});
 });
 
