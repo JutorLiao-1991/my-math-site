@@ -30,7 +30,7 @@ function evaluate(e){if(e.op==='num')return scalar(e.r.n,e.r.d);if(e.op==='root'
 const frac=(a,b)=>`<span class="inline-fraction"><span>${a}</span><span>${b}</span></span>`;
 const rootHTML=a=>`<span class="radical"><span class="root-symbol">√</span><span class="radicand">${a}</span></span>`;
 function rationalHTML(r,label=null){if(label)return String(label).replace(/-/g,'−');r=asRat(r);return r.d===1?String(r.n).replace('-','−'):(r.n<0?'−':'')+frac(Math.abs(r.n),r.d);}
-function show(e){if(e.op==='num')return rationalHTML(e.r,e.label);if(e.op==='root')return rootHTML(rationalHTML(e.r,e.label));if(e.op==='add')return e.args.map((a,i)=>{if(a.op==='num'&&a.r.n<0)return (i?' − ':'−')+rationalHTML(rat(-a.r.n,a.r.d));if(a.op==='mul'&&a.args[0].op==='num'&&a.args[0].r.n<0){const [n,...rest]=a.args;return(i?' − ':'−')+show(prod(num(-n.r.n,n.r.d),...rest));}return(i?' ＋ ':'')+show(a);}).join('');if(e.op==='mul'){
+function show(e){if(e.op==='num')return rationalHTML(e.r,e.label);if(e.op==='root')return rootHTML(e.argumentAST?show(e.argumentAST):rationalHTML(e.r,e.label));if(e.op==='add')return e.args.map((a,i)=>{if(a.op==='num'&&a.r.n<0)return (i?' − ':'−')+rationalHTML(rat(-a.r.n,a.r.d));if(a.op==='mul'&&a.args[0].op==='num'&&a.args[0].r.n<0){const [n,...rest]=a.args;return(i?' − ':'−')+show(prod(num(-n.r.n,n.r.d),...rest));}return(i?' ＋ ':'')+show(a);}).join('');if(e.op==='mul'){
  const args=e.args.filter(a=>!(a.op==='num'&&a.r.n===a.r.d));
  if(!args.length)return '1';if(args.length===1)return show(args[0]);
  if(args[0].op==='num'&&args[0].r.n===-args[0].r.d)return '−'+show(prod(...args.slice(1)));
@@ -156,7 +156,7 @@ function parseExpression(raw){
  function atom(){if(++depth>16)throw Error('Too deep');let e;const t=take();
  if(t==='('){e=addition();if(take()!==')')throw Error('Missing bracket');}
  else if(t==='√'){let a;if(peek()==='('){take();a=addition();if(take()!==')')throw Error('Missing root bracket');}else{const n=take(),r=parse(n);if(!r)throw Error('Missing radicand');a=num(r.n,r.d);}
- const v=evaluate(a),ks=Object.keys(v);if(ks.some(k=>k!=='1'))throw Error('Nested radicals');const r=v[1]||rat(0);if(r.n<0||r.n*r.d>1000000)throw Error('Radicand out of range');e=rad(r.n,r.d);e.argumentPending=a.op!=='num';}
+ const v=evaluate(a),ks=Object.keys(v);if(ks.some(k=>k!=='1'))throw Error('Nested radicals');const r=v[1]||rat(0);if(r.n<0||r.n*r.d>1000000)throw Error('Radicand out of range');e=rad(r.n,r.d);e.argumentPending=a.op!=='num';e.argumentAST=a;}
  else{const r=parse(t);if(!r)throw Error('Invalid number');e=num(r.n,r.d,t);}
  depth--;return e;}
  function power(){let e=atom();if(peek()==='^'){take();if(take()!=='2')throw Error('Only square allowed');e=sq(e);}return e;}

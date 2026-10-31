@@ -43,6 +43,7 @@ test('final answers accept term reordering and exact fractions but distinguish u
  const half=Q.parseExpression('(√2+√3)/2');assert.ok(half.simplest);
  for(const raw of ['','√','sqrt(','2/','1/0','Math.sqrt(2)','<img>','2**2','3^3','√(-2)','√(√2)','9'.repeat(161),'('.repeat(40)+'2'+')'.repeat(40)])assert.equal(Q.parseExpression(raw),null,raw);
  assert.equal(Q.checkAnswer('√(2+1)',Q.parseExpression('√3').value).kind,'unfinished');
+ assert.ok(Q.show(Q.parseExpression('√(2+1)').ast).includes('2 ＋ 1')); // Preview preserves the student's arithmetic.
 });
 
 test('each selected stage has ten unique questions; combined exams contain two per stage',()=>{
