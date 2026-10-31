@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月30日"
+    lastUpdated: "2026年10月31日"
 };
 
 // --- 課程資料區 ---
@@ -172,6 +172,15 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "從 1～20 或 1～40 的底數中辨認平方值，挑戰單人快答與雙人搶答。"
+    },
+    {
+        title: "最簡根式大挑戰（國二）",
+        category: "junior",
+        grades: [8],
+        url: "junior/math/simplest_radical_challenge.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "判斷是否為最簡根式，或四選一選出化簡結果；基礎 1～50、精熟 1～100，可單人快答與雙人 PK。"
     },
     {
         title: "物質加熱曲線與三態變化（國二）",
