@@ -103,19 +103,27 @@ function extractionRow(c,n,denominator=1) {
  const radical=rootHTML(inside),body=denominator===1?radical:frac(radical,denominator);
  return templateRow('拆出最大的平方因數，準備提出根號','＝ '+outsideCoefficient(c,body),b===1?[a]:[a,b],{integer:true});
 }
-function fractionRootSteps(c,r) {
- // Keep the fraction inside the root visible until students split it themselves.
- const rows=[templateRow('先將分數根號拆成：分子的根號 ÷ 分母的根號',
-  '＝ '+outsideCoefficient(c,frac(rootHTML('{{0}}'),rootHTML('{{1}}'))),[r.n,r.d],{integer:true})];
+function fractionRootSteps(c,r,alreadySeparate=false,calculateCoefficient=false) {
+ // Split only a fraction that actually starts inside one root. Separate roots
+ // retain their original radicands, even when their quotient could be reduced.
+ const rows=[];
+ if(!alreadySeparate)rows.push(templateRow('先將分數根號拆成：分子的根號 ÷ 分母的根號',
+  '＝ '+outsideCoefficient(c,frac(rootHTML('{{0}}'),rootHTML('{{1}}'))),[r.n,r.d],{integer:true}));
  const denominatorParts=squareParts(r.d);
  if(denominatorParts.b===1) {
   const d=denominatorParts.a;
-  const row=templateRow('分母可以直接開根號，先算出分母','＝ '+outsideCoefficient(c,frac(rootHTML(r.n),'{{0}}')),[d],{integer:true});
+  const values=calculateCoefficient?[c,rat(d)]:[rat(d)];
+  const body=frac(rootHTML(r.n),calculateCoefficient?'{{1}}':'{{0}}');
+  const row=templateRow(calculateCoefficient?'先算分母的平方根，根號外的係數另外計算':'分母可以直接開根號，先算出分母',
+   '＝ '+(calculateCoefficient?'{{0}} × '+body:outsideCoefficient(c,body)),values);
+  row.rules=calculateCoefficient?['rational','integer']:['integer'];
   rows.push(row);
   const extraction=extractionRow(c,r.n,d);if(extraction)rows.push(extraction);
   else if(Math.abs(c.n)===c.d&&r.n>1)row.complete=true;
   return rows;
  }
+ if(calculateCoefficient)rows.push(templateRow('先算根號外的係數，分子與分母的根式保持原樣',
+  '＝ {{0}} × '+frac(rootHTML(r.n),rootHTML(r.d)),[c]));
  const split=frac(rootHTML(r.n),rootHTML(r.d));
  rows.push(templateRow('分子、分母同乘分母的根式（兩格連動）',
   '＝ '+outsideCoefficient(c,split+' × '+frac(rootHTML('{{0}}'),rootHTML('{{0}}'))),[r.d],{integer:true,linked:true}));
@@ -128,6 +136,16 @@ function fractionRootSteps(c,r) {
 }
 function productQuestion(a,b,op='mul',variant='根式乘法') {
  const original=op==='div'?quotient(a,b):prod(a,b),{c,r}=rawMono(original);
+ if(op==='div') {
+  const top=rawMono(a),bottom=rawMono(b);
+  // A square denominator opens immediately. Otherwise keep separated roots
+  // separated whenever rationalization is needed; do not combine then split.
+  if(top.r.d===1&&bottom.r.d===1&&bottom.r.n>1&&
+   (squareParts(bottom.r.n).b===1||r.d!==1)) {
+   return question('multiply',variant,original,
+    fractionRootSteps(c,{n:top.r.n,d:bottom.r.n},true,Math.abs(c.n)!==c.d));
+  }
+ }
  const values=[],slot=value=>{values.push(asRat(value));return '{{'+(values.length-1)+'}}';};
  const unit=Math.abs(c.n)===c.d;
  const prefix=unit?(c.n<0?'−':''):slot(c)+' × ';

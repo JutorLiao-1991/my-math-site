@@ -42,16 +42,36 @@ test('rationalization splits the roots before multiplying top and bottom, preser
  assert.deepEqual(q.rows[2].answers,[Q.rat(30),Q.rat(3)]);
  assert.deepEqual(q.answer,{30:Q.rat(1,3)});
  const scaled=Q.productQuestion(Q.prod(Q.num(4),Q.rad(10)),Q.prod(Q.num(6),Q.rad(3)),'div');
- assert.deepEqual(scaled.rows[0].answers,[Q.rat(2,3),Q.rat(10),Q.rat(3)]);
- assert.deepEqual(scaled.rows[1].answers,[Q.rat(10),Q.rat(3)]);
- assert.deepEqual(scaled.rows[2].answers,[Q.rat(3)]);assert.ok(scaled.rows[2].linked);
- assert.deepEqual(scaled.rows[3].answers,[Q.rat(30),Q.rat(3)]);
+ assert.deepEqual(scaled.rows[0].answers,[Q.rat(2,3)]);
+ assert.deepEqual(scaled.rows[1].answers,[Q.rat(3)]);assert.ok(scaled.rows[1].linked);
+ assert.deepEqual(scaled.rows[2].answers,[Q.rat(30),Q.rat(3)]);
+ assert.ok(!scaled.rows.some(r=>r.label.includes('分數根號拆成')));
  assert.deepEqual(scaled.answer,{30:Q.rat(2,9)});
  assert.ok(scaled.rows.every(r=>!r.label.includes('平方因數')));
  const squareDen=Q.rationalQuestion(Q.rad(8,9),'test');
  assert.ok(squareDen.rows[0].label.includes('分數根號拆成'));
  assert.ok(!squareDen.rows.some(r=>r.linked)); // √9 opens directly as 3.
  for(const question of [q,scaled,squareDen])for(const row of question.rows)assert.ok(Q.samePoly(Q.rowExpression(row).value,question.answer));
+});
+
+test('separate roots open a square denominator first and simplify the numerator afterward',()=>{
+ const q=Q.productQuestion(Q.rad(120),Q.rad(9),'div');
+ assert.equal(q.rows.length,3);
+ assert.deepEqual(q.rows[0].answers,[Q.rat(3)]);
+ assert.equal(Q.mathHTMLText(q.rows[0].template.replace('{{0}}','3')).trim(),'(√(120))/(3)');
+ assert.deepEqual(q.rows[1].answers,[Q.rat(2),Q.rat(30)]);
+ assert.deepEqual(q.rows[2].answers,[Q.rat(2),Q.rat(3)]);
+ assert.ok(q.rows.every(r=>!r.label.includes('分數根號拆成')&&!r.linked));
+ const reduced=Q.productQuestion(Q.rad(30),Q.rad(12),'div');
+ assert.ok(reduced.rows[0].linked); // Original roots go straight to rationalization.
+ assert.deepEqual(reduced.rows[0].answers,[Q.rat(12)]);
+ assert.ok(Q.mathHTMLText(reduced.rows[0].template).includes('√(30)'));
+ for(const [a,b]of [[120,9],[24,9],[10,9],[36,9],[1,9],[30,12]]){
+  for(const c of [1,-1,2,-2]){
+   const item=Q.productQuestion(Q.prod(Q.num(c),Q.rad(a)),Q.rad(b),'div');
+   for(const row of item.rows)assert.ok(Q.samePoly(Q.rowExpression(row).value,item.answer),`${a}/${b}, coefficient ${c}: ${row.label}`);
+  }
+ }
 });
 
 test('mixed-number labels keep fraction markup intact instead of joining digits',()=>{
