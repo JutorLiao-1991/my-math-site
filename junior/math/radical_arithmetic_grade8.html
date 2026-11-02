@@ -460,6 +460,20 @@ button:focus-visible, select:focus-visible { outline: 3px solid #0f766e; outline
 .check-btn:disabled { color: #334155; background: #dbe4ee; }
 .numpad { margin-top: 10px; }
 #next-stage-btn { background: #e6f4ec; color: #166534; border-color: #b5d6c0; }
+@media (min-width: 861px), (min-width: 700px) and (orientation: landscape) {
+ .side-panel {
+  position: sticky;
+  top: 78px;
+  align-self: start;
+  min-height: 0;
+  max-height: calc(100vh - 94px);
+  max-height: calc(100dvh - 94px);
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+ }
+}
 @media (min-width: 700px) and (orientation: landscape) {
  .main-wrapper { grid-template-columns: minmax(0, 1.65fr) minmax(285px, .85fr); }
  .nav-bar { grid-template-columns: auto 1fr auto; }
