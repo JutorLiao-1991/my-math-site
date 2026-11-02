@@ -221,9 +221,11 @@ function renderRow(row,rowIndex) {
     const wrapper = document.createElement('div'); wrapper.className='step-row'+(rowIndex===0?' current':' hidden');wrapper.dataset.rowIndex=String(rowIndex);
     const label=document.createElement('span');label.className='step-label';label.textContent=`第 ${rowIndex+1} 步｜${row.label}`;wrapper.appendChild(label);
     const line=document.createElement('div');line.className='equation-line';
-    line.innerHTML=row.template.replace(/\{\{(\d+)\}\}/g,(_,index)=>row.choices
+    // Keep the equation in one inline formatting context, so superscripts
+    // stay attached to their bases instead of becoming separate flex items.
+    line.innerHTML='<span class="equation-content">'+row.template.replace(/\{\{(\d+)\}\}/g,(_,index)=>row.choices
       ? `<select class="answer-input" data-input-index="${index}"><option value="">請選擇</option>${row.choices.map((text,i)=>`<option value="${i}">${text}</option>`).join('')}</select>`
-      : `<span class="answer-field"><input class="answer-input" type="text" maxlength="32" data-input-index="${index}" autocomplete="off"><span class="fraction-preview" aria-hidden="true"><span class="fraction-whole"></span><span class="fraction-stack"><span class="fraction-numerator"></span><span class="fraction-denominator"></span></span></span></span>`);
+      : `<span class="answer-field"><input class="answer-input" type="text" maxlength="32" data-input-index="${index}" autocomplete="off"><span class="fraction-preview" aria-hidden="true"><span class="fraction-whole"></span><span class="fraction-stack"><span class="fraction-numerator"></span><span class="fraction-denominator"></span></span></span></span>`)+'</span>';
     line.querySelectorAll('.answer-input').forEach(input=>{
         if(!row.choices){input.inputMode=usesTouchKeypadOnly()?'none':'text';input.readOnly=usesTouchKeypadOnly();}
         input.setAttribute('aria-label',`${row.label}第 ${Number(input.dataset.inputIndex)+1} 格`);

@@ -19,7 +19,68 @@ test('all lecture-shaped questions and every filled intermediate row preserve th
  }
  const demo=pool[0];assert.deepEqual(demo.rows[0].answers,[Q.rat(6),Q.rat(48)]);assert.deepEqual(demo.rows[1].answers,[Q.rat(4),Q.rat(3)]);assert.deepEqual(demo.answer,{3:Q.rat(24)});
  const last=pool.at(-1);assert.deepEqual(last.answer,{1:Q.rat(6)});
- assert.deepEqual(pool.find(q=>q.variant==='三項式的平方差').answer,{1:Q.rat(-7),2:Q.rat(6)});
+ assert.deepEqual(pool.find(q=>q.variant==='三項式的平方差').answer,{1:Q.rat(5),3:Q.rat(-4)});
+});
+
+test('rendered prompts and grouped negative expressions agree with the answer actually graded',()=>{
+ // Mixed-number labels are visual typography; use exact fraction labels for
+ // the same AST when feeding the rendered markup back through the parser.
+ const withoutLabels=e=>JSON.parse(JSON.stringify(e),(key,value)=>key==='label'?null:value);
+ for(const q of pool){
+  const text=Q.mathHTMLText(Q.show(withoutLabels(q.expression)));
+  const parsed=Q.parseExpression(text);
+  assert.ok(parsed,`${q.id}: ${text}`);
+  assert.ok(Q.samePoly(parsed.value,q.answer),`${q.id}: ${text}`);
+ }
+ const inner=Q.sum(Q.rad(3),Q.neg(Q.rad(6)));
+ for(const e of [Q.neg(inner),Q.sum(Q.rad(2),Q.neg(inner)),Q.prod(Q.num(-2),inner)]){
+  const parsed=Q.parseExpression(Q.mathHTMLText(Q.show(e)));
+  assert.ok(Q.samePoly(parsed.value,Q.evaluate(e)));
+ }
+ const q=Q.trinomialDifferenceQuestion(2,3,6);
+ const actual=Q.parseExpression(Q.mathHTMLText(q.prompt));
+ assert.deepEqual(actual.value,{1:Q.rat(5),3:Q.rat(-4)});
+ assert.ok(q.rows[0].label.includes('分成一組'));
+ assert.ok(q.rows[1].label.includes('套用平方差'));
+});
+
+test('subtraction stays visible and students enter positive magnitudes after a minus sign',()=>{
+ const q=Q.additionQuestion([Q.rad(8),Q.neg(Q.rad(18))]);
+ assert.deepEqual(q.rows[0].answers,[Q.rat(2),Q.rat(2),Q.rat(3),Q.rat(2)]);
+ assert.equal(Q.mathHTMLText(q.rows[0].template),' {{0}}√({{1}}) − {{2}}√({{3}})');
+ assert.ok(!q.rows[0].template.includes(' ＋ '));
+ assert.deepEqual(q.answer,{2:Q.rat(-1)});
+});
+
+test('a square numerator opens before rationalizing a fractional radicand',()=>{
+ const q=Q.rationalQuestion(Q.rad(4,15),'test');
+ assert.deepEqual(q.rows[0].answers,[Q.rat(4),Q.rat(15)]);
+ assert.deepEqual(q.rows[1].answers,[Q.rat(2)]);
+ assert.ok(q.rows[1].label.includes('分子是完全平方數'));
+ assert.deepEqual(q.rows[2].answers,[Q.rat(15)]);assert.ok(q.rows[2].linked);
+ assert.ok(Q.mathHTMLText(q.rows[2].template).includes('(2)/(√(15))'));
+ assert.deepEqual(q.answer,{15:Q.rat(2,15)});
+ assert.ok(!q.rows.some(row=>row.answers.some(value=>value.n===60)));
+ const cancellable=Q.productQuestion(Q.rad(18),Q.rad(8),'div');
+ assert.deepEqual(cancellable.rows[0].answers,[Q.rat(9),Q.rat(4)]);
+ assert.deepEqual(cancellable.rows[1].answers,[Q.rat(3),Q.rat(2)]);
+ assert.equal(cancellable.rows.length,2);assert.ok(!cancellable.rows.some(row=>row.linked));
+ for(const item of [q,cancellable])for(const row of item.rows)assert.ok(Q.samePoly(Q.rowExpression(row).value,item.answer));
+});
+
+test('conjugate denominator fractions combine first and end with one positive denominator',()=>{
+ const q=Q.conjugateFractionsQuestion(2,5);
+ assert.equal(q.rows.length,4);
+ assert.ok(q.rows[0].label.includes('先通分'));
+ assert.deepEqual(q.rows[0].answers,[Q.rat(2),Q.rat(5)]);
+ assert.deepEqual(q.rows[1].answers,[Q.rat(3),Q.rat(3),Q.rat(2),Q.rat(5)]);
+ assert.deepEqual(q.rows[2].answers,[Q.rat(2),Q.rat(4),Q.rat(-3)]);
+ assert.deepEqual(q.rows[3].answers,[Q.rat(2),Q.rat(4),Q.rat(3)]);
+ assert.deepEqual(q.answer,{2:Q.rat(2,3),5:Q.rat(4,3)});
+ assert.equal((q.rows[3].template.match(/class="inline-fraction"/g)||[]).length,1);
+ for(const row of q.rows)assert.ok(Q.samePoly(Q.rowExpression(row).value,q.answer));
+ const simple=Q.productQuestion(Q.rad(60),Q.rad(6),'div');
+ assert.equal(simple.solution.split(' ＝ ').length,2); // No √10 = √10 duplicate.
 });
 
 test('unit radical coefficients and factor-one decompositions are omitted',()=>{
