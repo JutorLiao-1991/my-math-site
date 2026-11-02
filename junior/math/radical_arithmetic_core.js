@@ -30,13 +30,31 @@ function evaluate(e){if(e.op==='num')return scalar(e.r.n,e.r.d);if(e.op==='root'
 const frac=(a,b)=>`<span class="inline-fraction"><span>${a}</span><span>${b}</span></span>`;
 const rootHTML=a=>`<span class="radical"><span class="root-symbol">√</span><span class="radicand">${a}</span></span>`;
 function rationalHTML(r,label=null){if(label)return String(label).replace(/^-/,'−');r=asRat(r);return r.d===1?String(r.n).replace('-','−'):(r.n<0?'−':'')+frac(Math.abs(r.n),r.d);}
-function show(e){if(e.op==='num')return rationalHTML(e.r,e.label);if(e.op==='root')return rootHTML(e.argumentAST?show(e.argumentAST):rationalHTML(e.r,e.label));if(e.op==='add')return e.args.map((a,i)=>{if(a.op==='num'&&a.r.n<0)return (i?' − ':'−')+rationalHTML(rat(-a.r.n,a.r.d));if(a.op==='mul'&&a.args[0].op==='num'&&a.args[0].r.n<0){const [n,...rest]=a.args;return(i?' − ':'−')+show(prod(num(-n.r.n,n.r.d),...rest));}return(i?' ＋ ':'')+show(a);}).join('');if(e.op==='mul'){
- const args=e.args.filter(a=>!(a.op==='num'&&a.r.n===a.r.d));
- if(!args.length)return '1';if(args.length===1)return show(args[0]);
- if(args[0].op==='num'&&args[0].r.n===-args[0].r.d)return '−'+show(prod(...args.slice(1)));
- if(args.length===2&&args[0].op==='num'&&args[1].op==='root')return show(args[0])+show(args[1]);
- return args.map(a=>a.op==='add'||a.op==='div'||a.op==='num'&&a.r.n<0?`(${show(a)})`:show(a)).join(' × ');
-}if(e.op==='div')return frac(show(e.a),show(e.b));if(e.op==='square')return `(${show(e.a)})<sup>2</sup>`;}
+function show(e){
+ if(e.op==='num')return rationalHTML(e.r,e.label);
+ if(e.op==='root')return rootHTML(e.argumentAST?show(e.argumentAST):rationalHTML(e.r,e.label));
+ if(e.op==='add')return e.args.map((a,i)=>{
+  if(a.op==='num'&&a.r.n<0)return(i?' − ':'−')+rationalHTML(rat(-a.r.n,a.r.d));
+  if(a.op==='mul'&&a.args[0]?.op==='num'&&a.args[0].r.n<0){
+   const [n,...rest]=a.args,positive=prod(num(-n.r.n,n.r.d),...rest);
+   const body=show(positive),singleSum=rest.length===1&&rest[0].op==='add'&&n.r.n===-n.r.d;
+   return(i?' − ':'−')+(singleSum?'('+body+')':body);
+  }
+  return(i?' ＋ ':'')+show(a);
+ }).join('');
+ if(e.op==='mul'){
+  const args=e.args.filter(a=>!(a.op==='num'&&a.r.n===a.r.d));
+  if(!args.length)return '1';if(args.length===1)return show(args[0]);
+  if(args[0].op==='num'&&args[0].r.n===-args[0].r.d){
+   const rest=args.slice(1),body=show(prod(...rest));
+   return '−'+(rest.length===1&&rest[0].op==='add'?'('+body+')':body);
+  }
+  if(args.length===2&&args[0].op==='num'&&args[1].op==='root')return show(args[0])+show(args[1]);
+  return args.map(a=>a.op==='add'||a.op==='div'||a.op==='num'&&a.r.n<0?'('+show(a)+')':show(a)).join(' × ');
+ }
+ if(e.op==='div')return frac(show(e.a),show(e.b));
+ if(e.op==='square')return '('+show(e.a)+')<sup>2</sup>';
+}
 function polyHTML(p){const terms=Object.entries(clean(p));if(!terms.length)return '0';return terms.map(([k,c],i)=>{const sign=c.n<0?(i?' − ':'−'):(i?' ＋ ':'');const a=Math.abs(c.n),body=Number(k)===1?String(a):(a===1?'':a)+rootHTML(k);return sign+(c.d===1?body:frac(body,c.d));}).join('');}
 function expr(p){return sum(...Object.entries(clean(p)).map(([k,c])=>Number(k)===1?num(c.n,c.d):prod(num(c.n,c.d),rad(Number(k)))));}
 function fillRow(label,parts,values,options={}){return {label,parts,answers:values.map(asRat),rules:values.map(()=>options.integer?'integer':'rational'),...options};}
@@ -58,23 +76,35 @@ function finalRow(p,knownRoots=false,carried={}) {
  return templateRow('得到最簡答案（分數須約分）','＝ '+pieces.join(''),values,{integer:true,final:true});
 }
 function coefficientsRow(label,expressions,fillRoots=true) {
- const p=expressions.map(evaluate),values=[];
+ const p=expressions.map(evaluate),values=[],pieces=[];
  const slot=r=>{values.push(asRat(r));return '{{'+(values.length-1)+'}}';};
- const pieces=p.map(poly=>{
-  const terms=Object.entries(poly);if(!terms.length)return slot(0);
-  return terms.map(([k,c],i)=>{
-   const root=Number(k)!==1;
-   const unit=root&&Math.abs(c.n)===c.d;
-   const coefficient=unit?(c.n<0?'−':''):slot(c);
-   return (i?' ＋ ':'')+coefficient+(root?rootHTML(fillRoots?slot(Number(k)):k):'');
-  }).join('');
- });
- const row=templateRow(label,'＝ '+pieces.map(text=>'('+text+')').join(' ＋ '),values);
+ // Keep subtraction visible, with positive magnitudes in its answer fields.
+ // Flattening sums here is safe: each expression has already been evaluated.
+ for(const poly of p){
+  const terms=Object.entries(poly);if(!terms.length)terms.push(['1',rat(0)]);
+  for(const [k,c]of terms){
+   const root=Number(k)!==1,unit=root&&Math.abs(c.n)===c.d;
+   const sign=c.n<0?(pieces.length?' − ':'−'):(pieces.length?' ＋ ':'');
+   const coefficient=unit?'':slot(rat(Math.abs(c.n),c.d));
+   pieces.push(sign+coefficient+(root?rootHTML(fillRoots?slot(Number(k)):k):''));
+  }
+ }
+ const row=templateRow(label,'＝ '+pieces.join(''),values);
  row.termPolys=p;row.baseTemplate=row.template;return row;
 }
 function stepExpression(label,e){return coefficientsRow(label,[e]);}
 let serial=0;
-function question(topic,variant,expression,steps,meta={}){const answer=evaluate(expression),last=steps.at(-1),carried={},counts={};if(last?.termPolys&&last.template===last.baseTemplate){for(const term of last.termPolys)for(const [k,c]of Object.entries(term)){counts[k]=(counts[k]||0)+1;carried[k]=c;}for(const k of Object.keys(carried))if(counts[k]!==1)delete carried[k];}const final=last?.complete?null:finalRow(answer,true,carried),rows=final?[...steps,final]:[...steps];return {id:`${topic}-${serial++}`,kind:topic,topicTitle:TOPICS.find(t=>t.id===topic).title,variant,prompt:show(expression),expression,answer,rows,solution:[show(expression),...steps.filter(row=>!row.choices).map(row=>row.template.replace(/^＝ /,'').replace(/\{\{(\d+)\}\}/g,(_,i)=>rationalHTML(row.answers[Number(i)]))),polyHTML(answer)].join(' ＝ '),reference:REFERENCES[topic],...meta};}
+function question(topic,variant,expression,steps,meta={}){
+ const answer=evaluate(expression),last=steps.at(-1),carried={},counts={};
+ if(last?.termPolys&&last.template===last.baseTemplate){
+  for(const term of last.termPolys)for(const [k,c]of Object.entries(term)){counts[k]=(counts[k]||0)+1;carried[k]=c;}
+  for(const k of Object.keys(carried))if(counts[k]!==1)delete carried[k];
+ }
+ const final=last?.complete?null:finalRow(answer,true,carried),rows=final?[...steps,final]:[...steps];
+ const parts=[show(expression),...steps.filter(row=>!row.choices).map(row=>row.template.replace(/^＝ /,'').replace(/\{\{(\d+)\}\}/g,(_,i)=>rationalHTML(row.answers[Number(i)]))),...(last?.final&&last.complete?[]:[polyHTML(answer)])];
+ const solution=parts.filter((part,i)=>i===0||mathHTMLText(part).replace(/\s/g,'')!==mathHTMLText(parts[i-1]).replace(/\s/g,'')).join(' ＝ ');
+ return {id:`${topic}-${serial++}`,kind:topic,topicTitle:TOPICS.find(t=>t.id===topic).title,variant,prompt:show(expression),expression,answer,rows,solution,reference:REFERENCES[topic],...meta};
+}
 function rawMono(e){
  if(e.op==='num')return {c:e.r,r:rat(1)};
  if(e.op==='root')return {c:rat(1),r:e.r};
@@ -84,12 +114,13 @@ function rawMono(e){
 }
 function rawTermsRow(label,terms) {
  const values=[],slot=r=>{values.push(asRat(r));return '{{'+(values.length-1)+'}}';};
- const pieces=terms.map(e=>{
+ const pieces=terms.map((e,i)=>{
   const {c,r}=rawMono(e),hasRoot=r.n!==r.d,unit=hasRoot&&Math.abs(c.n)===c.d;
-  const coefficient=unit?(c.n<0?'−':''):slot(c);
-  return '('+coefficient+(hasRoot?rootHTML(r.d===1?slot(r.n):frac(slot(r.n),slot(r.d))):'')+')';
+  const coefficient=unit?'':slot(rat(Math.abs(c.n),c.d));
+  const sign=c.n<0?(i?' − ':'−'):(i?' ＋ ':'');
+  return sign+coefficient+(hasRoot?rootHTML(r.d===1?slot(r.n):frac(slot(r.n),slot(r.d))):'');
  });
- return templateRow(label,'＝ '+pieces.join(' ＋ '),values);
+ return templateRow(label,'＝ '+pieces.join(''),values);
 }
 function outsideCoefficient(c,body) {
  if(c.n===c.d)return body;
@@ -104,22 +135,37 @@ function extractionRow(c,n,denominator=1) {
  return templateRow('拆出最大的平方因數，準備提出根號','＝ '+outsideCoefficient(c,body),b===1?[a]:[a,b],{integer:true});
 }
 function fractionRootSteps(c,r,alreadySeparate=false,calculateCoefficient=false) {
- // Split only a fraction that actually starts inside one root. Separate roots
- // retain their original radicands, even when their quotient could be reduced.
  const rows=[];
  if(!alreadySeparate)rows.push(templateRow('先將分數根號拆成：分子的根號 ÷ 分母的根號',
   '＝ '+outsideCoefficient(c,frac(rootHTML('{{0}}'),rootHTML('{{1}}'))),[r.n,r.d],{integer:true}));
- const denominatorParts=squareParts(r.d);
+ const topParts=squareParts(r.n),denominatorParts=squareParts(r.d);
  if(denominatorParts.b===1) {
-  const d=denominatorParts.a;
-  const values=calculateCoefficient?[c,rat(d)]:[rat(d)];
-  const body=frac(rootHTML(r.n),calculateCoefficient?'{{1}}':'{{0}}');
-  const row=templateRow(calculateCoefficient?'先算分母的平方根，根號外的係數另外計算':'分母可以直接開根號，先算出分母',
-   '＝ '+(calculateCoefficient?'{{0}} × '+body:outsideCoefficient(c,body)),values);
-  row.rules=calculateCoefficient?['rational','integer']:['integer'];
-  rows.push(row);
-  const extraction=extractionRow(c,r.n,d);if(extraction)rows.push(extraction);
-  else if(Math.abs(c.n)===c.d&&r.n>1)row.complete=true;
+  const d=denominatorParts.a,values=[],rules=[];
+  const slot=(value,rule='integer')=>{values.push(asRat(value));rules.push(rule);return '{{'+(values.length-1)+'}}';};
+  const prefix=calculateCoefficient?slot(c,'rational')+' × ':null;
+  const numerator=topParts.b===1?slot(topParts.a):rootHTML(r.n);
+  const body=frac(numerator,slot(d));
+  const row=templateRow(topParts.b===1?'完全平方數直接開根號，算出分子與分母':'分母可以直接開根號，先算出分母',
+   '＝ '+(prefix===null?outsideCoefficient(c,body):prefix+body),values);row.rules=rules;rows.push(row);
+  if(topParts.b!==1){const extraction=extractionRow(c,r.n,d);if(extraction)rows.push(extraction);}
+  if(Math.abs(c.n)===c.d&&(topParts.a===1&&r.n>1||topParts.b===1&&gcd(topParts.a,d)===1))row.complete=true;
+  return rows;
+ }
+ if(topParts.b===1){
+  // Open √4 as 2 before rationalization, rather than creating √60 and
+  // subsequently extracting the same factor again.
+  const a=topParts.a;
+  const opened=templateRow('分子是完全平方數，先直接開根號',
+   '＝ '+(calculateCoefficient?'{{0}} × '+frac('{{1}}',rootHTML(r.d)):outsideCoefficient(c,frac('{{0}}',rootHTML(r.d)))),
+   calculateCoefficient?[c,rat(a)]:[rat(a)]);
+  opened.rules=calculateCoefficient?['rational','integer']:['integer'];rows.push(opened);
+  const split=frac(a,rootHTML(r.d));
+  rows.push(templateRow('分子、分母同乘分母的根式（兩格連動）',
+   '＝ '+outsideCoefficient(c,split+' × '+frac(rootHTML('{{0}}'),rootHTML('{{0}}'))),[r.d],{integer:true,linked:true}));
+  const combined=templateRow('整數分子保留，分母的根號平方後成為整數',
+   '＝ '+outsideCoefficient(c,frac((a===1?'':a)+rootHTML('{{0}}'),'{{1}}')),[r.d,r.d],{integer:true});rows.push(combined);
+  const extraction=extractionRow(times(c,a),r.d,r.d);if(extraction)rows.push(extraction);
+  else if(Math.abs(c.n)===c.d&&gcd(a,r.d)===1)combined.complete=true;
   return rows;
  }
  if(calculateCoefficient)rows.push(templateRow('先算根號外的係數，分子與分母的根式保持原樣',
@@ -128,8 +174,7 @@ function fractionRootSteps(c,r,alreadySeparate=false,calculateCoefficient=false)
  rows.push(templateRow('分子、分母同乘分母的根式（兩格連動）',
   '＝ '+outsideCoefficient(c,split+' × '+frac(rootHTML('{{0}}'),rootHTML('{{0}}'))),[r.d],{integer:true,linked:true}));
  const combined=templateRow('根號相乘，分母的根號平方後成為整數',
-  '＝ '+outsideCoefficient(c,frac(rootHTML('{{0}}'),'{{1}}')),[r.n*r.d,r.d],{integer:true});
- rows.push(combined);
+  '＝ '+outsideCoefficient(c,frac(rootHTML('{{0}}'),'{{1}}')),[r.n*r.d,r.d],{integer:true});rows.push(combined);
  const extraction=extractionRow(c,r.n*r.d,r.d);if(extraction)rows.push(extraction);
  else if(Math.abs(c.n)===c.d)combined.complete=true;
  return rows;
@@ -141,7 +186,7 @@ function productQuestion(a,b,op='mul',variant='根式乘法') {
   // A square denominator opens immediately. Otherwise keep separated roots
   // separated whenever rationalization is needed; do not combine then split.
   if(top.r.d===1&&bottom.r.d===1&&bottom.r.n>1&&
-   (squareParts(bottom.r.n).b===1||r.d!==1)) {
+   (squareParts(bottom.r.n).b===1||r.d!==1&&squareParts(r.d).b!==1)) {
    return question('multiply',variant,original,
     fractionRootSteps(c,{n:top.r.n,d:bottom.r.n},true,Math.abs(c.n)!==c.d));
   }
@@ -152,7 +197,7 @@ function productQuestion(a,b,op='mul',variant='根式乘法') {
  const inside=r.d===1?slot(r.n):frac(slot(r.n),slot(r.d));
  const row=templateRow('分開計算：根號外的係數、根號內的數','＝ '+prefix+rootHTML(inside),values);
  const rows=[row];
- if(r.d!==1)rows.push(...fractionRootSteps(c,r));
+ if(r.d!==1)rows.push(...fractionRootSteps(c,r,op==='div'&&squareParts(r.d).b===1));
  else {const extraction=extractionRow(c,r.n);if(extraction)rows.push(extraction);}
  return question('multiply',variant,original,rows);
 }
@@ -168,10 +213,10 @@ if(e.op==='div'){
 }else{const r=e.r;if(r.d===1){const extraction=extractionRow(rat(1),r.n);if(extraction)rows.push(extraction);else rows.push(templateRow('判斷根號內是否已無平方因數','＝ '+rootHTML('{{0}}'),[r.n],{integer:true,complete:r.n>1}));}else rows.push(...fractionRootSteps(rat(1),r));}
 return question('rationalize',variant,e,rows);}
 function additionQuestion(terms,variant='先化簡，再找同類'){
- const e=sum(...terms),rows=[coefficientsRow('先將每一項化成最簡根式（負號保留在係數）',terms)];
+ const e=sum(...terms),rows=[coefficientsRow('先將每一項化成最簡根式，保留原來的加減號',terms)];
  return question('add',variant,e,rows);
 }
-function distributionQuestion(factor,terms,divide=false){const e=divide?quotient(sum(...terms),factor):prod(factor,sum(...terms));const expanded=terms.map(t=>divide?quotient(t,factor):prod(factor,t));return question('mixed',divide?'和差除以根式':'分配律',e,[rawTermsRow('分配到每一項，先完成乘除（負號保留在係數）',expanded),coefficientsRow('分別化簡每一項，再找同類',expanded)]);}
+function distributionQuestion(factor,terms,divide=false){const e=divide?quotient(sum(...terms),factor):prod(factor,sum(...terms));const expanded=terms.map(t=>divide?quotient(t,factor):prod(factor,t));return question('mixed',divide?'和差除以根式':'分配律',e,[rawTermsRow('分配到每一項，先完成乘除，保留加減號',expanded),coefficientsRow('分別化簡每一項，再找同類',expanded)]);}
 function binomialQuestion(a,b,c,d){const e=prod(sum(a,b),sum(c,d)),expanded=[prod(a,c),prod(a,d),prod(b,c),prod(b,d)];return question('mixed','雙括號展開',e,[rawTermsRow('前後逐項相乘：第一×第一、第一×第二、第二×第一、第二×第二',expanded),coefficientsRow('分別化簡這四個乘積',expanded)]);}
 function formulaQuestion(a,b,kind){const sign=kind==='minus'?-1:1;
  const original=kind==='difference'?prod(sum(a,b),sum(a,neg(b))):sq(sum(a,prod(num(sign),b)));
@@ -185,6 +230,50 @@ function conjugateQuestion(n,a,b,minus=false){const signedB=minus?neg(b):b,den=s
  const rr=coefficientsRow('分子展開，分母用平方差',[top]);
  rr.template='＝ '+frac(rr.template.replace(/^＝ /,''),`{{${rr.answers.length}}}`);rr.answers.push(d);rr.rules.push('rational');rr.display=frac(polyHTML(evaluate(top)),rationalHTML(d));
  return question('formula','共軛式有理化',e,[choice,rr],{reference:'根式二項式的共軛式：保留兩項，將兩項之間的加減號互換。乘積使用平方差公式。'});}
+function trinomialDifferenceQuestion(r,s,t){
+ const common=sum(rad(r),neg(rad(t))),other=rad(s);
+ const original=prod(sum(rad(r),other,neg(rad(t))),sum(rad(r),neg(other),neg(rad(t))));
+ const grouped='('+rootHTML('{{0}}')+' − '+rootHTML('{{1}}')+')';
+ const rows=[
+  templateRow('將兩邊相同的兩項分成一組，找出平方差的結構',
+   '＝ ['+grouped+' ＋ '+rootHTML('{{2}}')+'] × [('+show(common)+') − '+show(other)+']',[r,t,s],{integer:true}),
+  templateRow('套用平方差：共同的一組平方 − 另一項平方',
+   '＝ '+show(sq(common))+' − ('+rootHTML('{{0}}')+')<sup>2</sup>',[s],{integer:true}),
+  templateRow('展開共同一組的平方，保留中間的減號',
+   '＝ ({{0}} − {{1}}'+rootHTML('{{2}}')+' ＋ {{3}}) − {{4}}',[r,2,r*t,t,s],{integer:true})
+ ];
+ const cross=squareParts(r*t);
+ rows.push(templateRow('化簡乘積的根式，先合併括號內的整數',
+  '＝ ({{0}} − {{1}}'+rootHTML('{{2}}')+') − '+s,[r+t,2*cross.a,cross.b],{integer:true}));
+ return question('formula','三項式的平方差',original,rows);
+}
+function fractionAnswerRow(p,label='整理分母的負號，得到最簡答案'){
+ const entries=Object.entries(clean(p)),d=entries.reduce((v,[,c])=>v/gcd(v,c.d)*c.d,1),values=[];
+ const slot=n=>{values.push(rat(n));return '{{'+(values.length-1)+'}}';};
+ const numerator=entries.map(([k,c],i)=>{
+  const n=c.n*(d/c.d),sign=n<0?(i?' − ':'−'):(i?' ＋ ':'');
+  return sign+(Number(k)>1&&Math.abs(n)===1?'':slot(Math.abs(n)))+(Number(k)>1?rootHTML(k):'');
+ }).join('')||'0';
+ return templateRow(label,'＝ '+(d===1?numerator:frac(numerator,slot(d))),values,{integer:true,complete:true,final:true});
+}
+function conjugateFractionsQuestion(a,b,m=1,n=3){
+ const plusRoot=sum(rad(a),rad(b)),minusRoot=sum(rad(a),neg(rad(b)));
+ const left=quotient(num(m),sum(rad(b),rad(a))),right=quotient(num(n),minusRoot),original=sum(left,neg(right));
+ const rootA=rootHTML(a),rootB=rootHTML(b),x=rootHTML('{{0}}'),y=rootHTML('{{1}}');
+ const multiplier=(c,body)=>c===1?body:c+'('+body+')';
+ const denominator='('+show(plusRoot)+')('+show(minusRoot)+')';
+ const combined=add(scale(evaluate(minusRoot),m),scale(evaluate(plusRoot),-n));
+ const rows=[
+  templateRow('兩個分母互為共軛式，先通分，分子保留括號',
+   '＝ '+frac(multiplier(m,x+' − '+y)+' − '+multiplier(n,x+' ＋ '+y),denominator),[a,b],{integer:true,linked:true}),
+  templateRow('分子展開並保留減號，分母套用平方差',
+   '＝ '+frac(multiplier(m,rootA)+' − '+multiplier(m,rootB)+' − {{0}}'+rootA+' − {{1}}'+rootB,'{{2}} − {{3}}'),[n,n,a,b],{integer:true})
+ ];
+ const merged=coefficientsRow('分子合併同類根式，算出分母',[expr(combined)],false);
+ merged.template='＝ '+frac(merged.template.replace(/^＝ /,''),'{{'+merged.answers.length+'}}');merged.answers.push(rat(a-b));merged.rules.push('integer');rows.push(merged);
+ rows.push(fractionAnswerRow(evaluate(original)));
+ return question('formula','共軛分母先通分再化簡',original,rows);
+}
 function shuffled(items,random=Math.random){const out=[...items];for(let i=out.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[out[i],out[j]]=[out[j],out[i]];}return out;}
 function buildPool(){serial=0;const pool=[];const put=q=>{if(q)pool.push(q);};
 put(productQuestion(prod(num(3),rad(8)),prod(num(2),rad(6)),'mul','入門示例'));
@@ -229,16 +318,15 @@ put(productQuestion(rad(125),rad(18,5,'3'+frac(3,5)),'mul','根號內的帶分�
 put(productQuestion(rad(12,7,'1'+frac(5,7)),neg(rad(35,6,'5'+frac(5,6))),'mul','兩個帶分數根式'));
 put(additionQuestion([rad(8),neg(rad(18))],'同類相消與負係數'));
 put(additionQuestion([rad(8),neg(prod(num(2),rad(2)))],'相消為零'));
-for(const [r,s,t]of [[2,3,6],[3,18,6]]){const x=rad(r),y=sum(rad(s),neg(rad(t))),e=prod(sum(x,y),sum(x,neg(y)));put(question('formula','三項式的平方差',e,[coefficientsRow('看成 x² − y²；先分別計算兩個平方',[sq(x),neg(sq(y))])]));}
-const left=quotient(num(1),sum(rad(5),rad(2))),right=quotient(num(3),sum(rad(2),neg(rad(5))));
-put(question('formula','兩個分式先有理化再合併',sum(left,neg(right)),[coefficientsRow('分別有理化，注意減號',[left,neg(right)])]));
+for(const [r,s,t]of [[2,3,6],[3,18,6]])put(trinomialDifferenceQuestion(r,s,t));
+put(conjugateFractionsQuestion(2,5));
 const u=quotient(num(1),sum(rad(7),rad(5))),v=quotient(num(1),sum(rad(7),neg(rad(5))));
 const pr1=coefficientsRow('分別有理化，外面的平方要保留',[u]),pr2=coefficientsRow('',[v]);const offset=pr1.answers.length;pr1.template='＝ ('+pr1.template.replace(/^＝ /,'')+')<sup>2</sup> ＋ ('+pr2.template.replace(/^＝ /,'').replace(/\{\{(\d+)\}\}/g,(_,i)=>'{{'+(Number(i)+offset)+'}}')+')<sup>2</sup>';pr1.answers.push(...pr2.answers);pr1.rules.push(...pr2.rules);put(question('formula','有理化後平方、再相加',sum(sq(u),sq(v)),[pr1,coefficientsRow('將兩個分式各自平方',[sq(u),sq(v)])]));
 const seen=new Set();return pool.filter(q=>{if(seen.has(q.prompt))return false;seen.add(q.prompt);return true;});}
 function polyText(p){const terms=Object.entries(clean(p));if(!terms.length)return '0';return terms.map(([k,c],i)=>{const sign=c.n<0?'-':i?'+':'';const n=Math.abs(c.n),body=Number(k)===1?String(n):(n===1?'':n)+'√'+k;return sign+(c.d===1?body:'('+body+')/'+c.d);}).join('');}
 function samePoly(a,b){a=clean(a);b=clean(b);const keys=Object.keys(a);return keys.length===Object.keys(b).length&&keys.every(k=>equalRat(a[k],b[k]));}
 function parseExpression(raw){
- const source=String(raw??'').trim().replace(/[−–]/g,'-').replace(/[＋]/g,'+').replace(/[×·]/g,'*').replace(/[÷／]/g,'/').replace(/（/g,'(').replace(/）/g,')').replace(/sqrt/gi,'√').replace(/²/g,'^2');
+ const source=String(raw??'').trim().replace(/[−–]/g,'-').replace(/[＋]/g,'+').replace(/[×·]/g,'*').replace(/[÷／]/g,'/').replace(/[（\[]/g,'(').replace(/[）\]]/g,')').replace(/sqrt/gi,'√').replace(/²/g,'^2');
  if(!source||source.length>160)return null;
  const tokens=[];let at=0;
  while(at<source.length){if(/\s/.test(source[at])){at++;continue;}const n=source.slice(at).match(/^(?:\d+(?:\.\d*)?|\.\d+)/);if(n){if(n[0].length>12||Math.abs(Number(n[0]))>1000000)return null;tokens.push(n[0]);at+=n[0].length;}else if('+-*/()√^'.includes(source[at]))tokens.push(source[at++]);else return null;}
@@ -282,5 +370,5 @@ class ExamSession{
  finish(timedOut=false){if(this.finished)return this.report;this.finished=true;const results=this.questions.map((q,i)=>({...checkAnswer(this.entries[i].raw,q.answer),raw:this.entries[i].raw,question:q}));this.report={timedOut:timedOut||this.now()>=this.deadline,results,correct:results.filter(r=>r.kind==='correct').length,answered:this.entries.filter(e=>e.raw.trim()).length};this.report.score=this.report.correct*10;return this.report;}
 }
 function selectRound(pool,topic,count=10,random=Math.random){if(topic!=='all'&&!TOPICS.some(t=>t.id===topic))throw Error('Unknown topic');const groups=topic==='all'?TOPICS.map(t=>pool.filter(q=>q.kind===t.id)):[pool.filter(q=>q.kind===topic)];if(groups.some(g=>!g.length))throw Error('Empty topic');let out=[];for(const group of groups)out.push(...shuffled(group,random).slice(0,Math.floor(count/groups.length)));const ids=new Set(out.map(q=>q.id));out.push(...shuffled(pool.filter(q=>(topic==='all'||q.kind===topic)&&!ids.has(q.id)),random).slice(0,count-out.length));return shuffled(out,random);}
-return {TOPICS,REFERENCES,rat,plus,times,over,equalRat,parse,squareParts,rootValue,scalar,add,scale,mul,div,num,rad,sum,prod,quotient,sq,neg,evaluate,show,polyHTML,rationalHTML,rootHTML,frac,expr,buildPool,selectRound,shuffled,finalRow,rawMono,polyText,samePoly,parseExpression,checkAnswer,mathHTMLText,rowExpression,ExamSession,productQuestion,rationalQuestion};
+return {TOPICS,REFERENCES,rat,plus,times,over,equalRat,parse,squareParts,rootValue,scalar,add,scale,mul,div,num,rad,sum,prod,quotient,sq,neg,evaluate,show,polyHTML,rationalHTML,rootHTML,frac,expr,buildPool,selectRound,shuffled,finalRow,rawMono,polyText,samePoly,parseExpression,checkAnswer,mathHTMLText,rowExpression,ExamSession,productQuestion,rationalQuestion,additionQuestion,trinomialDifferenceQuestion,conjugateFractionsQuestion};
 });
