@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>鏡面與透鏡成像實驗室｜鳩特老師</title>
+  <meta name="description" content="拖曳物體、切換四種鏡面與透鏡，逐條觀察光路、實像與虛像，再用光屏驗證。">
+  <link rel="stylesheet" href="../../senior/science_lab.css">
+  <link rel="stylesheet" href="../../senior/science_layout.css?v=tablet-landscape-1">
+  <link rel="stylesheet" href="geometric_optics.css?v=1">
+  <script defer src="geometric_optics_core.js?v=1"></script>
+  <script defer src="geometric_optics.js?v=1"></script>
+</head>
+<body class="science-layout optics-lab">
+  <header><a href="../../index.html?category=junior">← 教材首頁</a><h1>鏡面與透鏡成像實驗室</h1><span class="badge">國二自然</span></header>
+  <main class="shell">
+    <div class="toolbar"><div><div class="eyebrow">鳩特老師 · 互動自然教室</div><p class="muted">拖曳物體，看看光線在哪裡相交。先預測，再揭曉。</p></div><button id="reset">重設實驗</button></div>
+    <nav class="tabs optic-tabs" aria-label="鏡面與透鏡種類">
+      <button data-optic="convex-lens" aria-pressed="true">凸透鏡</button><button data-optic="concave-lens" aria-pressed="false">凹透鏡</button><button data-optic="concave-mirror" aria-pressed="false">凹面鏡</button><button data-optic="convex-mirror" aria-pressed="false">凸面鏡</button>
+    </nav>
+    <div class="grid lab-grid">
+      <section class="panel lab-main-panel">
+        <div class="row scene-heading"><h2 id="scene-title">凸透鏡成像</h2><span id="optic-group" class="badge">會聚</span></div>
+        <p class="muted" id="scene-caption">藍色箭頭是物體；拖曳底座可以改變物距。</p>
+        <div class="optics-stage"><svg id="optics" viewBox="0 0 1000 600" role="group" aria-label="可拖曳物體與光屏的成像光路圖"></svg></div>
+        <div class="legend" aria-label="圖例"><span><i class="object-key"></i>物體</span><span><i class="image-key"></i>像</span><span><i></i>實際光路</span><span><i class="dashed"></i>反向延長線</span></div>
+        <p id="edge-note" class="note" hidden></p>
+        <div id="result" class="result-card" aria-live="polite"></div>
+        <div id="screen-result" class="screen-result" hidden><div id="screen-preview" aria-hidden="true"></div><div><strong id="screen-status"></strong><p id="screen-explain" class="muted"></p></div></div>
+        <details><summary>怎麼讀這張圖？</summary><p>同一個物點射出的光，經反射或折射後若實際會聚，就形成實像；若光線發散，而反向延長線相交，交點就是虛像。圖中的像只畫出箭頭，方便比較位置、方向與大小。</p><p>實線箭頭表示光的行進方向；虛線只是找虛像的作圖工具，沒有光沿著虛線倒退行進。關閉輔助光線不會改變成像。</p></details>
+      </section>
+      <aside class="lab-sidebar"><div class="lab-sidebar-content">
+        <section class="panel lab-operation-panel" id="lab-operations">
+          <h2>操作與觀察</h2>
+          <div class="control"><label for="distance">物距</label><output id="distance-value" for="distance">3.00f</output><input id="distance" type="range" min="0.25" max="4" step="0.01" value="3" aria-describedby="distance-help"></div>
+          <div class="actions presets" aria-label="物距快捷位置"><button data-distance="0.5">0.5f</button><button data-distance="1">f</button><button data-distance="1.5">1.5f</button><button data-distance="2">2f</button><button data-distance="3">3f</button></div>
+          <label class="check"><input id="snap" type="checkbox" checked>靠近 F、2F 時吸附</label><p class="muted" id="distance-help">焦距固定；f 是一倍焦距，F 是焦點。也可用方向鍵微調物距。</p>
+          <fieldset><legend>輔助光線</legend>
+            <label class="check ray-option parallel"><input id="ray-parallel" type="checkbox" checked><span>平行主軸的光線<small id="parallel-rule"></small></span></label>
+            <label class="check ray-option central"><input id="ray-central" type="checkbox" checked><span id="central-label"></span></label>
+            <label class="check ray-option focal"><input id="ray-focal" type="checkbox"><span>焦點相關光線<small id="focal-rule"></small></span></label>
+            <label class="check ray-option curvature" id="curvature-option" hidden><input id="ray-curvature" type="checkbox"><span>球心 C 相關光線<small>沿球心與物點連線，反射後循原路返回</small></span></label>
+            <label class="check"><input id="extensions" type="checkbox" checked>顯示反向延長線（虛線）</label>
+          </fieldset>
+          <p id="ray-note" class="muted" hidden></p>
+          <div class="actions"><button id="play" aria-pressed="true">暫停光線動畫</button><button id="replay">逐條重播</button></div>
+          <label class="check"><input id="show-image" type="checkbox" checked>顯示像與成像結果</label>
+          <fieldset><legend>光屏實驗</legend><label class="check"><input id="show-screen" type="checkbox">加入可拖曳光屏</label>
+            <div id="screen-controls" hidden><div class="control"><label for="screen-position">光屏位置</label><output id="screen-value" for="screen-position"></output><input id="screen-position" type="range" min="-4" max="4" step="0.01" value="2"></div><p class="muted">負值在左側，正值在右側。拖到成像位置，試著接到清晰的像。</p></div>
+          </fieldset>
+        </section>
+        <section class="panel"><h2>先預測，再驗證</h2><p id="observation-prompt"></p><button id="prediction-toggle" aria-expanded="false" aria-controls="discovery">揭示觀察重點</button><div id="discovery" class="note" hidden></div></section>
+        <details class="panel"><summary>四種器材的比較</summary><div class="comparison-wrap"><table><thead><tr><th>器材</th><th>性質</th><th>實物的成像</th></tr></thead><tbody><tr><td>凸透鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹面鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹透鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr><tr><td>凸面鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr></tbody></table></div><p class="muted">凹面鏡與凸透鏡可以成對比較；但實像與虛像在器材哪一側，要由實際光路判斷。</p></details>
+        <details class="panel"><summary>模型與參考</summary><p>採薄透鏡及球面鏡的近軸成像模型，焦距大小固定為 1 單位，略去厚度、像差與孔徑限制。為配合國中作圖，光線統一在中央參考面轉向；鏡面弧形是種類符號。球面鏡以 C＝2F 標示球心。</p><p>光屏是半透明觀測面的示意，不遮斷後續光路；清晰度依光線會聚程度示意，非實際影像的亮度或繞射模擬。動畫速度僅為教學示意。</p><p>參考概念：<a href="https://phet.colorado.edu/zh_TW/simulations/geometric-optics" target="_blank" rel="noopener">PhET 幾何光學</a>、<a href="https://javalab.org/en/mirrors_en/" target="_blank" rel="noopener">Javalab 鏡面</a>、<a href="https://javalab.org/en/lens_en/" target="_blank" rel="noopener">透鏡</a>、<a href="https://www.walter-fendt.de/html5/phen/imageconverginglens_en.htm" target="_blank" rel="noopener">Walter Fendt</a>。本站介面與程式獨立製作。</p></details>
+      </div></aside>
+    </div>
+  </main>
+</body></html>

@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年10月31日"
+    lastUpdated: "2026年11月11日"
 };
 
 // --- 課程資料區 ---
@@ -181,6 +181,15 @@ const lessonData = [
         tagClass: "math",
         tagName: "國中數學",
         desc: "判斷是否為最簡根式，或四選一選出化簡結果；基礎 1～50、精熟 1～100，可單人快答與雙人 PK。"
+    },
+    {
+        title: "鏡面與透鏡成像實驗室（國二）",
+        category: "junior",
+        grades: [8],
+        url: "junior/science/geometric_optics.html",
+        tagClass: "phys",
+        tagName: "國中理化",
+        desc: "切換凸、凹面鏡與透鏡，拖曳物體觀察光路與成像，再以可移動光屏驗證實像與虛像。"
     },
     {
         title: "物質加熱曲線與三態變化（國二）",
