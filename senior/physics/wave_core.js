@@ -8,5 +8,24 @@
   function singleIntensity(sinTheta,width,wavelength){return sinc(Math.PI*width*sinTheta/wavelength)**2;}
   function doubleIntensity(sinTheta,separation,wavelength,width=0){return Math.cos(Math.PI*separation*sinTheta/wavelength)**2*(width?singleIntensity(sinTheta,width,wavelength):1);}
   function spread(width,wavelength){return Math.min(Math.PI/2,Math.asin(Math.min(1,wavelength/width)));}
-  const api={point,pointAtDifference,timeAtCrest,sinc,singleIntensity,doubleIntensity,spread};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WaveCore=api;
+  // 光波游標讀數：p 為屏幕位置（mm，相對中央）、L 為屏距（mm）、波長 lambda／縫距 d／縫寬 a 單位為 μm。
+  function lightReadout(o){
+    const {kind,p,L,lambda,d,a,envelope}=o;
+    if(!(L>0)||!(lambda>0)||!(a>0)||(kind==='interference'&&!(d>0))||!['interference','diffraction'].includes(kind))throw Error('Invalid light input');
+    const theta=Math.atan(p/L),sinTheta=Math.sin(theta),interference=kind==='interference';
+    const width=interference?d:a,path=width*sinTheta,orders=path/lambda,nearest=Math.round(orders),offset=Math.abs(orders-nearest),half=Math.abs(Math.abs(orders-Math.trunc(orders))-.5);
+    const intensity=interference?doubleIntensity(sinTheta,d,lambda,envelope?a:0):singleIntensity(sinTheta,a,lambda);
+    let type='between',order=null;
+    if(interference){if(offset<.04){type='bright';order=Math.abs(nearest);}else if(half<.04){type='dark';order=Math.floor(Math.abs(orders))+1;}}
+    else if(Math.abs(orders)<.04)type='center';else if(offset<.04&&nearest!==0){type='dark';order=Math.abs(nearest);}
+    const ratio=lambda/width,exactFirst=ratio<1?L*Math.tan(Math.asin(ratio)):null;
+    return{theta,degrees:theta*180/Math.PI,sinTheta,path,orders,approxPath:width*p/L,intensity,type,order,approxSpacing:lambda*L/width,exactFirst,
+      centralWidthApprox:interference?null:2*lambda*L/a,centralWidthExact:interference||exactFirst===null?null:2*exactFirst};
+  }
+  // 第 order 級亮紋（干涉）或暗紋（繞射）在屏幕上的位置（mm）；超出可達範圍回傳 null。
+  function orderPosition(kind,order,L,lambda,d,a){
+    const s=order*lambda/(kind==='interference'?d:a);
+    return Math.abs(s)>=1?null:L*Math.tan(Math.asin(s));
+  }
+  const api={point,pointAtDifference,timeAtCrest,sinc,singleIntensity,doubleIntensity,spread,lightReadout,orderPosition};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.WaveCore=api;
 })(typeof window==='undefined'?globalThis:window);

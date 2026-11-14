@@ -1,6 +1,6 @@
 (()=>{
- 'use strict';const W=WaveCore,L=ScienceLab,$=id=>document.getElementById(id),canvas=$('wave'),ctx=canvas.getContext('2d');let topic='water-int',time=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,last=0,lastText=0,study=false;
- const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false};let field=null;
+ 'use strict';const W=WaveCore,L=ScienceLab,$=id=>document.getElementById(id),canvas=$('wave'),ctx=canvas.getContext('2d'),S3=window.WaveSurface;canvas.width=1440;canvas.height=840;let projection=false,topic='water-int',time=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,last=0,lastText=0,study=false;
+ const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false,view3d:false,height:.7,cursor:0};let field=null;const DEFAULT_VIEW={yaw:0,tilt:55,zoom:1};let view={...DEFAULT_VIEW};
  const colors={'.45':'#6c9dff','.55':'#5cdd9c','.65':'#ff777c'};let guide=null;
  // A cached HTML page may still contain the previous meeting shortcut.
  // Normalize that older shell before binding the new shared controls.
@@ -102,8 +102,19 @@
  };
  function range(id,label,min,max,value,unit,step=1){return `<div class="control"><label for="${id}">${label}</label><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"><output for="${id}" id="${id}-out">${value}${unit}</output></div>`;}
  function wire(id,key,unit='',rebuild=false){$(id).oninput=()=>{state[key]=+$(id).value;$(id+'-out').textContent=state[key]+unit;if(rebuild)buildField();draw();};}
- function mode(value){study=value;document.body.dataset.study=String(study);$('study-panel').hidden=!study;$('free-panel').hidden=study;$('free-mode').setAttribute('aria-pressed',!study);$('study-mode').setAttribute('aria-pressed',study);syncURL();}
- function syncURL(){const q=new URLSearchParams({topic});if(study)q.set('mode','study');history.replaceState(null,'','?'+q);}
+function mode(value){
+   const name=value===true?'study':value===false?'free':value;
+   study=name==='study';projection=name==='projection';
+   document.body.dataset.study=String(study);document.body.classList.toggle('projection',projection);
+   $('study-panel').hidden=!study;$('free-panel').hidden=study||projection;
+   $('free-mode').setAttribute('aria-pressed',String(name==='free'));$('study-mode').setAttribute('aria-pressed',String(study));
+   if($('proj-mode'))$('proj-mode').setAttribute('aria-pressed',String(projection));
+   if($('fullscreen'))$('fullscreen').hidden=!projection;
+   if($('proj-hint'))$('proj-hint').hidden=!projection;
+   if(!projection&&document.fullscreenElement)document.exitFullscreen?.();
+   syncURL();draw();
+ }
+ function syncURL(){const q=new URLSearchParams({topic});if(study)q.set('mode','study');else if(projection)q.set('mode','projection');if(state.view3d&&topic.startsWith('water'))q.set('view','3d');try{history.replaceState(null,'','?'+q);}catch(_){/* 靜態檢視時不更新網址 */}}
  function selectTopic(value){topic=value;time=0;field=null;document.querySelectorAll('[data-topic]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.topic===topic));const water=topic.startsWith('water'),interference=topic.endsWith('int');$('scene-title').textContent=({'water-int':'水波干涉｜追蹤同一點的振動','water-diff':'水波繞射｜比較開口與波長','light-int':'光波干涉｜雙狹縫與亮暗條紋','light-diff':'光波繞射｜單狹縫的中央亮帶'})[topic];$('scene-caption').textContent=water?interference?'點選水面移動 P 點，或用操作區的按鈕選波腹、波節。':'波從左方通過開口，觀察它往側方擴散的程度。':'左側為狹縫示意，右側為屏幕正視圖；亮度曲線沿垂直條紋的方向取樣。';$('time-controls').hidden=!water;$('observation-controls').hidden=!(water&&interference);$('legend').innerHTML='';delete $('legend').dataset.view;$('probe').hidden=!(water&&interference);
  if(water&&interference){$('controls').innerHTML=range('lambda','波長',16,80,state.wavelength,' cm')+range('separation','波源間距',60,220,state.separation,' cm')+'<div class="row"><button id="crest-view">只看波峰</button><button id="both-view">波峰＋波谷</button><button id="double-frequency">頻率加倍（波速固定）</button></div><p class="muted">觀測點可直接點選水面，也可用操作區的滑桿調整。</p>'+range('probe-x','P 點水平位置',-280,280,state.px,' cm')+range('probe-y','P 點離波源連線',40,330,state.py,' cm');wire('lambda','wavelength',' cm');wire('separation','separation',' cm');wire('probe-x','px',' cm');wire('probe-y','py',' cm');$('crest-view').onclick=()=>{state.troughs=false;draw();};$('both-view').onclick=()=>{state.troughs=true;draw();};$('double-frequency').onclick=()=>{if(state.wavelength<32)return;state.wavelength/=2;$('lambda').value=state.wavelength;$('lambda-out').textContent=state.wavelength+' cm';draw();};$('model-note').textContent='藍色來自 S₁，金色來自 S₂；實線是波峰、虛線是波谷。觀察波腹／波節會暫停在同峰相加／一峰一谷相遇的時刻。波節全程反相抵銷，但不代表每一瞬間都恰好是峰頂遇到谷底；也可能一起通過平衡位置。圖中的位移—時間曲線與主圖同步。';$('takeaways').innerHTML='<p>波峰＋波峰、波谷＋波谷：建設性干涉。等大波峰＋波谷：破壞性干涉。</p><p>振幅與瞬時位移不同：波腹通過平衡位置，位移為 0，仍維持最大的振幅。</p>';$('tasks').innerHTML='<p>① 按「觀察波腹」，再前進四分之一週期，觀察位移與振幅。</p><p>② 按「觀察波節」，看看兩個分波如何抵銷。</p><p>③ 觀察波節後把頻率加倍，觀察該位置是否仍是波節。</p>';
  }else if(water){$('controls').innerHTML=range('lambda','波長',16,80,state.wavelength,' cm')+range('aperture','開口寬度',16,180,state.aperture,' cm')+'<div class="actions"><button id="narrow-opening">比較窄開口</button><button id="wide-opening">比較寬開口</button></div>';wire('lambda','wavelength',' cm',true);wire('aperture','aperture',' cm',true);$('narrow-opening').onclick=()=>{state.aperture=24;$('aperture').value=24;$('aperture-out').textContent='24 cm';buildField();draw();};$('wide-opening').onclick=()=>{state.aperture=160;$('aperture').value=160;$('aperture-out').textContent='160 cm';buildField();draw();};$('model-note').textContent='波長固定時，開口越窄，通常越能看出側向擴散。繞射並非只在單狹縫發生；遇到障礙物邊緣也會發生。這裡以二維次波源疊加示意波前，顏色正規化，不比較總能量。';$('takeaways').innerHTML='<p>先固定波長只改開口，再固定開口只改波長，每次改一個條件。</p><p>長方形開口在哪個方向較窄，該方向通常有較明顯的繞射。</p>';$('tasks').innerHTML='<p>① 比較窄開口與寬開口，哪一個更接近半圓形波前？</p><p>② 固定開口，改變波長，再解釋差異。</p><p>③ 想讓喇叭水平方向擴散更廣，長方形開口應如何擺？</p>';buildField();
@@ -115,6 +126,7 @@
    ].map(([cls,label,color,id],i)=>`<div class="probe-wave ${cls}"><strong>${label}</strong><div class="phase-name" id="phase-${i}"></div><svg viewBox="0 0 160 120" role="img" aria-label="${label}的位移隨時間變化"><path d="M3 60H157" stroke="#b5c4d2"/><path d="M80 8V112" stroke="#9aaec0" stroke-dasharray="4 4"/><polyline id="probe-wave-${i}" fill="none" stroke="${color}" stroke-width="3"/><circle id="probe-dot-${i}" cx="80" cy="60" r="5" fill="${color}" stroke="#fff" stroke-width="1.5"/></svg><div class="probe-value" id="${id}"></div></div>`).join('')+'</div><div class="probe-equation" id="probe-equation"></div><p class="probe-explain" id="meeting-description"></p><p class="note" id="amplitude"></p><p class="probe-help">可按操作區的「觀察波腹／觀察波節」比較加強與抵銷，或直接點選水面。播放與前進時間都會同步更新三張波形圖。</p></section>';
  }
 
+ $('scene-caption').dataset.base=$('scene-caption').textContent;updateViewControls();if(!water)buildCursorPanel();
  guide?.destroy?.();guide=L.guidedStudy?L.guidedStudy($('study-panel'),guidedLessons[topic],'jutor.wave.guide.'+topic+'.v1',questions[topic],'jutor.wave.'+topic+'.v1',()=>study):L.quiz($('study-panel'),questions[topic],'jutor.wave.'+topic+'.v1');syncURL();draw();}
  function setProbe(x,y){state.px=x;state.py=y;if($('probe-x')){$('probe-x').value=x;$('probe-x-out').textContent=x.toFixed(1)+' cm';$('probe-y').value=y;$('probe-y-out').textContent=y+' cm';}draw();}
  function text(t,x,y,color='#e3edf7',size=16){ctx.fillStyle=color;ctx.font=`${size}px system-ui`;ctx.fillText(t,x,y);}
@@ -188,6 +200,7 @@
  }
  function waterInterference(){
    const p=W.point(state.px,state.py,state.separation,state.wavelength,time);
+   if(state.view3d&&S3){surfaceInterference(p);return;}
    const sources=[360-state.separation/2,360+state.separation/2];
    const sourceColors=['#82c4e9','#f1c16f'];
    ctx.fillStyle='#102b40';ctx.fillRect(0,0,720,420);
@@ -239,9 +252,145 @@
    $('double-frequency').disabled=state.wavelength<32;
  }
  function buildField(){if(topic!=='water-diff')return;const nw=180,nh=105,real=new Float32Array(nw*nh),imag=new Float32Array(nw*nh);let max=0;for(let yy=0;yy<nh;yy++)for(let xx=46;xx<nw;xx++){const x=xx*4-180,y=yy*4;let re=0,im=0;for(let n=0;n<41;n++){const sy=210+(n/40-.5)*state.aperture,r=Math.hypot(x,y-sy),w=1/Math.sqrt(Math.max(r,8)),phase=2*Math.PI*r/state.wavelength;re+=Math.cos(phase)*w;im+=Math.sin(phase)*w;}const i=yy*nw+xx;real[i]=re;imag[i]=im;if(xx>50)max=Math.max(max,Math.hypot(re,im));}const buffer=document.createElement('canvas');buffer.width=nw;buffer.height=nh;field={real,imag,max,buffer,context:buffer.getContext('2d'),image:buffer.getContext('2d').createImageData(nw,nh)};}
- function waterDiffraction(){ctx.fillStyle='#102b40';ctx.fillRect(0,0,720,420);if(!field)buildField();const c=Math.cos(time*2*Math.PI),s=Math.sin(time*2*Math.PI),data=field.image.data;for(let i=0;i<field.real.length;i++){const v=Math.max(-1,Math.min(1,(field.real[i]*c+field.imag[i]*s)/field.max*1.5));data[i*4]=25+Math.max(0,v)*115;data[i*4+1]=65+Math.abs(v)*100;data[i*4+2]=95+Math.max(0,-v)*145;data[i*4+3]=255;}field.context.putImageData(field.image,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(field.buffer,0,0,720,420);ctx.fillStyle='#102b40';ctx.fillRect(0,0,180,420);ctx.strokeStyle='#8ec8ed';ctx.lineWidth=2;for(let x=(time%1)*state.wavelength;x<180;x+=state.wavelength){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,420);ctx.stroke();}ctx.fillStyle='#d4b77c';ctx.fillRect(175,0,10,210-state.aperture/2);ctx.fillRect(175,210+state.aperture/2,10,210-state.aperture/2);text('入射波 →',20,30);text('開口',190,28);text('次波源疊加的波前示意',420,400);}
- function light(){ctx.fillStyle='#102334';ctx.fillRect(0,0,720,420);const interference=topic==='light-int',vertical=state.orientation==='vertical',color=colors['.'+String(state.opticalLambda).split('.')[1]]||'#5cdd9c';ctx.fillStyle='#687b8c';ctx.fillRect(165,115,105,170);ctx.fillStyle=color;if(interference){if(vertical){ctx.fillRect(194,157,4,85);ctx.fillRect(238,157,4,85);}else{ctx.fillRect(181,175,73,4);ctx.fillRect(181,218,73,4);}}else{if(vertical)ctx.fillRect(215,157,Math.max(3,state.slitWidth/8),85);else ctx.fillRect(181,198,73,Math.max(3,state.slitWidth/8));}ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(25,200);ctx.lineTo(153,200);ctx.stroke();text('單色光',30,180,color);ctx.strokeStyle='#86a1b8';ctx.setLineDash([5,6]);ctx.beginPath();ctx.moveTo(270,157);ctx.lineTo(420,80);ctx.moveTo(270,242);ctx.lineTo(420,330);ctx.stroke();ctx.setLineDash([]);text(interference?'雙狹縫（示意）':'單狹縫（示意）',158,317);text('屏幕正視圖',435,43);const x0=430,y0=65,width=250,height=280,span=80,lambda=state.opticalLambda;const intensity=p=>{const sinTheta=Math.sin(Math.atan(p/state.screenDistance));return interference?W.doubleIntensity(sinTheta,state.slitDistance,lambda,state.envelope?state.slitWidth:0):W.singleIntensity(sinTheta,state.slitWidth,lambda);};ctx.fillStyle='#02070b';ctx.fillRect(x0,y0,width,height);const rgb=color.match(/\w\w/g).map(h=>parseInt(h,16));for(let j=0;j<(vertical?width:height);j++){const extent=vertical?width:height,p=(j/extent-.5)*span,I=intensity(p);ctx.fillStyle=`rgb(${rgb.map(n=>Math.round(n*Math.sqrt(I))).join(',')})`;if(vertical)ctx.fillRect(x0+j,y0,1,height);else ctx.fillRect(x0,y0+j,width,1);}ctx.strokeStyle='#91a7b9';ctx.strokeRect(x0,y0,width,height);ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.7;for(let j=0;j<=width;j++){const I=intensity((j/width-.5)*span),x=x0+j,y=395-I*35;if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();text('亮度分布（垂直條紋方向取樣）',430,415,'#d0dfed',12);if(!interference){text('中央最亮、較寬；兩側較暗',30,365,'#d0dfed',15);}else text(state.envelope?'含單縫繞射包絡':'基本理想干涉圖樣',30,365,'#d0dfed',15);}
- function draw(){if(topic==='water-int')waterInterference();else if(topic==='water-diff')waterDiffraction();else light();$('pause').textContent=paused?'播放':'暫停';}
- canvas.addEventListener('click',e=>{if(topic!=='water-int')return;const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*720/b.width,y=(e.clientY-b.top)*420/b.height;setProbe(Math.max(-280,Math.min(280,x-360)),Math.max(40,Math.min(330,380-y)));});$('pause').onclick=()=>{paused=!paused;draw();};$('quarter').onclick=()=>{paused=true;time=(time+.25)%100;draw();};$('half-period').onclick=()=>{paused=true;time=(time+.5)%100;draw();};$('probe-antinode').onclick=showAntinode;$('probe-node').onclick=showNodeMeeting;$('reset-time').onclick=()=>{time=0;draw();};$('speed').onchange=()=>{speed=+$('speed').value;};$('free-mode').onclick=()=>mode(false);$('study-mode').onclick=()=>mode(true);document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>selectTopic(b.dataset.topic));
- function tick(now){if(!last)last=now;const dt=Math.min((now-last)/1000,.1);last=now;if(!paused&&topic.startsWith('water')&&!document.hidden){time=(time+dt*40/state.wavelength*speed)%100;if(now-lastText>65){draw();lastText=now;}}requestAnimationFrame(tick);}const params=new URLSearchParams(location.search);const initial=params.get('topic');selectTopic(Object.hasOwn(questions,initial)?initial:'water-int');mode(params.get('mode')==='study');requestAnimationFrame(tick);
+ function waterDiffraction(){if(state.view3d&&S3){surfaceDiffraction();return;}ctx.fillStyle='#102b40';ctx.fillRect(0,0,720,420);if(!field)buildField();const c=Math.cos(time*2*Math.PI),s=Math.sin(time*2*Math.PI),data=field.image.data;for(let i=0;i<field.real.length;i++){const v=Math.max(-1,Math.min(1,(field.real[i]*c+field.imag[i]*s)/field.max*1.5));data[i*4]=25+Math.max(0,v)*115;data[i*4+1]=65+Math.abs(v)*100;data[i*4+2]=95+Math.max(0,-v)*145;data[i*4+3]=255;}field.context.putImageData(field.image,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(field.buffer,0,0,720,420);ctx.fillStyle='#102b40';ctx.fillRect(0,0,180,420);ctx.strokeStyle='#8ec8ed';ctx.lineWidth=2;for(let x=(time%1)*state.wavelength;x<180;x+=state.wavelength){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,420);ctx.stroke();}ctx.fillStyle='#d4b77c';ctx.fillRect(175,0,10,210-state.aperture/2);ctx.fillRect(175,210+state.aperture/2,10,210-state.aperture/2);text('入射波 →',20,30);text('開口',190,28);text('次波源疊加的波前示意',420,400);}
+ function light(){ctx.fillStyle='#102334';ctx.fillRect(0,0,720,420);const interference=topic==='light-int',vertical=state.orientation==='vertical',color=colors['.'+String(state.opticalLambda).split('.')[1]]||'#5cdd9c';ctx.fillStyle='#687b8c';ctx.fillRect(165,115,105,170);ctx.fillStyle=color;if(interference){if(vertical){ctx.fillRect(194,157,4,85);ctx.fillRect(238,157,4,85);}else{ctx.fillRect(181,175,73,4);ctx.fillRect(181,218,73,4);}}else{if(vertical)ctx.fillRect(215,157,Math.max(3,state.slitWidth/8),85);else ctx.fillRect(181,198,73,Math.max(3,state.slitWidth/8));}ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(25,200);ctx.lineTo(153,200);ctx.stroke();text('單色光',30,180,color);ctx.strokeStyle='#86a1b8';ctx.setLineDash([5,6]);ctx.beginPath();ctx.moveTo(270,157);ctx.lineTo(420,80);ctx.moveTo(270,242);ctx.lineTo(420,330);ctx.stroke();ctx.setLineDash([]);text(interference?'雙狹縫（示意）':'單狹縫（示意）',158,317);text('屏幕正視圖',435,43);const x0=430,y0=65,width=250,height=280,span=80,lambda=state.opticalLambda;const intensity=p=>{const sinTheta=Math.sin(Math.atan(p/state.screenDistance));return interference?W.doubleIntensity(sinTheta,state.slitDistance,lambda,state.envelope?state.slitWidth:0):W.singleIntensity(sinTheta,state.slitWidth,lambda);};ctx.fillStyle='#02070b';ctx.fillRect(x0,y0,width,height);const rgb=color.match(/\w\w/g).map(h=>parseInt(h,16));for(let j=0;j<(vertical?width:height);j++){const extent=vertical?width:height,p=(j/extent-.5)*span,I=intensity(p);ctx.fillStyle=`rgb(${rgb.map(n=>Math.round(n*Math.sqrt(I))).join(',')})`;if(vertical)ctx.fillRect(x0+j,y0,1,height);else ctx.fillRect(x0,y0+j,width,1);}ctx.strokeStyle='#91a7b9';ctx.strokeRect(x0,y0,width,height);ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=1.7;for(let j=0;j<=width;j++){const I=intensity((j/width-.5)*span),x=x0+j,y=395-I*35;if(j===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();text('亮度分布（垂直條紋方向取樣）',430,415,'#d0dfed',12);if(!interference){text('中央最亮、較寬；兩側較暗',30,365,'#d0dfed',15);}else text(state.envelope?'含單縫繞射包絡':'基本理想干涉圖樣',30,365,'#d0dfed',15);cursorOverlay({x0,y0,width,height,vertical,span,intensity,interference});}
+ function draw(){ctx.setTransform(2,0,0,2,0,0);if(topic==='water-int')waterInterference();else if(topic==='water-diff')waterDiffraction();else light();$('pause').textContent=paused?'播放':'暫停';}
+ canvas.addEventListener('click',e=>{if(topic!=='water-int'||state.view3d)return;const b=canvas.getBoundingClientRect(),x=(e.clientX-b.left)*720/b.width,y=(e.clientY-b.top)*420/b.height;setProbe(Math.max(-280,Math.min(280,x-360)),Math.max(40,Math.min(330,380-y)));});$('pause').onclick=()=>{paused=!paused;draw();};$('quarter').onclick=()=>{paused=true;time=(time+.25)%100;draw();};$('half-period').onclick=()=>{paused=true;time=(time+.5)%100;draw();};$('probe-antinode').onclick=showAntinode;$('probe-node').onclick=showNodeMeeting;$('reset-time').onclick=()=>{time=0;draw();};$('speed').onchange=()=>{speed=+$('speed').value;};$('free-mode').onclick=()=>mode(false);$('study-mode').onclick=()=>mode(true);document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>selectTopic(b.dataset.topic));
+
+ // ===== 投影模式、3D 立體水面、光波游標 =====
+ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+ const fmtN=(x,n=2)=>Number.isFinite(x)?(Math.abs(x)<5*10**-(n+1)?'0':String(+x.toFixed(n))).replace('-','−'):'—';
+ const GEO={x0:430,y0:65,width:250,height:280,span:80}; // 屏幕正視圖在畫布上的位置；span 為顯示的屏幕寬度（mm）
+ const TOPICS=['water-int','water-diff','light-int','light-diff'];
+ function ensureUI(){
+   const group=document.createElement('div');group.id='view-controls';group.className='wave-control-group';group.setAttribute('role','group');group.setAttribute('aria-label','顯示方式');
+   group.innerHTML='<div class="view-row"><span class="wave-control-label">顯示方式</span><div class="actions"><button type="button" id="view-2d" aria-pressed="true">平面 2D</button><button type="button" id="view-3d" aria-pressed="false">立體 3D</button></div></div><div id="view3d-tools" hidden><div class="actions"><button type="button" data-view="tilt">斜視</button><button type="button" data-view="side">側視</button><button type="button" data-view="turn">轉 45°</button><button type="button" data-view="reset">重設視角</button></div><div class="control"><label for="height">波高放大</label><input id="height" type="range" min="0.3" max="2.5" step="0.1" value="0.7"><output id="height-out" for="height">0.7×</output></div><p class="muted">拖曳旋轉；滾輪或雙指縮放。高度表示水面位移，已放大顯示。</p></div>';
+   $('time-controls').before(group);
+   if(!S3){group.hidden=true;return;}
+   $('view-2d').onclick=()=>setView3d(false);$('view-3d').onclick=()=>setView3d(true);
+   group.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{const k=b.dataset.view;if(k==='tilt')view={...view,yaw:0,tilt:55};else if(k==='side')view={...view,yaw:0,tilt:82};else if(k==='turn')view.yaw=(view.yaw+45)%360;else view={...DEFAULT_VIEW};draw();});
+   $('height').oninput=()=>{state.height=+$('height').value;$('height-out').textContent=state.height.toFixed(1)+'×';draw();};
+   if($('proj-mode'))$('proj-mode').onclick=()=>mode('projection');
+   if($('fullscreen'))$('fullscreen').onclick=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen?.();};
+ }
+ function setView3d(on){state.view3d=!!on&&!!S3&&topic.startsWith('water');updateViewControls();syncURL();draw();}
+ function updateViewControls(){
+   document.body.dataset.topic=topic;
+   const water=topic.startsWith('water');if($('view-controls'))$('view-controls').hidden=!water||!S3;
+   if($('view-2d')){$('view-2d').setAttribute('aria-pressed',String(!state.view3d));$('view-3d').setAttribute('aria-pressed',String(state.view3d));$('view3d-tools').hidden=!state.view3d;}
+   if(water&&!topic.endsWith('int'))$('probe').innerHTML='';
+   const cap=$('scene-caption'),base=cap.dataset.base||cap.textContent;
+   cap.textContent=water&&state.view3d?'立體視圖：高度表示水面位移。拖曳旋轉，滾輪或雙指縮放；P 點請用滑桿調整。':water?base:base+' 點選屏幕或亮度曲線可移動游標。';
+ }
+ function sync3dControls(p){
+   $('crest-view')?.setAttribute('aria-pressed',String(!state.troughs));$('both-view')?.setAttribute('aria-pressed',String(state.troughs));
+   if(p){$('probe-antinode').setAttribute('aria-pressed',String(p.type==='constructive'));$('probe-node').setAttribute('aria-pressed',String(p.type==='destructive'));$('probe-selection').textContent=p.type==='partial'?'自由選點':'';updateProbe(p);$('double-frequency').disabled=state.wavelength<32;}
+ }
+ function label3d(msg,x,y,color='#cfe0ee',size=13){ctx.fillStyle=color;ctx.font=`${size}px system-ui`;ctx.textAlign='left';ctx.fillText(msg,x,y);}
+ function dot3d(pt,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.arc(pt.x,pt.y,r,0,Math.PI*2);ctx.fill();}
+ function surfaceInterference(p){
+   const lam=state.wavelength,sep=state.separation,tt=time,K=2*Math.PI,zs=28*state.height;
+   const zAt=(x,y)=>(Math.cos(K*(Math.hypot(x+sep/2,y)/lam-tt))+Math.cos(K*(Math.hypot(x-sep/2,y)/lam-tt)))/2;
+   const cell=Math.max(lam/6,4,5.5);
+   ctx.fillStyle='#0b2234';ctx.fillRect(0,0,720,420);
+   const scene=S3.render(ctx,{nx:Math.round(720/cell),ny:Math.round(380/cell),x0:-360,x1:360,y0:0,y1:380,zAt,zScale:zs,view,w:720,h:420});
+   [['S₁',-sep/2,'#82c4e9'],['S₂',sep/2,'#f1c16f']].forEach(([name,x,color])=>{const pt=scene.project(x,0,0);dot3d(pt,6,color);label3d(name,pt.x-8,pt.y+22,color,15);});
+   const base=scene.project(state.px,state.py,0),top=scene.project(state.px,state.py,zAt(state.px,state.py));
+   ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(top.x,top.y);ctx.stroke();dot3d(top,6,'#fff');label3d('P',top.x+9,top.y-8,'#fff',16);
+   label3d('拖曳旋轉・滾輪／雙指縮放',14,24);label3d('淺色＝波峰，深色＝波谷（高度已放大）',14,408,'#9fb7cc',12);
+   $('legend').dataset.view='3d';$('legend').innerHTML='<span class="wave-source-key source-one">S₁</span><span class="wave-source-key source-two">S₂</span><span>淺色＝波峰，深色＝波谷；白色細柱是 P 點</span>';
+   sync3dControls(p);
+ }
+ function surfaceDiffraction(){
+   if(!field)buildField();
+   const lam=state.wavelength,tt=time,K=2*Math.PI,c=Math.cos(K*tt),s=Math.sin(K*tt),nw=180,nh=105,re=field.real,im=field.imag,zs=28*state.height;
+   const val=(i,j)=>{const k=clamp(j,0,nh-1)*nw+clamp(i,0,nw-1);return(re[k]*c+im[k]*s)/field.max*1.5;};
+   const zAt=(wx,wy)=>{const cx=wx+360,cy=420-wy;if(cx<176)return .6*Math.cos(K*(cx/lam-tt));if(cx<186)return 0;
+     const gx=cx/4,gy=cy/4,i=Math.floor(gx),j=Math.floor(gy),fx=gx-i,fy=gy-j;
+     return clamp(val(i,j)*(1-fx)*(1-fy)+val(i+1,j)*fx*(1-fy)+val(i,j+1)*(1-fx)*fy+val(i+1,j+1)*fx*fy,-1,1);};
+   ctx.fillStyle='#0b2234';ctx.fillRect(0,0,720,420);
+   const scene=S3.render(ctx,{nx:100,ny:58,x0:-360,x1:360,y0:0,y1:420,zAt,zScale:zs,view,w:720,h:420});
+   const half=state.aperture/2;
+   S3.drawBox(ctx,scene.project,[-185,-175,210+half,420,-.3,1.4],'#d4b77c');
+   S3.drawBox(ctx,scene.project,[-185,-175,0,210-half,-.3,1.4],'#d4b77c');
+   label3d('拖曳旋轉・滾輪／雙指縮放',14,24);label3d('入射波 → 通過開口（高度已放大；顏色與高度為正規化示意）',14,408,'#9fb7cc',12);
+ }
+
+ // ----- 光波游標 -----
+ function buildCursorPanel(){
+   const interference=topic==='light-int';
+   $('probe').hidden=false;
+   $('probe').innerHTML='<section class="probe-inspector" aria-label="游標讀數"><h3>游標：讀出這一點的條紋資訊</h3><p class="muted">點選屏幕或亮度曲線，或按 ← → 鍵移動（Shift 一次走較遠）。投影時可直接按下面的按鈕。</p><div class="actions" id="order-buttons"></div><div class="readings cursor-readings" id="cursor-readings" aria-live="polite"></div><p class="probe-explain" id="cursor-explain"></p><p class="note" id="fringe-info"></p></section>';
+   const names=interference?['中央亮紋','第 1 級亮紋','第 2 級亮紋','第 3 級亮紋']:['中央亮帶','第 1 暗紋','第 2 暗紋','第 3 暗紋'];
+   $('order-buttons').innerHTML=names.map((n,i)=>`<button type="button" data-order="${i}">${n}</button>`).join('');
+   $('order-buttons').querySelectorAll('[data-order]').forEach(b=>b.onclick=()=>{const pos=W.orderPosition(interference?'interference':'diffraction',+b.dataset.order,state.screenDistance,state.opticalLambda,state.slitDistance,state.slitWidth);if(pos!==null)setCursor(pos);});
+   updateCursorPanel();
+ }
+ function lightInput(){return{kind:topic==='light-int'?'interference':'diffraction',p:state.cursor,L:state.screenDistance,lambda:state.opticalLambda,d:state.slitDistance,a:state.slitWidth,envelope:state.envelope};}
+ function updateCursorPanel(){
+   if(!$('cursor-readings'))return;
+   const input=lightInput(),r=W.lightReadout(input),interference=input.kind==='interference';
+   const kind=r.type==='center'?'中央亮帶':r.type==='bright'?(r.order===0?'中央亮紋':`第 ${r.order} 級亮紋`):r.type==='dark'?`第 ${r.order} 條暗紋`:'亮暗之間';
+   const rows=[['屏幕位置 y',fmtN(state.cursor)+' mm'],['角度 θ',fmtN(r.degrees)+'°'],[interference?'光程差 d sin θ':'a sin θ',fmtN(r.path,3)+' μm'],['÷ 波長 λ',fmtN(r.orders)],['相對強度 I/I₀',fmtN(r.intensity,3)],['判讀',kind]];
+   $('cursor-readings').innerHTML=rows.map(([k,v])=>`<div class="reading"><span class="muted">${k}</span><strong>${v}</strong></div>`).join('');
+   let why;
+   if(interference){why=r.type==='bright'?`光程差約為整數個波長（${fmtN(r.orders)} λ），兩縫來的光同相相加：建設性干涉。${state.envelope&&r.intensity<.5?'受單縫繞射包絡影響，這條亮紋較暗。':''}`:r.type==='dark'?`光程差約為半整數個波長（${fmtN(r.orders)} λ），兩縫來的光反相抵銷：破壞性干涉。`:`光程差既不是整數也不是半整數個波長（${fmtN(r.orders)} λ），亮度介於最亮與最暗之間。`;}
+   else{why=r.type==='center'?'縫內各處的次波幾乎同相，疊加最強：中央亮帶。':r.type==='dark'?`縫的上緣與下緣光程差 a sin θ 約為整數個波長（${fmtN(r.orders)} λ），縫內次波成對抵銷：暗紋。`:`a sin θ 約為 ${fmtN(r.orders)} λ，不在暗紋位置，亮度逐漸變化。`;}
+   $('cursor-explain').textContent=why;
+   $('fringe-info').textContent=interference?`小角度近似：亮紋間距 Δy ≈ λL/d = ${fmtN(r.approxSpacing)} mm；第 1 級亮紋精確位置 y₁ = ${r.exactFirst===null?'—':fmtN(r.exactFirst)} mm。屏幕顯示範圍為 ±${GEO.span/2} mm。`:`中央亮帶寬度（兩側第 1 暗紋之間）≈ 2λL/a = ${fmtN(r.centralWidthApprox)} mm；精確值 ${r.centralWidthExact===null?'—':fmtN(r.centralWidthExact)} mm${r.centralWidthExact>GEO.span?'（超出顯示範圍）':''}。`;
+   $('order-buttons').querySelectorAll('[data-order]').forEach(b=>{const pos=W.orderPosition(input.kind,+b.dataset.order,input.L,input.lambda,input.d,input.a);b.disabled=pos===null||Math.abs(pos)>GEO.span/2;});
+ }
+ function setCursor(p){state.cursor=clamp(Math.round(p*20)/20,-GEO.span/2,GEO.span/2);draw();}
+ function cursorOverlay(g){
+   const f=state.cursor/g.span+.5,sx=g.x0+f*g.width,sy=g.y0+f*g.height,I=g.intensity(state.cursor);
+   ctx.save();ctx.strokeStyle='#fff';ctx.fillStyle='#fff';ctx.lineWidth=1.6;ctx.setLineDash([5,4]);ctx.beginPath();
+   if(g.vertical){ctx.moveTo(sx,g.y0-8);ctx.lineTo(sx,g.y0+g.height+8);}else{ctx.moveTo(g.x0-8,sy);ctx.lineTo(g.x0+g.width+8,sy);}
+   ctx.moveTo(sx,358);ctx.lineTo(sx,398);ctx.stroke();ctx.setLineDash([]);
+   ctx.beginPath();ctx.arc(sx,395-I*35,5,0,Math.PI*2);ctx.fill();ctx.restore();
+   text(`游標 y = ${fmtN(state.cursor)} mm`,540,43,'#ffd866',13);
+   updateCursorPanel();
+ }
+ function cursorFromEvent(e){
+   const b=canvas.getBoundingClientRect(),cx=(e.clientX-b.left)*720/b.width,cy=(e.clientY-b.top)*420/b.height;
+   const inX=cx>=GEO.x0&&cx<=GEO.x0+GEO.width,inScreen=inX&&cy>=GEO.y0&&cy<=GEO.y0+GEO.height,inGraph=inX&&cy>340&&cy<=410;
+   if(!inScreen&&!inGraph)return;
+   const f=inScreen&&state.orientation==='horizontal'?(cy-GEO.y0)/GEO.height:(cx-GEO.x0)/GEO.width;
+   setCursor((f-.5)*GEO.span);
+ }
+
+ // ----- 指標：3D 旋轉與縮放、光波游標拖曳 -----
+ const pointers=new Map();let pinch=0;const spread=()=>{const [a,b]=[...pointers.values()];return Math.hypot(a.x-b.x,a.y-b.y);};
+ canvas.addEventListener('pointerdown',e=>{
+   const water=topic.startsWith('water');if(water&&!state.view3d)return;
+   canvas.setPointerCapture?.(e.pointerId);pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(pointers.size===2)pinch=spread();if(!water)cursorFromEvent(e);
+ });
+ canvas.addEventListener('pointermove',e=>{
+   const prev=pointers.get(e.pointerId);if(!prev)return;pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+   if(!topic.startsWith('water')){cursorFromEvent(e);return;}
+   if(pointers.size===1){view.yaw=(view.yaw+(e.clientX-prev.x)*.4+360)%360;view.tilt=clamp(view.tilt-(e.clientY-prev.y)*.3,0,88);}
+   else if(pointers.size===2){const d=spread();if(pinch)view.zoom=clamp(view.zoom*d/pinch,.6,2.5);pinch=d;}
+   draw();
+ });
+ ['pointerup','pointercancel','lostpointercapture'].forEach(n=>canvas.addEventListener(n,e=>{pointers.delete(e.pointerId);pinch=0;}));
+ canvas.addEventListener('wheel',e=>{if(!(topic.startsWith('water')&&state.view3d))return;e.preventDefault();view.zoom=clamp(view.zoom*Math.exp(-e.deltaY*.001),.6,2.5);draw();},{passive:false});
+
+ // ----- 鍵盤：光波游標與投影模式快速鍵 -----
+ document.addEventListener('keydown',e=>{
+   if(e.ctrlKey||e.metaKey||e.altKey)return;
+   const tag=e.target.tagName,typing=tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA',water=topic.startsWith('water');
+   if(e.key==='Escape'&&projection){mode(false);return;}
+   if(typing)return;
+   if(!water&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();setCursor(state.cursor+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?2:.5));return;}
+   if(!water&&e.key==='Home'){setCursor(0);return;}
+   if(!projection)return;
+   if(e.key===' '){if(tag!=='BUTTON'&&water){e.preventDefault();paused=!paused;draw();}}
+   else if(water&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){e.preventDefault();paused=true;time=((time+(e.key==='ArrowRight'?1:-1)*(e.shiftKey?.5:.25))%100+100)%100;draw();}
+   else if(e.key.toLowerCase()==='r'){time=0;draw();}
+   else if(/^[1-4]$/.test(e.key))selectTopic(TOPICS[+e.key-1]);
+   else if(e.key.toLowerCase()==='d'&&water&&S3)setView3d(!state.view3d);
+ });
+ // 投影時拖完滑桿就放開焦點，讓快速鍵繼續可用
+ document.addEventListener('pointerup',()=>{if(projection&&document.activeElement?.matches?.('input[type=range]'))document.activeElement.blur();});
+ function tick(now){if(!last)last=now;const dt=Math.min((now-last)/1000,.1);last=now;if(!paused&&topic.startsWith('water')&&!document.hidden){time=(time+dt*40/state.wavelength*speed)%100;if(now-lastText>65){draw();lastText=now;}}requestAnimationFrame(tick);}const params=new URLSearchParams(location.search);const initial=params.get('topic');ensureUI();selectTopic(Object.hasOwn(questions,initial)?initial:'water-int');if(params.get('view')==='3d')setView3d(true);mode(['study','projection'].includes(params.get('mode'))?params.get('mode'):false);requestAnimationFrame(tick);
 })();
