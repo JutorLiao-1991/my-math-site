@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年11月11日"
+    lastUpdated: "2026年11月14日"
 };
 
 // --- 課程資料區 ---
@@ -316,6 +316,15 @@ const lessonData = [
         tagClass: "phys",
         tagName: "高中物理",
         desc: "追蹤水波波峰、波谷與觀測點，再比較單、雙狹縫光紋，透過定性自修題連結生活應用。"
+    },
+    {
+        title: "直線運動與斜拋運動（高一）",
+        category: "senior",
+        grades: [10],
+        url: "senior/physics/motion_lab.html",
+        tagClass: "phys",
+        tagName: "高中物理",
+        desc: "調整初速、加速度與拋射角，看 x–t、v–t 圖與軌跡同步變化；含自修任務與適合教室投影的大字模式。"
     },
     {
         title: "光電效應實驗室（高一）",
