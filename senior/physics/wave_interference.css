@@ -28,3 +28,32 @@
 .wave-control-label{color:#435c73;font-size:.9rem;font-weight:700;white-space:nowrap;padding-top:9px}
 .wave-control-group>.actions{flex:1;min-width:0;gap:8px}
 @media(max-width:500px){.wave-control-group{flex-direction:column;gap:7px}.wave-control-label{padding-top:0}.wave-control-group button,.wave-control-group select{font-size:.9rem;padding:7px 10px}}
+
+/* 3D 視圖控制、光波游標讀數 */
+#view-controls{flex-direction:column;align-items:stretch}
+#view-controls .view-row{display:flex;align-items:flex-start;gap:10px}
+#view3d-tools{margin-top:10px}
+#view3d-tools .control{margin:10px 0 4px}
+.cursor-readings{grid-template-columns:repeat(3,1fr);margin:12px 0}
+#order-buttons button{font-size:.9rem;padding:6px 10px}
+.proj-hint{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+@media(max-width:500px){#view-controls .view-row{flex-direction:column;gap:7px}.cursor-readings{gap:5px}}
+
+/* 投影模式：給教室後排看得清楚 */
+body.projection{font-size:19px}
+body.projection header,body.projection .toolbar,body.projection #study-panel,body.projection #free-panel,body.projection #model-note,body.projection details,body.projection .lab-sidebar-content>.panel:last-child{display:none!important}
+body.projection .shell{padding-top:10px;max-width:min(1880px,100%)}
+body.projection .lab-grid{grid-template-columns:minmax(0,2.1fr) minmax(340px,1fr)}
+body.projection .lab-main-panel h2{font-size:1.5rem}
+body.projection #scene-caption{font-size:1.05rem}
+body.projection .tabs button{font-size:1.15rem;min-height:52px}
+body.projection button,body.projection select{min-height:52px;font-size:1.05rem}
+body.projection .control label{min-width:130px;font-size:1.05rem}
+body.projection .control output{font-size:1.15rem;min-width:84px}
+body.projection .control input[type=range]{height:44px}
+body.projection .cursor-readings .reading strong{font-size:1.7rem}
+body.projection .reading .muted{font-size:.95rem}
+body.projection .probe-explain,body.projection #fringe-info{font-size:1.1rem}
+body.projection #proj-hint{display:block}
+@media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}}
+body.projection[data-topic^=light] #wave{width:auto;max-width:100%;max-height:max(300px,calc(100vh - 600px))}
