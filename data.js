@@ -390,6 +390,15 @@ const lessonData = [
         desc: "調整緯度、季節與真太陽時，同時觀察天球、太陽高度、白晝長度與直立竿影。"
     },
     {
+        title: "天球與恆星星軌（高一）",
+        category: "senior",
+        grades: [10],
+        url: "senior/earth/star_trails.html",
+        tagClass: "phys",
+        tagName: "高中地科",
+        desc: "緯度會變但天球不變：選緯度後旋轉放大進入當地地平線，從外面與第一人稱看星軌、拍星軌照片，對照講義填空；含投影模式。"
+    },
+    {
         title: "指數與對數圖形探索（高二）",
         category: "senior",
         grades: [11],
