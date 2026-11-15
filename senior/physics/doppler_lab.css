@@ -1,0 +1,44 @@
+.proj-hint{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+#presets{margin:0 0 6px}
+#presets button,#tone-buttons button{font-size:.9rem;padding:6px 10px}
+.science-layout .lab-operation-panel>.actions{margin-top:12px}
+.sound-box{margin-top:16px;padding-top:12px;border-top:1px solid var(--line,#d8e2ec)}
+.sound-box h3{margin:0 0 4px;font-size:1rem}
+.sound-box .control{margin-top:10px}
+
+.compare-table{margin-top:12px;overflow-x:auto}
+.compare-table table{width:100%;border-collapse:separate;border-spacing:6px;font-variant-numeric:tabular-nums}
+.compare-table th{font-weight:600;color:var(--muted);text-align:left;font-size:.9rem;padding:2px 6px}
+.compare-table thead th{text-align:center}
+.compare-table td{background:#eef4fa;border-radius:10px;padding:8px 10px;text-align:center;font-weight:700;min-width:120px}
+.compare-table td.up{color:#b4471b}
+.compare-table td.down{color:#1d6fb8}
+.compare-table td.same{color:#4b5a68}
+.compare-table .bar{position:relative;height:6px;border-radius:3px;background:#d8e2ec;margin-top:6px;overflow:hidden}
+.compare-table .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:currentColor;opacity:.7}
+.compare-table .bar b{position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#4b5a68}
+.compare-table small{display:block;font-weight:500;color:var(--muted);font-size:.78rem}
+
+.summary{width:100%;border-collapse:collapse;font-size:.92rem;margin-bottom:8px}
+.summary th,.summary td{border:1px solid var(--line,#d8e2ec);padding:6px;text-align:center}
+.summary tbody th{white-space:nowrap}
+
+/* 投影模式：給教室後排看得清楚 */
+body.projection{font-size:19px}
+body.projection header,body.projection .toolbar,body.projection #study-panel,body.projection #free-panel,body.projection .model-panel,body.projection .sound-box p{display:none!important}
+body.projection .shell{padding-top:10px;max-width:min(1880px,100%)}
+body.projection .lab-grid{grid-template-columns:minmax(0,2.1fr) minmax(340px,1fr)}
+body.projection .lab-main-panel h2{font-size:1.5rem}
+body.projection #scene-caption{font-size:1.05rem}
+body.projection #doppler{width:auto;max-width:100%;max-height:max(300px,calc(100vh - 560px));display:block;margin:0 auto}
+body.projection .compare-table td{font-size:1.4rem;padding:6px 10px}
+body.projection .compare-table table{border-spacing:6px 4px}
+body.projection .compare-table caption{display:none}
+body.projection .compare-table th{font-size:1.1rem}
+body.projection .tabs button{font-size:1.15rem;min-height:52px}
+body.projection button,body.projection select{min-height:52px;font-size:1.05rem}
+body.projection .control label{min-width:130px;font-size:1.05rem}
+body.projection .control output{font-size:1.15rem;min-width:84px}
+body.projection .control input[type=range]{height:44px}
+body.projection #proj-hint{display:block}
+@media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}.compare-table td{min-width:96px;font-size:.92rem}}
