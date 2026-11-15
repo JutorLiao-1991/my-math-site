@@ -42,3 +42,5 @@ body.projection .control output{font-size:1.15rem;min-width:84px}
 body.projection .control input[type=range]{height:44px}
 body.projection #proj-hint{display:block}
 @media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}.compare-table td{min-width:96px;font-size:.92rem}}
+.sound-status{flex-basis:100%;margin:4px 0 0;font-weight:600;color:#b4471b}
+body.projection .sound-status{font-size:1.05rem}
