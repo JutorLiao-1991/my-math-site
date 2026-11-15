@@ -2,55 +2,103 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>鏡面與透鏡成像實驗室｜鳩特老師</title>
-  <meta name="description" content="拖曳物體、切換四種鏡面與透鏡，逐條觀察光路、實像與虛像，再用光屏驗證。">
+  <title>光的反射與折射｜鳩特老師</title>
+  <meta name="description" content="拖曳雷射驗證反射定律、折射與全反射，看水中硬幣為何變淺，再用面鏡與透鏡成像、光屏驗證實像與虛像。">
   <link rel="stylesheet" href="../../senior/science_lab.css">
+  <link rel="stylesheet" href="../../senior/guided_study.css?v=guided-study-1">
   <link rel="stylesheet" href="../../senior/science_layout.css?v=tablet-landscape-1">
-  <link rel="stylesheet" href="geometric_optics.css?v=1">
-  <script defer src="geometric_optics_core.js?v=1"></script>
-  <script defer src="geometric_optics.js?v=1"></script>
+  <link rel="stylesheet" href="geometric_optics.css?v=2">
+  <script defer src="../../senior/science_lab.js?v=guided-study-1"></script>
+  <script defer src="../../senior/guided_study_core.js?v=guided-study-1"></script>
+  <script defer src="geometric_optics_core.js?v=2"></script>
+  <script defer src="geometric_optics.js?v=2"></script>
 </head>
-<body class="science-layout optics-lab">
-  <header><a href="../../index.html?category=junior">← 教材首頁</a><h1>鏡面與透鏡成像實驗室</h1><span class="badge">國二自然</span></header>
+<body class="science-layout optics-lab" data-study="false">
+  <header><a href="../../index.html?category=junior">← 教材首頁</a><h1>光的反射與折射</h1><span class="badge">國二自然</span></header>
   <main class="shell">
-    <div class="toolbar"><div><div class="eyebrow">鳩特老師 · 互動自然教室</div><p class="muted">拖曳物體，看看光線在哪裡相交。先預測，再揭曉。</p></div><button id="reset">重設實驗</button></div>
-    <nav class="tabs optic-tabs" aria-label="鏡面與透鏡種類">
-      <button data-optic="convex-lens" aria-pressed="true">凸透鏡</button><button data-optic="concave-lens" aria-pressed="false">凹透鏡</button><button data-optic="concave-mirror" aria-pressed="false">凹面鏡</button><button data-optic="convex-mirror" aria-pressed="false">凸面鏡</button>
+    <div class="toolbar"><div><div class="eyebrow">鳩特老師 · 互動自然教室</div><p class="muted">拖曳雷射或物體，先預測，再驗證：反射定律、折射與全反射，到面鏡與透鏡成像。</p></div><button id="reset" type="button">重設本頁實驗</button></div>
+    <nav class="tabs topic-tabs" aria-label="主題">
+      <button type="button" data-topic="reflection" aria-pressed="true">光的反射</button><button type="button" data-topic="refraction" aria-pressed="false">光的折射</button><button type="button" data-topic="mirror" aria-pressed="false">面鏡成像</button><button type="button" data-topic="lens" aria-pressed="false">透鏡成像</button>
     </nav>
     <div class="grid lab-grid">
       <section class="panel lab-main-panel">
-        <div class="row scene-heading"><h2 id="scene-title">凸透鏡成像</h2><span id="optic-group" class="badge">會聚</span></div>
-        <p class="muted" id="scene-caption">藍色箭頭是物體；拖曳底座可以改變物距。</p>
-        <div class="optics-stage"><svg id="optics" viewBox="0 0 1000 600" role="group" aria-label="可拖曳物體與光屏的成像光路圖"></svg></div>
-        <div class="legend" aria-label="圖例"><span><i class="object-key"></i>物體</span><span><i class="image-key"></i>像</span><span><i></i>實際光路</span><span><i class="dashed"></i>反向延長線</span></div>
+        <div class="row scene-heading"><h2 id="scene-title">光的反射</h2><span id="optic-group" class="badge"></span></div>
+        <p class="muted" id="scene-caption"></p>
+        <div class="optics-stage"><svg id="optics" viewBox="0 0 1000 600" role="group" aria-label="光學實驗畫布"></svg></div>
+        <p id="status-line" class="status-line" aria-live="polite"></p>
+        <p id="try-tip" class="try-tip"><span aria-hidden="true">→</span><span id="try-text"></span><button type="button" id="try-close" aria-label="知道了，關閉提示">×</button></p>
+        <div class="legend" id="legend" aria-label="圖例"></div>
         <p id="edge-note" class="note" hidden></p>
-        <div id="result" class="result-card" aria-live="polite"></div>
+        <div id="result" class="result-card" aria-live="polite" hidden></div>
         <div id="screen-result" class="screen-result" hidden><div id="screen-preview" aria-hidden="true"></div><div><strong id="screen-status"></strong><p id="screen-explain" class="muted"></p></div></div>
-        <details><summary>怎麼讀這張圖？</summary><p>同一個物點射出的光，經反射或折射後若實際會聚，就形成實像；若光線發散，而反向延長線相交，交點就是虛像。圖中的像只畫出箭頭，方便比較位置、方向與大小。</p><p>實線箭頭表示光的行進方向；虛線只是找虛像的作圖工具，沒有光沿著虛線倒退行進。關閉輔助光線不會改變成像。</p></details>
+        <p id="proj-hint" class="proj-hint" hidden>快速鍵：← → 調整角度／物距　空白鍵 播放／暫停　R 重設　1～4 切換主題　Esc 離開投影模式</p>
+        <details id="howto"><summary>怎麼讀這張圖？</summary><div id="howto-body"></div></details>
       </section>
       <aside class="lab-sidebar"><div class="lab-sidebar-content">
+        <section class="panel lab-mode-panel"><div class="row mode-row" role="group" aria-label="模式"><button type="button" id="free-mode" aria-pressed="true">自由操作</button><button type="button" id="study-mode" aria-pressed="false">自修模式</button><button type="button" id="proj-mode" aria-pressed="false">投影模式</button><button type="button" id="fullscreen" hidden>全螢幕</button></div></section>
+        <section class="panel" id="study-panel" hidden></section>
         <section class="panel lab-operation-panel" id="lab-operations">
           <h2>操作與觀察</h2>
-          <div class="control"><label for="distance">物距</label><output id="distance-value" for="distance">3.00f</output><input id="distance" type="range" min="0.25" max="4" step="0.01" value="3" aria-describedby="distance-help"></div>
-          <div class="actions presets" aria-label="物距快捷位置"><button data-distance="0.5">0.5f</button><button data-distance="1">f</button><button data-distance="1.5">1.5f</button><button data-distance="2">2f</button><button data-distance="3">3f</button></div>
-          <label class="check"><input id="snap" type="checkbox" checked>靠近 F、2F 時吸附</label><p class="muted" id="distance-help">焦距固定；f 是一倍焦距，F 是焦點。也可用方向鍵微調物距。</p>
-          <fieldset><legend>輔助光線</legend>
-            <label class="check ray-option parallel"><input id="ray-parallel" type="checkbox" checked><span>平行主軸的光線<small id="parallel-rule"></small></span></label>
-            <label class="check ray-option central"><input id="ray-central" type="checkbox" checked><span id="central-label"></span></label>
-            <label class="check ray-option focal"><input id="ray-focal" type="checkbox"><span>焦點相關光線<small id="focal-rule"></small></span></label>
-            <label class="check ray-option curvature" id="curvature-option" hidden><input id="ray-curvature" type="checkbox"><span>球心 C 相關光線<small>沿球心與物點連線，反射後循原路返回</small></span></label>
-            <label class="check"><input id="extensions" type="checkbox" checked>顯示反向延長線（虛線）</label>
-          </fieldset>
-          <p id="ray-note" class="muted" hidden></p>
-          <div class="actions"><button id="play" aria-pressed="true">暫停光線動畫</button><button id="replay">逐條重播</button></div>
-          <label class="check"><input id="show-image" type="checkbox" checked>顯示像與成像結果</label>
-          <fieldset><legend>光屏實驗</legend><label class="check"><input id="show-screen" type="checkbox">加入可拖曳光屏</label>
-            <div id="screen-controls" hidden><div class="control"><label for="screen-position">光屏位置</label><output id="screen-value" for="screen-position"></output><input id="screen-position" type="range" min="-4" max="4" step="0.01" value="2"></div><p class="muted">負值在左側，正值在右側。拖到成像位置，試著接到清晰的像。</p></div>
-          </fieldset>
+          <div data-ops="reflection">
+            <div class="seg" role="group" aria-label="反射面"><button type="button" data-surface="smooth" aria-pressed="true">光滑鏡面<small>單向反射</small></button><button type="button" data-surface="rough" aria-pressed="false">粗糙表面<small>漫射</small></button></div>
+            <div class="control"><label for="refl-theta">入射角 i</label><output id="refl-theta-value" for="refl-theta"></output><input id="refl-theta" type="range" min="0" max="85" step="0.5" value="35"></div>
+            <div class="actions presets" aria-label="入射角快捷"><button type="button" data-refl-angle="0">0°<small>垂直入射</small></button><button type="button" data-refl-angle="30">30°</button><button type="button" data-refl-angle="45">45°</button><button type="button" data-refl-angle="60">60°</button></div>
+            <p class="muted">直接在鏡面上方拖曳雷射，可以把雷射移到法線的另一側。</p>
+            <fieldset><legend>顯示</legend>
+              <label class="check"><input id="refl-angles" type="checkbox" checked>角度標示</label>
+              <label class="check"><input id="refl-protractor" type="checkbox" checked>量角器</label>
+              <label class="check"><input id="refl-glancing" type="checkbox">標示與鏡面的夾角<small>常見陷阱：入射角不是光與鏡面的夾角</small></label>
+              <label class="check" id="refl-normals-option"><input id="refl-normals" type="checkbox" checked>顯示各點法線（粗糙表面）</label>
+            </fieldset>
+          </div>
+          <div data-ops="refraction" hidden>
+            <div class="seg" role="group" aria-label="顯示方式"><button type="button" data-view="ray" aria-pressed="true">雷射光線</button><button type="button" data-view="depth" aria-pressed="false">看水中硬幣</button></div>
+            <p class="lab-field-label" id="n1-label">上方介質 n<sub>1</sub>（<span id="n1-role">入射光所在</span>）</p>
+            <div class="media" role="group" aria-labelledby="n1-label" data-medium-group="n1"></div>
+            <p class="lab-field-label" id="n2-label">下方介質 n<sub>2</sub><span id="n2-role"></span></p>
+            <div class="media" role="group" aria-labelledby="n2-label" data-medium-group="n2"></div>
+            <button type="button" id="swap-media" class="wide-button">⇅ 上下介質對調</button>
+            <div data-view-only="ray">
+              <div class="control"><label for="refr-theta">入射角 θ<sub>1</sub></label><output id="refr-theta-value" for="refr-theta"></output><input id="refr-theta" type="range" min="0" max="85" step="0.5" value="40"></div>
+              <div class="actions presets" aria-label="入射角快捷"><button type="button" data-refr-angle="0">0°<small>垂直入射</small></button><button type="button" data-refr-angle="30">30°</button><button type="button" data-refr-angle="60">60°</button><button type="button" id="to-critical">臨界角<small id="critical-small">無</small></button></div>
+              <fieldset><legend>顯示</legend>
+                <label class="check"><input id="refr-angles" type="checkbox" checked>角度標示</label>
+                <label class="check"><input id="refr-protractor" type="checkbox" checked>量角器</label>
+                <label class="check"><input id="refr-critical" type="checkbox" checked>臨界角參考線</label>
+              </fieldset>
+            </div>
+            <div data-view-only="depth" hidden>
+              <div class="control"><label for="eye-x">眼睛位置</label><output id="eye-value" for="eye-x"></output><input id="eye-x" type="range" min="-3.6" max="3.6" step="0.05" value="2.2"></div>
+              <p class="muted">也可以直接拖曳畫面上的眼睛。硬幣固定在下方介質 2 格深處。</p>
+              <label class="check"><input id="depth-extension" type="checkbox" checked>顯示反向延長線（大腦以為光走的路）</label>
+            </div>
+          </div>
+          <div data-ops="imaging" hidden>
+            <div class="seg optic-choice" role="group" aria-label="器材"></div>
+            <div class="control"><label for="distance">物距 p</label><output id="distance-value" for="distance">3.00f</output><input id="distance" type="range" min="0.25" max="4" step="0.01" value="3" aria-describedby="distance-help"></div>
+            <div class="regimes" id="regimes" role="group" aria-label="物體位置快捷"></div>
+            <label class="check" id="snap-option"><input id="snap" type="checkbox" checked>靠近 F、2F 時吸附</label><p class="muted" id="distance-help">焦距固定；f 是一倍焦距，F 是焦點。也可用方向鍵微調物距。</p>
+            <fieldset><legend>光線</legend>
+              <label class="check ray-option parallel"><input id="ray-parallel" type="checkbox" checked><span>平行主軸的光線<small id="parallel-rule"></small></span></label>
+              <label class="check ray-option central"><input id="ray-central" type="checkbox" checked><span id="central-label"></span></label>
+              <label class="check ray-option focal" id="focal-option"><input id="ray-focal" type="checkbox"><span>焦點相關光線<small id="focal-rule"></small></span></label>
+              <label class="check ray-option curvature" id="curvature-option" hidden><input id="ray-curvature" type="checkbox"><span>球心 C 相關光線<small>沿球心與物點連線，反射後循原路返回</small></span></label>
+              <label class="check ray-option fan"><input id="ray-fan" type="checkbox"><span>多條光線<small>物體頂端射向整個器材的一束光，全都交於（或反向延長交於）同一點</small></span></label>
+              <label class="check"><input id="extensions" type="checkbox" checked>顯示反向延長線（虛線）</label>
+            </fieldset>
+            <label class="check"><input id="show-image" type="checkbox" checked>顯示像與成像結果</label>
+            <label class="check"><input id="show-pq" type="checkbox" checked>標示物距 p、像距 q</label>
+            <fieldset><legend>光屏實驗</legend><label class="check"><input id="show-screen" type="checkbox">加入可拖曳光屏</label>
+              <div id="screen-controls" hidden><div class="control"><label for="screen-position">光屏位置</label><output id="screen-value" for="screen-position"></output><input id="screen-position" type="range" min="-4" max="4" step="0.01" value="2"></div><p class="muted">負值在左側，正值在右側。拖到成像位置，試著接到清晰的像。</p></div>
+            </fieldset>
+          </div>
+          <div class="actions anim-actions"><button type="button" id="play" aria-pressed="true">暫停光線動畫</button><button type="button" id="replay">重播光的行進</button></div>
         </section>
-        <section class="panel"><h2>先預測，再驗證</h2><p id="observation-prompt"></p><button id="prediction-toggle" aria-expanded="false" aria-controls="discovery">揭示觀察重點</button><div id="discovery" class="note" hidden></div></section>
-        <details class="panel"><summary>四種器材的比較</summary><div class="comparison-wrap"><table><thead><tr><th>器材</th><th>性質</th><th>實物的成像</th></tr></thead><tbody><tr><td>凸透鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹面鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹透鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr><tr><td>凸面鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr></tbody></table></div><p class="muted">凹面鏡與凸透鏡可以成對比較；但實像與虛像在器材哪一側，要由實際光路判斷。</p></details>
-        <details class="panel"><summary>模型與參考</summary><p>採薄透鏡及球面鏡的近軸成像模型，焦距大小固定為 1 單位，略去厚度、像差與孔徑限制。為配合國中作圖，光線統一在中央參考面轉向；鏡面弧形是種類符號。球面鏡以 C＝2F 標示球心。</p><p>光屏是半透明觀測面的示意，不遮斷後續光路；清晰度依光線會聚程度示意，非實際影像的亮度或繞射模擬。動畫速度僅為教學示意。</p><p>參考概念：<a href="https://phet.colorado.edu/zh_TW/simulations/geometric-optics" target="_blank" rel="noopener">PhET 幾何光學</a>、<a href="https://javalab.org/en/mirrors_en/" target="_blank" rel="noopener">Javalab 鏡面</a>、<a href="https://javalab.org/en/lens_en/" target="_blank" rel="noopener">透鏡</a>、<a href="https://www.walter-fendt.de/html5/phen/imageconverginglens_en.htm" target="_blank" rel="noopener">Walter Fendt</a>。本站介面與程式獨立製作。</p></details>
+        <section class="panel" id="readings-panel"><h2>讀數</h2><dl id="readings" class="readings"></dl></section>
+        <section class="panel" id="free-panel"><h2>先預測，再驗證</h2><div id="observation-prompt"></div><button type="button" id="prediction-toggle" aria-expanded="false" aria-controls="discovery">揭示觀察重點</button><div id="discovery" class="note" hidden></div></section>
+        <details class="panel physics-panel" id="physics-panel"><summary>背後的物理</summary><div id="physics"></div></details>
+        <details class="panel" id="compare-panel"><summary>五種器材的比較</summary><div class="comparison-wrap"><table><thead><tr><th>器材</th><th>性質</th><th>實物的成像</th></tr></thead><tbody><tr><td>平面鏡</td><td>反射</td><td>正立、等大、虛像（像距＝物距）</td></tr><tr><td>凸透鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹面鏡</td><td>會聚</td><td>依物距改變</td></tr><tr><td>凹透鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr><tr><td>凸面鏡</td><td>發散</td><td>正立、縮小、虛像</td></tr></tbody></table></div><p class="muted">凹面鏡與凸透鏡可以成對比較；但實像與虛像在器材哪一側，要由實際光路判斷。</p></details>
+        <details class="panel"><summary>模型與參考</summary><p>反射與折射：角度皆由法線量起，折射角依司乃耳定律 n<sub>1</sub> sin θ<sub>1</sub> ＝ n<sub>2</sub> sin θ<sub>2</sub> 計算；反射光、折射光的亮度依菲涅耳方程式（非偏振光）計算，畫面以平方根壓縮，讓 4% 的弱反射也看得到。折射率取可見光近似值並忽略色散。粗糙表面的各點法線傾角為固定的示意值。</p><p>成像：採薄透鏡及球面鏡的近軸成像模型，焦距大小固定為 1 單位，略去厚度、像差與孔徑限制。為配合國中作圖，光線統一在中央參考面轉向；鏡面弧形是種類符號。球面鏡以 C＝2F 標示球心；平面鏡視為焦距無限大。光屏是半透明觀測面的示意，不遮斷後續光路。動畫速度僅為教學示意。</p><p>參考概念：<a href="https://lab.astroni.org/refraction.html" target="_blank" rel="noopener">Astro Ni Lab 折射與全反射</a>、<a href="https://lab.astroni.org/lens-mirror.html" target="_blank" rel="noopener">透鏡與面鏡成像</a>、<a href="https://phet.colorado.edu/zh_TW/simulations/bending-light" target="_blank" rel="noopener">PhET 光的折射</a>、<a href="https://phet.colorado.edu/zh_TW/simulations/geometric-optics" target="_blank" rel="noopener">PhET 幾何光學</a>。本站介面與程式獨立製作。</p></details>
       </div></aside>
     </div>
   </main>

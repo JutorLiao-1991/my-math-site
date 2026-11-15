@@ -183,13 +183,13 @@ const lessonData = [
         desc: "判斷是否為最簡根式，或四選一選出化簡結果；基礎 1～50、精熟 1～100，可單人快答與雙人 PK。"
     },
     {
-        title: "鏡面與透鏡成像實驗室（國二）",
+        title: "光的反射與折射（國二）",
         category: "junior",
         grades: [8],
         url: "junior/science/geometric_optics.html",
         tagClass: "phys",
         tagName: "國中理化",
-        desc: "切換凸、凹面鏡與透鏡，拖曳物體觀察光路與成像，再以可移動光屏驗證實像與虛像。"
+        desc: "拖曳雷射驗證反射定律與漫射、折射與全反射、水中硬幣變淺；再用平面鏡、凹凸面鏡與透鏡成像，以光屏驗證實像與虛像。含自修任務與投影模式。"
     },
     {
         title: "物質加熱曲線與三態變化（國二）",
