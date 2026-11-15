@@ -17,16 +17,47 @@
     {id:'oxide',name:'氧化銅與氫氣',left:['CuO','H2'],right:['Cu','H2O'],solution:[1,1,1,1],hint:'有些反應式的所有係數都是 1，不必硬改。'}
   ];
   function balance(reaction,coeff){const fs=[...reaction.left,...reaction.right];if(coeff.length!==fs.length)throw Error('係數數量不符');const elements=[...new Set(fs.flatMap(s=>Object.keys(parseFormula(s))))];const valid=coeff.every(x=>Number.isSafeInteger(x)&&x>0);const rows=elements.map(e=>{let left=0,right=0;fs.forEach((f,i)=>{const n=(parseFormula(f)[e]||0)*(Number.isFinite(coeff[i])?coeff[i]:0);if(i<reaction.left.length)left+=n;else right+=n;});return{element:e,left,right};});const conserved=valid&&rows.every(r=>r.left===r.right);const divisor=valid?coeff.reduce(gcd):0;return{rows,valid,conserved,minimal:conserved&&divisor===1,divisor};}
+  // 數據皆為整數莫耳（水為 18 的倍數、CO₂ 為 44 的倍數），講義例題保留原講義數字。
   const samples=[
     {id:'lecture',name:'講義例題｜4.5 g 未知物',mass:4.5,water:2.7,co2:6.6,ratio:[1,2,1],molarMass:null,containsO:true},
-    {id:'glucose',name:'含氧未知物 A｜給定分子量 180',mass:1.8,water:1.08,co2:2.64,ratio:[1,2,1],molarMass:180,containsO:true},
-    {id:'ethanol',name:'含氧未知物 B｜給定分子量 46',mass:2.3,water:2.7,co2:4.4,ratio:[2,6,1],molarMass:46,containsO:true},
-    {id:'acetic',name:'含氧未知物 C｜給定分子量 60',mass:3,water:1.8,co2:4.4,ratio:[1,2,1],molarMass:60,containsO:true},
-    {id:'propane',name:'只含碳氫未知物 D｜給定分子量 44',mass:2.2,water:3.6,co2:6.6,ratio:[3,8,0],molarMass:44,containsO:false},
-    {id:'benzene',name:'只含碳氫未知物 E｜給定分子量 78',mass:.78,water:.54,co2:2.64,ratio:[1,1,0],molarMass:78,containsO:false}
+    {id:'glucose',name:'含氧未知物 A｜給定分子量 180',mass:180,water:108,co2:264,ratio:[1,2,1],molarMass:180,containsO:true},
+    {id:'ethanol',name:'含氧未知物 B｜給定分子量 46',mass:46,water:54,co2:88,ratio:[2,6,1],molarMass:46,containsO:true},
+    {id:'acetic',name:'含氧未知物 C｜給定分子量 60',mass:60,water:36,co2:88,ratio:[1,2,1],molarMass:60,containsO:true},
+    {id:'propane',name:'只含碳氫未知物 D｜給定分子量 44',mass:44,water:72,co2:132,ratio:[3,8,0],molarMass:44,containsO:false},
+    {id:'benzene',name:'只含碳氫未知物 E｜給定分子量 78',mass:78,water:54,co2:264,ratio:[1,1,0],molarMass:78,containsO:false},
+    {id:'butane',name:'只含碳氫未知物 F｜比值要乘 2｜分子量 58',mass:58,water:90,co2:176,ratio:[2,5,0],molarMass:58,containsO:false},
+    {id:'glycerol',name:'含氧未知物 G｜比值要乘 3｜分子量 92',mass:92,water:72,co2:132,ratio:[3,8,3],molarMass:92,containsO:true}
   ];
+  // 出新題用的化合物（C, H, O 原子數）；H 皆為偶數，1 mol 時水的莫耳數為整數。
+  const pool=[[1,4,0],[2,6,0],[2,4,0],[2,2,0],[3,8,0],[4,10,0],[5,12,0],[6,6,0],[6,12,0],[3,6,0],
+    [1,4,1],[2,6,1],[2,4,2],[3,8,3],[6,12,6],[3,6,1],[4,8,2],[2,4,1],[1,2,2],[3,6,2],[2,6,2],[4,10,1],[3,4,4],[2,2,4]];
+  const gcd3=(a,b,c)=>[a,b,c].filter(Boolean).reduce((x,y)=>gcd(x,y));
+  function reduceRatio(r){const g=gcd3(...r);return r.map(n=>n/g);}
+  function sampleFromFormula(f,n=1,withMass=true,id='random',name='隨機新題'){
+    const [c,h,o]=f,M=12*c+h+16*o;
+    return{id,name,mass:n*M,water:n*h/2*18,co2:n*c*44,ratio:reduceRatio(f),molarMass:withMass?M:null,containsO:o>0};
+  }
+  function randomSample(rand=Math.random){
+    const f=pool[Math.floor(rand()*pool.length)],n=rand()<.7?1:2,withMass=rand()<.85;
+    return sampleFromFormula(f,n,withMass,'random',`隨機新題｜${withMass?'給定分子量 '+(12*f[0]+f[1]+16*f[2]):'未給分子量'}`);
+  }
+  // 由 C、H、O 莫耳數求最簡整數比（容許實驗誤差 2%）；化不成簡單整數比回傳 null。
+  function ratioFromMoles(nC,nH,nO){
+    const v=[nC,nH,nO].map(x=>Math.abs(x)<1e-9?0:x);if(v.some(x=>x<0)||!v[0]||!v[1])return null;
+    const min=Math.min(...v.filter(Boolean));
+    for(let k=1;k<=6;k++){const r=v.map(x=>x/min*k);if(r.every(x=>Math.abs(x-Math.round(x))<=.02*Math.max(1,x)))return reduceRatio(r.map(Math.round));}
+    return null;
+  }
+  function multiplierFor(nC,nH,nO){const v=[nC,nH,nO].filter(x=>x>1e-9),min=Math.min(...v);for(let k=1;k<=6;k++)if(v.every(x=>{const r=x/min*k;return Math.abs(r-Math.round(r))<=.02*Math.max(1,r);}))return k;return null;}
+  function customSample(mass,water,co2,molarMass){
+    const d=combustion(mass,water,co2);if(!d.physical)throw Error('C、H 的質量合計超過試樣質量，請檢查數據。');
+    const ratio=ratioFromMoles(d.nC,d.nH,d.nO);if(!ratio)throw Error('莫耳數無法化成簡單整數比（6 倍以內），請檢查數據。');
+    const mm=Number.isFinite(molarMass)&&molarMass>0?molarMass:null;
+    if(mm){const k=mm/empiricalMass(ratio);if(Math.abs(k-Math.round(k))>.02||Math.round(k)<1)throw Error('分子量不是實驗式量的整數倍，請檢查數據。');}
+    return{id:'custom',name:'自訂數據',mass,water,co2,ratio,molarMass:mm,containsO:ratio[2]>0};
+  }
   function combustion(mass,water,co2){if(![mass,water,co2].every(x=>Number.isFinite(x)&&x>=0)||mass<=0)throw Error('質量資料不合理');const nWater=water/18,nH=nWater*2,mH=nH,nCO2=co2/44,nC=nCO2,mC=nC*12,mO=mass-mC-mH,nO=mO/16;return{nWater,nH,mH,nCO2,nC,mC,mO:Math.abs(mO)<1e-10?0:mO,nO:Math.abs(nO)<1e-10?0:nO,physical:mO>=-1e-8};}
   function empirical(ratio){return ratio.map((n,i)=>n?['C','H','O'][i]+(n===1?'':n):'').join('');}
   function empiricalMass(r){return r.reduce((s,n,i)=>s+n*[12,1,16][i],0);}
-  const api={parseFormula,reactions,balance,samples,combustion,empirical,empiricalMass,gcd};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.ChemistryCore=api;
+  const api={parseFormula,reactions,balance,samples,combustion,empirical,empiricalMass,gcd,pool,sampleFromFormula,randomSample,ratioFromMoles,multiplierFor,customSample};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.ChemistryCore=api;
 })(typeof window==='undefined'?globalThis:window);

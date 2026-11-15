@@ -306,7 +306,7 @@ const lessonData = [
         url: "senior/chemistry/combustion_analysis.html",
         tagClass: "chem",
         tagName: "高中化學",
-        desc: "操作燃燒分析裝置，由吸收管增重推算元素含量、實驗式與分子式，再判斷裝置順序及實驗誤差。"
+        desc: "看 2D／3D 動畫中的燃燒與吸收過程，用表格法由吸收管增重推算實驗式與分子式；整數莫耳題庫、一鍵出新題，含投影模式。"
     },
     {
         title: "水波與光波：干涉與繞射（高一）",

@@ -1,0 +1,53 @@
+.view-bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.view-bar button{font-size:.9rem;padding:6px 10px}
+#view3d-tools{display:inline-flex;gap:6px}
+#view3d-tools[hidden]{display:none}
+#apparatus3d{width:100%;aspect-ratio:800/420;border-radius:14px;display:block;touch-action:none;cursor:grab}
+.sample-actions{margin-top:8px}
+.custom-data{margin-top:10px}
+.custom-data summary{cursor:pointer;color:var(--accent);font-weight:600}
+.custom-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 10px;align-items:center;margin:10px 0}
+.custom-grid input{padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;min-width:0}
+.feedback.ok{color:#246446}.feedback.bad{color:#b23b3b}
+
+.table-panel{margin-top:16px}
+.table-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.table-head h3{margin:0;font-size:1.05rem}
+.table-head button{font-size:.85rem;padding:5px 9px}
+table.method{width:100%;border-collapse:separate;border-spacing:4px;margin-top:8px;font-variant-numeric:tabular-nums}
+table.method th{font-size:.85rem;color:var(--muted);font-weight:600;text-align:left;padding:4px 6px;white-space:nowrap}
+table.method thead th{text-align:center;font-size:1rem;color:var(--ink)}
+table.method td{background:#eef4fa;border-radius:8px;padding:7px 8px;text-align:center;font-size:.92rem}
+.hidden-cell{background:#dfe8f1!important;color:#7b8fa3;cursor:pointer;font-weight:700}
+.hidden-cell:hover,.hidden-cell:focus{outline:2px solid var(--accent);outline-offset:-2px}
+td.shown{color:var(--ink);font-weight:600}
+.method-final{margin:8px 4px 0;padding:8px 10px;border-radius:8px;background:#eef4fa;font-weight:700}
+.method-final.shown{background:#e3f3ea;color:#1f5a3d}
+.proj-hint{font-size:.85rem;color:var(--muted);margin:10px 0 0}
+
+/* 投影模式 */
+body.projection{font-size:19px}
+body.projection header,body.projection .toolbar,body.projection #study-panel,body.projection #free-panel,body.projection details:not(.custom-data),body.projection #dock,body.projection #show-keys,body.projection .lab-sidebar-content>.panel:has(#calculation){display:none!important}
+body.projection .shell{padding-top:10px;max-width:min(1880px,100%)}
+body.projection .lab-grid{grid-template-columns:minmax(0,2.1fr) minmax(320px,.9fr)}
+body.projection .lab-main-panel h2{font-size:1.5rem}
+body.projection #apparatus svg,body.projection #apparatus3d{max-height:max(280px,calc(100vh - 640px));width:auto;max-width:100%;margin:0 auto;display:block}
+body.projection #apparatus3d{aspect-ratio:800/420;height:max(280px,calc(100vh - 640px))}
+body.projection .reading strong{font-size:1.7rem}
+body.projection table.method td{font-size:1.25rem;padding:8px}
+body.projection table.method th{font-size:1.05rem}
+body.projection .method-final{font-size:1.35rem}
+body.projection button,body.projection select{min-height:50px;font-size:1.05rem}
+body.projection #proj-hint{display:block}
+@media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}table.method td{font-size:.8rem;padding:5px 4px}}
+body.projection .view-bar{margin-bottom:6px}
+body.projection .view-bar button{min-height:40px;font-size:.9rem;padding:4px 10px}
+body.projection .lab-main-panel>h2{display:none}
+body.projection.data-ready #apparatus svg,body.projection.data-ready #apparatus3d{max-height:230px;height:230px}
+body.projection.data-ready .readings{gap:8px}
+body.projection.data-ready .reading{padding:8px}
+body.projection.data-ready .reading strong{font-size:1.45rem}
+body.projection.data-ready .reading small{display:none}
+body.projection.data-ready #experiment-steps{display:none}
+body.projection.data-ready table.method td{padding:6px 8px;font-size:1.2rem}
+body.projection.data-ready .table-panel{margin-top:10px}
