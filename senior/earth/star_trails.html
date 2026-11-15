@@ -8,13 +8,13 @@
 <div id="legend" class="legend"></div>
 <div class="readings" id="readings" aria-live="polite"></div>
 <section id="worksheet-panel" class="worksheet-panel"><div class="ws-head"><h3 id="ws-title">鳩特講解</h3><div class="actions"><button type="button" id="ws-next">揭曉下一格</button><button type="button" id="ws-all">全部揭曉</button><button type="button" id="ws-none">全部蓋住</button></div></div><div id="worksheet"></div></section>
-<p id="proj-hint" class="proj-hint" hidden>快速鍵：1～5 切換視圖　← → 換緯度　空白鍵 播放／暫停　Enter 揭曉下一格　R 時間歸零　Esc 離開投影模式</p></section>
+<p id="proj-hint" class="proj-hint" hidden>快速鍵：1～5 切換視圖　← → 換緯度　空白鍵 播放／暫停　Enter 揭曉下一格　R 時間歸零　B 縮小回天球　Esc 離開投影模式</p></section>
 <aside class="lab-sidebar"><div class="lab-sidebar-content"><section class="panel lab-mode-panel"><div class="row" role="group" aria-label="模式"><button type="button" id="free-mode" aria-pressed="true">自由操作</button><button type="button" id="study-mode" aria-pressed="false">自修模式</button><button type="button" id="proj-mode" aria-pressed="false">投影模式</button><button type="button" id="fullscreen" hidden>全螢幕</button></div></section>
 <section class="panel" id="study-panel" hidden></section>
 <section class="panel lab-operation-panel" id="lab-operations"><h2>操作</h2>
 <h3 class="sub">選擇緯度</h3><div id="lat-buttons" class="actions lat-buttons" role="group" aria-label="緯度"></div>
 <div class="control"><label for="lat">緯度</label><input id="lat" type="range" min="-90" max="90" step="0.5" value="30"><output id="lat-out" for="lat">北緯 30°</output></div>
-<div class="actions"><button type="button" id="enter-dome" class="primary">▶ 旋轉、放大進入地平線</button></div>
+<div class="actions"><button type="button" id="enter-dome" class="primary">▶ 旋轉、放大進入地平線</button><button type="button" id="exit-dome">◀ 縮小、旋轉回到天球</button></div>
 <h3 class="sub">時間（星星每 24 小時轉一圈）</h3>
 <div class="actions" role="group" aria-label="時間控制"><button type="button" id="play">暫停</button><button type="button" id="reset-time">時間歸零</button><select id="speed" aria-label="播放速度"><option value="1">1 小時／秒</option><option value="0.5">0.5 小時／秒</option><option value="2">2 小時／秒</option></select></div>
 <h3 class="sub">顯示</h3>
