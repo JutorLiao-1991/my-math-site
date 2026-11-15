@@ -30,7 +30,7 @@ class GeometricOpticsTests(unittest.TestCase):
 
     def test_catalog_entry_has_grade_suffix(self):
         data = (ROOT / 'data.js').read_text(encoding='utf-8')
-        self.assertIn('title: "光的反射與折射實驗室（國二）"', data)
+        self.assertIn('title: "光的反射與折射（國二）"', data)
 
 
 if __name__ == '__main__':

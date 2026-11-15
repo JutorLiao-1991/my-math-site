@@ -183,7 +183,7 @@ const lessonData = [
         desc: "判斷是否為最簡根式，或四選一選出化簡結果；基礎 1～50、精熟 1～100，可單人快答與雙人 PK。"
     },
     {
-        title: "光的反射與折射實驗室（國二）",
+        title: "光的反射與折射（國二）",
         category: "junior",
         grades: [8],
         url: "junior/science/geometric_optics.html",
