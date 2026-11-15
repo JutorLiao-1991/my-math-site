@@ -12,13 +12,15 @@
   const sim = { t: 0, fronts: [], next: 0, loop0: 0, hold: 0, counts: { a: 0, b: 0 }, flash: { a: 0, b: 0 }, elapsed: 0 };
 
   const SRC_START = 150, SRC_END = 560, OBS_AHEAD = 680, OBS_BEHIND = 40; // 聲源移動
-  const SRC_FIXED = 330, REF_X = 60, NEAR = 420, FAR = 700;               // 觀察者移動
+  const SRC_FIXED = 360, RIGHT0 = 690, LEFT0 = 330, TRAVEL = 300;        // 觀察者移動：右白虎接近、左青龍遠離，兩人都向左走
   const vsPx = () => S.vs * V, voPx = () => S.vo * V;
   const sourceX = t => topic === 'source' ? SRC_START + vsPx() * t : SRC_FIXED;
   // 觀察者移動：每一趟從 loop0 開始；靠近時由遠處往聲源走，遠離時由聲源附近往外走
-  const movingX = t => S.toward ? FAR - voPx() * (t - sim.loop0) : NEAR + voPx() * (t - sim.loop0);
-  const obsA = t => topic === 'source' ? OBS_AHEAD : movingX(t); // a：前方／移動的觀察者
-  const obsB = () => topic === 'source' ? OBS_BEHIND : REF_X;    // b：後方／靜止觀察者（對照）
+  // 觀察者靜止時兩人對稱站在聲源兩側；移動時一起向左走 TRAVEL 後回到起點
+  const rightX = t => S.vo > 0 ? RIGHT0 - voPx() * (t - sim.loop0) : RIGHT0;
+  const leftX = t => S.vo > 0 ? LEFT0 - voPx() * (t - sim.loop0) : 2 * SRC_FIXED - RIGHT0;
+  const obsA = t => topic === 'source' ? OBS_AHEAD : rightX(t);  // a：前方觀察者／右白虎（接近）
+  const obsB = t => topic === 'source' ? OBS_BEHIND : leftX(t);  // b：後方觀察者／左青龍（遠離）
 
   function restart() {
     Object.assign(sim, { t: 0, fronts: [], next: 0, loop0: 0, hold: 0, counts: { a: 0, b: 0 }, flash: { a: 0, b: 0 }, elapsed: 0 });
@@ -39,8 +41,7 @@
     sim.fronts = sim.fronts.filter(fr => V * (sim.t - fr.te) < 900);
     if (topic === 'source' && sourceX(sim.t) >= SRC_END) sim.hold = 1.2; // 開到終點：停一下讓學生看清楚，再重新開始
     if (topic === 'observer') {
-      const x = movingX(sim.t);
-      if ((S.toward && x <= NEAR) || (!S.toward && x >= FAR)) sim.loop0 = sim.t; // 觀察者回到起點，波前保留
+      if (S.vo > 0 && voPx() * (sim.t - sim.loop0) >= TRAVEL) sim.loop0 = sim.t; // 兩人回到起點，波前保留
     }
   }
   function tick(now) {
@@ -123,22 +124,27 @@
   }
 
   function drawObserver(fronts) {
-    const xo = movingX(sim.t);
+    const xr = rightX(sim.t), xl = leftX(sim.t), moving = S.vo > 0;
     if (S.lambda && fronts.length >= 2) {
-      const edges = fronts.map(fr => fr.xe + radius(fr)).filter(e => e > SRC_FIXED + 2).sort((a, b) => a - b);
-      let i = edges.findIndex(e => e > xo); if (i <= 0) i = edges.length - 1;
-      if (i > 0) bracket(edges[i - 1], edges[i], ROAD + 92, C.obs, '觀察者遇到的波長');
+      const r = fronts.map(radius).filter(x => x > 2).sort((a, b) => a - b);
+      const near = (dist, side) => { let i = r.findIndex(x => x > dist); if (i <= 0) i = r.length - 1; if (i > 0) bracket(SRC_FIXED + side * r[i - 1], SRC_FIXED + side * r[i], ROAD + 92, C.obs, side > 0 ? '右白虎遇到的波長' : '左青龍遇到的波長'); };
+      near(xr - SRC_FIXED, 1); near(SRC_FIXED - xl, -1);
     }
     if (S.arrows) {
-      const d = S.toward ? -1 : 1, rel = (S.toward ? V + voPx() : V - voPx()) * 0.5;
-      arrow(xo, ROAD - 60, xo + d * voPx() * 0.5, C.src, S.vo > 0 ? '觀察者速度' : '');
-      arrow(xo - V * 0.5 - 14, ROAD - 84, xo - 14, '#6cb4ff', '波速 v（對地）');
-      arrow(xo + 14, ROAD + 138, xo + 14 + rel, C.purple, '波相對觀察者', true);
+      const h = 0.5, vo = voPx() * h;
+      // 右白虎：自己向左走，波向右傳 → 相對速度 v + vo
+      if (moving) arrow(xr, ROAD - 60, xr - vo, C.src, '速度（向左）');
+      arrow(xr - V * h - 14, ROAD - 84, xr - 14, '#6cb4ff', '波速 v（對地）');
+      arrow(xr + 14, ROAD + 138, xr + 14 + (V + voPx()) * h, C.purple, '波相對右白虎', true);
+      // 左青龍：自己向左走，波也向左傳 → 相對速度 v − vo
+      if (moving) arrow(xl, ROAD - 60, xl - vo, C.src, '速度（向左）');
+      arrow(xl + V * h + 14, ROAD - 84, xl + 14, '#6cb4ff', '波速 v（對地）');
+      arrow(xl - 14, ROAD + 138, xl - 14 - (V - voPx()) * h, C.purple, '波相對左青龍', true);
     }
     speaker(SRC_FIXED); label('聲源（靜止）', SRC_FIXED, ROAD - 30, C.src, 13, 'center');
-    person(xo, C.obs, '移動的觀察者', sim.flash.a, S.vo > 0 ? (S.toward ? '← 靠近聲源' : '遠離聲源 →') : '', 'a');
-    person(REF_X, C.ref, '靜止觀察者', sim.flash.b, '（對照）', 'b');
-    label(S.vo > 0 ? `觀察者${S.toward ? '靠近' : '遠離'}聲源，速率 ${S.vo.toFixed(2)} v` : '觀察者靜止（對照）', W - 14, 31, C.text, 13, 'right');
+    person(xr, C.obs, '右白虎', sim.flash.a, moving ? '← 接近聲源' : '靜止', 'a');
+    person(xl, C.obs, '左青龍', sim.flash.b, moving ? '← 遠離聲源' : '靜止', 'b');
+    label(moving ? `兩人都向左走，速率 ${S.vo.toFixed(2)} v` : '觀察者靜止（對照）', W - 14, 31, C.text, 13, 'right');
   }
 
   // ---------- 定性比較表 ----------
@@ -150,89 +156,102 @@
   function renderTable() {
     let cols, a, b, ref;
     if (topic === 'source') { const r = D.sourceMoving({ f: S.f, v: V, vs: vsPx() }); cols = ['前方觀察者', '後方觀察者']; a = r.ahead; b = r.behind; ref = r.rest; }
-    else { const r = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: S.toward }); cols = [`移動的觀察者（${S.toward ? '靠近' : '遠離'}）`, '靜止觀察者（對照）']; a = r.moving; b = r.rest; ref = r.rest; }
+    else { const n = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: true }), f = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: false }); cols = ['右白虎（接近）', '左青龍（遠離）']; a = n.moving; b = f.moving; ref = n.rest; }
     const row = (name, kind) => `<tr><th scope="row">${name}</th>${cell(kind, a[kind], ref[kind])}${cell(kind, b[kind], ref[kind])}</tr>`;
     $('compare-table').innerHTML = `<table><caption class="muted" style="text-align:left">和「聲源、觀察者都靜止」相比（灰線＝靜止時）</caption><thead><tr><th></th><th scope="col">${cols[0]}</th><th scope="col">${cols[1]}</th></tr></thead><tbody>${row('視波長', 'lambda')}${row('視波速', 'speed')}${row('視頻率', 'freq')}</tbody></table>`;
   }
 
-  // ---------- 聲音：點動畫裡的圖案播放；新的聲音覆蓋正在播的 ----------
-  let audio = null, voices = [], playing_ = null, playTimer = 0;
+  // ---------- 聲音：點動畫裡的圖案開始播放，持續到使用者關閉；新的聲音覆蓋正在播的 ----------
+  let audio = null, voice = null, seqTimer = 0, seqOn = false;
   const ac = () => { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); return audio; };
-  function tone(freq, start, dur, gain = 0.18, keep = true) {
+  function tone(freq, start, dur, gain = 0.15) { // 短嗶聲（波前抵達）
     const a = ac(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + start;
-    o.type = 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.03); g.gain.setValueAtTime(gain, t + dur - 0.06); g.gain.linearRampToValueAtTime(0, t + dur);
+    o.type = 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.01); g.gain.linearRampToValueAtTime(0, t + dur);
     o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
-    if (keep) { const v = { o, g }; voices.push(v); o.onended = () => { voices = voices.filter(x => x !== v); }; }
   }
-  function stopSound() {
-    if (audio) { const now = audio.currentTime; voices.forEach(({ o, g }) => { try { g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(g.gain.value, now); g.gain.linearRampToValueAtTime(0, now + 0.03); o.stop(now + 0.04); } catch (_) { /* 已停止 */ } }); }
-    voices = []; clearTimeout(playTimer); playing_ = null;
-  }
-  const sounding = who => playing_ !== null && playing_ === who;
-  function setSounding(who, ms) { playing_ = who; clearTimeout(playTimer); playTimer = setTimeout(() => { playing_ = null; draw(); }, ms); draw(); }
   // 各圖案「聽到」的頻率倍率（相對發聲頻率）
   function ratioFor(who) {
     if (who === 'src') return 1;
     if (topic === 'source') { const r = D.sourceMoving({ f: S.f, v: V, vs: vsPx() }); return (who === 'a' ? r.ahead.freq : r.behind.freq) / S.f; }
-    const r = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: S.toward }); return who === 'a' ? r.moving.freq / S.f : 1;
+    return D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: who === 'a' }).moving.freq / S.f;
   }
-  function listen(who) { seqTimers.forEach(clearTimeout); seqTimers = []; stopSound(); try { tone(440 * ratioFor(who), 0, 1.2); } catch (_) { return; } setSounding(who, 1200); }
-  let seqTimers = [];
-  function stopAll() { seqTimers.forEach(clearTimeout); seqTimers = []; stopSound(); draw(); }
-  function playSequence() {
-    stopAll(); const order = topic === 'source' ? ['src', 'a', 'b'] : ['b', 'a'];
-    try { order.forEach((w, i) => tone(440 * ratioFor(w), i * 1.3, 1.2)); } catch (_) { return; }
-    seqTimers = order.map((w, i) => setTimeout(() => setSounding(w, 1200), i * 1300));
+  const sounding = who => !!voice && voice.who === who;
+  function setVoice(who) { // 開始或切換持續音；切換時短暫靜音，讓耳朵分得出前後兩個音
+    const a = ac(), now = a.currentTime, freq = 440 * ratioFor(who);
+    if (!voice) {
+      const o = a.createOscillator(), g = a.createGain(); o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0, now); g.gain.linearRampToValueAtTime(0.16, now + 0.04); o.connect(g).connect(a.destination); o.start(now);
+      voice = { o, g, who };
+    } else {
+      voice.g.gain.cancelScheduledValues(now); voice.g.gain.setValueAtTime(voice.g.gain.value, now); voice.g.gain.linearRampToValueAtTime(0, now + 0.04);
+      voice.o.frequency.setValueAtTime(freq, now + 0.06); voice.g.gain.linearRampToValueAtTime(0.16, now + 0.12); voice.who = who;
+    }
+    updateSoundUI(); draw();
+  }
+  function updatePitch() { if (voice) try { voice.o.frequency.setTargetAtTime(440 * ratioFor(voice.who), ac().currentTime, 0.03); } catch (_) { /* 音訊已關閉 */ } }
+  function stopAll() {
+    clearInterval(seqTimer); seqOn = false;
+    if (voice && audio) { const now = audio.currentTime, v = voice; try { v.g.gain.cancelScheduledValues(now); v.g.gain.setValueAtTime(v.g.gain.value, now); v.g.gain.linearRampToValueAtTime(0, now + 0.05); v.o.stop(now + 0.06); } catch (_) { /* 已停止 */ } }
+    voice = null; updateSoundUI(); draw();
+  }
+  function listen(who) { clearInterval(seqTimer); seqOn = false; try { voice && voice.who === who ? stopAll() : setVoice(who); } catch (_) { /* 瀏覽器不支援音訊 */ } }
+  function playSequence() { // 輪流播放，直到按停止
+    const order = topic === 'source' ? ['src', 'a', 'b'] : ['src', 'a', 'b']; let i = 0;
+    clearInterval(seqTimer); try { setVoice(order[0]); } catch (_) { return; } seqOn = true; updateSoundUI();
+    seqTimer = setInterval(() => { i = (i + 1) % order.length; setVoice(order[i]); }, 1500);
+  }
+  function updateSoundUI() {
+    if (!$('tone-stop')) return; $('tone-stop').disabled = !voice; $('tone-all').setAttribute('aria-pressed', String(seqOn));
+    const names = topic === 'source' ? { src: '聲源', a: '前方觀察者', b: '後方觀察者' } : { src: '聲源', a: '右白虎', b: '左青龍' };
+    $('sound-status').textContent = voice ? `♪ 正在播放：${voice.who === 'src' ? '聲源原本的音高' : names[voice.who] + '聽到的音'}${seqOn ? '（輪流比較中）' : ''}` : '目前沒有播放聲音';
   }
   function hitTest(e) {
     const b = canvas.getBoundingClientRect(), x = (e.clientX - b.left) * W / b.width, y = (e.clientY - b.top) * H / b.height;
-    const spots = [['src', sourceX(sim.t)], ['a', obsA(sim.t)], ['b', obsB()]];
+    const spots = [['src', sourceX(sim.t)], ['a', obsA(sim.t)], ['b', obsB(sim.t)]];
     let best = null, dist = 46;
     for (const [who, sx] of spots) { const d = Math.hypot(x - sx, y - (ROAD - 12)); if (d < dist) { dist = d; best = who; } }
     return best;
   }
-  canvas.addEventListener('click', e => { const who = hitTest(e); if (who) { seqTimers.forEach(clearTimeout); seqTimers = []; listen(who); } });
+  canvas.addEventListener('click', e => { const who = hitTest(e); if (who) listen(who); });
   canvas.addEventListener('pointermove', e => { canvas.style.cursor = hitTest(e) ? 'pointer' : ''; });
   function buildSound() {
-    $('tone-buttons').innerHTML = '<button type="button" id="tone-all">▶ 依序比較</button><button type="button" id="tone-stop">■ 停止聲音</button>';
-    $('tone-all').onclick = playSequence;
-    $('tone-stop').onclick = stopAll;
-    const opts = topic === 'source' ? [['off', '關閉'], ['a', '前方觀察者'], ['b', '後方觀察者']] : [['off', '關閉'], ['a', '移動的觀察者'], ['b', '靜止觀察者']];
+    $('tone-buttons').innerHTML = '<button type="button" id="tone-all" aria-pressed="false">▶ 輪流比較</button><button type="button" id="tone-stop" disabled>■ 停止聲音</button><p id="sound-status" class="muted sound-status" aria-live="polite"></p>';
+    $('tone-all').onclick = playSequence; $('tone-stop').onclick = stopAll;
+    const opts = topic === 'source' ? [['off', '關閉'], ['a', '前方觀察者'], ['b', '後方觀察者']] : [['off', '關閉'], ['a', '右白虎（接近）'], ['b', '左青龍（遠離）']];
     $('beep').innerHTML = opts.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
+    updateSoundUI();
   }
-  function beep(who) { if ($('beep').value === who && playing) { try { tone(880, 0, 0.07, 0.15, false); } catch (_) { /* 瀏覽器不支援音訊 */ } } }
+  function beep(who) { if ($('beep').value === who && playing) { try { tone(880, 0, 0.07); } catch (_) { /* 瀏覽器不支援音訊 */ } } }
 
   // ---------- 控制項 ----------
   const defs = {
     source: [{ key: 'vs', label: '聲源速率', min: 0, max: 0.7, step: 0.05, show: x => `${x.toFixed(2)} v` }],
-    observer: [{ key: 'vo', label: '觀察者速率', min: 0, max: 0.7, step: 0.05, show: x => `${x.toFixed(2)} v` }]
+    observer: [{ key: 'vo', label: '兩人走的速率', min: 0, max: 0.7, step: 0.05, show: x => `${x.toFixed(2)} v` }]
   };
   const freqDef = { key: 'f', label: '發聲頻率（示意）', min: 0.6, max: 1.6, step: 0.1, show: x => `${x.toFixed(1)} 次/秒` };
   const presets = {
     source: [['聲源靜止', { vs: 0 }], ['慢慢移動', { vs: 0.3 }], ['快速移動', { vs: 0.6 }]],
-    observer: [['觀察者靜止', { vo: 0 }], ['靠近聲源', { vo: 0.5, toward: true }], ['遠離聲源', { vo: 0.5, toward: false }]]
+    observer: [['觀察者靜止', { vo: 0 }], ['慢慢走', { vo: 0.3 }], ['快速移動', { vo: 0.6 }]]
   };
   function buildControls() {
     const list = [...defs[topic], freqDef];
     $('controls').innerHTML = list.map(d => `<div class="control"><label for="c-${d.key}">${d.label}</label><input id="c-${d.key}" type="range" min="${d.min}" max="${d.max}" step="${d.step}" value="${S[d.key]}"><output id="c-${d.key}-out" for="c-${d.key}">${d.show(S[d.key])}</output></div>`).join('')
-      + (topic === 'observer' ? '<div class="actions" role="group" aria-label="觀察者方向"><button type="button" id="dir-near">靠近聲源</button><button type="button" id="dir-far">遠離聲源</button></div>' : '');
+      ;
     list.forEach(d => $('c-' + d.key).addEventListener('input', e => { S[d.key] = +e.target.value; $('c-' + d.key + '-out').textContent = d.show(S[d.key]); changed(d.key); }));
-    if (topic === 'observer') { $('dir-near').onclick = () => apply({ toward: true }); $('dir-far').onclick = () => apply({ toward: false }); }
     $('presets').innerHTML = presets[topic].map((p, i) => `<button type="button" data-preset="${i}">${p[0]}</button>`).join('');
     $('presets').querySelectorAll('[data-preset]').forEach(b => b.onclick = () => apply(presets[topic][+b.dataset.preset][1]));
     syncControls();
   }
   function syncControls() {
     [...defs[topic], freqDef].forEach(d => { const el = $('c-' + d.key); if (el) { el.value = S[d.key]; $('c-' + d.key + '-out').textContent = d.show(S[d.key]); } });
-    if ($('dir-near')) { $('dir-near').setAttribute('aria-pressed', String(S.toward)); $('dir-far').setAttribute('aria-pressed', String(!S.toward)); }
     $('t-lambda').setAttribute('aria-pressed', String(S.lambda)); $('t-arrows').setAttribute('aria-pressed', String(S.arrows)); $('t-ratio').setAttribute('aria-pressed', String(S.ratio));
     buildSound.keep = $('beep').value; buildSound(); if ([...$('beep').options].some(o => o.value === buildSound.keep)) $('beep').value = buildSound.keep;
   }
   // 聲源速率或頻率改變：重新開始（避免舊波前混在一起）；觀察者的設定改變只重算計數
   function changed(key) {
     if (topic === 'source' || key === 'f') restart();
-    else { if (key === 'toward') { sim.loop0 = sim.t; } resetCounts(); draw(); }
-    syncControls();
+    else { if (key === 'vo') { sim.loop0 = sim.t; } resetCounts(); draw(); }
+    syncControls(); updatePitch();
   }
   function apply(values) { const keys = Object.keys(values); Object.assign(S, values); syncControls(); changed(keys.includes('f') ? 'f' : keys.includes('toward') ? 'toward' : keys[0]); }
   $('t-lambda').onclick = () => { S.lambda = !S.lambda; syncControls(); draw(); };
@@ -266,27 +285,27 @@
         conclusion: '聲源靠近你時聽到的音變高、遠離你時變低。原因是波長被擠短或拉長，波速並沒有改變。' }
     ],
     observer: [
-      { id: 'obs-lambda', title: '觀察者移動：視波長', prediction: { question: '觀察者向聲源跑過去，他遇到的波前間距會變嗎？', options: ['不變', '變短', '變長'] },
-        task: '按「準備」後，選「靠近聲源」，把觀察者速率調到 0.4 v 以上，看「觀察者遇到的波長」和灰色參考尺。',
-        prepare() { apply({ vo: 0.1, toward: true, f: 1 }); S.lambda = true; syncControls(); setPlaying(true); },
-        check() { if (!S.toward) return { ok: false, message: '請選「靠近聲源」。' }; if (S.vo < 0.4) return { ok: false, message: '請把觀察者速率調到 0.4 v 以上。' }; return { ok: true, evidence: `觀察者速率 ${S.vo.toFixed(2)} v：波前仍是以聲源為中心的同心圓，觀察者附近的間距和灰色參考尺一樣長` }; },
-        observation: opt('觀察者遇到的波長，和靜止時相比？', ['不變', '變短', '變長'], 0, '和灰色參考尺比較。'),
-        reason: opt('為什麼？', ['聲源沒有動，波前是同心圓，間距只由波速和發聲頻率決定', '觀察者跑步會把空氣壓縮', '波長會跟著觀察者改變'], 0, '這些波前是誰發出的？聲源有移動嗎？'),
-        conclusion: '只有觀察者移動時，空氣中的波長不變。' },
-      { id: 'obs-speed', title: '觀察者移動：視波速', prediction: { question: '對向聲源跑的觀察者來說，波前迎面而來的速度？', options: ['變快', '不變', '變慢'] },
-        task: '按「準備」後，打開「速度箭頭」，比較藍色「波速 v（對地）」和紫色「波相對觀察者」兩個箭頭。',
-        prepare() { apply({ vo: 0.5, toward: true, f: 1 }); S.arrows = false; syncControls(); setPlaying(true); },
-        check() { if (!S.arrows) return { ok: false, message: '請打開「速度箭頭」。' }; if (!S.toward || S.vo < 0.3) return { ok: false, message: '請選「靠近聲源」，速率 0.3 v 以上。' }; return { ok: true, evidence: `觀察者以 ${S.vo.toFixed(2)} v 迎向聲波：紫色箭頭（波相對觀察者）比藍色箭頭（波速 v）長，長度約為 v + vo` }; },
-        observation: opt('對觀察者來說，波前迎面而來的速度？', ['變快，等於 v + vo', '不變，仍是 v', '變慢，等於 v − vo'], 0, '比較紫色與藍色箭頭。'),
-        reason: opt('為什麼？', ['他自己迎向波前，兩者相向而行，相對速度相加', '空氣跟著他一起跑', '聲波在空氣中的速率變快了'], 0, '想想兩台車相向而行時的相對速度。'),
-        conclusion: '觀察者移動不改變聲波在空氣中的速率，但會改變「波相對觀察者」的速度：靠近時變快、遠離時變慢。' },
-      { id: 'obs-freq', title: '觀察者移動：視頻率', prediction: { question: '觀察者遠離聲源時，聽到的音高？', options: ['變低', '變高', '不變'] },
-        task: '按「準備」後，切換成「遠離聲源」並播放，等移動的觀察者和靜止觀察者各收到至少 4 個波前，再讀取結果。',
-        prepare() { apply({ vo: 0.4, toward: true, f: 1 }); setPlaying(true); },
-        check() { if (S.toward) return { ok: false, message: '請切換成「遠離聲源」。' }; if (S.vo < 0.3) return { ok: false, message: '請讓觀察者速率保持在 0.3 v 以上。' }; if (sim.counts.a < 4 || sim.counts.b < 4) return { ok: false, message: `移動的觀察者收到 ${sim.counts.a} 個、靜止觀察者收到 ${sim.counts.b} 個波前，請各收到至少 4 個。` }; return { ok: true, evidence: '遠離時，移動的觀察者閃得比靜止觀察者慢（每秒遇到的波前較少）；波長不變，波相對他的速度變小' }; },
-        observation: opt('遠離聲源的觀察者，聽到的頻率？', ['變低', '變高', '不變'], 0, '看誰閃得比較慢。'),
-        reason: opt('為什麼？', ['波長不變，但波相對他的速度變成 v − vo，每秒遇到的波前變少', '聲源發出的頻率變低了', '遠離會讓波長變長'], 0, '頻率＝視波速 ÷ 視波長，哪一個變了？'),
-        conclusion: '觀察者靠近聲源，視波速變大、頻率變高；遠離時視波速變小、頻率變低。波長都不變。' }
+      { id: 'obs-lambda', title: '觀察者移動：視波長', prediction: { question: '右白虎走向聲源、左青龍走離聲源，他們遇到的波前間距會變嗎？', options: ['兩人都不變', '右白虎變短、左青龍變長', '兩人都變短'] },
+        task: '按「準備」後，把「兩人走的速率」調到 0.4 v 以上，比較兩人的波長標記和左上的灰色參考尺。',
+        prepare() { apply({ vo: 0.1, f: 1 }); S.lambda = true; syncControls(); setPlaying(true); },
+        check() { if (S.vo < 0.4) return { ok: false, message: '請把「兩人走的速率」調到 0.4 v 以上。' }; return { ok: true, evidence: `兩人以 ${S.vo.toFixed(2)} v 向左走：波前仍是以聲源為中心的同心圓，兩人遇到的波前間距都和灰色參考尺一樣長` }; },
+        observation: opt('兩人遇到的波長，和靜止時相比？', ['都不變', '右白虎變短、左青龍變長', '都變長'], 0, '和灰色參考尺比較。'),
+        reason: opt('為什麼？', ['聲源沒有動，波前是同心圓，間距只由波速和發聲頻率決定', '觀察者走路會把空氣壓縮', '波長會跟著觀察者改變'], 0, '這些波前是誰發出的？聲源有移動嗎？'),
+        conclusion: '只有觀察者移動時，空氣中的波長不變，接近或遠離都一樣。' },
+      { id: 'obs-speed', title: '觀察者移動：視波速', prediction: { question: '右白虎迎著波走、左青龍順著波走。波相對他們的速度？', options: ['右白虎變快、左青龍變慢', '兩人都不變', '兩人都變快'] },
+        task: '按「準備」後，打開「速度箭頭」，比較藍色「波速 v（對地）」和兩個紫色「波相對…」箭頭。',
+        prepare() { apply({ vo: 0.5, f: 1 }); S.arrows = false; syncControls(); setPlaying(true); },
+        check() { if (!S.arrows) return { ok: false, message: '請打開「速度箭頭」。' }; if (S.vo < 0.3) return { ok: false, message: '請讓「兩人走的速率」保持在 0.3 v 以上。' }; return { ok: true, evidence: `兩人以 ${S.vo.toFixed(2)} v 向左走：右白虎的紫色箭頭比藍色長（v + vo），左青龍的紫色箭頭比藍色短（v − vo）` }; },
+        observation: opt('波相對兩人的速度？', ['右白虎 v + vo（變快），左青龍 v − vo（變慢）', '兩人都仍是 v', '右白虎變慢、左青龍變快'], 0, '比較紫色與藍色箭頭的長短。'),
+        reason: opt('為什麼？', ['右白虎迎向波前，相對速度相加；左青龍和波同方向，相對速度相減', '空氣跟著他們一起走', '聲波在空氣中的速率改變了'], 0, '想想相向而行與同向而行的相對速度。'),
+        conclusion: '觀察者移動不改變聲波在空氣中的速率，但改變「波相對觀察者」的速度：接近時變快、遠離時變慢。' },
+      { id: 'obs-freq', title: '觀察者移動：視頻率', prediction: { question: '左青龍（遠離聲源）聽到的音高，和右白虎（接近聲源）相比？', options: ['左青龍較低、右白虎較高', '左青龍較高', '一樣高'] },
+        task: '按「準備」後播放動畫，等兩人各收到至少 4 個波前（看人的閃光），再讀取結果。也可以點兩人的圖案聽聽看。',
+        prepare() { apply({ vo: 0.4, f: 1 }); setPlaying(true); },
+        check() { if (S.vo < 0.3) return { ok: false, message: '請讓「兩人走的速率」保持在 0.3 v 以上。' }; if (sim.counts.a < 4 || sim.counts.b < 4) return { ok: false, message: `右白虎收到 ${sim.counts.a} 個、左青龍收到 ${sim.counts.b} 個波前，請各收到至少 4 個。` }; return { ok: true, evidence: '右白虎閃得比較快（每秒遇到的波前較多），左青龍閃得比較慢；兩人遇到的波長相同' }; },
+        observation: opt('兩人聽到的頻率？', ['右白虎較高、左青龍較低', '左青龍較高', '兩人一樣'], 0, '看誰閃得比較快。'),
+        reason: opt('為什麼？', ['波長不變，但波相對右白虎變快、相對左青龍變慢，每秒遇到的波前數不同', '聲源發出的頻率改變了', '遠離會讓波長變長'], 0, '頻率＝視波速 ÷ 視波長，哪一個變了？'),
+        conclusion: '觀察者接近聲源，視波速變大、頻率變高；遠離時視波速變小、頻率變低。波長都不變。' }
     ]
   };
   const quizFor = {
@@ -300,8 +319,8 @@
     ]
   };
   const tasks = {
-    source: ['聲源越快，前方的波長會越來越短嗎？試試看。', '把聲源速率調到 0，三個量會怎樣？', '按「依序比較」，耳朵聽到的高低和表格一致嗎？'],
-    observer: ['觀察者跑得越快，他遇到的波長會變嗎？', '靠近與遠離時，紫色箭頭有什麼不同？', '和「聲源移動」相比，哪一個量的變化不一樣？']
+    source: ['聲源越快，前方的波長會越來越短嗎？試試看。', '把聲源速率調到 0，三個量會怎樣？', '按「輪流比較」，耳朵聽到的高低和表格一致嗎？'],
+    observer: ['兩人走得越快，他們遇到的波長會變嗎？', '右白虎和左青龍的紫色箭頭有什麼不同？', '和「聲源移動」相比，哪一個量的變化不一樣？']
   };
   function startGuide() {
     guide?.destroy?.();
@@ -325,7 +344,7 @@
     if (!defs[name]) return; topic = name;
     document.querySelectorAll('[data-topic]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.topic === name)));
     $('scene-title').textContent = name === 'source' ? '聲源移動：波長被擠短或拉長' : '觀察者移動：波長不變，迎面的波變快或變慢';
-    $('scene-caption').textContent = name === 'source' ? '每個圓是一個波前，圓心是它被發出時聲源的位置。觀察者收到波前時會閃一下：閃得越快，聽到的頻率越高。' : '聲源靜止，波前是同心圓。移動的觀察者收到波前時會閃一下，和左邊靜止的觀察者比一比誰閃得快。';
+    $('scene-caption').textContent = name === 'source' ? '每個圓是一個波前，圓心是它被發出時聲源的位置。觀察者收到波前時會閃一下：閃得越快，聽到的頻率越高。' : '聲源靜止，波前是同心圓。右白虎、左青龍都向左走：右白虎接近聲源、左青龍遠離聲源。收到波前時會閃一下，比一比誰閃得快。';
     $('tasks').innerHTML = tasks[name].map(s => `<p>• ${s}</p>`).join('');
     stopAll(); buildControls(); startGuide(); restart(); setMode(modeName);
   }
