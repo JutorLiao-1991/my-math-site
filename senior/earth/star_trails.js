@@ -10,6 +10,7 @@
   // ---------- 狀態 ----------
   const S = { ...DEFAULTS };
   let latShown = S.lat, latFrom = S.lat, latT = 1;          // 緯度改變時的過場
+  let orbitFrom = null;
   let s = 0, sFrom = 0, sTo = 0, sT = 1;                     // 0＝天球（天球不變），1＝局部地平線
   let t = 0, playing = true, speed = 1, last = 0, running = false;
   let orbit = { az: 0, el: 0, zoom: 1 };                     // 使用者在 ①② 拖曳的額外角度
@@ -213,7 +214,7 @@
     const dt = last ? Math.min((now - last) / 1000, .05) : 0; last = now;
     if (playing && S.view !== 'prep' && S.view !== 'photo') { t += dt * speed; if (Math.floor(t * 4) !== Math.floor((t - dt * speed) * 4)) readings(); }
     if (latT < 1) { latT = Math.min(1, latT + dt / .8); latShown = lerp(latFrom, S.lat, ease(latT)); }
-    if (sT < 1) { sT = Math.min(1, sT + dt / 2.2); s = lerp(sFrom, sTo, ease(sT)); }
+    if (sT < 1) { sT = Math.min(1, sT + dt / 2.2); s = lerp(sFrom, sTo, ease(sT)); if (orbitFrom && sTo === 0) { const k = ease(sT); orbit = { az: lerp(orbitFrom.az, 0, k), el: lerp(orbitFrom.el, 0, k), zoom: lerp(orbitFrom.zoom, 1, k) }; } if (sT >= 1) orbitFrom = null; }
     if (expoAnim < 1) expoAnim = Math.min(1, expoAnim + dt / 2.5);
     draw();
     if ((playing && S.view !== 'prep' && S.view !== 'photo') || latT < 1 || sT < 1 || expoAnim < 1) requestAnimationFrame(tick); else { running = false; last = 0; }
@@ -229,6 +230,7 @@
     $('lat').value = lat; $('lat-out').textContent = K.latName(lat);
     document.querySelectorAll('[data-lat]').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.lat === lat)));
     $('enter-dome').textContent = `▶ 旋轉、放大進入「${K.latName(lat)}」的地平線`;
+    $('exit-dome').textContent = '◀ 縮小、旋轉回到天球';
     readings(); worksheet(); syncURL(); kick();
   }
   const CAPTION = {
@@ -255,6 +257,9 @@
   document.querySelectorAll('[data-lat]').forEach(b => b.onclick = () => setLat(+b.dataset.lat));
   $('lat').addEventListener('input', e => setLat(+e.target.value, false));
   $('enter-dome').onclick = () => { if (S.view !== 'sphere') { setView('sphere', false); } setView('dome'); };
+  // 反向：從局部地平線縮小、轉回最初的天球視角（與進入時對稱的縮放感）
+  function exitDome() { if (S.view !== 'dome') setView('dome', false); orbitFrom = { ...orbit }; setView('sphere'); }
+  $('exit-dome').onclick = exitDome;
   document.querySelectorAll('[data-view]').forEach(b => b.onclick = () => setView(b.dataset.view));
   $('play').onclick = () => setPlaying(!playing); $('reset-time').onclick = () => { t = 0; readings(); kick(); }; $('speed').onchange = e => { speed = +e.target.value; };
   const toggle = (id, key) => { $(id).onclick = () => { S[key] = !S[key]; $(id).setAttribute('aria-pressed', String(S[key])); readings(); kick(); }; };
@@ -316,7 +321,7 @@
   // ---------- 模式與快速鍵 ----------
   function setMode(name) {
     // 進入自修模式：畫面全部回到初始狀態並停止
-    if (name === 'study') { Object.assign(S, DEFAULTS); ['t-color', 't-bound', 't-bg'].forEach((id, i) => $(id).setAttribute('aria-pressed', String([S.color, S.bound, S.bg][i]))); t = 0; orbit = { az: 0, el: 0, zoom: 1 }; look = { az: 0, alt: 35, fov: 90 }; expoAnim = 1; setPlaying(false); setLat(DEFAULTS.lat, false); setView('sphere', false); s = 0; sT = 1; }
+    if (name === 'study') { Object.assign(S, DEFAULTS); ['t-color', 't-bound', 't-bg'].forEach((id, i) => $(id).setAttribute('aria-pressed', String([S.color, S.bound, S.bg][i]))); t = 0; orbit = { az: 0, el: 0, zoom: 1 }; look = { az: 0, alt: 35, fov: 90 }; expoAnim = 1; setPlaying(false); setLat(DEFAULTS.lat, false); setView('sphere', false); s = 0; sT = 1; orbitFrom = null; }
     modeName = name; document.body.dataset.study = String(name === 'study'); document.body.classList.toggle('projection', name === 'projection');
     $('study-panel').hidden = name !== 'study'; $('free-panel').hidden = name !== 'free'; $('worksheet-panel').hidden = name === 'study';
     $('proj-hint').hidden = name !== 'projection'; $('fullscreen').hidden = name !== 'projection';
@@ -335,6 +340,7 @@
     else if (e.key === ' ' && tag !== 'BUTTON') { e.preventDefault(); setPlaying(!playing); }
     else if (e.key === 'Enter' && tag !== 'BUTTON') { e.preventDefault(); revealNext(); }
     else if (e.key.toLowerCase() === 'r') { t = 0; readings(); kick(); }
+    else if (e.key.toLowerCase() === 'b') exitDome();
   });
 
   // 以 ?lat=-60&view=dome&mode=projection 直接開啟
