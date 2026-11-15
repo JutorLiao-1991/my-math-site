@@ -259,8 +259,10 @@
   }
 
   // ---------- 模式、主題、鍵盤 ----------
+  const defaultsFor = name => name === 'linear' ? { x0: 0, v0: 4, a: 2 } : { pv: 20, angle: 45, h0: 0, g: 9.8, compare: false, ghost: false };
   function setMode(name) {
-    if (name === 'study' && modeName !== 'study') { setPlaying(false); }
+    // 進入自修模式：動畫全部回到初始狀態並停止，等學生按「準備」
+    if (name === 'study') { setPlaying(false); Object.assign(S, defaultsFor(topic)); buildControls(); t = 0; changed(); }
     modeName = name; document.body.dataset.study = String(name === 'study'); document.body.classList.toggle('projection', name === 'projection');
     $('study-panel').hidden = name !== 'study'; $('free-panel').hidden = name === 'study' || name === 'projection';
     $('proj-hint').hidden = name !== 'projection'; $('fullscreen').hidden = name !== 'projection';
@@ -276,8 +278,7 @@
     $('scene-title').textContent = name === 'linear' ? '直線運動：位置、速度、加速度的圖形' : '斜拋運動：水平與鉛直各自獨立';
     $('scene-caption').textContent = name === 'linear' ? '調整 x₀、v₀、a，拖動時間，觀察 x–t、v–t 圖與物體位置如何一起變化。' : '拖動時間看軌跡；箭頭分別是水平分速、鉛直分速與合速度。';
     $('tasks').innerHTML = tasks[name].map(s => `<p>• ${s}</p>`).join('');
-    const defaults = name === 'linear' ? { x0: 0, v0: 4, a: 2 } : { pv: 20, angle: 45, h0: 0, g: 9.8, compare: false, ghost: false };
-    Object.assign(S, defaults); buildControls(); startGuide(); changed(); setMode(modeName);
+    Object.assign(S, defaultsFor(name)); buildControls(); startGuide(); changed(); setMode(modeName);
   }
 
   document.querySelectorAll('[data-topic]').forEach(b => b.addEventListener('click', () => setTopic(b.dataset.topic)));

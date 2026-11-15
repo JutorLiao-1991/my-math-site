@@ -1,6 +1,6 @@
 (()=>{
  'use strict';const W=WaveCore,L=ScienceLab,$=id=>document.getElementById(id),canvas=$('wave'),ctx=canvas.getContext('2d'),S3=window.WaveSurface;canvas.width=1440;canvas.height=840;let projection=false,topic='water-int',time=0,paused=matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,last=0,lastText=0,study=false;
- const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false,view3d:false,height:.7,cursor:0};let field=null;const DEFAULT_VIEW={yaw:0,tilt:55,zoom:1};let view={...DEFAULT_VIEW};
+ const state={wavelength:40,separation:120,aperture:70,troughs:true,heatmap:false,px:0,py:180,opticalLambda:.55,slitWidth:40,slitDistance:180,screenDistance:1000,orientation:'vertical',envelope:false,view3d:false,height:.7,cursor:0};const INITIAL={...state};let field=null;const DEFAULT_VIEW={yaw:0,tilt:55,zoom:1};let view={...DEFAULT_VIEW};
  const colors={'.45':'#6c9dff','.55':'#5cdd9c','.65':'#ff777c'};let guide=null;
  // A cached HTML page may still contain the previous meeting shortcut.
  // Normalize that older shell before binding the new shared controls.
@@ -105,6 +105,7 @@
 function mode(value){
    const name=value===true?'study':value===false?'free':value;
    study=name==='study';projection=name==='projection';
+   if(study)resetForStudy();
    document.body.dataset.study=String(study);document.body.classList.toggle('projection',projection);
    $('study-panel').hidden=!study;$('free-panel').hidden=study||projection;
    $('free-mode').setAttribute('aria-pressed',String(name==='free'));$('study-mode').setAttribute('aria-pressed',String(study));
@@ -113,6 +114,15 @@ function mode(value){
    if($('proj-hint'))$('proj-hint').hidden=!projection;
    if(!projection&&document.fullscreenElement)document.exitFullscreen?.();
    syncURL();draw();
+ }
+ // 進入自修模式：動畫全部回到初始狀態並停止，等學生按「準備」
+ function resetForStudy(){
+   Object.assign(state,INITIAL);paused=true;time=0;field=null;view={...DEFAULT_VIEW};
+   for(const [id,key,unit]of [['lambda','wavelength',' cm'],['separation','separation',' cm'],['aperture','aperture',' cm'],['slit-width','slitWidth',' μm'],['slit-distance','slitDistance',' μm'],['screen-distance','screenDistance',' mm']])if($(id)){$(id).value=state[key];$(id+'-out').textContent=state[key]+unit;}
+   if($('light-color'))$('light-color').value=String(state.opticalLambda);if($('orientation'))$('orientation').value=state.orientation;if($('envelope'))$('envelope').checked=state.envelope;
+   if($('height')){$('height').value=state.height;$('height-out').textContent=state.height.toFixed(1)+'×';}
+   if(typeof updateViewControls==='function')updateViewControls();
+   if(topic==='water-diff')buildField();
  }
  function syncURL(){const q=new URLSearchParams({topic});if(study)q.set('mode','study');else if(projection)q.set('mode','projection');if(state.view3d&&topic.startsWith('water'))q.set('view','3d');try{history.replaceState(null,'','?'+q);}catch(_){/* 靜態檢視時不更新網址 */}}
  function selectTopic(value){topic=value;time=0;field=null;document.querySelectorAll('[data-topic]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.topic===topic));const water=topic.startsWith('water'),interference=topic.endsWith('int');$('scene-title').textContent=({'water-int':'水波干涉｜追蹤同一點的振動','water-diff':'水波繞射｜比較開口與波長','light-int':'光波干涉｜雙狹縫與亮暗條紋','light-diff':'光波繞射｜單狹縫的中央亮帶'})[topic];$('scene-caption').textContent=water?interference?'點選水面移動 P 點，或用操作區的按鈕選波腹、波節。':'波從左方通過開口，觀察它往側方擴散的程度。':'左側為狹縫示意，右側為屏幕正視圖；亮度曲線沿垂直條紋的方向取樣。';$('time-controls').hidden=!water;$('observation-controls').hidden=!(water&&interference);$('legend').innerHTML='';delete $('legend').dataset.view;$('probe').hidden=!(water&&interference);
