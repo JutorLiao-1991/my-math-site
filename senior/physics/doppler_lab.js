@@ -6,7 +6,8 @@
   const C = { bg: '#102738', grid: '#1f3a50', road: '#3b5a72', text: '#cfe0ee', muted: '#9fb4c5', front: '108,180,255', src: '#ffb067', obs: '#5cdd9c', ref: '#c3ccd5', purple: '#c9a2ff', yellow: '#ffd866' };
 
   // ---------- 狀態 ----------
-  const S = { vs: 0.5, vo: 0.5, toward: true, f: 1, lambda: true, arrows: false, ratio: false };
+  const DEFAULTS = { vs: 0.5, vo: 0.5, toward: true, f: 1, lambda: true, arrows: false, ratio: false };
+  const S = { ...DEFAULTS };
   let topic = 'source', modeName = 'free', playing = true, speed = 1, last = 0, guide = null;
   const sim = { t: 0, fronts: [], next: 0, loop0: 0, hold: 0, counts: { a: 0, b: 0 }, flash: { a: 0, b: 0 }, elapsed: 0 };
 
@@ -61,10 +62,12 @@
   function bracket(xa, xb, y, color, text) {
     if (!(Number.isFinite(xa) && Number.isFinite(xb)) || Math.abs(xb - xa) < 6) return;
     const l = Math.min(xa, xb), r = Math.max(xa, xb);
+    if (l < 0 || r > W) return; // 有一端在畫面外就不畫，避免看到被截短的波長
     line(l, y, r, y, color, 2); line(l, y - 7, l, y + 7, color, 2); line(r, y - 7, r, y + 7, color, 2);
     label(text, (l + r) / 2, y + 22, color, 12, 'center');
   }
-  function person(x, color, name, flash, moving) {
+  function person(x, color, name, flash, moving, who) {
+    if (sounding(who)) note(x);
     if (flash > 0) { ctx.strokeStyle = `rgba(255,216,102,${flash / 0.22})`; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(x, ROAD, 22 - flash * 30, 0, 7); ctx.stroke(); }
     ctx.fillStyle = flash > 0 ? C.yellow : color;
     ctx.beginPath(); ctx.arc(x, ROAD - 28, 7, 0, 7); ctx.fill();               // 頭
@@ -73,7 +76,9 @@
     label(name, x, ROAD + 44, color, 13, 'center');
     if (moving) label(moving, x, ROAD + 60, C.muted, 11, 'center');
   }
+  function note(x) { ctx.strokeStyle = C.yellow; ctx.lineWidth = 2; ctx.setLineDash([4, 3]); ctx.beginPath(); ctx.arc(x, ROAD - 12, 34, 0, 7); ctx.stroke(); ctx.setLineDash([]); label('♪ 播放中', x, ROAD - 52, C.yellow, 13, 'center'); }
   function speaker(x) {
+    if (sounding('src')) note(x);
     ctx.fillStyle = C.src; ctx.fillRect(x - 14, ROAD - 12, 16, 24);
     ctx.beginPath(); ctx.moveTo(x + 2, ROAD - 12); ctx.lineTo(x + 14, ROAD - 22); ctx.lineTo(x + 14, ROAD + 22); ctx.lineTo(x + 2, ROAD + 12); ctx.closePath(); ctx.fill();
   }
@@ -93,6 +98,7 @@
     const lam0 = V / S.f; // 靜止時的波長（灰色參考尺）
     line(20, 26, 20 + lam0, 26, C.ref, 3); line(20, 20, 20, 32, C.ref, 2); line(20 + lam0, 20, 20 + lam0, 32, C.ref, 2);
     label('靜止時的波長', 28 + lam0, 31, C.ref, 12);
+    label('點聲源或觀察者，聽他聽到的聲音', W / 2, H - 12, C.muted, 12, 'center');
     if (sim.hold > 0) label('聲源到達終點，即將重新開始', W / 2, 60, C.yellow, 14, 'center');
     renderTable();
   }
@@ -112,7 +118,7 @@
       arrow(xs, ROAD - 64, xs + vsPx() * 0.5, C.src, S.vs > 0 ? '聲源速度' : '');
     }
     speaker(xs); label('聲源', xs, ROAD - 30, C.src, 13, 'center');
-    person(OBS_AHEAD, C.obs, '前方觀察者', sim.flash.a); person(OBS_BEHIND, C.obs, '後方觀察者', sim.flash.b);
+    person(OBS_AHEAD, C.obs, '前方觀察者', sim.flash.a, '', 'a'); person(OBS_BEHIND, C.obs, '後方觀察者', sim.flash.b, '', 'b');
     label(S.vs > 0 ? `聲源向右移動，速率 ${S.vs.toFixed(2)} v` : '聲源靜止（對照）', W - 14, 31, C.text, 13, 'right');
   }
 
@@ -130,8 +136,8 @@
       arrow(xo + 14, ROAD + 138, xo + 14 + rel, C.purple, '波相對觀察者', true);
     }
     speaker(SRC_FIXED); label('聲源（靜止）', SRC_FIXED, ROAD - 30, C.src, 13, 'center');
-    person(xo, C.obs, '移動的觀察者', sim.flash.a, S.vo > 0 ? (S.toward ? '← 靠近聲源' : '遠離聲源 →') : '');
-    person(REF_X, C.ref, '靜止觀察者', sim.flash.b, '（對照）');
+    person(xo, C.obs, '移動的觀察者', sim.flash.a, S.vo > 0 ? (S.toward ? '← 靠近聲源' : '遠離聲源 →') : '', 'a');
+    person(REF_X, C.ref, '靜止觀察者', sim.flash.b, '（對照）', 'b');
     label(S.vo > 0 ? `觀察者${S.toward ? '靠近' : '遠離'}聲源，速率 ${S.vo.toFixed(2)} v` : '觀察者靜止（對照）', W - 14, 31, C.text, 13, 'right');
   }
 
@@ -149,27 +155,52 @@
     $('compare-table').innerHTML = `<table><caption class="muted" style="text-align:left">和「聲源、觀察者都靜止」相比（灰線＝靜止時）</caption><thead><tr><th></th><th scope="col">${cols[0]}</th><th scope="col">${cols[1]}</th></tr></thead><tbody>${row('視波長', 'lambda')}${row('視波速', 'speed')}${row('視頻率', 'freq')}</tbody></table>`;
   }
 
-  // ---------- 聲音 ----------
-  let audio = null;
+  // ---------- 聲音：點動畫裡的圖案播放；新的聲音覆蓋正在播的 ----------
+  let audio = null, voices = [], playing_ = null, playTimer = 0;
   const ac = () => { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); return audio; };
-  function tone(freq, start, dur, gain = 0.18) {
+  function tone(freq, start, dur, gain = 0.18, keep = true) {
     const a = ac(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + start;
     o.type = 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.03); g.gain.setValueAtTime(gain, t + dur - 0.06); g.gain.linearRampToValueAtTime(0, t + dur);
     o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+    if (keep) { const v = { o, g }; voices.push(v); o.onended = () => { voices = voices.filter(x => x !== v); }; }
   }
-  function heardRatios() {
-    if (topic === 'source') { const r = D.sourceMoving({ f: S.f, v: V, vs: vsPx() }); return [['原本的音高', 1], ['前方聽到', r.ahead.freq / S.f], ['後方聽到', r.behind.freq / S.f]]; }
-    const r = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: S.toward }); return [['原本的音高', 1], [`移動觀察者聽到（${S.toward ? '靠近' : '遠離'}）`, r.moving.freq / S.f]];
+  function stopSound() {
+    if (audio) { const now = audio.currentTime; voices.forEach(({ o, g }) => { try { g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(g.gain.value, now); g.gain.linearRampToValueAtTime(0, now + 0.03); o.stop(now + 0.04); } catch (_) { /* 已停止 */ } }); }
+    voices = []; clearTimeout(playTimer); playing_ = null;
   }
+  const sounding = who => playing_ !== null && playing_ === who;
+  function setSounding(who, ms) { playing_ = who; clearTimeout(playTimer); playTimer = setTimeout(() => { playing_ = null; draw(); }, ms); draw(); }
+  // 各圖案「聽到」的頻率倍率（相對發聲頻率）
+  function ratioFor(who) {
+    if (who === 'src') return 1;
+    if (topic === 'source') { const r = D.sourceMoving({ f: S.f, v: V, vs: vsPx() }); return (who === 'a' ? r.ahead.freq : r.behind.freq) / S.f; }
+    const r = D.observerMoving({ f: S.f, v: V, vo: voPx(), toward: S.toward }); return who === 'a' ? r.moving.freq / S.f : 1;
+  }
+  function listen(who) { seqTimers.forEach(clearTimeout); seqTimers = []; stopSound(); try { tone(440 * ratioFor(who), 0, 1.2); } catch (_) { return; } setSounding(who, 1200); }
+  let seqTimers = [];
+  function stopAll() { seqTimers.forEach(clearTimeout); seqTimers = []; stopSound(); draw(); }
+  function playSequence() {
+    stopAll(); const order = topic === 'source' ? ['src', 'a', 'b'] : ['b', 'a'];
+    try { order.forEach((w, i) => tone(440 * ratioFor(w), i * 1.3, 1.2)); } catch (_) { return; }
+    seqTimers = order.map((w, i) => setTimeout(() => setSounding(w, 1200), i * 1300));
+  }
+  function hitTest(e) {
+    const b = canvas.getBoundingClientRect(), x = (e.clientX - b.left) * W / b.width, y = (e.clientY - b.top) * H / b.height;
+    const spots = [['src', sourceX(sim.t)], ['a', obsA(sim.t)], ['b', obsB()]];
+    let best = null, dist = 46;
+    for (const [who, sx] of spots) { const d = Math.hypot(x - sx, y - (ROAD - 12)); if (d < dist) { dist = d; best = who; } }
+    return best;
+  }
+  canvas.addEventListener('click', e => { const who = hitTest(e); if (who) { seqTimers.forEach(clearTimeout); seqTimers = []; listen(who); } });
+  canvas.addEventListener('pointermove', e => { canvas.style.cursor = hitTest(e) ? 'pointer' : ''; });
   function buildSound() {
-    const list = heardRatios();
-    $('tone-buttons').innerHTML = list.map(([n], i) => `<button type="button" data-tone="${i}">▶ ${n}</button>`).join('') + '<button type="button" id="tone-all">▶ 依序比較</button>';
-    $('tone-buttons').querySelectorAll('[data-tone]').forEach(b => b.onclick = () => { const r = heardRatios()[+b.dataset.tone][1]; tone(440 * r, 0, 1); });
-    $('tone-all').onclick = () => heardRatios().forEach(([, r], i) => tone(440 * r, i * 1.2, 1));
+    $('tone-buttons').innerHTML = '<button type="button" id="tone-all">▶ 依序比較</button><button type="button" id="tone-stop">■ 停止聲音</button>';
+    $('tone-all').onclick = playSequence;
+    $('tone-stop').onclick = stopAll;
     const opts = topic === 'source' ? [['off', '關閉'], ['a', '前方觀察者'], ['b', '後方觀察者']] : [['off', '關閉'], ['a', '移動的觀察者'], ['b', '靜止觀察者']];
     $('beep').innerHTML = opts.map(([v, n]) => `<option value="${v}">${n}</option>`).join('');
   }
-  function beep(who) { if ($('beep').value === who && playing) { try { tone(880, 0, 0.07, 0.15); } catch (_) { /* 瀏覽器不支援音訊 */ } } }
+  function beep(who) { if ($('beep').value === who && playing) { try { tone(880, 0, 0.07, 0.15, false); } catch (_) { /* 瀏覽器不支援音訊 */ } } }
 
   // ---------- 控制項 ----------
   const defs = {
@@ -279,6 +310,8 @@
 
   // ---------- 模式、主題、鍵盤 ----------
   function setMode(name) {
+    // 進入自修模式：動畫全部回到初始狀態並停止，等學生按「準備」
+    if (name === 'study') { stopAll(); Object.assign(S, DEFAULTS); syncControls(); restart(); setPlaying(false); }
     modeName = name; document.body.dataset.study = String(name === 'study'); document.body.classList.toggle('projection', name === 'projection');
     $('study-panel').hidden = name !== 'study'; $('free-panel').hidden = name !== 'free';
     $('proj-hint').hidden = name !== 'projection'; $('fullscreen').hidden = name !== 'projection';
@@ -294,7 +327,7 @@
     $('scene-title').textContent = name === 'source' ? '聲源移動：波長被擠短或拉長' : '觀察者移動：波長不變，迎面的波變快或變慢';
     $('scene-caption').textContent = name === 'source' ? '每個圓是一個波前，圓心是它被發出時聲源的位置。觀察者收到波前時會閃一下：閃得越快，聽到的頻率越高。' : '聲源靜止，波前是同心圓。移動的觀察者收到波前時會閃一下，和左邊靜止的觀察者比一比誰閃得快。';
     $('tasks').innerHTML = tasks[name].map(s => `<p>• ${s}</p>`).join('');
-    buildControls(); startGuide(); restart(); setMode(modeName);
+    stopAll(); buildControls(); startGuide(); restart(); setMode(modeName);
   }
   document.querySelectorAll('[data-topic]').forEach(b => b.addEventListener('click', () => setTopic(b.dataset.topic)));
   $('free-mode').onclick = () => setMode('free'); $('study-mode').onclick = () => setMode('study'); $('proj-mode').onclick = () => setMode('projection');
