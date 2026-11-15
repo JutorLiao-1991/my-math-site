@@ -73,3 +73,58 @@ test('snapping is restricted to focal landmarks and can be disabled', () => {
   near(G.snap(0), .25); near(G.snap(9), 4);
   for (const d of [-1, 0, NaN, Infinity]) assert.throws(() => G.image('convex-lens', d));
 });
+test('plane mirror forms an upright, same-size virtual image as far behind the mirror as the object is in front', () => {
+  for (const d of [.25, 1, 2, 3.7]) {
+    const im = G.image('plane-mirror', d);
+    assert.ok(im.finite); near(im.q, -d); near(im.x, d); near(im.magnification, 1); near(im.y, G.HEIGHT);
+    assert.equal(im.real, false); assert.equal(im.upright, true); assert.equal(im.size, '等大');
+    assert.deepEqual(G.rays('plane-mirror', d).map(r => r.id), ['parallel', 'central']);
+  }
+});
+test('every ray of the fan passes (or back-traces) through the same image point', () => {
+  for (const type of Object.keys(G.TYPES)) for (const d of [.3, .5, 1.5, 2, 3, 4]) {
+    const im = G.image(type, d);
+    if (!im.finite) continue;
+    for (const ray of G.fan(type, d, 11)) near(ray.hit.y + im.x / ray.vector.x * ray.vector.y, im.y, `${type} ${d}`);
+  }
+});
+test('law of reflection: reflected angle equals incident angle, also for every point of a rough surface', () => {
+  const r = G.reflect({ x: Math.sin(Math.PI / 6), y: -Math.cos(Math.PI / 6) }, { x: 0, y: 1 });
+  near(r.x, Math.sin(Math.PI / 6)); near(r.y, Math.cos(Math.PI / 6));
+  for (const theta of [-70, -30, 0, 15, 45, 80]) for (const p of G.diffuse(theta, [-2, -1, 0, 1, 2])) {
+    const out = Math.acos(p.reflected.x * p.normal.x + p.reflected.y * p.normal.y) * 180 / Math.PI;
+    near(out, p.angle, `theta ${theta} tilt ${p.tilt}`);
+    near(Math.hypot(p.reflected.x, p.reflected.y), 1);
+  }
+});
+test("Snell's law, energy conservation, critical angle and total internal reflection", () => {
+  const M = G.MEDIA;
+  for (const a of Object.values(M)) for (const b of Object.values(M)) for (const theta of [-80, -45, -10, 0, 10, 30, 41, 42, 60, 89]) {
+    const r = G.refract(a.n, b.n, theta);
+    near(r.reflection, theta);
+    if (r.total) { assert.ok(a.n > b.n); assert.ok(Math.abs(theta) >= r.critical - 1e-9); near(r.R, 1); near(r.T, 0); continue; }
+    near(a.n * Math.sin(theta * Math.PI / 180), b.n * Math.sin(r.refraction * Math.PI / 180), 'snell');
+    assert.ok(Math.sign(r.refraction) === Math.sign(theta) || theta === 0);
+    near(r.R + r.T, 1, `R+T ${a.name}->${b.name} ${theta}`);
+    if (a.n < b.n && theta !== 0) assert.ok(Math.abs(r.refraction) < Math.abs(theta));
+    if (a.n > b.n && theta !== 0) assert.ok(Math.abs(r.refraction) > Math.abs(theta));
+  }
+  near(G.critical(1.5, 1), Math.asin(1 / 1.5) * 180 / Math.PI);
+  assert.ok(Math.abs(G.critical(1.5, 1) - 41.81) < .01); assert.ok(Math.abs(G.critical(1.33, 1) - 48.75) < .01);
+  assert.equal(G.critical(1, 1.33), null);
+  assert.ok(Math.abs(G.refract(1, 1.5, 0).R - .04) < 1e-9);
+  near(G.refract(1, 1.5, 40).v2, 2e8);
+  assert.equal(G.refract(1.5, 1, 42).total, true); assert.equal(G.refract(1.5, 1, 41).total, false);
+  assert.throws(() => G.refract(1, 1.5, 90));
+});
+test('an object under water looks shallower; looking straight down the depth shrinks by n_air/n_water', () => {
+  const look = G.apparent(1, 1.33, { x: 0, y: -2 }, { x: 0, y: 3 });
+  assert.ok(Math.abs(look.image.y - (-2 / 1.33)) < 1e-3); assert.ok(Math.abs(look.image.x) < 1e-6);
+  for (const ex of [-3, -1, 1, 2.5]) {
+    const o = { x: 0, y: -2 }, e = { x: ex, y: 2.5 }, view = G.apparent(1, 1.33, o, e);
+    assert.ok(view.image.y > o.y && view.image.y < 0, `ex ${ex}`);
+    const x0 = view.surface.x, s2 = (x0 - o.x) / Math.hypot(x0 - o.x, o.y), s1 = (e.x - x0) / Math.hypot(e.x - x0, e.y);
+    near(1.33 * s2, 1 * s1, 'refraction at the surface point');
+  }
+  assert.ok(G.apparent(1.33, 1, { x: 0, y: -2 }, { x: 0, y: 3 }).image.y < -2);
+});
