@@ -6820,6 +6820,163 @@ var jutorDB = {
           "ch": "國王；王者",
           "sentence": "The king ruled the country for many years."
         }
+      ],
+      "國三上 Unit 3": [
+        {
+          "en": "form",
+          "ch": "形成",
+          "sentence": "The students formed a line behind their teacher."
+        },
+        {
+          "en": "childhood",
+          "ch": "童年",
+          "sentence": "I had a happy childhood."
+        },
+        {
+          "en": "relative",
+          "ch": "親戚",
+          "sentence": "People in Taiwan usually visit their relatives during Chinese New Year."
+        },
+        {
+          "en": "expect",
+          "ch": "期待；預計",
+          "sentence": "I didn't expect to see Mr. Simpson at the meeting."
+        },
+        {
+          "en": "public",
+          "ch": "公共的；大眾",
+          "sentence": "The public library isn't open on Mondays."
+        },
+        {
+          "en": "such as",
+          "ch": "例如；像",
+          "sentence": "I like outdoor sports, such as soccer and baseball."
+        },
+        {
+          "en": "everywhere",
+          "ch": "到處",
+          "sentence": "I looked everywhere for my cellphone."
+        },
+        {
+          "en": "company",
+          "ch": "公司",
+          "sentence": "Mr. Jones joined our company last month."
+        },
+        {
+          "en": "equal",
+          "ch": "平等的",
+          "sentence": "All people are equal."
+        },
+        {
+          "en": "hard-working",
+          "ch": "勤勉的",
+          "sentence": "Kathy studies a lot. She is a hard-working student."
+        },
+        {
+          "en": "lawyer",
+          "ch": "律師",
+          "sentence": "He didn't answer any questions until his lawyer came."
+        },
+        {
+          "en": "engineer",
+          "ch": "工程師",
+          "sentence": "My aunt is an engineer. She can fix computers."
+        },
+        {
+          "en": "president",
+          "ch": "總統",
+          "sentence": "Who is the president of the USA?"
+        },
+        {
+          "en": "model",
+          "ch": "榜樣；模範",
+          "sentence": "Lady Gaga is a role model for many teenagers."
+        },
+        {
+          "en": "picture",
+          "ch": "想像",
+          "sentence": "I can't picture David as a police officer."
+        },
+        {
+          "en": "lovely",
+          "ch": "討人喜歡的；漂亮的",
+          "sentence": "Jennifer looks lovely in that dress."
+        },
+        {
+          "en": "born",
+          "ch": "出生的；誕生的",
+          "sentence": "Peter was born on June 12, 2005."
+        },
+        {
+          "en": "present",
+          "ch": "禮物；展現",
+          "sentence": "Julia got a lot of presents on her birthday."
+        },
+        {
+          "en": "pretty",
+          "ch": "漂亮的",
+          "sentence": "Zoe looks much prettier when she smiles."
+        },
+        {
+          "en": "brave",
+          "ch": "勇敢的",
+          "sentence": "It was brave of you to save the boy."
+        },
+        {
+          "en": "be filled with",
+          "ch": "充滿",
+          "sentence": "The streets are filled with cars and people."
+        },
+        {
+          "en": "stupid",
+          "ch": "愚蠢的；笨的",
+          "sentence": "It is stupid and dangerous to run a red light."
+        },
+        {
+          "en": "honest",
+          "ch": "誠實的",
+          "sentence": "Larry is an honest and hard-working student."
+        },
+        {
+          "en": "spider",
+          "ch": "蜘蛛",
+          "sentence": "Allan is afraid of spiders. He thinks they are scary."
+        },
+        {
+          "en": "comic",
+          "ch": "漫畫",
+          "sentence": "Kelly has collected over five hundred comic books since she was ten."
+        },
+        {
+          "en": "mad",
+          "ch": "惱火的",
+          "sentence": "Mr. Jones was mad at me because I didn't do my homework."
+        },
+        {
+          "en": "totally",
+          "ch": "完全",
+          "sentence": "I totally agree with you."
+        },
+        {
+          "en": "understand",
+          "ch": "了解",
+          "sentence": "Sandra explained her idea again, but I still didn't understand."
+        },
+        {
+          "en": "hope",
+          "ch": "希望",
+          "sentence": "I hope our team will win the basketball game."
+        },
+        {
+          "en": "allow",
+          "ch": "允許",
+          "sentence": "Kids under 6 are not allowed in this restaurant."
+        },
+        {
+          "en": "laugh at",
+          "ch": "嘲笑",
+          "sentence": "Stop laughing at your brother, Lily."
+        }
       ]
     }
   },
