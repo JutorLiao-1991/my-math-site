@@ -1,0 +1,62 @@
+/* 基準量與比較量：作答區與輸入區分開。
+   寬螢幕（iPad 橫放、電腦）：題目在左、輸入區在右。
+   窄螢幕（手機、iPad 直放）：題目在上方捲動，輸入區固定在下方，兩者不重疊。 */
+html { height: 100%; }
+body.split {
+  height: 100vh; height: 100dvh; min-height: 0; padding-bottom: 0; overflow: hidden;
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "nav" "main" "dock";
+}
+.split .nav-bar { grid-area: nav; position: static; }
+.split .main-wrapper { grid-area: main; width: 100%; max-width: none; margin: 0; padding: 12px; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; min-height: 0; }
+.split .panel { max-width: 1000px; margin: 0 auto; min-height: 100%; }
+.split .answer-input { scroll-margin: 90px 0 24px; }
+
+.split .keyboard-dock {
+  grid-area: dock; position: static; z-index: 1; overflow-y: auto; min-height: 0; max-height: 52vh;
+  padding: 10px 14px max(10px, env(safe-area-inset-bottom));
+  border-top: 1px solid #b9d5ed; box-shadow: 0 -4px 16px rgba(30,41,59,.1);
+}
+.split .dock-inner { max-width: 780px; }
+.split .num-btn { min-height: 46px; }
+
+/* 沒有輸入區時（歡迎頁、成績頁），題目區占滿 */
+body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+
+/* 手機：維持單欄鍵盤，壓縮高度 */
+@media (max-width: 650px) {
+  .split .main-wrapper { padding: 8px; }
+  .split .keyboard-dock { padding: 8px 10px max(8px, env(safe-area-inset-bottom)); max-height: 56vh; }
+  .split .num-btn { min-height: 40px; }
+}
+
+/* iPad 橫放、電腦：輸入區獨立在右側 */
+@media (min-width: 900px) and (min-height: 500px) {
+  body.split { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: "nav nav" "main dock"; }
+  body.split:has(#keyboard-dock[hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+  .split .main-wrapper { padding: 14px 8px 14px 14px; }
+  .split .keyboard-dock {
+    max-height: none; margin: 14px 14px 14px 6px; padding: 14px; border: 1px solid #b9d5ed; border-radius: 14px;
+    box-shadow: 0 5px 20px rgba(30,41,59,.1);
+  }
+  .split .dock-inner { max-width: none; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .split .dock-heading { grid-column: 1; }
+  .split .num-btn { min-height: 56px; font-size: 1.4rem; }
+  .split .num-btn[data-key="space"], .split .num-btn[data-key="next"] { font-size: 1rem; }
+  .split .key-hint { display: block; }
+  .split .primary-action { min-height: 52px; font-size: 1.05rem; }
+  .split .minor-actions .secondary-btn { min-height: 44px; }
+}
+
+/* 手機或小平板橫放（高度很矮）：也把輸入區放右側 */
+@media (max-height: 520px) and (min-width: 560px) {
+  body.split { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 330px; grid-template-areas: "nav nav" "main dock"; }
+  body.split:has(#keyboard-dock[hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+  .split .keyboard-dock { max-height: none; border-top: 0; border-left: 1px solid #b9d5ed; box-shadow: none; padding: 8px 10px; }
+  .split .dock-inner { grid-template-columns: minmax(0, 1fr); max-width: none; gap: 6px; }
+  .split .dock-heading { grid-column: 1; }
+  .split .numpad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .split .num-btn { min-height: 34px; font-size: 1.05rem; }
+  .split .key-hint { display: none; }
+  .split .nav-bar { padding: 6px 12px; }
+}
