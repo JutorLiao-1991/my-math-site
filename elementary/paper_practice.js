@@ -147,6 +147,7 @@
   function ensureVisible() {
     if ($('mode-dialog').open) return;
     const el = activeElement(); if (!el) return;
+    if (document.body.classList.contains('split')) { (el.closest('.field-box') || el).scrollIntoView({ block: 'nearest', inline: 'nearest' }); return; }
     const rect = el.getBoundingClientRect(), dockTop = $('keyboard-dock').getBoundingClientRect().top;
     const headerBottom = document.querySelector('.nav-bar').getBoundingClientRect().bottom;
     if (rect.bottom > dockTop - 10) window.scrollBy(0, rect.bottom - dockTop + 20);
