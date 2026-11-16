@@ -147,6 +147,15 @@ const lessonData = [
         desc: "按順序寫出比、求比值、化成最簡整數比，再練習按比分配與十題綜合測驗。"
     },
     {
+        title: "基準量與比較量（六年級）",
+        category: "elementary",
+        grades: [6],
+        url: "elementary/base_compare_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "先判斷基準量，再選算式求兩量之和、兩量之差或反推基準量；含是非、選擇與十題綜合測驗。"
+    },
+    {
         title: "整數加減闖關（國一）",
         category: "junior",
         grades: [7],
