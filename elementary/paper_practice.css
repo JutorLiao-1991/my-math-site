@@ -51,7 +51,7 @@
     .feedback[data-status="error"] { color: #b42318; }
     .feedback[data-status="success"] { color: #236b3c; }
     .secondary-btn { min-height: 42px; padding: 8px 12px; color: #2563a8; background: #fff; border: 1px solid #a7c8e5; border-radius: 9px; }
-    .decision { display: inline-flex; gap: 8px; }
+    .decision { display: inline-flex; flex-wrap: wrap; gap: 8px; }
     .decision button[aria-pressed="true"] { color: #fff; background: #4a90e2; }
     .session-bar { border-radius: 9px; padding: 12px 14px; background: #eef6fc; margin-bottom: 16px; }
     .exam-jump { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }

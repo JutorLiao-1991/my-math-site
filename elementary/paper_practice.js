@@ -82,7 +82,7 @@
   function fieldHtml(f, locked, showNote = true) {
     const note = f.requirement && showNote ? `<span class="requirement">（${f.requirement}）</span>` : '';
     const label = `<span class="field-label">${f.label}${note}</span>`;
-    if (f.type === 'decision') return `<span class="field-box">${label}<span class="decision" role="group" aria-label="${f.label}">${(f.options || ['yes', 'no']).map(v => `<button type="button" class="secondary-btn" data-field="${f.key}" data-decision="${v}" aria-pressed="false" ${locked ? 'disabled' : ''}>${f.optionLabels ? f.optionLabels[v] : v === 'yes' ? '是' : '不是'}</button>`).join('')}</span></span>`;
+    if (f.type === 'decision') return `<span class="field-box">${label}<span class="decision" role="group" aria-label="${f.label}">${(f.options || ['yes', 'no']).map(v => `<button type="button" class="secondary-btn" data-field="${f.key}" data-decision="${v}" aria-pressed="false" ${locked ? 'disabled' : ''}>${Q.displayText(f.optionLabels ? f.optionLabels[v] : v === 'yes' ? '是' : '不是')}</button>`).join('')}</span></span>`;
     return `<span class="field-box">${label}${f.type === 'rational' ? `<span id="entry-${f.key}" class="rational-entry">${entryMarkup(f, locked)}</span>` : `<span class="number-entry">${inputHtml(f, 'number', locked)}${f.unit ? `<span>${Q.displayText(f.unit)}</span>` : ''}</span>`}</span>`;
   }
   function bindField(f) {
