@@ -47,7 +47,48 @@
     while (f(upper) > 0 && upper < Number.MAX_VALUE / 4) upper *= 2;
     return [bisect(1, Math.E), bisect(Math.E, upper)];
   }
-  const api = { CRITICAL, validBase, value, transform, point, properties, chord, mirror, positiveBaseIntersections };
+  function decreasingRoot(fn) {
+    let lo = 0, hi = 1;
+    for (let i = 0; i < 80; i++) {
+      const mid = (lo + hi) / 2;
+      if (fn(mid) > 0) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+  function dualBaseIntersections(a, b, visible = {}) {
+    if (!validBase(a) || a < 1 || !Number.isFinite(b) || b < .1 || b >= 1) throw new RangeError('Require a > 1 and 0.10 <= b < 1');
+    const shown = id => visible[id] !== false;
+    const result = [];
+    function add(id, x, y, pair, exact = false) {
+      const old = result.find(p => Math.hypot(p.x - x, p.y - y) < 1e-9);
+      if (old) old.pairs.push(pair); else result.push({ id, x, y, pairs: [pair], exact });
+    }
+    if (shown('normal-exp') && shown('normal-log')) positiveBaseIntersections(a).forEach((x, i) => add('normal-pair-' + i, x, x, ['normal-exp', 'normal-log'], a === CRITICAL));
+    if (shown('fractional-exp') && shown('fractional-log')) {
+      // b >= 0.10 > exp(-e): the decreasing inverse pair has exactly one
+      // intersection on y=x. The three-intersection regime is outside the UI.
+      const x = decreasingRoot(x => Math.pow(b, x) - x);
+      add('fractional-pair', x, x, ['fractional-exp', 'fractional-log']);
+    }
+    if (shown('normal-exp') && shown('fractional-exp')) add('exponentials', 0, 1, ['normal-exp', 'fractional-exp']);
+    if (shown('normal-log') && shown('fractional-log')) add('logarithms', 1, 0, ['normal-log', 'fractional-log']);
+    const first = shown('normal-exp') && shown('fractional-log');
+    const second = shown('normal-log') && shown('fractional-exp');
+    if (first || second) {
+      const x = decreasingRoot(x => Math.log(x) / Math.log(b) - Math.pow(a, x));
+      const y = Math.pow(a, x);
+      if (first) add('mixed-upper', x, y, ['normal-exp', 'fractional-log']);
+      if (second) add('mixed-lower', y, x, ['normal-log', 'fractional-exp']);
+    }
+    return result.sort((p, q) => p.x - q.x || p.y - q.y);
+  }
+  function fitIntersections(points) {
+    if (!points.length) return { cx: 2.5, cy: 2.5, span: 9 };
+    const low = Math.min(0, ...points.flatMap(p => [p.x, p.y]));
+    const high = Math.max(1, ...points.flatMap(p => [p.x, p.y]));
+    return { cx: (low + high) / 2, cy: (low + high) / 2, span: Math.max(6, (high - low) * 1.5) };
+  }
+  const api = { CRITICAL, validBase, value, transform, point, properties, chord, mirror, positiveBaseIntersections, dualBaseIntersections, fitIntersections };
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.ExpLog = api;
 })(typeof globalThis === 'object' ? globalThis : this);

@@ -1,44 +1,66 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="高二指數與對數互動教具：調整底數、比較大小與凹口、探索平移及反函數對稱。">
-  <title>指數與對數圖形探索（高二）｜鳩特老師</title>
-  <link rel="stylesheet" href="../science_lab.css">
-  <link rel="stylesheet" href="exp_log_explorer.css?v=tablet-landscape-2">
-  <script defer src="exp_log_core.js?v=1"></script><script defer src="exp_log_explorer.js?v=1"></script>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="高二指對數互動教具：分別調整正常與反常底數，同時比較四條曲線，探索交點與反函數對稱。">
+<title>指對數交點實驗室（高二）｜鳩特老師</title>
+<link rel="stylesheet" href="../science_lab.css">
+<link rel="stylesheet" href="exp_log_explorer.css?v=dual-base-4">
+<script defer src="exp_log_core.js?v=dual-base-4"></script>
+<script defer src="exp_log_explorer.js?v=dual-base-4"></script>
 </head>
-<body>
-<header><a href="../../index.html">← 教材首頁</a><h1>指數與對數圖形探索</h1><span class="badge">高二數學</span></header>
+<body class="exp-log-lab">
+<header><a href="../../index.html?category=senior">← 教材首頁</a><h1>指對數交點實驗室</h1><span class="badge">高二數學</span></header>
 <main class="shell">
-  <div class="toolbar"><div><div class="eyebrow">鳩特老師 · 互動數學教室</div><p class="muted">拖一拖、比一比，讓公式和圖形一起說明。</p></div><button id="reset">重設本頁</button></div>
-  <nav class="tabs" aria-label="探索主題">
-    <button data-topic="base" aria-pressed="true">① 底數與圖形</button><button data-topic="compare" aria-pressed="false">② 比大小</button><button data-topic="chord" aria-pressed="false">③ 凹口與弦線</button><button data-topic="shift" aria-pressed="false">④ 平移與對稱</button><button data-topic="inverse" aria-pressed="false">⑤ 指對數與反函數</button>
-  </nav>
-  <div class="explorer-grid">
-    <section class="panel graph-panel" aria-labelledby="scene-title">
-      <div class="graph-heading"><div><h2 id="scene-title">底數如何改變圖形？</h2><p id="scene-caption" class="muted"></p></div><span class="badge">橫縱軸等比例</span></div>
-      <div id="formula" class="formula" aria-live="polite"></div>
-      <div class="plot-wrap"><svg id="plot" role="img" aria-labelledby="plot-title plot-description"><title id="plot-title">指數與對數函數圖形</title><desc id="plot-description">調整下方滑桿，也可拖曳圖中的觀察點。</desc></svg></div>
-      <div id="legend" class="legend"></div>
-      <div class="view-controls"><span class="muted">視野</span><button id="zoom-in" aria-label="放大圖形">＋</button><button id="zoom-out" aria-label="縮小圖形">−</button><button id="home-view">回到預設視野</button><button id="fit-points" hidden>看全部交點</button></div>
-      <p class="note" id="graph-note"></p>
-      <div id="live-reading" class="live-reading" aria-live="polite" aria-atomic="true"></div>
-    </section>
-    <aside>
-      <section class="panel controls-panel">
-        <div id="kind-controls" class="row" role="group" aria-label="函數種類"><button data-kind="exp" aria-pressed="true">指數函數</button><button data-kind="log" aria-pressed="false">對數函數</button></div>
-        <div class="base-controls">
-          <div class="control"><label for="base-slider">底數 a</label><input id="base-slider" type="range" min="-4.32" max="3.32" step="0.01" value="1"><output id="base-output" for="base-slider">2</output></div>
-          <p class="muted small">滑桿分成 0 &lt; a &lt; 1 與 a &gt; 1，跳過 a = 1。</p>
-          <div class="presets" aria-label="常用底數"><button data-base="0.25">¼</button><button data-base="0.5">½</button><button data-base="2">2</button><button data-base="3">3</button><button data-base="5">5</button></div>
-          <form id="base-form" class="row"><label for="base-input">指定底數</label><input id="base-input" type="text" inputmode="decimal" value="2" autocomplete="off" aria-describedby="base-error"><button type="submit">套用</button></form><p id="base-error" class="feedback bad" role="status"></p>
-        </div>
-        <div id="topic-controls"></div>
-      </section>
-      <section class="panel observe-panel"><div class="observe-heading"><h2>觀察與發現</h2><button id="reveal" aria-expanded="false" aria-controls="findings">揭示性質</button></div><p id="prompt"></p><div id="findings" hidden></div></section>
-    </aside>
-  </div>
-  <p class="footer-note">搭配講義：指數與對數的圖形 → 平移與對稱 → 反函數。圖形超出畫面時可縮小視野；沒有碰到漸近線不代表沒有繼續延伸。</p>
+<div class="toolbar"><div><div class="eyebrow">鳩特老師 · 互動數學教室</div><p class="muted">拖動底數，看看曲線如何相遇。</p></div><button id="reset" type="button">重設</button></div>
+<div class="explorer-grid">
+<section class="panel graph-panel" aria-label="函數圖形與交點">
+<div class="plot-wrap">
+<svg id="plot" role="group" aria-labelledby="plot-title plot-description">
+<title id="plot-title">指數與對數函數圖形</title>
+<desc id="plot-description">橫縱軸等比例。粗點表示已顯示曲線彼此的交點，點選或用 Tab 鍵選取後按 Enter 可讀取座標。</desc>
+<defs><clipPath id="plot-clip"><rect id="clip-rect"></rect></clipPath></defs>
+<g id="grid-layer" aria-hidden="true"></g><g id="axis-layer" aria-hidden="true"></g>
+<g id="symmetry-layer" aria-hidden="true"></g><g id="curve-layer" clip-path="url(#plot-clip)" aria-hidden="true"></g>
+<g id="point-layer"></g><g id="label-layer" aria-hidden="true"></g>
+</svg>
+<button id="symmetry-toggle" type="button" aria-pressed="false">顯示對稱軸</button>
+</div>
+<div class="view-controls" role="group" aria-label="圖形視野">
+<button id="zoom-in" type="button" aria-label="放大圖形">＋</button><button id="zoom-out" type="button" aria-label="縮小圖形">−</button>
+<button id="pan-toggle" type="button" aria-pressed="false">拖曳平移</button><button id="home-view" type="button">預設視野</button><button id="fit-points" type="button">看全部交點</button>
+</div>
+<div class="graph-reading" aria-live="polite" aria-atomic="true"><span id="point-reading">點選粗點，讀取交點座標。</span><span id="offscreen-note" hidden>有交點在畫面外</span></div>
+</section>
+<aside class="panel controls-panel" aria-label="底數與曲線顯示設定">
+<div class="controls-heading"><h2>調整底數</h2><span class="muted small">兩組可以同時開啟</span></div>
+<div class="base-columns">
+<fieldset class="base-column normal-column">
+<legend><span>正常底數</span><small>底 &gt; 1</small></legend>
+<div class="base-value"><label for="normal-base">底數 a</label><output id="normal-output" for="normal-base">2.0</output></div>
+<input id="normal-base" type="range" min="1.1" max="5" step="0.1" value="2" aria-describedby="normal-range">
+<div class="range-label" id="normal-range"><span>1.1</span><span>5.0</span></div>
+<div class="curve-options">
+<label class="check-row"><input id="normal-exp" type="checkbox" checked><span><i class="curve-key normal-exp-key" aria-hidden="true"></i>顯示指數函數</span></label>
+<label class="check-row"><input id="normal-log" type="checkbox" checked><span><i class="curve-key normal-log-key" aria-hidden="true"></i>顯示對數函數</span></label>
+</div>
+<label class="check-row critical-choice"><input id="critical-mode" type="checkbox"><span>顯示恰交一點 <span class="math-nowrap">(e, e)</span></span></label>
+<p id="critical-note" class="critical-note" hidden>精確底數 <span class="math-nowrap">a = e<sup>1/e</sup></span><br>取消勾選可恢復原底數。</p>
+</fieldset>
+<fieldset class="base-column fractional-column">
+<legend><span>反常底數</span><small>0 &lt; 底 &lt; 1</small></legend>
+<div class="base-value"><label for="fractional-base">底數 b</label><output id="fractional-output" for="fractional-base">0.50</output></div>
+<input id="fractional-base" type="range" min="0.10" max="0.95" step="0.05" value="0.50" aria-describedby="fractional-range">
+<div class="range-label" id="fractional-range"><span>0.10</span><span>0.95</span></div>
+<div class="curve-options">
+<label class="check-row"><input id="fractional-exp" type="checkbox"><span><i class="curve-key fractional-exp-key" aria-hidden="true"></i>顯示指數函數</span></label>
+<label class="check-row"><input id="fractional-log" type="checkbox"><span><i class="curve-key fractional-log-key" aria-hidden="true"></i>顯示對數函數</span></label>
+</div>
+</fieldset>
+</div>
+<div class="operation-hint"><p>粗點是曲線的交點。試著一次只開兩條，再加入另外兩條。</p><p class="muted small">開啟「拖曳平移」後可移動畫面；用 ＋／− 或「看全部交點」調整視野。</p></div>
+</aside>
+</div>
 </main>
-</body></html>
+</body>
+</html>

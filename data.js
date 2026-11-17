@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年11月15日"
+    lastUpdated: "2026年11月17日"
 };
 
 // --- 課程資料區 ---
@@ -408,13 +408,13 @@ const lessonData = [
         desc: "緯度會變但天球不變：選緯度後旋轉放大進入當地地平線，從外面與第一人稱看星軌、拍星軌照片，對照講義填空；含投影模式。"
     },
     {
-        title: "指數與對數圖形探索（高二）",
+        title: "指對數交點實驗室（高二）",
         category: "senior",
         grades: [11],
         url: "senior/math/exp_log_explorer.html",
         tagClass: "math",
         tagName: "高中數學",
-        desc: "調整底數、拖曳觀察點，比較遞增遞減與凹口，探索圖形平移、對稱及指對數互為反函數。"
+        desc: "分別調整正常與反常底數，同時觀察四條指對數曲線；標記交點、探索 (e,e) 相切與 y=x 對稱。"
     },
     {
         title: "圓周運動與簡諧投影（高二）",

@@ -1,274 +1,267 @@
+/* Two independently controlled bases; all geometry is in equal-scale coordinates. */
 (function () {
   'use strict';
-  const M = window.ExpLog, $ = id => document.getElementById(id);
-  const colors = { exp: '#b34f1f', log: '#7441ae', green: '#1b725a', gold: '#8d6213', ink: '#25374b', muted: '#596c80', saved: ['#1b725a', '#34669c', '#a83e66'] };
-  const titles = { base: '底數如何改變圖形？', compare: '輸入變大，函數值一定變大嗎？', chord: '弦線與曲線，誰比較高？', shift: '移動圖形，也移動公式', inverse: '沿著 y = x，交換兩個坐標' };
-  const captions = { base: '先比較同一側，再跨過必過點看上下順序。', compare: '拖動 A、B，從圖上解釋不等式的方向。', chord: '在同一個橫坐標，比較弦中點與曲線上的點。', shift: '先對稱，再平移；原圖以灰色虛線保留。', inverse: '同一底數，指數與對數互為反函數。' };
-  const prompts = { base: '把底數 2 留下，再改成 3。必過點左右兩側的高低順序相同嗎？', compare: '保持 m < n，把底數從 2 改成 ½。哪個點比較高？不等號為什麼改變方向？', chord: '連起 A、B，再看中央的兩個點。改變底數或切換指數／對數，誰在上方？', shift: '先向右移 3，再向上移 2。代表點與漸近線各移到哪裡？再試試三種對稱。', inverse: '拖動橘色 P，觀察紫色 Q。它們的連線與中點，和 y = x 有什麼關係？' };
-  const notes = { base: '可保留 3 條曲線作比較。曲線上拖曳 P，或用右側滑桿讀取坐標。', compare: 'A、B 可左右拖動；對數的真數必須為正。滑桿也能操作觀察點。', chord: '金色為弦中點 C；綠色為曲線點 D。兩點的橫坐標都是 (m+n)/2。', shift: '公式採 y = sᵧ f(sₓ(x−h)) + k。對稱相對原點／坐標軸進行，再整體平移。', inverse: '橫縱軸每一格同長。播放時，橘色曲線上的點沿著垂直 y=x 的路徑移到紫色曲線。' };
-  function defaults(topic = 'base') { return { topic, kind: 'exp', a: 2, h: 0, k: 0, sx: 1, sy: 1, t: 1, m: -1, n: 2, progress: 0, saved: [], revealed: false, original: true, asymptote: true, advanced: false }; }
-  let s = defaults(), view = { min: -3, max: 7 }, frame = null, drag = null;
-  let size = 600, padding = 33;
-  const fmt = x => !Number.isFinite(x) ? '超出計算範圍' : Math.abs(x) < 1e-9 ? '0' : Math.abs(x) >= 1e5 || Math.abs(x) < 0.001 ? x.toExponential(2) : String(Number(x.toFixed(3)));
-  const baseText = a => Math.abs(a - 1) < .001 ? String(a) : fmt(a);
-  const exact = x => Math.abs(Math.abs(x) - Math.PI) < 1e-12 ? (x < 0 ? '−π' : 'π') : fmt(x);
-  const af = () => Math.abs(s.a - M.CRITICAL) < 1e-12 ? 'e<sup>1/e</sup>' : s.a === .5 ? '½' : s.a === .25 ? '¼' : baseText(s.a);
-  function equation(kind = s.kind, base = af(), h = 0, k = 0, sx = 1, sy = 1) {
-    let inside = h === 0 ? 'x' : h > 0 ? `x − ${exact(h)}` : `x + ${exact(-h)}`;
-    if (sx < 0) inside = h === 0 ? '−x' : `−(${inside})`;
-    const fn = kind === 'exp' ? `(${base})<sup>${inside}</sup>` : `log<sub>${base}</sub>(${inside})`;
-    return `y = ${sy < 0 ? '−' : ''}${fn}${k === 0 ? '' : k > 0 ? ` + ${fmt(k)}` : ` − ${fmt(-k)}`}`;
+  const M = window.ExpLog, NS = 'http://www.w3.org/2000/svg';
+  const $ = id => document.getElementById(id);
+  const svg = $('plot'), wrap = svg.parentElement;
+  const ids = ['normal-exp', 'normal-log', 'fractional-exp', 'fractional-log'];
+  const layers = {};
+  for (const name of ['grid', 'axis', 'symmetry', 'curve', 'point', 'label']) layers[name] = $(name + '-layer');
+  const defaultView = () => ({ cx: 2.5, cy: 2.5, span: 9 });
+  const state = {
+    normal: 2, fractional: .5, critical: false, previous: null,
+    visible: { 'normal-exp': true, 'normal-log': true, 'fractional-exp': false, 'fractional-log': false },
+    symmetry: false, pan: false, selected: null, view: defaultView()
+  };
+  let metrics, intersections = [], scheduled = false, drag = null;
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  function node(tag, attrs = {}, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
+    if (text !== undefined) e.textContent = text;
+    return e;
   }
-  const interval = (prop, symbol) => prop.all ? `${symbol} ∈ ℝ` : `${symbol} ${prop.greater ? '>' : '<'} ${fmt(prop.bound)}`;
-  const pointText = p => `(${fmt(p.x)}, ${fmt(p.y)})`;
-  const legend = (color, label, dashed = false) => `<span><i style="border-color:${color}"${dashed ? ' class="dashed"' : ''}></i>${label}</span>`;
-  function control(id, label, min, max, step, value) { return `<div class="control"><label for="${id}">${label}</label><input id="${id}" type="range" min="${min}" max="${max}" step="${step}" value="${value}"><output id="${id}-output" for="${id}">${fmt(value)}</output></div>`; }
-  function updateBase() {
-    $('base-output').innerHTML = af(); $('base-input').value = Math.abs(s.a - M.CRITICAL) < 1e-12 ? s.a.toPrecision(15) : String(s.a);
-    $('base-slider').value = s.a > 1 ? Math.max(.03, Math.log2(s.a)) : Math.min(-.03, Math.log2(s.a));
-    document.querySelectorAll('[data-base]').forEach(b => b.setAttribute('aria-pressed', String(Math.abs(Number(b.dataset.base) - s.a) < 1e-10)));
+  function add(parent, tag, attrs, text) { const e = node(tag, attrs, text); parent.append(e); return e; }
+  function setAttrs(e, attrs) { for (const [k,v] of Object.entries(attrs)) e.setAttribute(k, String(v)); }
+  function screen(p) { return { x: metrics.ox + p.x * metrics.scale, y: metrics.oy - p.y * metrics.scale }; }
+  function world(p) { return { x: (p.x - metrics.ox) / metrics.scale, y: (metrics.oy - p.y) / metrics.scale }; }
+  function inside(p) { return p.x >= metrics.xmin && p.x <= metrics.xmax && p.y >= metrics.ymin && p.y <= metrics.ymax; }
+  function updateMetrics() {
+    const box = wrap.getBoundingClientRect(), w = Math.max(260, box.width), h = Math.max(80, box.height);
+    const left = 32, right = w - 20, top = 26, bottom = h - 30;
+    const scale = Math.min(right-left, bottom-top) / state.view.span;
+    const ox = (left+right)/2 - state.view.cx*scale, oy = (top+bottom)/2 + state.view.cy*scale;
+    metrics = { w,h,left,right,top,bottom,scale,ox,oy,xmin:(left-ox)/scale,xmax:(right-ox)/scale,ymin:(oy-bottom)/scale,ymax:(oy-top)/scale };
+    setAttrs(svg, { viewBox: '0 0 ' + w + ' ' + h });
+    setAttrs($('clip-rect'), { x:left, y:top, width:right-left, height:bottom-top });
   }
-  function normalizePoints() {
-    if (s.kind === 'log') { s.m = Math.max(.5, s.m); s.n = Math.max(s.m + .1, s.n); }
-    if (s.n - s.m < .1) s.n = s.m + .1;
-  }
-  function stopAnimation() { if (frame !== null) cancelAnimationFrame(frame); frame = null; if ($('animate')) $('animate').textContent = '播放坐標交換'; }
-  function setBase(a) {
-    if (!M.validBase(a) || a < .05 || a > 10) {
-      $('base-error').textContent = a === 1 ? 'a = 1 時，指數變成 y = 1，無法反解成對數函數。本教具請選其他底數。' : '請輸入 0.05～10 之間且不等於 1 的底數。';
-      return;
+  function segment(parent, p, q, attrs = {}) { return add(parent, 'line', { x1:p.x,y1:p.y,x2:q.x,y2:q.y,...attrs }); }
+  function gridAndAxes() {
+    const m = metrics, raw = 66/m.scale, power = 10 ** Math.floor(Math.log10(raw)), n = raw/power;
+    const step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10)*power;
+    const tick = v => String(Number(v.toPrecision(4)));
+    for (let x = Math.ceil(m.xmin/step)*step; x <= m.xmax+step*1e-6; x += step) {
+      if (Math.abs(x) < step*1e-6) continue;
+      const p = screen({x,y:0});
+      segment(layers.grid, {x:p.x,y:m.top}, {x:p.x,y:m.bottom}, {stroke:'#e8edf3','stroke-width':1});
+      const y = clamp(m.oy+18, m.top+14, m.bottom+20);
+      add(layers.grid,'text',{x:p.x,y,'text-anchor':'middle',class:'tick-label'},tick(x));
     }
-    stopAnimation(); s.a = a; s.progress = 0; $('base-error').textContent = ''; updateBase(); syncOutputs(); render();
+    for (let y = Math.ceil(m.ymin/step)*step; y <= m.ymax+step*1e-6; y += step) {
+      if (Math.abs(y) < step*1e-6) continue;
+      const p = screen({x:0,y});
+      segment(layers.grid,{x:m.left,y:p.y},{x:m.right,y:p.y},{stroke:'#e8edf3','stroke-width':1});
+      const x = clamp(m.ox-9, m.left-6, m.right-8);
+      add(layers.grid,'text',{x,y:p.y+4,'text-anchor':'end',class:'tick-label'},tick(y));
+    }
+    if (m.oy >= m.top && m.oy <= m.bottom) {
+      segment(layers.axis,{x:m.left,y:m.oy},{x:m.right,y:m.oy},{stroke:'#687c90','stroke-width':1.6});
+      add(layers.axis,'polygon',{points:(m.right)+','+m.oy+' '+(m.right-9)+','+(m.oy-4)+' '+(m.right-9)+','+(m.oy+4),fill:'#687c90'});
+      add(layers.axis,'text',{x:m.right-4,y:m.oy-10,class:'axis-label','text-anchor':'end'},'x');
+    }
+    if (m.ox >= m.left && m.ox <= m.right) {
+      segment(layers.axis,{x:m.ox,y:m.bottom},{x:m.ox,y:m.top},{stroke:'#687c90','stroke-width':1.6});
+      add(layers.axis,'polygon',{points:m.ox+','+m.top+' '+(m.ox-4)+','+(m.top+9)+' '+(m.ox+4)+','+(m.top+9),fill:'#687c90'});
+      add(layers.axis,'text',{x:m.ox+10,y:m.top+12,class:'axis-label'},'y');
+    }
+    if (inside({x:0,y:0})) add(layers.axis,'text',{x:m.ox-8,y:m.oy+18,'text-anchor':'end',class:'tick-label'},'0');
+    if (state.symmetry) {
+      const lo = Math.max(m.xmin,m.ymin), hi = Math.min(m.xmax,m.ymax);
+      if (lo < hi) {
+        segment(layers.symmetry,screen({x:lo,y:lo}),screen({x:hi,y:hi}),{stroke:'#73849a','stroke-width':1.5,'stroke-dasharray':'7 6'});
+        const p = screen({x:hi-.6,y:hi-.6});
+        add(layers.symmetry,'text',{x:clamp(p.x+9,m.left,m.right-45),y:clamp(p.y+18,m.top+62,m.bottom-8),class:'tick-label'},'y = x');
+      }
+    }
   }
-  function setupControls() {
-    const topic = s.topic;
-    $('kind-controls').hidden = topic === 'inverse';
-    document.querySelectorAll('[data-kind]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.kind === s.kind)));
-    let html = '';
-    if (topic === 'base') html = `<button id="save-curve">保留這條曲線</button><div id="saved-curves"></div>${control('probe-t', '觀察位置 t', -3, 4, .05, s.t)}<p class="muted small">${s.kind === 'exp' ? 't 是 P 的 x 坐標。' : 't 是 P 的 y 坐標，P = (aᵗ, t)。'}</p><label class="check-row"><input id="asymptote" type="checkbox"${s.asymptote ? ' checked' : ''}>顯示漸近線</label>`;
-    if (topic === 'compare' || topic === 'chord') html = `${control('point-m', '左點 m', s.kind === 'log' ? .1 : -3, s.kind === 'log' ? 7 : 4, .1, s.m)}${control('point-n', '右點 n', s.kind === 'log' ? .2 : -2.9, 7, .1, s.n)}<p class="muted small">維持 m &lt; n，兩點至少相隔 0.1。</p>`;
-    if (topic === 'shift') html = `${control('shift-h', '水平 h', -4, 4, .25, s.h)}${control('shift-k', '鉛直 k', -4, 4, .25, s.k)}<p class="section-label">先做哪一種對稱？</p><div class="reflection-buttons"><button data-reflect="none">原圖</button><button data-reflect="x">對稱 x 軸</button><button data-reflect="y">對稱 y 軸</button><button data-reflect="origin">對稱原點</button></div><label class="check-row"><input id="original" type="checkbox"${s.original ? ' checked' : ''}>保留未變換的原圖</label><label class="check-row"><input id="asymptote" type="checkbox"${s.asymptote ? ' checked' : ''}>顯示變換後的漸近線</label><p class="section-label">講義範例</p><div class="chips"><button data-example="right">2ˣ 右移 3</button><button data-example="up">2ˣ 上移 3</button><button data-example="log-left">log₃x 左移 π</button><button data-example="log-down">log₃x 下移 2</button></div>`;
-    if (topic === 'inverse') html = `${control('probe-t', 'P 的 x 坐標', -3, 4, .05, s.t)}${control('mirror-progress', '坐標交換', 0, 1, .01, s.progress)}<div class="actions"><button id="animate" class="primary">播放坐標交換</button><button id="mirror-reset">回到原曲線</button></div><details id="advanced"${s.advanced ? ' open' : ''}><summary>進階：交點探索（a &gt; 1）</summary><p>同底指數與對數互為反函數，但交點數量會隨底數改變。先比較三個底數：</p><div class="chips"><button data-special="1.2">a = 1.2</button><button data-special="critical">a = e<sup>1/e</sup></button><button data-special="2">a = 2</button></div><div id="intersection-reading"></div></details>`;
-    $('topic-controls').innerHTML = html;
-    if ($('save-curve')) $('save-curve').addEventListener('click', () => {
-      if (s.saved.some(c => c.kind === s.kind && c.a === s.a) || s.saved.length >= 3) return;
-      s.saved.push({ kind: s.kind, a: s.a }); renderSaved(); render();
+  function clipSegment(a,b) {
+    const m=metrics, dx=b.x-a.x, dy=b.y-a.y;
+    const p=[-dx,dx,-dy,dy], q=[a.x-m.left,m.right-a.x,a.y-m.top,m.bottom-a.y];
+    let lo=0,hi=1;
+    for(let i=0;i<4;i++){
+      if(Math.abs(p[i])<1e-12){if(q[i]<0)return null;}
+      else {const r=q[i]/p[i];if(p[i]<0)lo=Math.max(lo,r);else hi=Math.min(hi,r);}
+      if(lo>hi)return null;
+    }
+    return [{x:a.x+lo*dx,y:a.y+lo*dy},{x:a.x+hi*dx,y:a.y+hi*dy}];
+  }
+  function visibleCurve(curve) {
+    const m=metrics, lo=curve.kind==='exp'?m.xmin:m.ymin, hi=curve.kind==='exp'?m.xmax:m.ymax;
+    const count=clamp(Math.ceil((curve.kind==='exp'?m.w:m.h)/1.7),180,680);
+    let previous=null, data='', first=null, last=null;
+    for(let i=0;i<=count;i++){
+      const t=lo+(hi-lo)*i/count, point=screen(M.point(curve.kind,curve.base,t));
+      if(!Number.isFinite(point.x)||!Number.isFinite(point.y)){previous=null;continue;}
+      if(previous){
+        const clipped=clipSegment(previous,point);
+        if(clipped){
+          const [a,b]=clipped;
+          if(!first)first=a;
+          data+='M'+a.x.toFixed(2)+','+a.y.toFixed(2)+'L'+b.x.toFixed(2)+','+b.y.toFixed(2);
+          last=b;
+        }
+      }
+      previous=point;
+    }
+    return {data,first,last};
+  }
+  function curves() {
+    return ids.filter(id=>state.visible[id]).map(id=>{
+      const normal=id.startsWith('normal'), kind=id.endsWith('exp')?'exp':'log';
+      return {id,kind,base:normal?state.normal:state.fractional,normal,color:'var(--'+id+')'};
     });
-    if ($('probe-t')) $('probe-t').addEventListener('input', e => { stopAnimation(); s.t = Number(e.target.value); syncOutputs(); render(); });
-    ['point-m', 'point-n'].forEach(id => { if ($(id)) $(id).addEventListener('input', e => {
-      if (id === 'point-m') s.m = Math.min(Number(e.target.value), s.n - .1); else s.n = Math.max(Number(e.target.value), s.m + .1);
-      s.m = Number(s.m.toFixed(2)); s.n = Number(s.n.toFixed(2)); syncOutputs(); render();
-    }); });
-    ['shift-h', 'shift-k'].forEach((id, i) => { if ($(id)) $(id).addEventListener('input', e => { s[i ? 'k' : 'h'] = Number(e.target.value); syncOutputs(); render(); }); });
-    ['original', 'asymptote'].forEach(id => { if ($(id)) $(id).addEventListener('change', e => { s[id] = e.target.checked; render(); }); });
-    document.querySelectorAll('[data-reflect]').forEach(b => b.addEventListener('click', () => { s.sx = ['y', 'origin'].includes(b.dataset.reflect) ? -1 : 1; s.sy = ['x', 'origin'].includes(b.dataset.reflect) ? -1 : 1; render(); }));
-    document.querySelectorAll('[data-example]').forEach(b => b.addEventListener('click', () => {
-      const name = b.dataset.example; s.kind = name.startsWith('log') ? 'log' : 'exp'; s.a = s.kind === 'log' ? 3 : 2; s.sx = s.sy = 1;
-      s.h = name === 'right' ? 3 : name === 'log-left' ? -Math.PI : 0; s.k = name === 'up' ? 3 : name === 'log-down' ? -2 : 0;
-      updateBase(); setupControls(); render();
-    }));
-    if ($('mirror-progress')) $('mirror-progress').addEventListener('input', e => { stopAnimation(); s.progress = Number(e.target.value); syncOutputs(); render(); });
-    if ($('animate')) $('animate').addEventListener('click', () => {
-      if (frame !== null) { stopAnimation(); return; }
-      if (s.progress >= 1) s.progress = 0;
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { s.progress = 1; syncOutputs(); render(); return; }
-      $('animate').textContent = '暫停'; let last = null;
-      function tick(now) { if (last !== null) s.progress = Math.min(1, s.progress + (now - last) / 2400); last = now; syncOutputs(); render(); if (s.progress < 1) frame = requestAnimationFrame(tick); else stopAnimation(); }
-      frame = requestAnimationFrame(tick);
-    });
-    if ($('mirror-reset')) $('mirror-reset').addEventListener('click', () => { stopAnimation(); s.progress = 0; syncOutputs(); render(); });
-    if ($('advanced')) $('advanced').addEventListener('toggle', e => { s.advanced = e.target.open; render(); });
-    document.querySelectorAll('[data-special]').forEach(b => b.addEventListener('click', () => { s.advanced = true; s.revealed = false; setBase(b.dataset.special === 'critical' ? M.CRITICAL : Number(b.dataset.special)); }));
-    renderSaved(); syncOutputs();
   }
-  function renderSaved() {
-    if (!$('saved-curves')) return;
-    $('saved-curves').innerHTML = s.saved.map((c, i) => `<div class="saved-row"><strong style="border-color:${colors.saved[i]}">${equation(c.kind, baseText(c.a))}</strong><button data-remove="${i}" aria-label="移除第 ${i + 1} 條保留曲線">移除</button></div>`).join('');
-    $('save-curve').disabled = s.saved.length >= 3 || s.saved.some(c => c.a === s.a && c.kind === s.kind);
-    document.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => { s.saved.splice(Number(b.dataset.remove), 1); renderSaved(); render(); }));
-  }
-  function syncOutputs() {
-    const values = { 'probe-t': s.t, 'point-m': s.m, 'point-n': s.n, 'shift-h': s.h, 'shift-k': s.k, 'mirror-progress': s.progress };
-    for (const [id, val] of Object.entries(values)) if ($(id)) { $(id).value = val; $(id + '-output').textContent = id === 'mirror-progress' ? `${Math.round(val * 100)}%` : fmt(val); }
-  }
-  function toPixel(p) { const unit = (size - 2 * padding) / (view.max - view.min); return { x: padding + (p.x - view.min) * unit, y: size - padding - (p.y - view.min) * unit }; }
-  function fromPixel(x, y) { const unit = (size - 2 * padding) / (view.max - view.min); return { x: view.min + (x - padding) / unit, y: view.min + (size - padding - y) / unit }; }
-  function line(p, q, color, dash = '', width = 1.6) { const a = toPixel(p), b = toPixel(q); return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="${color}" stroke-width="${width}"${dash ? ` stroke-dasharray="${dash}"` : ''}/>`; }
-  function label(p, text, color = colors.ink, dx = 9, dy = -12) {
-    const c = toPixel(p); if (c.x < padding - 2 || c.x > size - padding + 2 || c.y < padding - 2 || c.y > size - padding + 2) return '';
-    const x = Math.max(padding + 9, Math.min(size - padding - 9, c.x + dx)), y = Math.max(padding + 14, Math.min(size - padding - 4, c.y + dy));
-    return `<text x="${x}" y="${y}" text-anchor="${x > size - 90 ? 'end' : 'start'}" font-size="${size < 450 ? 13 : 14}" font-weight="650" fill="${color}" stroke="white" stroke-width="4" paint-order="stroke">${text}</text>`;
-  }
-  function dot(p, color, name, handle = '') {
-    if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return '';
-    const c = toPixel(p); const inner = `<circle cx="${c.x}" cy="${c.y}" r="5.5" fill="${color}" stroke="white" stroke-width="2"/>`;
-    return (handle ? `<g data-handle="${handle}"><circle cx="${c.x}" cy="${c.y}" r="21" fill="transparent"/>${inner}</g>` : inner) + (name ? label(p, name, color) : '');
-  }
-  function axes() {
-    let out = '', span = view.max - view.min;
-    let step = span <= 12 ? 1 : span <= 24 ? 2 : Math.pow(10, Math.floor(Math.log10(span / 5)));
-    if (span / step > 14) step *= 2;
-    for (let n = Math.ceil(view.min / step) * step; n <= view.max; n += step) {
-      if (Math.abs(n) > 1e-8) {
-        out += line({ x: n, y: view.min }, { x: n, y: view.max }, '#e2e8ef', '3 4', 1);
-        out += line({ x: view.min, y: n }, { x: view.max, y: n }, '#e2e8ef', '3 4', 1);
-      }
-      const px = toPixel({ x: n, y: 0 }), py = toPixel({ x: 0, y: n });
-      if (n !== 0) out += `<text x="${px.x}" y="${Math.min(size - 10, px.y + 19)}" text-anchor="middle" font-size="11" fill="${colors.muted}">${fmt(n)}</text><text x="${Math.max(24, py.x - 9)}" y="${py.y + 4}" text-anchor="end" font-size="11" fill="${colors.muted}">${fmt(n)}</text>`;
+  function formulaText(text,curve) {
+    const base=curve.normal?(state.critical?'e':state.normal.toFixed(1)):state.fractional.toFixed(2);
+    const span=(value,attrs={})=>add(text,'tspan',attrs,value);
+    if(curve.kind==='exp'){
+      span('y = '+(curve.normal&&state.critical?'(':'')+base);
+      if(curve.normal&&state.critical){span('1/e',{'baseline-shift':'super','font-size':'.72em'});span(')');}
+      span('x',{'baseline-shift':'super','font-size':'.72em'});
+    }else{
+      span('y = log');
+      const sub=span('',{'baseline-shift':'sub','font-size':'.72em'});
+      sub.textContent=curve.normal&&state.critical?'e¹⁄ᵉ':base;
+      span(' x');
     }
-    out += line({ x: view.min, y: 0 }, { x: view.max, y: 0 }, '#596c80', '', 1.5) + line({ x: 0, y: view.min }, { x: 0, y: view.max }, '#596c80', '', 1.5);
-    const origin = toPixel({ x: 0, y: 0 });
-    out += `<text x="${origin.x - 12}" y="${origin.y + 18}" font-size="11" fill="${colors.muted}">0</text><text x="${size - 16}" y="${origin.y - 8}" font-size="13" fill="${colors.ink}">x</text><text x="${origin.x + 10}" y="20" font-size="13" fill="${colors.ink}">y</text>`;
-    return out;
   }
-  function curve(kind, a, color, opts = {}) {
-    let d = '', open = false;
-    // Sample the visible linear coordinate (x for exp, y for log). This remains
-    // well-conditioned even for bases extremely close to one. Reflections and
-    // translations change which parameter interval is visible.
-    const shift = kind === 'exp' ? (opts.h || 0) : (opts.k || 0);
-    const sign = kind === 'exp' ? (opts.sx || 1) : (opts.sy || 1);
-    const lo = Math.min(sign * (view.min - shift), sign * (view.max - shift)) - 2;
-    const hi = Math.max(sign * (view.min - shift), sign * (view.max - shift)) + 2;
-    for (let i = 0; i <= 1800; i++) {
-      const t = lo + (hi - lo) * i / 1800;
-      let p = M.point(kind, a, t, opts.h || 0, opts.k || 0, opts.sx || 1, opts.sy || 1);
-      if (opts.mirror !== undefined) p = M.mirror(p, opts.mirror);
-      const q = toPixel(p), limit = size * 100;
-      if (!Number.isFinite(q.x) || !Number.isFinite(q.y) || Math.abs(q.x) > limit || Math.abs(q.y) > limit) { open = false; continue; }
-      d += `${open ? 'L' : 'M'}${q.x.toFixed(2)},${q.y.toFixed(2)}`; open = true;
+  const overlap=(a,b)=>Math.max(0,Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x))*Math.max(0,Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y));
+  function drawLabel(curve,geometry,occupied) {
+    if(!geometry.first)return;
+    const anchor=curve.base>1?geometry.last:geometry.first;
+    const group=add(layers.label,'g',{'data-formula':curve.id});
+    const leader=add(group,'line',{stroke:curve.color,'stroke-width':1.2});
+    const text=add(group,'text',{x:0,y:0,class:'curve-formula'});
+    text.style.fill=curve.color;
+    formulaText(text,curve);
+    const bbox=text.getBBox(), width=bbox.width+10, height=Math.max(24,bbox.height+8);
+    const offsets=[[10,-height-7],[-width-10,-height-7],[10,9],[-width-10,9],[-width/2,-height-17],[-width/2,17],[18,-height/2],[-width-18,-height/2]];
+    const candidates=offsets.map(([dx,dy])=>({x:clamp(anchor.x+dx,metrics.left+2,metrics.right-width-2),y:clamp(anchor.y+dy,metrics.top+2,metrics.bottom-height-2),w:width,h:height}));
+    const penalty=r=>occupied.reduce((sum,o)=>sum+overlap(r,o),0);
+    const cost=r=>(penalty(r)>0?1e6+penalty(r)*100:0)+Math.hypot(r.x+r.w/2-anchor.x,r.y+r.h/2-anchor.y);
+    if(candidates.every(r=>penalty(r)>0)){
+      for(let y=metrics.top+2;y<=metrics.bottom-height-2;y+=height+8)for(let x=metrics.left+2;x<=metrics.right-width-2;x+=Math.max(24,width/2))candidates.push({x,y,w:width,h:height});
     }
-    return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${opts.width || 2.7}"${opts.dash ? ' stroke-dasharray="7 6"' : ''} stroke-linejoin="round"/>`;
+    candidates.sort((a,b)=>cost(a)-cost(b));
+    const choice=candidates[0];
+    setAttrs(text,{x:choice.x+5-bbox.x,y:choice.y+4-bbox.y});
+    setAttrs(leader,{x1:anchor.x,y1:anchor.y,x2:clamp(anchor.x,choice.x,choice.x+choice.w),y2:clamp(anchor.y,choice.y,choice.y+choice.h)});
+    occupied.push(choice);
   }
-  function guides(p, color) { return line({ x: p.x, y: 0 }, p, color, '3 4', 1) + line({ x: 0, y: p.y }, p, color, '3 4', 1); }
-  function asymptote(kind, h = 0, k = 0) { return kind === 'exp' ? line({ x: view.min, y: k }, { x: view.max, y: k }, colors.gold, '7 5', 2) : line({ x: h, y: view.min }, { x: h, y: view.max }, colors.gold, '7 5', 2); }
-  function render() {
-    const topic = s.topic, kind = s.kind, color = colors[kind], shift = topic === 'shift';
-    $('scene-title').textContent = titles[topic]; $('scene-caption').textContent = captions[topic]; $('prompt').textContent = prompts[topic]; $('graph-note').textContent = notes[topic];
-    $('formula').innerHTML = topic === 'inverse' ? `<span>${equation('exp')}</span>　<span class="log-color">${equation('log')}</span>` : shift ? `<span class="original">原圖 ${equation()}</span>${equation(kind, af(), s.h, s.k, s.sx, s.sy)}` : equation();
-    $('formula').style.color = topic === 'inverse' ? colors.exp : color;
-    $('reveal').textContent = s.revealed ? '隱藏性質' : '揭示性質'; $('reveal').setAttribute('aria-expanded', String(s.revealed)); $('findings').hidden = !s.revealed;
-    let graph = '', keys = '', reading = '';
-    if (topic === 'base') {
-      s.saved.forEach((c, i) => { graph += curve(c.kind, c.a, colors.saved[i]); keys += legend(colors.saved[i], `${c.kind === 'exp' ? '指數' : '對數'} a = ${baseText(c.a)}`); });
-      if (s.asymptote) graph += asymptote(kind);
-      graph += curve(kind, s.a, color); const p = M.point(kind, s.a, s.t), anchor = M.properties(kind, s.a).anchor;
-      graph += guides(p, color) + dot(anchor, colors.ink, pointText(anchor)) + dot(p, color, 'P', 't');
-      reading = `<strong>P = ${pointText(p)}</strong>　${kind === 'exp' ? 'x 每增加 1，y 乘上底數 a。' : 'x 乘上底數 a，y 增加 1。'}`;
-      keys += legend(color, `目前：a = ${baseText(s.a)}`) + (s.asymptote ? legend(colors.gold, `漸近線 ${kind === 'exp' ? 'y = 0' : 'x = 0'}`, true) : '');
-      renderSaved();
-    } else if (topic === 'compare' || topic === 'chord') {
-      const c = M.chord(kind, s.a, s.m, s.n), a = { x: s.m, y: c.left }, b = { x: s.n, y: c.right };
-      graph += curve(kind, s.a, color) + guides(a, color) + guides(b, colors.log);
-      if (topic === 'chord') {
-        const avg = { x: c.mid, y: c.average }, mid = { x: c.mid, y: c.curve };
-        graph += line(a, b, colors.gold, '', 2) + line({ x: c.mid, y: 0 }, avg.y > mid.y ? avg : mid, '#9aabb9', '3 4', 1);
-        graph += line(avg, mid, colors.green, '', 3) + dot(avg, colors.gold, 'C 弦中點') + dot(mid, colors.green, 'D 曲線點', 'mid');
-        reading = `橫坐標 ${(fmt(c.mid))}：<strong>C 的高度 ${fmt(c.average)}</strong>；<strong>D 的高度 ${fmt(c.curve)}</strong>。`;
-        keys = legend(color, '函數曲線') + legend(colors.gold, '弦線 AB 與中點 C') + legend(colors.green, '中間位置的曲線點 D');
-      } else {
-        reading = `m = ${fmt(s.m)} < n = ${fmt(s.n)}；<strong>f(m) = ${fmt(c.left)} ${c.left < c.right ? '<' : '>'} f(n) = ${fmt(c.right)}</strong>`;
-        keys = legend(color, '函數曲線') + legend(color, 'A：左點') + legend(colors.log, 'B：右點');
-      }
-      graph += dot(a, color, 'A', 'm') + dot(b, colors.log, 'B', 'n');
-    } else if (shift) {
-      if (s.original) { graph += curve(kind, s.a, '#8091a2', { dash: true, width: 2 }); keys += legend('#8091a2', '未變換原圖', true); }
-      if (s.asymptote) graph += asymptote(kind, s.h, s.k);
-      graph += curve(kind, s.a, color, s);
-      const old = M.properties(kind, s.a).anchor, now = M.properties(kind, s.a, s.h, s.k, s.sx, s.sy).anchor;
-      if (s.original) graph += dot(old, '#8091a2', '原代表點');
-      graph += dot(now, color, 'P（可拖曳）', 'shift');
-      reading = `代表點 ${pointText(old)} → <strong>${pointText(now)}</strong><br>水平：${s.h === 0 ? '不移動' : s.h > 0 ? `右移 ${fmt(s.h)}` : `左移 ${fmt(-s.h)}`}；鉛直：${s.k === 0 ? '不移動' : s.k > 0 ? `上移 ${fmt(s.k)}` : `下移 ${fmt(-s.k)}`}。`;
-      keys += legend(color, '變換後圖形') + (s.asymptote ? legend(colors.gold, `漸近線 ${kind === 'exp' ? 'y = ' + fmt(s.k) : 'x = ' + fmt(s.h)}`, true) : '');
-      const selected = s.sx === 1 ? (s.sy === 1 ? 'none' : 'x') : s.sy === 1 ? 'y' : 'origin';
-      document.querySelectorAll('[data-reflect]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.reflect === selected)));
-    } else {
-      graph += line({ x: view.min, y: view.min }, { x: view.max, y: view.max }, '#66798c', '6 5', 1.8);
-      graph += curve('exp', s.a, colors.exp) + curve('log', s.a, colors.log);
-      const p = M.point('exp', s.a, s.t), q = { x: p.y, y: p.x }, mid = M.mirror(p, .5);
-      graph += line(p, q, colors.green, '4 4', 1.7) + dot(mid, colors.green, '中點');
-      if (s.progress > 0 && s.progress < 1) graph += curve('exp', s.a, '#34669c', { mirror: s.progress, dash: true, width: 2 });
-      graph += dot(p, colors.exp, 'P', 't') + dot(q, colors.log, 'Q', 'q');
-      if (s.progress > 0 && s.progress < 1) graph += dot(M.mirror(p, s.progress), '#34669c', '交換中');
-      reading = `<strong>P = ${pointText(p)} → Q = ${pointText(q)}</strong><br>連線中點 ${pointText(mid)} 在 y = x 上。`;
-      keys = legend(colors.exp, '指數 y = aˣ') + legend(colors.log, '對數 y = logₐx') + legend('#66798c', '對稱軸 y = x', true);
-      const roots = M.positiveBaseIntersections(s.a);
-      $('fit-points').hidden = !s.advanced || !roots || !roots.length;
-      if (s.advanced) {
-        if (roots) roots.forEach((x, i) => { graph += dot({ x, y: x }, colors.gold, roots.length === 1 ? '(e, e)' : `交點 ${i + 1}`); });
-        const outside = roots && roots.some(x => x < view.min || x > view.max);
-        $('intersection-reading').innerHTML = roots === null ? '<p class="muted">這組進階比較聚焦 a &gt; 1。請選上方任一範例底數。</p>' : `<p class="discovery"><b>${roots.length} 個交點</b>${roots.length ? '<br>' + roots.map(x => pointText({ x, y: x })).join('、') : ''}${outside ? '<br>有交點在畫面外，可按「看全部交點」。' : ''}</p><p class="muted">${roots.length === 1 ? 'a = e^(1/e) ≈ 1.445 時，唯一交點是 (e, e)。' : '1 < a < e^(1/e)：兩個；a = e^(1/e)：一個；a > e^(1/e)：沒有。'}</p>`;
-      }
+  function format(n) { return String(Number(n.toFixed(4))); }
+  function updateReading() {
+    const point=intersections.find(p=>p.id===state.selected);
+    $('point-reading').textContent=point?(point.exact?'交點 (e, e)':'交點 ('+format(point.x)+', '+format(point.y)+')'):'點選粗點，讀取交點座標。';
+    $('point-reading').classList.toggle('has-point',!!point);
+    for(const e of layers.point.children)e.classList.toggle('selected',e.dataset.pointId===state.selected);
+  }
+  function choosePoint(id) { state.selected=state.selected===id?null:id;updateReading(); }
+  function drawPoints() {
+    for(const point of intersections){
+      if(!inside(point))continue;
+      const p=screen(point), group=add(layers.point,'g',{class:'intersection'+(point.id===state.selected?' selected':''),'data-point-id':point.id,role:'button',tabindex:0,'aria-label':'交點，按 Enter 讀取座標'});
+      add(group,'circle',{cx:p.x,cy:p.y,r:13,fill:'transparent',class:'point-halo'});
+      add(group,'circle',{cx:p.x,cy:p.y,r:5.2,fill:'#25374b',stroke:'#fff','stroke-width':1.8,'pointer-events':'none'});
+      group.addEventListener('click',event=>{event.stopPropagation();choosePoint(point.id);});
+      group.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();choosePoint(point.id);}});
     }
-    if (topic !== 'inverse') $('fit-points').hidden = true;
-    const bounds = { min: view.min, max: view.max };
-    $('plot').setAttribute('viewBox', `0 0 ${size} ${size}`);
-    const desc = `${titles[topic]}。底數 ${fmt(s.a)}。${topic === 'inverse' ? '指數與對數互為反函數。' : `${kind === 'exp' ? '指數' : '對數'}函數。`}目前座標視野 ${fmt(bounds.min)} 到 ${fmt(bounds.max)}。`;
-    $('plot').innerHTML = `<title id="plot-title">${titles[topic]}</title><desc id="plot-description">${desc}</desc><defs><clipPath id="plot-clip"><rect x="${padding}" y="${padding}" width="${size - 2 * padding}" height="${size - 2 * padding}"/></clipPath></defs>${axes()}<g clip-path="url(#plot-clip)">${graph}</g>`;
-    $('legend').innerHTML = keys; $('live-reading').innerHTML = reading;
-    $('findings').innerHTML = findings();
   }
-  function findings() {
-    const kind = s.kind, shift = s.topic === 'shift', p = M.properties(kind, s.a, shift ? s.h : 0, shift ? s.k : 0, shift ? s.sx : 1, shift ? s.sy : 1);
-    if (s.topic === 'inverse') return `<div class="discovery">指數的點 (t, aᵗ)，交換坐標後為 (aᵗ, t)，就在同底對數曲線上。</div><dl class="property-list"><dt>指數</dt><dd>定義域 ℝ；值域 y &gt; 0</dd><dt>對數</dt><dd>定義域 x &gt; 0；值域 ℝ</dd><dt>必過點</dt><dd>(0, 1) ↔ (1, 0)</dd><dt>漸近線</dt><dd>y = 0 ↔ x = 0</dd><dt>遞增遞減</dt><dd>${s.a > 1 ? '兩者皆嚴格遞增' : '兩者皆嚴格遞減'}</dd></dl><p class="math-line">log<sub>${af()}</sub>((${af()})<sup>x</sup>) = x（x ∈ ℝ）<br>(${af()})<sup>log<sub>${af()}</sub>x</sup> = x（x &gt; 0）</p><p class="muted">互為反函數：先做其中一個函數，再做另一個，回到原來的輸入。</p>`;
-    if (s.topic === 'compare') return `<div class="discovery">${s.a > 1 ? 'a > 1：由左往右變高，保持比較方向。' : '0 < a < 1：由左往右變低，反轉比較方向。'}</div><p class="math-line">${kind === 'exp' ? `a<sup>m</sup> &gt; a<sup>n</sup>` : 'log<sub>a</sub>m &gt; log<sub>a</sub>n'} ⇔ m ${s.a > 1 ? '&gt;' : '&lt;'} n</p>${kind === 'log' ? '<p class="muted">前提：m、n 都要大於 0。</p>' : ''}`;
-    if (s.topic === 'chord') {
-      const c = M.chord(kind, s.a, s.m, s.n), up = p.concavity > 0;
-      return `<div class="discovery">${kind === 'exp' ? '指數函數不論底數大於或小於 1，都凹口向上。' : s.a > 1 ? '對數底數大於 1，凹口向下。' : '對數底數介於 0、1 之間，凹口向上。'}</div><p><b>${up ? '弦中點 C 在曲線點 D 上方。' : '弦中點 C 在曲線點 D 下方。'}</b></p><p class="math-line">[f(m) + f(n)] / 2 ${up ? '&gt;' : '&lt;'} f((m+n)/2)</p><p>高度差 C − D = ${fmt(c.average - c.curve)}</p><p class="muted">m ≠ n；對數還需要 m、n &gt; 0。遞增遞減與凹口方向是不同的性質。</p>`;
+  function draw() {
+    scheduled=false;
+    const focused=document.activeElement?.dataset?.pointId;
+    updateMetrics();
+    for(const layer of Object.values(layers))layer.replaceChildren();
+    gridAndAxes();
+    intersections=M.dualBaseIntersections(state.normal,state.fractional,state.visible);
+    const m=metrics, button=$('symmetry-toggle').getBoundingClientRect(), plotBox=svg.getBoundingClientRect();
+    const occupied=[{x:button.left-plotBox.left-6,y:button.top-plotBox.top-6,w:button.width+12,h:button.height+12}];
+    for(const text of layers.symmetry.querySelectorAll('text')){const r=text.getBBox();occupied.push({x:r.x-5,y:r.y-5,w:r.width+10,h:r.height+10});}
+    for(const point of intersections.filter(inside)){const p=screen(point);occupied.push({x:p.x-12,y:p.y-12,w:24,h:24});}
+    const rendered=[];
+    for(const curve of curves()){
+      const geometry=visibleCurve(curve);
+      add(layers.curve,'path',{d:geometry.data,fill:'none',stroke:curve.color,'stroke-width':2.8,'stroke-linecap':'round','stroke-linejoin':'round','data-curve':curve.id});
+      rendered.push([curve,geometry]);
     }
-    let out = `<dl class="property-list"><dt>底數分類</dt><dd>${s.a > 1 ? 'a > 1（正常底數）' : '0 < a < 1（反常底數）'}</dd><dt>定義域</dt><dd>${interval(p.domain, 'x')}</dd><dt>值域</dt><dd>${interval(p.range, 'y')}</dd><dt>漸近線</dt><dd>${p.asymptote.axis} = ${fmt(p.asymptote.value)}</dd><dt>${shift ? '代表點' : '必過點'}</dt><dd>${pointText(p.anchor)}</dd><dt>圖形趨勢</dt><dd>嚴格遞${p.increasing ? '增' : '減'}</dd><dt>凹口方向</dt><dd>向${p.concavity > 0 ? '上' : '下'}</dd></dl>`;
-    if (shift) {
-      const reflection = s.sx === 1 ? s.sy === 1 ? '不對稱' : '對稱 x 軸：y 變號' : s.sy === 1 ? '對稱 y 軸：x 變號' : '對稱原點：x、y 都變號';
-      out += `<div class="discovery">${reflection}，再平移 (h, k) = (${fmt(s.h)}, ${fmt(s.k)})。</div><p>原來的點 (u, v) → (${s.sx < 0 ? '−u' : 'u'} ${s.h < 0 ? '−' : '+'} ${fmt(Math.abs(s.h))}, ${s.sy < 0 ? '−v' : 'v'} ${s.k < 0 ? '−' : '+'} ${fmt(Math.abs(s.k))})</p>`;
-      if (kind === 'exp' && s.sx === 1 && s.sy === 1 && s.k === 0 && s.h !== 0) out += `<p class="math-line">a<sup>x−h</sup> = a<sup>−h</sup> · a<sup>x</sup></p><p>此例也等於把 y 值乘上 ${fmt(Math.pow(s.a, -s.h))}。</p>`;
-      if (kind === 'log' && s.sx === 1 && s.sy === 1 && s.h === 0 && s.k !== 0) out += '<p class="math-line">log<sub>a</sub>x + k = log<sub>a</sub>(a<sup>k</sup>x)</p>';
-    } else out += `<div class="discovery">${kind === 'exp' ? '比較不同底數：x > 0 時，底數越大曲線越高；x < 0 時順序相反。' : '比較同一類底數：a > 1 時，底數越大，曲線越靠近 x 軸；0 < a < 1 時，底數越小，曲線越靠近 x 軸。x = 1 左右，高低順序相反。'}</div><p class="muted">a 必須大於 0。a = 1 時指數為常數 y = 1，無法建立對應的對數函數。</p>`;
-    return out;
+    drawPoints();
+    for(const [curve,geometry]of rendered)drawLabel(curve,geometry,occupied);
+    $('offscreen-note').hidden=!intersections.some(p=>!inside(p));
+    $('fit-points').disabled=!intersections.length;
+    if(state.selected&&!intersections.some(p=>p.id===state.selected))state.selected=null;
+    updateReading();
+    if(focused){const target=Array.from(layers.point.children).find(e=>e.dataset.pointId===focused);target?.focus({preventScroll:true});}
   }
-  function selectTopic(topic) {
-    stopAnimation(); s = defaults(topic); view = { min: topic === 'shift' ? -5 : -3, max: 7 };
-    document.querySelectorAll('[data-topic]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.topic === topic)));
-    $('base-error').textContent = ''; updateBase(); setupControls(); render();
+  function requestDraw() { if(!scheduled){scheduled=true;requestAnimationFrame(draw);} }
+  function syncControls() {
+    const slider=$('normal-base');
+    slider.disabled=state.critical;slider.step=state.critical?'any':'0.1';slider.value=String(state.normal);
+    $('fractional-base').value=String(state.fractional);
+    $('normal-output').textContent=state.critical?'e¹⁄ᵉ ≈ '+M.CRITICAL.toFixed(6):state.normal.toFixed(1);
+    $('normal-output').classList.toggle('exact',state.critical);
+    $('fractional-output').textContent=state.fractional.toFixed(2);
+    slider.setAttribute('aria-valuetext',state.critical?'e 的一除以 e 次方，約 '+M.CRITICAL.toFixed(6)+'，特殊模式鎖定':state.normal.toFixed(1));
+    $('fractional-base').setAttribute('aria-valuetext',state.fractional.toFixed(2));
+    for(const id of ids){$(id).checked=state.visible[id];$(id).disabled=state.critical&&id.startsWith('normal');}
+    $('critical-mode').checked=state.critical;$('critical-note').hidden=!state.critical;
+    $('symmetry-toggle').setAttribute('aria-pressed',String(state.symmetry));
+    $('symmetry-toggle').textContent=state.symmetry?'隱藏對稱軸':'顯示對稱軸';
+    $('pan-toggle').setAttribute('aria-pressed',String(state.pan));
+    svg.classList.toggle('pan-active',state.pan);
   }
-  document.querySelectorAll('[data-topic]').forEach(b => b.addEventListener('click', () => selectTopic(b.dataset.topic)));
-  document.querySelectorAll('[data-kind]').forEach(b => b.addEventListener('click', () => { stopAnimation(); s.kind = b.dataset.kind; s.revealed = false; normalizePoints(); setupControls(); render(); }));
-  document.querySelectorAll('[data-base]').forEach(b => b.addEventListener('click', () => setBase(Number(b.dataset.base))));
-  $('base-slider').addEventListener('input', e => { let v = Number(e.target.value); if (Math.abs(v) < .03) v = v < 0 ? -.03 : .03; setBase(Math.pow(2, v)); });
-  $('base-form').addEventListener('submit', e => { e.preventDefault(); const raw = $('base-input').value.trim(); if (!raw) { $('base-error').textContent = '請先輸入底數。'; return; } setBase(Number(raw)); });
-  $('reset').addEventListener('click', () => selectTopic(s.topic));
-  $('reveal').addEventListener('click', () => { s.revealed = !s.revealed; render(); });
-  function zoom(factor) {
-    const span = Math.max(4, Math.min(1000000, (view.max - view.min) * factor));
-    view = { min: -.3 * span, max: .7 * span }; render();
-  }
-  $('zoom-in').addEventListener('click', () => zoom(.75)); $('zoom-out').addEventListener('click', () => zoom(1.4));
-  $('home-view').addEventListener('click', () => { view = { min: s.topic === 'shift' ? -5 : -3, max: 7 }; render(); });
-  $('fit-points').addEventListener('click', () => { const roots = M.positiveBaseIntersections(s.a); if (!roots || !roots.length) return; const max = Math.max(7, roots[roots.length - 1] * 1.18); view = { min: -max * .15, max }; render(); });
-  const plot = $('plot');
-  function eventPoint(e) { const r = plot.getBoundingClientRect(); return fromPixel((e.clientX - r.left) / r.width * size, (e.clientY - r.top) / r.height * size); }
-  plot.addEventListener('pointerdown', e => {
-    const target = e.target.closest('[data-handle]'); if (!target || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    stopAnimation(); drag = { handle: target.dataset.handle, pointer: e.pointerId }; plot.classList.add('dragging'); plot.setPointerCapture(e.pointerId); e.preventDefault();
+  $('normal-base').addEventListener('input',()=>{
+    if(state.critical)return;
+    state.normal=clamp(Math.round(Number($('normal-base').value)*10)/10,1.1,5);
+    syncControls();requestDraw();
   });
-  plot.addEventListener('pointermove', e => {
-    if (!drag || drag.pointer !== e.pointerId) return;
-    const p = eventPoint(e), handle = drag.handle;
-    if (handle === 't') s.t = Math.max(-3, Math.min(4, s.topic === 'inverse' || s.kind === 'exp' ? p.x : p.y));
-    if (handle === 'q') s.t = Math.max(-3, Math.min(4, p.y));
-    if (handle === 'm') s.m = Math.max(s.kind === 'log' ? .1 : -3, Math.min(s.n - .1, s.kind === 'log' ? 7 : 4, p.x));
-    if (handle === 'n') s.n = Math.max(s.m + .1, Math.min(7, p.x));
-    if (handle === 'mid') { const width = (s.n - s.m) / 2, min = s.kind === 'log' ? .1 : -3, maxM = s.kind === 'log' ? 7 : 4; s.m = Math.max(min, Math.min(maxM, 7 - 2 * width, p.x - width)); s.n = s.m + 2 * width; }
-    if (handle === 'shift') {
-      s.h = Math.round(Math.max(-4, Math.min(4, s.kind === 'exp' ? p.x : p.x - s.sx)) * 4) / 4;
-      s.k = Math.round(Math.max(-4, Math.min(4, s.kind === 'exp' ? p.y - s.sy : p.y)) * 4) / 4;
-    }
-    s.t = Math.round(s.t * 20) / 20;
-    s.m = Math.round(s.m * 10) / 10; s.n = Math.round(s.n * 10) / 10;
-    syncOutputs(); render(); e.preventDefault();
+  $('fractional-base').addEventListener('input',()=>{
+    state.fractional=clamp(Math.round(Number($('fractional-base').value)*20)/20,.1,.95);
+    syncControls();requestDraw();
   });
-  function endDrag() { drag = null; plot.classList.remove('dragging'); }
-  plot.addEventListener('pointerup', endDrag); plot.addEventListener('pointercancel', endDrag); plot.addEventListener('lostpointercapture', endDrag);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stopAnimation(); });
-  new ResizeObserver(entries => { const width = Math.round(entries[0].contentRect.width); if (width > 0 && width !== size) { size = width; padding = width < 400 ? 28 : 33; render(); } }).observe(plot.parentElement);
-  updateBase(); setupControls(); render();
+  for(const id of ids)$(id).addEventListener('change',()=>{state.visible[id]=$(id).checked;requestDraw();});
+  $('critical-mode').addEventListener('change',()=>{
+    state.critical=$('critical-mode').checked;
+    if(state.critical){
+      state.previous={base:state.normal,exp:state.visible['normal-exp'],log:state.visible['normal-log']};
+      state.normal=M.CRITICAL;state.visible['normal-exp']=state.visible['normal-log']=true;
+    }else if(state.previous){
+      state.normal=state.previous.base;state.visible['normal-exp']=state.previous.exp;state.visible['normal-log']=state.previous.log;state.previous=null;
+    }
+    syncControls();requestDraw();
+  });
+  $('symmetry-toggle').addEventListener('click',()=>{state.symmetry=!state.symmetry;syncControls();requestDraw();});
+  $('pan-toggle').addEventListener('click',()=>{state.pan=!state.pan;syncControls();});
+  function zoom(factor,anchor) {
+    const old=state.view.span, next=clamp(old*factor,2,120);
+    if(anchor){const p=world(anchor),ratio=next/old;state.view.cx=p.x+(state.view.cx-p.x)*ratio;state.view.cy=p.y+(state.view.cy-p.y)*ratio;}
+    state.view.span=next;requestDraw();
+  }
+  $('zoom-in').addEventListener('click',()=>zoom(.8));
+  $('zoom-out').addEventListener('click',()=>zoom(1.25));
+  $('home-view').addEventListener('click',()=>{state.view=defaultView();requestDraw();});
+  $('fit-points').addEventListener('click',()=>{state.view=M.fitIntersections(intersections);requestDraw();});
+  $('reset').addEventListener('click',()=>{
+    state.normal=2;state.fractional=.5;state.critical=false;state.previous=null;state.symmetry=false;state.pan=false;state.selected=null;state.view=defaultView();
+    state.visible={'normal-exp':true,'normal-log':true,'fractional-exp':false,'fractional-log':false};
+    syncControls();requestDraw();
+  });
+  svg.addEventListener('pointerdown',event=>{
+    if(!state.pan||event.button!==0||event.target.closest('.intersection'))return;
+    drag={id:event.pointerId,x:event.clientX,y:event.clientY,cx:state.view.cx,cy:state.view.cy,scale:metrics.scale};
+    svg.setPointerCapture(event.pointerId);svg.classList.add('is-panning');
+  });
+  svg.addEventListener('pointermove',event=>{
+    if(!drag||drag.id!==event.pointerId)return;
+    state.view.cx=clamp(drag.cx-(event.clientX-drag.x)/drag.scale,-200,200);
+    state.view.cy=clamp(drag.cy+(event.clientY-drag.y)/drag.scale,-200,200);
+    requestDraw();
+  });
+  function stopDrag(){drag=null;svg.classList.remove('is-panning');}
+  svg.addEventListener('pointerup',stopDrag);svg.addEventListener('pointercancel',stopDrag);svg.addEventListener('lostpointercapture',stopDrag);
+  svg.addEventListener('wheel',event=>{
+    if(!state.pan||event.ctrlKey||event.metaKey)return;
+    event.preventDefault();const r=svg.getBoundingClientRect();
+    zoom(event.deltaY>0?1.1:1/1.1,{x:event.clientX-r.left,y:event.clientY-r.top});
+  },{passive:false});
+  new ResizeObserver(requestDraw).observe(wrap);
+  syncControls();draw();
 })();

@@ -61,8 +61,48 @@ test('homepage lists the grade-11 lesson and all local entrypoint assets exist',
   const fs=require('node:fs'), vm=require('node:vm');
   const ctx=vm.createContext({});vm.runInContext(fs.readFileSync('data.js','utf8')+';globalThis.lessons=lessonData',ctx);
   const entry=ctx.lessons.find(l=>l.url==='senior/math/exp_log_explorer.html');assert.ok(entry);assert.ok(entry.grades.includes(11));
-  const html=fs.readFileSync(entry.url,'utf8');assert.equal((html.match(/data-topic=/g)||[]).length,5);
+  const html=fs.readFileSync(entry.url,'utf8');
+  assert.match(html,/id="normal-base"[^>]*min="1.1"[^>]*max="5"[^>]*step="0.1"/);
+  assert.match(html,/id="fractional-base"[^>]*min="0.10"[^>]*max="0.95"[^>]*step="0.05"/);
+  for(const id of ['normal-exp','normal-log']) assert.match(html,new RegExp('id="'+id+'"[^>]*checked'));
+  for(const id of ['fractional-exp','fractional-log']) assert.doesNotMatch(html,new RegExp('id="'+id+'"[^>]*checked'));
+  for(const id of ['critical-mode','symmetry-toggle','fit-points','pan-toggle']) assert.ok(html.includes('id="'+id+'"'));
   for(const [,asset]of html.matchAll(/(?:src|href)="([^"?]+)(?:\?[^"]*)?"/g)) {
     if(asset.startsWith('http'))continue;assert.ok(fs.existsSync(require('node:path').resolve('senior/math',asset)),asset);
   }
+});
+test('every slider combination finds all six curve-pair intersections without duplicates', () => {
+  const all=['normal-exp','normal-log','fractional-exp','fractional-log'];
+  for(let ai=11;ai<=50;ai++) for(let bi=2;bi<=19;bi++) {
+    const a=ai/10,b=bi/20,points=M.dualBaseIntersections(a,b);
+    assert.equal(points.length,a<M.CRITICAL?7:5);
+    for(const p of points) {
+      assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
+      for(const pair of p.pairs) for(const id of pair) near(M.value(id.endsWith('exp')?'exp':'log',id.startsWith('normal')?a:b,p.x),p.y);
+    }
+    for(let i=0;i<points.length;i++) for(let j=0;j<i;j++) assert.ok(Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)>1e-7);
+  }
+  const exact=M.dualBaseIntersections(M.CRITICAL,.5);
+  assert.equal(exact.length,6);assert.equal(exact.filter(p=>p.exact).length,1);
+  const p=exact.find(p=>p.exact);near(p.x,Math.E);near(p.y,Math.E);
+});
+test('visibility filters include cross-base intersections and never invent symmetry-axis points', () => {
+  const ids=['normal-exp','normal-log','fractional-exp','fractional-log'];
+  for(const a of [1.1,1.4,M.CRITICAL,2,5]) for(let mask=0;mask<16;mask++) {
+    const visible=Object.fromEntries(ids.map((id,i)=>[id,!!(mask&(1<<i))]));
+    const expected=M.dualBaseIntersections(a,.5).filter(p=>p.pairs.some(pair=>pair.every(id=>visible[id])));
+    const actual=M.dualBaseIntersections(a,.5,visible);
+    assert.deepEqual(actual.map(p=>p.id),expected.map(p=>p.id));
+  }
+  const onlyNormal={'normal-exp':true,'normal-log':true,'fractional-exp':false,'fractional-log':false};
+  assert.equal(M.dualBaseIntersections(2,.5,onlyNormal).length,0);
+  assert.equal(M.dualBaseIntersections(1.4,.5,onlyNormal).length,2);
+  assert.throws(()=>M.dualBaseIntersections(1,.5));
+  assert.throws(()=>M.dualBaseIntersections(2,.05));
+});
+test('fit view encloses far intersections with an equal-scale square and origin margin', () => {
+  const points=M.dualBaseIntersections(1.1,.1),v=M.fitIntersections(points);
+  assert.ok(points.some(p=>p.x>38));
+  for(const p of [...points,{x:0,y:0}]){assert.ok(Math.abs(p.x-v.cx)<v.span/2);assert.ok(Math.abs(p.y-v.cy)<v.span/2);}
+  assert.deepEqual(M.fitIntersections([]),{cx:2.5,cy:2.5,span:9});
 });
