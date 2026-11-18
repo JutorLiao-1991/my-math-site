@@ -1,4 +1,4 @@
-/* 基準量與比較量：作答區與輸入區分開。
+/* 分步練習頁共用：作答區與輸入區分開（基準量與比較量、圓形與扇形）。
    寬螢幕（iPad 橫放、電腦）：題目在左、輸入區在右。
    窄螢幕（手機、iPad 直放）：題目在上方捲動，輸入區固定在下方，兩者不重疊。 */
 html { height: 100%; }
@@ -60,3 +60,8 @@ body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr)
   .split .key-hint { display: none; }
   .split .nav-bar { padding: 6px 12px; }
 }
+
+/* 題目附圖（示意圖） */
+.q-figure { display: block; width: min(100%, 260px); height: auto; margin: 12px 0 4px; }
+.review .q-figure { width: min(100%, 220px); }
+@media (min-width: 900px) and (min-height: 500px) { .question .q-figure { width: 280px; } }

@@ -29,7 +29,13 @@
     if (!state.question || state.done || state.suspended) return [];
     return state.mode === 'exam' ? state.question.finalFields : state.question.steps[state.step].fields;
   }
-  function entry(f) { return state.entries[f.key] || (state.entries[f.key] = E.fromValue(state.values[f.key] || '')); }
+  function entry(f) {
+    if (!state.entries[f.key]) {
+      state.entries[f.key] = E.fromValue(state.values[f.key] || '');
+      if (!state.values[f.key] && f.defaultForm) state.entries[f.key].kind = f.defaultForm;
+    }
+    return state.entries[f.key];
+  }
   function openModes() {
     $('mode-error').textContent = '';
     if (!$('mode-dialog').open) $('mode-dialog').showModal();
