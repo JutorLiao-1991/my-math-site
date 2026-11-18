@@ -126,6 +126,8 @@
       if (!active || progress().phase !== 2) return;
       const el = $(`study-input-${activeField}-${activePart}`); if (!el) return;
       const rect = el.closest('.study-entry').getBoundingClientRect(), top = $('study-dock').getBoundingClientRect().top;
+      const scroller = document.body.classList.contains('split') ? document.querySelector('.main-wrapper') : null;
+      if (scroller) { el.closest('.study-entry').scrollIntoView({ block: 'nearest', inline: 'nearest' }); return; }
       if (rect.bottom > top - 12) window.scrollBy(0, rect.bottom - top + 24);
     });
   }

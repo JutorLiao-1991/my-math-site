@@ -21,7 +21,7 @@ body.split {
 .split .num-btn { min-height: 46px; }
 
 /* 沒有輸入區時（歡迎頁、成績頁），題目區占滿 */
-body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+body.split:not(:has(.keyboard-dock:not([hidden]))) { grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "nav" "main"; }
 
 /* 手機：維持單欄鍵盤，壓縮高度 */
 @media (max-width: 650px) {
@@ -33,7 +33,7 @@ body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr)
 /* iPad 橫放、電腦：輸入區獨立在右側 */
 @media (min-width: 900px) and (min-height: 500px) {
   body.split { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 380px; grid-template-areas: "nav nav" "main dock"; }
-  body.split:has(#keyboard-dock[hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+  body.split:not(:has(.keyboard-dock:not([hidden]))) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
   .split .main-wrapper { padding: 14px 8px 14px 14px; }
   .split .keyboard-dock {
     max-height: none; margin: 14px 14px 14px 6px; padding: 14px; border: 1px solid #b9d5ed; border-radius: 14px;
@@ -42,7 +42,9 @@ body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr)
   .split .dock-inner { max-width: none; grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .split .dock-heading { grid-column: 1; }
   .split .num-btn { min-height: 56px; font-size: 1.4rem; }
-  .split .num-btn[data-key="space"], .split .num-btn[data-key="next"] { font-size: 1rem; }
+  .split .num-btn[data-key="space"], .split .num-btn[data-key="next"], .split .num-btn[data-study-key="space"], .split .num-btn[data-study-key="next"] { font-size: 1rem; }
+  .split .study-dock.study-navigation-only .dock-actions { flex-direction: column; align-items: stretch; }
+  .split .study-dock.study-navigation-only .primary-action { width: 100%; }
   .split .key-hint { display: block; }
   .split .primary-action { min-height: 52px; font-size: 1.05rem; }
   .split .minor-actions .secondary-btn { min-height: 44px; }
@@ -51,7 +53,7 @@ body.split:has(#keyboard-dock[hidden]) { grid-template-rows: auto minmax(0, 1fr)
 /* 手機或小平板橫放（高度很矮）：也把輸入區放右側 */
 @media (max-height: 520px) and (min-width: 560px) {
   body.split { grid-template-rows: auto minmax(0, 1fr); grid-template-columns: minmax(0, 1fr) 330px; grid-template-areas: "nav nav" "main dock"; }
-  body.split:has(#keyboard-dock[hidden]) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
+  body.split:not(:has(.keyboard-dock:not([hidden]))) { grid-template-columns: minmax(0, 1fr); grid-template-areas: "nav" "main"; }
   .split .keyboard-dock { max-height: none; border-top: 0; border-left: 1px solid #b9d5ed; box-shadow: none; padding: 8px 10px; }
   .split .dock-inner { grid-template-columns: minmax(0, 1fr); max-width: none; gap: 6px; }
   .split .dock-heading { grid-column: 1; }
