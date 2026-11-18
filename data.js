@@ -156,6 +156,15 @@ const lessonData = [
         desc: "先判斷基準量，再選算式求兩量之和、兩量之差或反推基準量；含是非、選擇與十題綜合測驗。"
     },
     {
+        title: "圓形與扇形（六年級）",
+        category: "elementary",
+        grades: [6],
+        url: "elementary/circle_sector_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "先求半徑，再選算式算出圓面積、扇形面積、弧長與倍率；含陰影面積、複合圖形周長附圖、是非、選擇與十題綜合測驗。"
+    },
+    {
         title: "整數加減闖關（國一）",
         category: "junior",
         grades: [7],
