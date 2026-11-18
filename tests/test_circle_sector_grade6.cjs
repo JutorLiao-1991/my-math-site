@@ -52,11 +52,33 @@ test('generated shaded figures reproduce the worksheet answers', () => {
   }
 });
 
+test('arc length and composite perimeter reproduce textbook answers', () => {
+  const targets = [
+    ['perimeter', 0, '每段虛線都是 5 公分', 31.4],          // 課本範例 2
+    ['perimeter', 1, '正方形的邊長是 4 公分', 12.56],
+    ['perimeter', 2, '邊長是 14 公分的正方形', 49.98],      // 21.98＋28
+    ['perimeter', 3, '邊長 20 公分的正三角形', 91.4],        // 31.4＋60
+    ['perimeter', 4, '長方形的長是 100 公尺，半圓的直徑是 40 公尺', 325.6],
+    ['perimeter', 5, '邊長 4 公分的正方形四邊', 25.12],
+    ['arc', 3, '直徑 10 公分的半圓形', 25.7]
+  ];
+  for (const [type, variant, needle, expected] of targets) {
+    let found = null;
+    for (let seed = 1; seed < 6000 && !found; seed++) { const q = Q.generate(type, null, rng(seed), variant); if (q.text.includes(needle)) found = q; }
+    assert.ok(found, needle);
+    const e = found.finalFields[0].expected;
+    assert.deepEqual(typeof e === 'object' ? e : F(e), dec(expected), needle);
+  }
+  assert.deepEqual(evaluate('8×2×3.14×72/360'), dec(10.048));   // 分針尖端 12 分鐘
+});
+
 test('every step question is consistent: formula value = answer, one correct option, inputs accepted', () => {
-  const seenShaded = new Set();
-  for (const type of ['area', 'ratio', 'sector', 'sectorWhole', 'shaded']) for (let v = 0, random = rng(type.length * 31); v < 360; v++) {
+  const seenShaded = new Set(), seenPerimeter = new Set();
+  for (const type of ['area', 'ratio', 'sector', 'sectorWhole', 'shaded', 'arc', 'perimeter']) for (let v = 0, random = rng(type.length * 31); v < 360; v++) {
     const q = Q.generate(type, null, random, v), s = q.scenario;
     if (type === 'shaded') { seenShaded.add(s.template); assert.ok(q.textHtml.includes('<svg'), q.text); }
+    if (type === 'perimeter') { seenPerimeter.add(s.template); assert.ok(q.textHtml.includes('<svg'), q.text); }
+    assert.ok(!/\d\/\d/.test(q.text), q.text);
     assert.ok(q.text && !/undefined|NaN|Infinity/.test(q.text + q.explanation + q.textHtml), q.text);
     assert.equal(q.steps.length, 3);
     assert.equal(s.options.length, 4);
@@ -73,6 +95,7 @@ test('every step question is consistent: formula value = answer, one correct opt
     assert.deepEqual(q.finalFields, q.steps[2].fields);
   }
   assert.equal(seenShaded.size, Q.SHADED_COUNT);
+  assert.equal(seenPerimeter.size, Q.PERIMETER_COUNT);
 });
 
 test('true/false and multiple-choice answers match an independent check', () => {
@@ -99,9 +122,9 @@ test('each exam has ten unique questions with the fixed type mix', () => {
     const exam = Q.buildExam(null, rng(seed)), counts = {};
     exam.forEach(q => { counts[q.topic] = (counts[q.topic] || 0) + 1; });
     assert.equal(exam.length, 10);
-    assert.deepEqual(counts, { area: 2, ratio: 1, sector: 1, sectorWhole: 1, shaded: 3, judge: 1, choice: 1 });
+    assert.deepEqual(counts, { area: 1, ratio: 1, sector: 1, sectorWhole: 1, arc: 1, shaded: 2, perimeter: 1, judge: 1, choice: 1 });
     assert.equal(new Set(exam.map(q => q.text)).size, 10);
-    assert.equal(new Set(exam.filter(q => q.topic === 'shaded').map(q => q.scenario.template)).size, 3);
+    assert.equal(new Set(exam.filter(q => q.topic === 'shaded').map(q => q.scenario.template)).size, 2);
     for (const q of exam) for (const f of q.finalFields) assert.ok(Q.correct(raw(f), f));
   }
 });

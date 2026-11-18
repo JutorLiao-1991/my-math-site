@@ -162,7 +162,7 @@ const lessonData = [
         url: "elementary/circle_sector_grade6.html",
         tagClass: "math",
         tagName: "國小數學",
-        desc: "先求半徑，再選算式算出圓面積、扇形面積與倍率；含十二種陰影面積附圖、是非、選擇與十題綜合測驗。"
+        desc: "先求半徑，再選算式算出圓面積、扇形面積、弧長與倍率；含陰影面積、複合圖形周長附圖、是非、選擇與十題綜合測驗。"
     },
     {
         title: "整數加減闖關（國一）",

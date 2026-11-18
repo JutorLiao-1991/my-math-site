@@ -25,7 +25,7 @@ class CircleSectorGrade6Tests(unittest.TestCase):
         for asset in re.findall(r'(?:src|href)="([^"#]+\.(?:js|css))"', html):
             self.assertTrue((PAGE.parent / asset).is_file(), asset)
         practice_types = set(re.findall(r'data-type="([^"]+)"', html))
-        self.assertEqual(practice_types, {"area", "ratio", "sector", "sectorWhole", "shaded", "judge", "choice", "mixed"})
+        self.assertEqual(practice_types, {"area", "ratio", "sector", "sectorWhole", "shaded", "arc", "perimeter", "judge", "choice", "mixed"})
 
     def test_listed_in_menu_with_grade(self):
         data = (ROOT / "data.js").read_text(encoding="utf-8")

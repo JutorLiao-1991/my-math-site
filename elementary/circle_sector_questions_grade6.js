@@ -4,11 +4,11 @@
   const RQ = typeof module !== 'undefined' && module.exports ? require('./ratio_questions_grade6.js') : root.RatioQuestions;
   const categories = {
     area: '圓的周長與面積', ratio: '倍率問題', sector: '扇形面積', sectorWhole: '由圓面積求扇形',
-    shaded: '陰影面積', judge: '是非判斷', choice: '選擇題'
+    shaded: '陰影面積', arc: '弧長與扇形周長', perimeter: '複合圖形周長', judge: '是非判斷', choice: '選擇題'
   };
   const PRACTICE_TYPES = Object.keys(categories);
-  const EXAM_TYPES = ['area', 'area', 'ratio', 'sector', 'sectorWhole', 'shaded', 'shaded', 'shaded', 'judge', 'choice'];
-  const SHADED_COUNT = 12;
+  const EXAM_TYPES = ['area', 'ratio', 'sector', 'sectorWhole', 'arc', 'shaded', 'shaded', 'perimeter', 'judge', 'choice'];
+  const SHADED_COUNT = 12, PERIMETER_COUNT = 6;
 
   /* ---------- 分數運算 ---------- */
   const gcd = (a, b) => b ? gcd(b, a % b) : Math.abs(a);
@@ -87,6 +87,15 @@
   /* 兩段半徑 r 的弧圍成的葉形 */
   const leaf = (p, q, r, fill = GRAY) => `<path d="M${f2(p[0])} ${f2(p[1])} A${f2(r)} ${f2(r)} 0 0 0 ${f2(q[0])} ${f2(q[1])} A${f2(r)} ${f2(r)} 0 0 0 ${f2(p[0])} ${f2(p[1])} Z" fill="${fill}" ${stroke}/>`;
 
+  const figSquareQuarter = a => svg(rect(30, 30, 160, 160, GRAY) + sector(190, 190, 160, 90, 180, WHITE) + label(110, 212, `${a}cm`) + label(198, 115, `${a}cm`, 'start'), 250, 225);
+  const figLeaf = a => svg(`<rect x="40" y="30" width="160" height="160" fill="none" stroke="${LINE}" stroke-width="1.2" stroke-dasharray="4 3"/>` + leaf([40, 190], [200, 30], 160) + label(120, 212, `${a}cm`) + label(208, 115, `${a}cm`, 'start'), 255, 225);
+  function figTriangleSectors(side) {
+    const h = 180 * Math.sqrt(3) / 2, A = [120, 25], B = [30, 25 + h], C = [210, 25 + h];
+    return svg(sector(B[0], B[1], 90, 0, 60, GRAY) + sector(C[0], C[1], 90, 120, 180, GRAY) + sector(A[0], A[1], 90, 240, 300, GRAY) +
+      `<polygon points="${[A, B, C].map(p => p.map(f2).join(',')).join(' ')}" fill="none" ${stroke}/>` +
+      label(60, 95, `${side}cm`, 'end') + label(180, 95, `${side}cm`, 'start') + label(120, 25 + h + 20, `${side}cm`), 240, 25 + h + 30);
+  }
+
   /* ---------- 步驟題的共同包裝 ---------- */
   function finishScenario(s, t) {
     s.answer.v = evaluate(s.formulas[0]);
@@ -105,7 +114,7 @@
     return s;
   }
   function retry(build, t) {
-    for (let i = 0; i < 80; i++) { const s = finishScenario(build(t), t); if (s) return s; }
+    for (let i = 0; i < 80; i++) { const b = build(t); const s = b && finishScenario(b, t); if (s) return s; }
     throw new Error('Could not build a question');
   }
 
@@ -251,6 +260,7 @@
       if (kind === 1) {
         const whole = F(t.pick([20, 30, 40, 45, 60, 75, 90, 100, 120, 135, 150, 180, 200, 240, 300]));
         const S = mul(whole, part);
+        if (terminatingDigits(S) > 3) return null;
         s.text = `一個圓心角是 ${angle}° 的扇形，面積是 ${num(S)} 平方公分，完整的圓面積是多少平方公分？`;
         s.answer = { label: '圓面積（平方公分）', unit: '平方公分' };
         s.formulas = [`${num(S)}×360/${angle}`, `${num(S)}×${angle}/360`, `${num(S)}×${360 - angle}/360`, `${num(S)}÷3.14`, `${num(S)}×${angle}`];
@@ -350,7 +360,7 @@
     /* 6 正方形－四分之一圓 */
     t => {
       const a = t.pick([2, 4, 6, 8, 10, 12, 14, 16, 20]);
-      const fig = svg(rect(30, 30, 160, 160, GRAY) + sector(190, 190, 160, 90, 180, WHITE) + label(110, 212, `${a}cm`) + label(198, 115, `${a}cm`, 'start'), 250, 225);
+      const fig = figSquareQuarter(a);
       return { text: `將一個邊長是 ${a} 公分的正方形和一個扇形重疊在一起，如下圖，灰色部分的面積大約是多少平方公分？`, fig,
         key: { title: '求半徑', label: '扇形的半徑', v: F(a), why: `扇形的半徑就是正方形的邊長 ${a}。`, hint: '扇形的半徑和正方形的邊一樣長。' },
         formulas: [`${a}×${a}－${a}×${a}×3.14÷4`, `${a}×${a}－${a}×${a}×3.14`, `${a}×${a}×3.14÷4`, `${a}×${a}－${a}×${a}×3.14÷2`],
@@ -368,7 +378,7 @@
     /* 8 正方形內的葉形 */
     t => {
       const a = t.pick([2, 4, 5, 6, 8, 10, 12, 20]);
-      const fig = svg(`<rect x="40" y="30" width="160" height="160" fill="none" stroke="${LINE}" stroke-width="1.2" stroke-dasharray="4 3"/>` + leaf([40, 190], [200, 30], 160) + label(120, 212, `${a}cm`) + label(208, 115, `${a}cm`, 'start'), 255, 225);
+      const fig = figLeaf(a);
       return { text: `下圖中，正方形的邊長是 ${a} 公分，兩段弧都以正方形的頂點為圓心。灰色部分的面積大約是多少平方公分？`, fig,
         key: { title: '求半徑', label: '弧的半徑', v: F(a), why: `兩段弧的半徑都是正方形的邊長 ${a}。`, hint: '弧的圓心在正方形頂點上。' },
         formulas: [`(${a}×${a}×3.14÷4－${a}×${a}÷2)×2`, `${a}×${a}×3.14÷4－${a}×${a}÷2`, `${a}×${a}×3.14÷4×2`, `${a}×${a}－${a}×${a}×3.14÷4`],
@@ -399,12 +409,8 @@
     },
     /* 11 正三角形三個角上的扇形 */
     t => {
-      const side = t.pick([4, 6, 8, 10, 12, 16, 20, 24, 30]), r = side / 2, h = 180 * Math.sqrt(3) / 2;
-      const A = [120, 25], B = [30, 25 + h], C = [210, 25 + h];
-      const body = sector(B[0], B[1], 90, 0, 60, GRAY) + sector(C[0], C[1], 90, 120, 180, GRAY) + sector(A[0], A[1], 90, 240, 300, GRAY) +
-        `<polygon points="${[A, B, C].map(p => p.map(f2).join(',')).join(' ')}" fill="none" ${stroke}/>` +
-        label(60, 95, `${side}cm`, 'end') + label(180, 95, `${side}cm`, 'start') + label(120, 25 + h + 20, `${side}cm`);
-      return { text: `下圖是邊長 ${side} 公分的正三角形，以三個頂點為圓心、邊長的一半為半徑，各畫一個扇形。灰色部分的面積大約是多少平方公分？`, fig: svg(body, 240, 25 + h + 30),
+      const side = t.pick([4, 6, 8, 10, 12, 16, 20, 24, 30]), r = side / 2;
+      return { text: `下圖是邊長 ${side} 公分的正三角形，以三個頂點為圓心、邊長的一半為半徑，各畫一個扇形。灰色部分的面積大約是多少平方公分？`, fig: figTriangleSectors(side),
         key: { title: '求圓心角', label: '三個扇形的圓心角合起來（度）', v: F(180), why: '正三角形每個角都是 60°，三個扇形合起來是 60×3＝180°，也就是半個圓。', hint: '正三角形的三個角都是 60°。' },
         formulas: [`${num(F(r))}×${num(F(r))}×3.14×180/360`, `${side}×${side}×3.14×180/360`, `${num(F(r))}×${num(F(r))}×3.14×60/360`, `${num(F(r))}×${num(F(r))}×3.14×3`],
         rule: '3 個 60° 的扇形＝半個圓' };
@@ -421,8 +427,125 @@
     }, t);
   }
 
+  /* ---------- ⑥ 弧長與扇形周長 ---------- */
+  const ARC_RULE = '弧長＝直徑×3.14×圓心角/360；扇形周長＝弧長＋半徑×2';
+  function arcScenario(t, variant) {
+    return retry(() => {
+      const kind = variant % 5, s = { kind: 'arc', allowFraction: false, ruleHint: ARC_RULE };
+      const r = F(t.rnd(2, 15)), R = num(r), d = mul(r, F(2)), D = num(d);
+      const angle = t.pick([30, 36, 40, 45, 60, 72, 90, 120, 135, 144, 150, 180, 210, 240, 270]);
+      const arc = evaluate(`${D}×3.14×${angle}/360`), A = num(arc);
+      s.answer = { label: '長度（公分）', unit: '公分' };
+      if (kind === 0) {
+        s.text = `一個圓心角是 ${angle}°、直徑是 ${D} 公分的扇形，這個扇形的弧長大約是多少公分？`;
+        s.key = { title: '求半徑', label: '半徑', v: r, unit: '公分', why: `半徑＝直徑÷2＝${D}÷2＝${R}。`, hint: '半徑＝直徑÷2。' };
+        s.answer.label = '弧長（公分）';
+        s.formulas = [`${R}×2×3.14×${angle}/360`, `${R}×${R}×3.14×${angle}/360`, `${R}×3.14×${angle}/360`, `${R}×2×3.14×${angle}/360＋${R}×2`, `${D}×2×3.14×${angle}/360`];
+        s.rule = '弧長＝半徑×2×3.14×圓心角/360';
+      } else if (kind === 1) {
+        s.text = `一個半徑 ${R} 公分、圓心角 ${angle}° 的扇形，這個扇形的周長大約是多少公分？`;
+        s.key = { title: '求弧長', label: '弧長', v: arc, unit: '公分', why: `弧長＝${D}×3.14×${angle}/360＝${A}。`, hint: '弧長＝直徑×3.14×圓心角/360。' };
+        s.answer.label = '扇形周長（公分）';
+        s.formulas = [`${A}＋${R}×2`, `${A}`, `${A}＋${R}`, `${A}＋${D}×2`];
+        s.rule = '扇形周長＝弧長＋2 條半徑';
+      } else if (kind === 2) {
+        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), mins = t.pick([5, 10, 15, 20]), m2 = m1 + mins, a2 = mins * 6, pad = m => String(m).padStart(2, '0');
+        s.text = `時鐘的分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h} 時 ${pad(m2)} 分，分針的尖端走了大約多少公分？`;
+        s.key = { title: '求圓心角', label: '分針轉過的角度（度）', v: F(a2), unit: '度', why: `分針 1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${a2}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' };
+        s.answer.label = '尖端走的距離（公分）';
+        s.formulas = [`${R}×2×3.14×${a2}/360`, `${R}×${R}×3.14×${a2}/360`, `${R}×2×3.14×${mins}/360`, `${R}×2×3.14×${a2}/360＋${R}×2`];
+        s.rule = '尖端走的路線是一段弧，弧長＝半徑×2×3.14×圓心角/360';
+      } else if (kind === 3) {
+        const half = evaluate(`${D}×3.14÷2`), H = num(half);
+        s.text = `一個直徑 ${D} 公分的半圓形，周長大約是多少公分？`;
+        s.key = { title: '求弧長', label: '半圓的弧長', v: half, unit: '公分', why: `半圓的弧長＝${D}×3.14÷2＝${H}。`, hint: '半圓的弧是圓周長的一半。' };
+        s.answer.label = '半圓周長（公分）';
+        s.formulas = [`${H}＋${D}`, `${H}`, `${H}＋${R}`, `${D}×3.14＋${D}`];
+        s.rule = '半圓周長＝半圓的弧長＋直徑';
+      } else {
+        const C = mul(d, PI), L = mul(C, F(angle, 360));
+        if (terminatingDigits(L) > 3) return null;
+        s.text = `一個圓心角 ${angle}° 的扇形，弧長是 ${num(L)} 公分，這個扇形的半徑是多少公分？`;
+        s.key = { title: '求整個圓的周長', label: '整個圓的周長', v: C, unit: '公分', why: `弧長占整個圓周的 ${angle}/360，圓周長＝${num(L)}×360/${angle}＝${num(C)}。`, hint: '弧長＝圓周長×圓心角/360，反過來乘 360/圓心角。' };
+        s.answer.label = '半徑（公分）';
+        s.formulas = [`${num(C)}÷3.14÷2`, `${num(C)}÷3.14`, `${num(C)}÷2`, `${num(C)}×3.14÷2`];
+        s.rule = '圓周長＝半徑×2×3.14，所以半徑＝圓周長÷3.14÷2';
+      }
+      return s;
+    }, t);
+  }
+
+  /* ---------- ⑦ 複合圖形周長（6 種附圖） ---------- */
+  const PERIMETER = [
+    /* 0 半圓加兩個四分之一圓（課本範例） */
+    t => {
+      const a = t.pick([2, 3, 4, 5, 6, 8, 10]);
+      const body = `<path d="M95 30 A80 80 0 0 0 95 190 A80 80 0 0 1 175 110 A80 80 0 0 1 95 30 Z" fill="${GRAY}" ${stroke}/>` +
+        `<rect x="95" y="30" width="80" height="160" fill="none" stroke="${LINE}" stroke-width="1.2" stroke-dasharray="4 3"/>` +
+        line(15, 110, 175, 110) + dot(95, 110) + dot(175, 30) + dot(175, 190) +
+        label(135, 22, `${a}cm`) + label(135, 212, `${a}cm`) + label(183, 75, `${a}cm`, 'start') + label(183, 155, `${a}cm`, 'start') + label(55, 104, `${a}cm`);
+      return { text: `下圖中，左邊是半圓，右邊兩段弧的圓心在長方形右邊的兩個頂點，每段虛線都是 ${a} 公分。灰色部分的周長大約是多少公分？`, fig: svg(body, 240, 222),
+        key: { title: '數一數弧', label: '所有弧合起來是幾個圓的周長', v: F(1), unit: '個', why: '左邊是 1/2 個圓周，右邊兩段各是 1/4 個圓周，合起來 1/2＋1/4＋1/4＝1 個圓周，半徑都是 ' + a + '。虛線不算周長。', hint: '虛線是輔助線，不是灰色部分的邊。' },
+        formulas: [`${a}×2×3.14`, `${a}×2×3.14＋${2 * a}`, `${a}×2×3.14÷2`, `${a}×${a}×3.14`, `${a}×2×3.14＋${4 * a}`],
+        rule: '周長只算灰色部分的外框：三段弧合起來是一個半徑 ' + a + ' 的圓周' };
+    },
+    /* 1 正方形內的葉形 */
+    t => {
+      const a = t.pick([2, 4, 5, 6, 8, 10, 12, 20]);
+      return { text: `下圖中，正方形的邊長是 ${a} 公分，兩段弧都以正方形的頂點為圓心。灰色部分的周長大約是多少公分？`, fig: figLeaf(a),
+        key: { title: '數一數弧', label: '兩段弧合起來是幾分之幾個圓周', v: F(1, 2), unit: '', why: `兩段弧各是 1/4 個圓周（半徑 ${a}），合起來是 1/2 個圓周。`, hint: '每段弧都是四分之一圓的弧。' },
+        formulas: [`${a}×2×3.14÷4×2`, `${a}×2×3.14÷4×2＋${a}×2`, `${a}×2×3.14÷4`, `${a}×${a}×3.14÷4×2`, `${a}×2×3.14×2`],
+        rule: '葉形的周長＝2 段四分之一圓的弧' };
+    },
+    /* 2 正方形－四分之一圓 */
+    t => {
+      const a = t.pick([2, 4, 6, 8, 10, 12, 14, 16, 20]);
+      return { text: `將一個邊長是 ${a} 公分的正方形和一個扇形重疊在一起，如下圖，灰色部分的周長大約是多少公分？`, fig: figSquareQuarter(a),
+        key: { title: '求直線部分', label: '灰色部分直線邊的總長', v: F(2 * a), unit: '公分', why: `灰色部分有 2 條正方形的邊（上面和左邊），共 ${a}×2＝${2 * a}。`, hint: '沿著灰色部分的外框走一圈，數一數直線邊。' },
+        formulas: [`${a}×2×3.14÷4＋${a}×2`, `${a}×2×3.14÷4＋${a}×4`, `${a}×2×3.14÷4`, `${a}×2×3.14＋${a}×2`, `${a}×${a}×3.14÷4＋${a}×2`],
+        rule: '灰色周長＝四分之一圓的弧＋2 條正方形的邊' };
+    },
+    /* 3 正三角形三個角上的扇形 */
+    t => {
+      const side = t.pick([4, 6, 8, 10, 12, 16, 20]), r = side / 2;
+      return { text: `下圖是邊長 ${side} 公分的正三角形，以三個頂點為圓心、邊長的一半為半徑，各畫一個扇形。灰色部分（三個扇形合起來）的周長大約是多少公分？`, fig: figTriangleSectors(side),
+        key: { title: '數一數弧', label: '三段弧合起來是幾分之幾個圓周', v: F(1, 2), unit: '', why: '三個扇形各 60°，三段弧合起來 180°，是 1/2 個圓周（半徑 ' + r + '）。', hint: '正三角形的三個角都是 60°。' },
+        formulas: [`${r}×2×3.14÷2＋${side}×3`, `${r}×2×3.14÷2`, `${side}×2×3.14÷2＋${side}×3`, `${r}×${r}×3.14÷2＋${side}×3`, `${r}×2×3.14＋${side}×3`],
+        rule: '灰色周長＝三段弧（合起來半個圓周）＋三角形的三個邊' };
+    },
+    /* 4 跑道（長方形兩端各一個半圓） */
+    t => {
+      const d = t.pick([20, 30, 40, 50, 60]), L = t.pick([50, 60, 80, 100, 120]);
+      const body = `<path d="M70 60 L190 60 A40 40 0 0 1 190 140 L70 140 A40 40 0 0 1 70 60 Z" fill="${GRAY}" ${stroke}/>` +
+        line(70, 60, 70, 140) + line(190, 60, 190, 140) + label(130, 52, `${L}m`) + label(78, 105, `${d}m`, 'start');
+      return { text: `學校操場的跑道由一個長方形和兩端的半圓組成。長方形的長是 ${L} 公尺，半圓的直徑是 ${d} 公尺，跑道一圈（灰色部分的周長）大約是多少公尺？`, fig: svg(body, 260, 165), unit: '公尺',
+        key: { title: '數一數弧', label: '兩個半圓的弧合起來是幾個圓周', v: F(1), unit: '個', why: `兩個直徑 ${d} 的半圓弧，合起來是 1 個直徑 ${d} 的圓周。`, hint: '兩個半圓拼起來是一個圓。' },
+        formulas: [`${d}×3.14＋${L}×2`, `${d}×3.14＋${L}×2＋${d}×2`, `${d}×3.14÷2＋${L}×2`, `${d}×3.14×2＋${L}×2`, `${d}×3.14＋${L}`],
+        rule: '跑道一圈＝兩個半圓弧（一個圓周）＋兩條直線，中間的虛線不算' };
+    },
+    /* 5 正方形四邊向外各一個半圓 */
+    t => {
+      const a = t.pick([2, 4, 6, 8, 10, 12]);
+      const body = `<path d="M80 80 A40 40 0 0 1 160 80 A40 40 0 0 1 160 160 A40 40 0 0 1 80 160 A40 40 0 0 1 80 80 Z" fill="${GRAY}" ${stroke}/>` +
+        `<rect x="80" y="80" width="80" height="80" fill="none" stroke="${LINE}" stroke-width="1.2" stroke-dasharray="4 3"/>` + label(120, 125, `${a}cm`);
+      return { text: `下圖是在邊長 ${a} 公分的正方形四邊，各向外畫一個半圓。灰色部分的周長大約是多少公分？`, fig: svg(body, 240, 240),
+        key: { title: '數一數弧', label: '四個半圓弧合起來是幾個圓周', v: F(2), unit: '個', why: `4 個半圓＝2 個直徑 ${a} 的圓，正方形的虛線邊不算周長。`, hint: '兩個半圓合成一個圓。' },
+        formulas: [`${a}×3.14×2`, `${a}×3.14×2＋${a}×4`, `${a}×3.14`, `${a}×3.14×4`, `${a}×${a}×3.14×2`],
+        rule: '灰色周長＝4 個半圓弧＝2 個直徑 ' + a + ' 的圓周' };
+    }
+  ];
+  function perimeterScenario(t, variant) {
+    const which = ((variant % PERIMETER_COUNT) + PERIMETER_COUNT) % PERIMETER_COUNT;
+    return retry(() => {
+      const s = PERIMETER[which](t), unit = s.unit || '公分';
+      Object.assign(s, { kind: 'perimeter', template: which, allowFraction: false, ruleHint: '周長只算圖形最外圈的線：把每段弧換成「幾分之幾個圓周」，再加上直線邊；虛線不算。' });
+      s.answer = { label: `周長（${unit}）`, unit };
+      return s;
+    }, t);
+  }
+
   function scenario(type, t, variant) {
-    return { area: areaScenario, ratio: ratioScenario, sector: sectorScenario, sectorWhole: sectorWholeScenario, shaded: shadedScenario }[type](t, variant);
+    return { area: areaScenario, ratio: ratioScenario, sector: sectorScenario, sectorWhole: sectorWholeScenario, shaded: shadedScenario, arc: arcScenario, perimeter: perimeterScenario }[type](t, variant);
   }
 
   /* ---------- 題目包裝 ---------- */
@@ -441,7 +564,8 @@
     return q.field(label, keys[order.indexOf(correctIndex)], 'decision', { options: keys, optionLabels: labels });
   }
   function valueField(q, label, v, unit, rational) {
-    if (rational || v.d !== 1) return q.field(label, v, 'rational', { unit, requirement: '可填小數或分數', defaultForm: terminatingDigits(v) <= 3 ? 'number' : 'fraction' });
+    const defaultForm = /幾分之幾/.test(label) || terminatingDigits(v) > 3 ? 'fraction' : 'number';
+    if (rational || v.d !== 1) return q.field(label, v, 'rational', { unit, requirement: '可填小數或分數', defaultForm });
     return q.field(label, v.n, 'number', { unit });
   }
   function finish(q, text, fig, s) {
@@ -484,7 +608,11 @@
     ['圓心角是 90° 的扇形，面積是同半徑圓面積的 1/4', true, '90/360＝1/4。'],
     ['圓心角是 120° 的扇形，面積是同半徑圓面積的 1/4', false, '120/360＝1/3，不是 1/4。'],
     ['周長相同的正方形和圓形，正方形的面積比較大', false, '周長相同時，圓形的面積比較大。'],
-    ['4 個半徑相同的四分之一圓，合起來的面積等於 1 個同半徑的圓', true, '90°×4＝360°，剛好是一整個圓。']
+    ['4 個半徑相同的四分之一圓，合起來的面積等於 1 個同半徑的圓', true, '90°×4＝360°，剛好是一整個圓。'],
+    ['弧長＝直徑×3.14×圓心角/360', true, '弧長是圓周長的「圓心角/360」。'],
+    ['扇形的周長就是它的弧長', false, '扇形周長＝弧長＋2 條半徑。'],
+    ['半圓的周長＝直徑×3.14÷2', false, '半圓周長還要加上直徑：直徑×3.14÷2＋直徑。'],
+    ['算複合圖形的周長時，圖裡的虛線也要加進去', false, '虛線是輔助線，周長只算圖形最外圈的線。']
   ];
   function judgeQuestion(t, variant) {
     const q = newQuestion('judge', t);
@@ -494,7 +622,7 @@
       [statement, truth, explanation] = t.pick(CONCEPTS);
       text = `判斷對錯：${statement}。`;
     } else {
-      s = computedScenario(t, ['area', 'ratio', 'sector', 'sectorWhole', 'shaded']);
+      s = computedScenario(t, ['area', 'ratio', 'sector', 'sectorWhole', 'shaded', 'arc', 'perimeter']);
       const right = s.options[0];
       truth = t.rnd(0, 1) === 1;
       let shown = right.text, value = right.v;
@@ -568,7 +696,7 @@
       options = CN.slice(); correct = best; keepOrder = true;
       explanation = `都用「半徑×半徑×圓心角/360」比較（3.14 可以先不乘）：${items.map((it, i) => `${CN[i]}＝${show(it.v)}`).join('、')}，所以${CN[best]}${askMax ? '最大' : '最小'}。`;
     } else {
-      s = computedScenario(t, kind === 5 ? ['area', 'sector', 'shaded'] : ['ratio', 'sectorWhole', 'shaded']);
+      s = computedScenario(t, kind === 5 ? ['area', 'sector', 'shaded', 'arc'] : ['ratio', 'sectorWhole', 'shaded', 'perimeter']);
       const unit = unitText(s.answer.unit), values = [];
       s.options.forEach(o => { if (o.v.n > 0 && nice(o.v, true) && !values.some(v => eq(v, o.v))) values.push(o.v); });
       for (let bump = 2; values.length < 4; bump++) {
@@ -607,7 +735,7 @@
     return t.shuffle(questions);
   }
   const format = a => typeof a === 'object' && a ? show(a) : String(a);
-  const api = { ...RQ, categories, PRACTICE_TYPES, EXAM_TYPES, SHADED_COUNT, defaultType: 'area', generate, buildExam, format,
+  const api = { ...RQ, categories, PRACTICE_TYPES, EXAM_TYPES, SHADED_COUNT, PERIMETER_COUNT, defaultType: 'area', generate, buildExam, format,
     F, add, sub, mul, div, eq, show, evaluate, scenario: (type, rng, variant) => scenario(type, tools(rng), variant) };
   api.correct = RQ.correct;
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
