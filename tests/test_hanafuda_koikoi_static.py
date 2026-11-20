@@ -27,6 +27,14 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         self.assertIn("Louie Mantia", PAGE)
         self.assertIn("creativecommons.org/licenses/by-sa/4.0", PAGE)
 
+    def test_tutorial_is_scripted_and_reachable(self):
+        self.assertIn('data-act="tutorial">新手教學</button>', PAGE)
+        self.assertIn("const STEPS=[", PAGE)
+        for gate in ("flip0", "after0", "choose", "decide", "turn0"):
+            self.assertIn(f"'{gate}'", PAGE)
+        self.assertIn("allow:'koi'", PAGE)
+        self.assertIn("allow:'stop'", PAGE)
+
     def test_engine_plays_full_games(self):
         script = PAGE.split("<script>")[1].split("</script>")[0]
         js = (

@@ -104,6 +104,22 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .stamp.still{animation:none}
 @keyframes stamp{0%{opacity:0;transform:scale(2.6) rotate(-14deg)}55%{opacity:1;transform:scale(.9) rotate(-3deg)}100%{opacity:1}}
 @media (prefers-reduced-motion:reduce){.stamp{animation:none}}
+#tut{position:fixed;inset:0;z-index:45;pointer-events:none}
+#tutDim{position:absolute;inset:0;background:#000b}
+#tutSpot{position:absolute;border-radius:10px;box-shadow:0 0 0 200vmax #000b;outline:3px solid #ffe66d;outline-offset:0;animation:tspot .8s infinite alternate}
+@keyframes tspot{to{outline-color:#ffe66d44;outline-offset:3px}}
+#tutArrow{position:absolute;width:0;height:0;border:12px solid transparent;border-top:16px solid #ffe66d;border-bottom-width:0;filter:drop-shadow(0 2px 3px #000);animation:tbob .55s infinite alternate}
+#tutArrow.up{border-top-width:0;border-bottom:16px solid #ffe66d}
+@keyframes tbob{to{transform:translateY(-6px)}}
+#tutArrow:not(.up){animation-name:tbob2}@keyframes tbob2{to{transform:translateY(6px)}}
+#tutBox{position:absolute;left:12px;right:12px;max-width:520px;margin:0 auto;background:#fbf6ea;color:#2a1d14;border:2px solid var(--gold);border-radius:14px;padding:12px 14px;box-shadow:0 10px 28px #000c;pointer-events:auto}
+#tutBox b{font-size:17px;color:#a3241b}
+#tutBox .tx{margin:6px 0 10px;font-size:15px;line-height:1.6}
+#tutBox .tb{display:flex;gap:8px;align-items:center}#tutBox .tb .pill{flex:1;color:#7a6050;font-size:13px}
+#tutBox button:not(.pri){background:#e8dcc4;color:#3a2a1e}
+.tcards{display:flex;gap:4px;margin:8px 0}.tcards .card{--cw:42px;cursor:default}
+.tutnote{color:var(--gold);font-weight:700}
+@media (prefers-reduced-motion:reduce){#tutSpot,#tutArrow{animation:none}}
 #toast{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font-size:24px;font-weight:800;padding:12px 22px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
 @media (orientation:landscape) and (min-width:700px){
@@ -143,6 +159,7 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast"></div>
 <div id="fx"></div>
+<div id="tut" hidden><div id="tutDim"></div><div id="tutSpot"></div><div id="tutArrow"></div><div id="tutBox"></div></div>
 <script>
 {
 const SIM = typeof document === 'undefined';
@@ -251,7 +268,7 @@ function aiKoi(p,s){
 
 /* ===== 遊戲流程 ===== */
 let G=null,SEL=null,HELP=false;
-const wait=(f,ms)=>SIM?f():setTimeout(f,ms);
+const wait=(f,ms)=>{if(SIM)return f();const g=G;setTimeout(()=>{if(G===g)f()},ms)};
 function log(t){G.log.unshift(t);if(G.log.length>40)G.log.pop()}
 function newGame(diff,rounds,seed,isAI,diffs){
  NAME[1]=DIFFN[diff];
@@ -272,7 +289,8 @@ function beginTurn(){
  const p=G.turn;
  if(!G.hands[0].length&&!G.hands[1].length)return endRound(-1);
  G.phase='play';render();
- if(G.isAI[p])wait(()=>{const o=aiPlay(p);playCard(p,o.h,o.t)},850);
+ if(G.isAI[p])wait(()=>gate('ai',()=>{const o=G.tut?TUT.aiMove():aiPlay(p);playCard(p,o.h,o.t)}),850);
+ else gate('turn0',()=>{});
 }
 function capture(p,c,t,verb){
  const ms=G.field.filter(f=>mon(f)===mon(c));
@@ -288,11 +306,12 @@ function playCard(p,h,t){
 }
 function drawStep(p){
  const c=G.deck.shift();G.flip=c;sfx('flip');const ms=G.field.filter(f=>mon(f)===mon(c));
- if(ms.length===2&&!G.isAI[p]){G.phase='drawChoose';G.pending=c;render();return}
+ if(ms.length===2&&!G.isAI[p]){G.phase='drawChoose';G.pending=c;render();gate('choose',()=>{});return}
  const t=ms.length===2?aiTarget(p,c):null;
- render();wait(()=>{capture(p,c,t,'翻出');G.flip=null;render();wait(()=>afterTurn(p),550)},650);
+ render();wait(()=>gate('flip'+p,()=>{capture(p,c,t,'翻出');G.flip=null;render();wait(()=>afterTurn(p),550)}),650);
 }
-function afterTurn(p){
+function afterTurn(p){gate('after'+p,()=>afterTurnCore(p))}
+function afterTurnCore(p){
  const s=calc(G.caps[p]).total;
  if(s>G.last[p]){
   sfx('yaku');
@@ -470,6 +489,76 @@ function say(t){
   speechSynthesis.cancel();speechSynthesis.speak(u);return true}catch(e){return false}
 }
 
+/* ===== 新手教學：寫死的一場模擬對戰，聚光燈＋箭頭＋說明 ===== */
+const TUT_DEAL={F:[24,36,20,44,45,32,28,1],P:[26,22,34,4,5,9,13,17],A:[0,3,7,11,14,15,18,19],D:[38,43,47,2,30]};
+const TUT_AI=[{h:0,t:1},{h:3,t:null}];
+const STEPS=[
+{k:'next',t:'歡迎來到花牌來來！',x:'花牌（花札）是日本的傳統紙牌。這場教學會帶你從發牌一路打到贏牌，大約 3 分鐘。'},
+{k:'next',t:'12 個月份',x:()=>`48 張牌分成 12 個月份，每月 4 張，靠花草圖案分辨。例如這 4 張都是 7 月的「萩」：<div class="tcards">${[24,25,26,27].map(i=>cardH(i)).join('')}</div>教學中牌上會標出月份，正式對局可以用「標示」按鈕開關。`},
+{k:'next',t:'遊戲目標',x:'吃下同月份的牌，再用吃到的牌湊成特定組合，叫做「役」。先湊成役並結算的人就能得分，分數單位是「文」。'},
+{k:'next',sel:'#hand',t:'你的手牌',x:'這 8 張是你的手牌，只有你看得到。'},
+{k:'next',sel:'#oppHand',t:'對手',x:'對手是幼年鳩特，他也有 8 張手牌，蓋著不給你看。'},
+{k:'next',sel:'#field',t:'場上的牌',x:'中間這 8 張是場牌，雙方都看得到，等著被吃。'},
+{k:'next',sel:'#deckBox',t:'牌堆',x:'剩下的牌疊成牌堆，每回合都會從這裡翻一張。'},
+{k:'hand',id:26,t:'第一步：打出手牌',x:'每回合分兩步。第一步是打出一張手牌。右上角有綠點的牌，代表場上有同月份的牌可以吃。點這張「萩」。'},
+{k:'field',id:24,t:'配對吃牌',x:'場上發亮的「萩豬」和你的牌同月份。點它，兩張一起吃下！'},
+{k:'next',on:'flip0',sel:'#flip',t:'第二步：翻牌',x:'接著自動從牌堆翻一張。翻到「紅葉」，場上正好有「紅葉鹿」，也會一起吃下。'},
+{k:'next',on:'after0',sel:'#myCaps',t:'收牌區',x:'吃到的牌放在這裡，依「光、種、短、素」四類排好。不同種類的牌能湊成不同的役。'},
+{k:'next',on:'ai',sel:'#oppHand',t:'換對手',x:'你的回合結束，換幼年鳩特出牌。'},
+{k:'next',on:'flip1',sel:'#flip',t:'沒配對的牌',x:'對手翻到「柳」，場上沒有柳，這張牌就留在場上，之後誰有柳就能吃它。'},
+{k:'hand',on:'turn0',id:22,t:'又輪到你',x:'同樣先打手牌。點「牡丹」。'},
+{k:'field',id:20,t:'吃下牡丹蝶',x:'點場上的「牡丹蝶」。'},
+{k:'field',on:'choose',id:44,t:'兩張可以選一張',x:'翻到「桐」，場上卻有兩張桐！這時由你選一張吃。「桐鳳凰」是最珍貴的光札，點它。'},
+{k:'next',on:'after0',sel:'#myCaps',t:'成役：豬鹿蝶！',x:'萩豬、紅葉鹿、牡丹蝶到齊，湊成役「豬鹿蝶」，5 文！'},
+{k:'decide',on:'decide',allow:'koi'},
+{k:'next',on:'ai',sel:'#oppHand',t:'來來之後',x:'你喊了來來，遊戲繼續。要小心：對手如果先成役結算，他的分數會加倍，你這局拿不到分。'},
+{k:'next',on:'flip1',sel:'#flip',t:'對手吃牌',x:'對手翻到「松」，吃下場上的松。'},
+{k:'hand',on:'turn0',id:34,t:'找下一個役',x:'場上的「菊盃」很重要，它和「芒月」能組成役。點你的「菊」。'},
+{k:'field',id:32,t:'吃下菊盃',x:'點場上的「菊盃」。'},
+{k:'next',on:'flip0',sel:'#flip',t:'好運來了',x:'翻到「芒」，吃下場上的「芒月」！'},
+{k:'next',on:'after0',sel:'#myYaku',t:'第二個役：月見酒',x:'芒月＋菊盃＝「月見酒」，再 5 文！現在豬鹿蝶 5 文＋月見酒 5 文＝10 文。'},
+{k:'decide',on:'decide',allow:'stop'},
+{k:'end'}
+];
+const TUT={i:-1,cont:null,shown:false,active:false,raf:0,aiN:0,
+ get cur(){return STEPS[this.i]||{}},
+ on(){this.active=true;this.aiN=0;this.labWas=document.body.classList.contains('lab');document.body.classList.add('lab');$('tut').hidden=false;cancelAnimationFrame(this.raf);clearInterval(this.iv);const f=()=>{this.raf=requestAnimationFrame(f);this.place()};f();this.iv=setInterval(()=>this.place(),150);syncBtns()},
+ off(){if(!this.active)return;this.active=false;this.cont=null;cancelAnimationFrame(this.raf);clearInterval(this.iv);$('tut').hidden=true;if(!this.labWas)document.body.classList.remove('lab');syncBtns()},
+ go(i){this.i=i;this.cont=null;this.shown=!this.cur.on;this.paint()},
+ next(){const c=this.cont;this.go(this.i+1);if(c)c()},
+ event(n,c){if(this.active&&this.cur.on===n&&!this.shown){this.cont=c;this.shown=true;this.paint()}else c()},
+ aiMove(){return TUT_AI[this.aiN++]},
+ paint(){
+  const s=this.cur,b=$('tutBox');if(!this.active||!this.shown||!s.t)return;
+  const x=typeof s.x==='function'?s.x():s.x;
+  b.innerHTML=`<b>${s.t}</b><div class="tx">${x}</div><div class="tb">${s.k==='next'?'<span class="pill"></span><button class="pri" data-act="tutnext">下一步</button>':'<span class="pill">點框起來的牌</span>'}<button data-act="tutquit">跳過教學</button></div>`;this.place();
+ },
+ place(){
+  const s=this.cur,box=$('tutBox'),sp=$('tutSpot'),ar=$('tutArrow'),dim=$('tutDim');
+  if(!(this.active&&this.shown&&s.t)){box.hidden=sp.hidden=ar.hidden=dim.hidden=true;return}
+  box.hidden=false;
+  const sel=s.sel||(s.k==='hand'?`#hand .card[data-id="${s.id}"]`:s.k==='field'?`#field .card[data-id="${s.id}"]`:null);
+  const el=sel&&document.querySelector(sel),H=innerHeight;
+  if(!el||!el.getBoundingClientRect().width){sp.hidden=ar.hidden=true;dim.hidden=false;box.style.top=Math.max(10,(H-box.offsetHeight)/2)+'px';return}
+  dim.hidden=true;sp.hidden=ar.hidden=false;
+  const r=el.getBoundingClientRect(),p=6,below=r.top+r.height/2<H*.5;
+  Object.assign(sp.style,{left:r.left-p+'px',top:r.top-p+'px',width:r.width+2*p+'px',height:r.height+2*p+'px'});
+  box.style.top=(below?Math.min(H-box.offsetHeight-10,r.bottom+p+34):Math.max(10,r.top-p-34-box.offsetHeight))+'px';
+  ar.className=below?'up':'';ar.style.left=r.left+r.width/2-12+'px';ar.style.top=(below?r.bottom+p+2:r.top-p-30)+'px';
+ }
+};
+function gate(n,c){if(SIM||!G||!G.tut||!TUT.active)return c();TUT.event(n,c)}
+function startTutorial(){
+ TUT.off();closeModal();NAME[1]='幼年鳩特';
+ const {F,P,A,D}=TUT_DEAL,used=new Set([...F,...P,...A,...D]);
+ G={diff:0,rounds:1,seed:0,round:1,totals:[0,0],isAI:[false,true],hist:[],dealer:0,tut:true,
+  hands:[[...P],[...A]],field:[...F],deck:[...D,...[...Array(48).keys()].filter(i=>!used.has(i))],
+  caps:[[],[]],koi:[0,0],last:[0,0],turn:0,flip:null,pending:null,log:[],fresh:[]};
+ SEL=null;TUT.on();TUT.i=-1;log('新手教學開始');BGM.start();
+ G.phase='deal';G.dealing=true;render();
+ const g=G;setTimeout(()=>{if(G!==g)return;beginTurn();TUT.go(0)},DEAL_MS);
+}
+
 /* ===== 畫面 ===== */
 const $=id=>document.getElementById(id);
 function cardH(i,cls='',extra=''){
@@ -527,6 +616,10 @@ function closeModal(){$('modal').hidden=true}
 let tT;function toast(t){if(SIM)return;const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),1300)}
 const listH=l=>`<table>${l.map(x=>`<tr><td>${x[0]}</td><td class="n">${x[1]} 文</td></tr>`).join('')}</table>`;
 function showDecide(s){
+ if(G.tut){gate('decide',()=>{});const k=TUT.cur.allow;
+  modal(`<h2>成役了！</h2>${listH(calc(G.caps[0]).list)}<p>目前合計 <b>${s} 文</b></p>`+(k==='koi'
+   ?`<p>成役後要做選擇：</p><p><b>勝負</b>：現在結算，拿走 ${s} 文，這局結束。<br><b>來來</b>：不結算、繼續打，湊更多役拿更多分；但如果對手先成役結算，他的分數加倍，你這局拿不到分。</p><p class="tutnote">這次試試看喊「來來」！</p><div class="btns"><button class="red" data-act="koi">來來（繼續）</button></div>`
+   :`<p>合計 7 文以上，結算時還會再 ×2！</p><p class="tutnote">見好就收，按「勝負」結算吧！</p><div class="btns"><button class="pri" data-act="stop">勝負（結算）</button></div>`));return}
  modal(`<h2>成役了！</h2>${listH(calc(G.caps[0]).list)}<p>目前合計 <b>${s} 文</b>${G.koi[1]?`（${NAME[1]}喊過來來，現在結算會再 ×2）`:''}</p>
  <p class="pill">勝負＝現在結算拿分。來來＝繼續打，之後湊更多役再結算；但如果${NAME[1]}先湊出役結算，${NAME[1]}得分會 ×2，你這局拿不到分。</p>
  <div class="btns"><button class="red" data-act="koi">來來（繼續）</button><button class="pri" data-act="stop">勝負（結算）</button></div>`);
@@ -547,6 +640,7 @@ function showRoundEnd(w,list,base,mul,notes){
  let after=`<p>累計：你 ${G.totals[0]} 文　${NAME[1]} ${G.totals[1]} 文</p>`;
  if(last){const d=G.totals[0]-G.totals[1];after+=`<h3>${d>0?'恭喜，你獲勝！':d<0?`${NAME[1]}獲勝，再挑戰一次？`:'平手！'}</h3><p class="pill">牌局編號 ${G.seed}，輸入同一個編號可以重玩同樣的發牌。</p><div class="btns"><button class="pri" data-act="menu">再玩一次</button></div>`;}
  else after+=`<div class="btns"><button class="pri" data-act="next">下一局</button></div>`;
+ if(G.tut)after=`<p class="tutnote">教學完成！你已經學會配對吃牌、翻牌、成役、來來和結算。</p><p class="pill">正式對局一局有 8 回合，手牌打完前都沒人結算就是流局。更多役請看「役表」。</p><div class="btns"><button data-act="tutorial">再看一次</button><button class="pri" data-act="menu">開始正式對局</button></div>`;
  if(w<0){modal(`<h2>流局</h2><p>牌都出完了，雙方都沒有結算，本局不計分，莊家不變。</p>${after}`);return}
  modal(`<h2>${w===0?'你贏了這一局！':`${NAME[1]}贏了這一局`}</h2><div class="stamps" id="stamps"></div><div id="after" hidden>${after}</div><div class="btns" id="skipb"><button data-act="skip">略過</button></div>`);
  const items=list.map(([n,p])=>({h:`${n}<small>${YOMI[n]}</small>`,pt:`${p} 文`,say:YOMI[n],c:''}));
@@ -569,7 +663,7 @@ function showMenu(){
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>
  <h3>牌局編號</h3><input id="seedIn" inputmode="numeric" placeholder="留空＝隨機">
  <p class="pill">同一個編號會發出一模一樣的牌，可以讓兩組學生比分數或重播檢討。</p>
- <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button data-act="rules">規則與役表</button><button class="pri" data-act="start">開始</button></div>`);
+ <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">開始</button></div>`);
 }
 function showRules(){
  const rows=[['五光','五張光札',10],['四光','四張光札（不含雨）',8],['雨四光','四張光札（含柳雨）',7],['三光','三張光札（不含雨）',5],['豬鹿蝶','萩豬＋紅葉鹿＋牡丹蝶',5],['花見酒','櫻幕＋菊盃',5],['月見酒','芒月＋菊盃',5],['赤短','三張赤短（松梅櫻）',5],['青短','三張青短（牡丹菊紅葉）',5],['赤短青短','赤短與青短同時成立',10],['種','種札 5 張，每多 1 張＋1','1～'],['短','短冊 5 張，每多 1 張＋1','1～'],['素','素札 10 張，每多 1 張＋1（菊盃也算素札）','1～']];
@@ -585,25 +679,30 @@ function showRules(){
 function act(a,el){
  if(a==='opt'){OPT[el.dataset.k]=+el.dataset.v;return showMenu()}
  if(a==='start'){const v=parseInt($('seedIn').value,10);closeModal();newGame(OPT.diff,OPT.rounds,Number.isFinite(v)&&v>0?v%1000000:1+Math.floor(Math.random()*999999));return}
+ if(a==='tutnext')return TUT.next();
+ if(a==='tutquit'){TUT.off();G=null;return showMenu()}
+ if(a==='tutorial')return startTutorial();
  if(a==='skip')return STAMP.skip&&STAMP.skip();
  if(a==='rules')return showRules();
- if(a==='menu')return showMenu();
+ if(a==='menu'){if(G&&G.tut){TUT.off();G=null}return showMenu()}
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='helper'){HELP=!HELP;return G.phase==='deal'?null:render()}
  if(a==='bgm'){BGM_ON=!BGM_ON;try{localStorage.setItem('hf_bgm',BGM_ON?'1':'0')}catch(e){}BGM_ON?BGM.start():BGM.stop();return syncBtns()}
  if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('hf_mute',MUTE?'1':'0')}catch(e){}if(!MUTE)sfx('tap');return syncBtns()}
  if(a==='lab'){document.body.classList.toggle('lab');try{localStorage.setItem('hf_lab',document.body.classList.contains('lab')?'1':'0')}catch(e){}return syncBtns()}
  if(a==='next'){closeModal();return startRound()}
- if(a==='stop'){closeModal();return endRound(0)}
- if(a==='koi'){closeModal();const s=calc(G.caps[0]).total;G.koi[0]++;G.last[0]=s;log(`你喊「來來」！目前 ${s} 文`);toast('來來！');if(!say('こいこい'))sfx('koi');G.turn=1;return beginTurn()}
+ if(a==='stop'){closeModal();if(G.tut)TUT.next();return endRound(0)}
+ if(a==='koi'){closeModal();const s=calc(G.caps[0]).total;G.koi[0]++;G.last[0]=s;log(`你喊「來來」！目前 ${s} 文`);toast('來來！');if(!say('こいこい'))sfx('koi');if(G.tut)TUT.next();G.turn=1;return beginTurn()}
 }
 function onHand(id){
  if(!myTurn())return;
+ if(G.tut){const t=TUT.cur;if(!TUT.shown||t.k!=='hand'||t.id!==id)return;SEL=id;render();return TUT.next()}
  if(SEL!==id){SEL=id;return render()}
  if(G.field.filter(f=>mon(f)===mon(id)).length===2)return;
  playCard(0,id,null);
 }
 function onField(id){
+ if(G&&G.tut){const t=TUT.cur;if(!TUT.shown||t.k!=='field'||t.id!==id)return;TUT.next()}
  if(myTurn()&&SEL!=null&&mon(id)===mon(SEL))return playCard(0,SEL,id);
  if(G&&G.phase==='drawChoose'&&mon(id)===mon(G.pending)){
   const c=G.pending;G.pending=null;G.phase='busy';capture(0,c,id,'翻出');G.flip=null;render();wait(()=>afterTurn(0),550);
