@@ -30,6 +30,14 @@ const lessonData = [
         desc: "整合單字自習、單字測驗與基礎文法練習，依年級學期與教材範圍開始挑戰。"
     },
     {
+        title: "花牌來來",
+        category: "games",
+        url: "games/hanafuda_koikoi.html",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "和電腦對戰日本花札「こいこい」：三種難度、機率小幫手、可重現的牌局編號，附和風配樂與日語唸役。"
+    },
+    {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
         grades: [2],
