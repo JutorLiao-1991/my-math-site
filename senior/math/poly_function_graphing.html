@@ -165,7 +165,7 @@
         .ctrl-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        @media (max-width: 800px) {
+        @media (max-width: 800px), (orientation: portrait) {
             .main-wrapper { flex-direction: column; overflow-y: auto; }
             #graph-panel { min-height: 350px; flex: none; }
             #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }

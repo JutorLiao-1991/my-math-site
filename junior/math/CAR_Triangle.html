@@ -85,7 +85,7 @@
 
         .watermark { position: absolute; bottom: 20px; right: 25px; font-family: serif; font-style: italic; color: rgba(0,0,0,0.1); font-size: 1.5rem; pointer-events: none; user-select: none; z-index: 50; }
         
-        @media (max-width: 800px) {
+        @media (max-width: 800px), (orientation: portrait) {
             .main-wrapper { flex-direction: column; overflow-y: auto; }
             #graph-panel { min-height: 400px; flex: none; }
             #controls-panel { border: none; box-shadow: none; background: transparent; max-width: none; }

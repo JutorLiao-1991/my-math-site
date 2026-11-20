@@ -35,8 +35,8 @@ body.projection header,body.projection .toolbar,body.projection #study-panel,bod
 body.projection .shell{padding-top:10px;max-width:min(1880px,100%)}
 body.projection .lab-grid{grid-template-columns:minmax(0,2.1fr) minmax(320px,.9fr)}
 body.projection .lab-main-panel h2{font-size:1.45rem}
-body.projection #sky{width:auto;max-width:100%;height:max(340px,calc(100vh - 330px));margin:0 auto}
-body.projection .readings{grid-template-columns:repeat(6,1fr);gap:8px}
+body.projection #sky{width:min(100%,calc((100vh - 330px)*1.6));width:min(100%,calc((100dvh - 330px)*1.6));height:auto;margin:0 auto}
+@media (min-width:900px){body.projection .readings{grid-template-columns:repeat(6,1fr);gap:8px}}
 body.projection .reading{padding:8px 4px}
 body.projection .reading .muted{font-size:.8rem}
 body.projection button,body.projection select{min-height:48px;font-size:1.02rem}
@@ -45,3 +45,9 @@ body.projection .ws-table{font-size:1.1rem}
 body.projection .reading strong{font-size:1.15rem}
 body.projection #proj-hint{display:block}
 @media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}.readings{grid-template-columns:repeat(2,1fr)}.ws-table{font-size:.8rem}.ws-table th.row small{display:none}}
+
+/* 版面：共用 science_layout.css（直向觀察區固定在上方）；本頁補充 */
+@media (orientation:portrait) {
+  body.science-layout #worksheet-panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
+  body.science-layout.projection #sky{width:100%}
+}
