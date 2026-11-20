@@ -46,28 +46,8 @@ body.projection .reading strong{font-size:1.15rem}
 body.projection #proj-hint{display:block}
 @media(max-width:700px){body.projection .lab-grid{grid-template-columns:1fr}.readings{grid-template-columns:repeat(2,1fr)}.ws-table{font-size:.8rem}.ws-table th.row small{display:none}}
 
-/* 版面：直向（手機、平板直放）觀察區固定在上方，操作區在下方滑動；橫向一左一右 */
+/* 版面：共用 science_layout.css（直向觀察區固定在上方）；本頁補充 */
 @media (orientation:portrait) {
-  body.science-layout{height:auto;overflow:visible;display:block}
-  body.science-layout .shell{display:block;max-width:none;padding:0 0 40px}
-  body.science-layout .toolbar,body.science-layout .lab-main-panel>h2,body.science-layout #scene-caption{display:none}
-  body.science-layout .lab-grid{display:flex;flex-direction:column;gap:12px;overflow:visible}
-  body.science-layout .lab-main-panel,body.science-layout .lab-sidebar,body.science-layout .lab-sidebar-content{display:contents}
-  body.science-layout #sky{order:0;position:sticky;top:0;z-index:20;width:100%;border-radius:0 0 14px 14px;box-shadow:0 6px 18px #06101e40}
-  body.science-layout .lab-mode-panel{order:1}
-  body.science-layout #study-panel{order:2}
-  body.science-layout #lab-operations{order:3}
-  body.science-layout #readings{order:4;margin:0 12px}
-  body.science-layout #worksheet-panel{order:5;margin:0 12px;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
-  body.science-layout #free-panel{order:6}
-  body.science-layout .model-panel{order:7}
-  body.science-layout #proj-hint{order:8;margin:0 12px}
-  body.science-layout .lab-grid>*,body.science-layout .lab-sidebar-content>.panel{margin-top:0}
-  body.science-layout .lab-sidebar-content>.panel{margin-inline:12px;padding:16px}
-  body.science-layout .lab-mode-panel .row{flex-wrap:nowrap}
-  body.science-layout .lab-mode-panel button{flex:1;padding-inline:6px;white-space:nowrap;font-size:.92rem}
+  body.science-layout #worksheet-panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px}
   body.science-layout.projection #sky{width:100%}
-}
-@media (orientation:landscape) and (min-width:568px) {
-  .science-layout .lab-main-panel #sky{position:sticky;top:0;z-index:5}
 }

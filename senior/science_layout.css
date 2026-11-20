@@ -67,3 +67,30 @@
   .science-layout .equation{padding:14px 2px;font-size:1.1rem;gap:6px}
   .science-layout .equation .entry{width:54px;min-height:44px;font-size:1rem}
 }
+
+/* ===== 實驗教具共用版面：直向時觀察區（.lab-stage）固定在上方，操作區在下方滑動；橫向一左一右 =====
+   每頁把觀察區標上 class="lab-stage"；有固定比例的畫面再加 style="--ar:寬/高"，直向時會限制高度並置中。 */
+@media (orientation:portrait) {
+  body.science-layout{height:auto;overflow:visible;display:block}
+  body.science-layout .shell{display:flex;flex-direction:column;gap:12px;width:auto;max-width:none;height:auto;padding:0 0 40px;flex:none}
+  body.science-layout .lab-grid,body.science-layout .lab-main-panel,body.science-layout .lab-sidebar,body.science-layout .lab-sidebar-content{display:contents}
+  body.science-layout .shell>*{margin:0 12px}
+  body.science-layout .shell>.toolbar{order:-1;margin-top:12px}
+  body.science-layout .shell>.tabs{order:1}
+  body.science-layout .lab-main-panel>*{order:5;margin:0 12px;max-width:calc(100% - 24px)}
+  body.science-layout .lab-main-panel>:not(.lab-stage):has(~ .lab-stage){order:1}
+  body.science-layout .lab-sidebar-content>*,body.science-layout .lab-sidebar>.dock{order:6;margin:0 12px}
+  body.science-layout .lab-sidebar-content>.panel{padding:16px}
+  body.science-layout .lab-sidebar-content>.lab-mode-panel,body.science-layout .lab-sidebar-content>#study-panel,body.science-layout .lab-sidebar-content>.lab-operation-panel,body.science-layout .lab-sidebar>.dock{order:2}
+  body.science-layout .lab-sidebar-content>.panel+.panel{margin-top:0}
+  body.science-layout .lab-mode-panel .row{flex-wrap:nowrap}
+  body.science-layout .lab-mode-panel .row>button{flex:1 1 auto;padding-inline:8px;white-space:nowrap}
+  body.science-layout .lab-stage,body.science-layout .lab-main-panel>.lab-stage{order:0;position:sticky;top:0;z-index:20;margin:0!important;width:100%;max-width:100%;background:var(--panel);box-shadow:0 6px 16px #06101e33;border-radius:0 0 14px 14px}
+  body.science-layout .lab-stage:not([style*="--ar"]){padding:8px 12px;border:0}
+  body.science-layout .lab-stage[style*="--ar"]{width:min(100%,calc(46vh * var(--ar)));width:min(100%,calc(46dvh * var(--ar)));align-self:center;height:auto;box-shadow:0 0 0 100vmax var(--bg),0 6px 16px #06101e33;clip-path:inset(0 -100vmax -18px)}
+  body.science-layout canvas.lab-stage{height:auto!important;object-fit:fill}
+  body.science-layout .lab-stage.diagram svg{width:100%;height:auto}
+}
+@media (orientation:portrait) and (min-width:600px) {
+  body.science-layout .lab-stage.stage-duo{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:6px}
+}
