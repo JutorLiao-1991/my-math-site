@@ -90,5 +90,19 @@ console.log('ok');""")
         self.assertIn('data-act="tsumes">詰將棋</button>', PAGE)
 
 
+    def test_opening_book_lines_are_legal(self):
+        out = run_node(r"""
+const E=ENGINE;
+E.BOOK_SRC.forEach((l,i)=>{const p=E.newPos(9);for(const t of l.split(' ')){const m=E.usi(9,t);if(!E.legal(p).includes(m))throw new Error('line '+i+' '+t);E.doMove(p,m)}});
+const r=E.think(E.newPos(9),{diff:4,book:true,hist:[]});if(!r.book)throw new Error('book not used');
+console.log('ok');""")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("ok", out.stdout)
+
+    def test_handicap_pvp_save_and_hint_present(self):
+        for key in ("讓香", "讓角", "讓飛", "讓飛香", "讓二枚", "雙人對戰", "每步自動翻轉", "sg_save", "繼續上次的對局", "data-act=\"tip\"", "勝率 ≈ 1 ÷ (1 + e"):
+            self.assertIn(key, PAGE)
+
+
 if __name__ == "__main__":
     unittest.main()
