@@ -74,6 +74,23 @@ body.hint .hints,.showhint .hints{display:block}
 .ptab small{color:var(--mut)}
 .sealrow{display:flex;justify-content:center;margin:8px 0}.sealrow img{height:110px;width:auto;transform:rotate(-7deg);filter:drop-shadow(0 2px 2px #0006);animation:sealin .45s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes sealin{0%{opacity:0;transform:scale(2.4) rotate(-20deg)}60%{opacity:1;transform:scale(.92) rotate(-8deg)}100%{opacity:1;transform:rotate(-7deg)}}
+#tut{position:fixed;inset:0;z-index:45;pointer-events:none}
+#tutDim{position:absolute;inset:0;background:#000a}
+#tutSpot{position:absolute;border-radius:8px;box-shadow:0 0 0 200vmax #0009;outline:3px solid #ffe66d;animation:tspot .8s infinite alternate}
+@keyframes tspot{to{outline-color:#ffe66d44;outline-offset:3px}}
+#tutArrow{position:absolute;width:0;height:0;border:12px solid transparent;border-top:16px solid #ffe66d;border-bottom-width:0;filter:drop-shadow(0 2px 3px #000);animation:tbob .55s infinite alternate}
+#tutArrow.up{border-top-width:0;border-bottom:16px solid #ffe66d;animation-name:tbob2}
+@keyframes tbob{to{transform:translateY(6px)}}@keyframes tbob2{to{transform:translateY(-6px)}}
+#tutBox{position:absolute;left:12px;right:12px;max-width:520px;margin:0 auto;background:#fbf6ea;color:#2a1d14;border:2px solid var(--gold);border-radius:14px;padding:12px 14px;box-shadow:0 10px 28px #000c;pointer-events:auto}
+#tutBox b{font-size:17px;color:#a3241b}#tutBox .tx{margin:6px 0 10px;font-size:15px;line-height:1.6}
+#tutBox .tb{display:flex;gap:8px;align-items:center}#tutBox .tb .pill{flex:1;color:#7a6050;font-size:13px}
+#tutBox button:not(.pri){background:#e8dcc4;color:#3a2a1e}
+.sq.goal{box-shadow:inset 0 0 0 3px #ffd23f}
+.sq.goal::before{content:"★";position:absolute;color:#e0402c;font-size:calc(var(--sq)*.5);opacity:.8;pointer-events:none}
+.list{display:grid;gap:6px;margin:8px 0}.list button{display:flex;align-items:center;gap:10px;text-align:left;min-height:44px}
+.list span{width:1.8em;color:var(--gold);font-weight:700}.list em{margin-left:auto;color:#6fd17f;font-style:normal;font-weight:700}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px}.tq{min-height:44px;font-weight:700}.tq.done{background:#2f6b3a}
+@media (prefers-reduced-motion:reduce){#tutSpot,#tutArrow{animation:none}}
 #toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font:800 28px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;padding:14px 26px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;letter-spacing:.15em}
 #toast.show{opacity:1}
 @media (orientation:landscape) and (min-width:700px){
@@ -89,7 +106,7 @@ body.hint .hints,.showhint .hints{display:block}
 <div id="app">
  <header>
   <a class="home" href="../index.html" aria-label="回教材首頁">←</a><b>鳩特將棋</b><span class="pill" id="rinfo"></span><span class="sp"></span>
-  <button id="bBgm" data-act="bgm">配樂</button><button id="bSnd" data-act="snd">音效</button><button id="bHint" data-act="hint">走法</button><button id="bUndo" data-act="undo">悔棋</button><button data-act="resign">認輸</button><button data-act="menu">選單</button>
+  <button id="bBgm" data-act="bgm">配樂</button><button id="bSnd" data-act="snd">音效</button><button id="bHint" data-act="hint">走法</button><button id="bUndo" data-act="undo">悔棋</button><button id="bResign" data-act="resign">認輸</button><button data-act="menu">選單</button>
  </header>
  <main>
   <section id="stage">
@@ -102,6 +119,7 @@ body.hint .hints,.showhint .hints{display:block}
 </div>
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast"></div>
+<div id="tut" hidden><div id="tutDim"></div><div id="tutSpot"></div><div id="tutArrow"></div><div id="tutBox"></div></div>
 <script type="text/plain" id="eng">var ENGINE=(function(){
 /* 棋子代碼：正數＝先手、負數＝後手；1歩 2香 3桂 4銀 5金 6角 7飛 8玉；升變後 9と 10成香 11成桂 12成銀 14馬 15龍 */
 const D=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[-1,-2],[1,-2],[-1,2],[1,2]];
@@ -155,7 +173,7 @@ function attacked(p,sq,a){const b=p.b,t=nbt(p.W);
  return false}
 function inCheck(p){const k=kingSq(p,p.side);return k>=0&&attacked(p,k,-p.side)}
 function legal(p,skipU){const ps=[],out=[],s=p.side;gen(p,ps);
- for(const m of ps){const cap=doMove(p,m);let ok=!attacked(p,kingSq(p,s),-s);
+ for(const m of ps){const cap=doMove(p,m);const ks=kingSq(p,s);let ok=ks<0||!attacked(p,ks,-s);
   if(ok&&!skipU&&(m>>15)===1){const ok2=kingSq(p,-s);if(ok2>=0&&attacked(p,ok2,s)&&legal(p,true).length===0)ok=false}
   undoMove(p,m,cap);if(ok)out.push(m)}
  return out}
@@ -197,7 +215,15 @@ function think(po,opt){const p=clone(po),root=legal(p);if(!root.length)return{m:
    if(noise)v+=(Math.random()*2-1)*noise;sc.set(m,v);if(v>bs){bs=v;bm=m}if(v>a)a=v}
   if(ctx.stop&&depth>1)break;if(bm){best=bm;bestS=bs}if(Math.abs(bs)>INF/2)break}
  return{m:best,s:bestS,nodes:ctx.nodes}}
-return{newPos,clone,gen,legal,doMove,undoMove,attacked,inCheck,kingSq,perft,key,think,evalPos,STEP,SLIDE,PROMO,BASE,INF,PR}
+/* ---------- 詰將棋：攻方每步都要王手 ---------- */
+function defMated(p,n){const ms=legal(p);if(!ms.length)return true;if(n<=0)return false;for(const m of ms){const c=doMove(p,m);const r=mateIn(p,n-1);undoMove(p,m,c);if(!r)return false}return true}
+function mateIn(p,n){if(n<=0)return 0;for(const m of legal(p)){const c=doMove(p,m);const ok=inCheck(p)&&defMated(p,n-1);undoMove(p,m,c);if(ok)return m}return 0}
+function mateMoves(p,n){const out=[];for(const m of legal(p)){const c=doMove(p,m);if(inCheck(p)&&defMated(p,n-1))out.push(m);undoMove(p,m,c)}return out}
+function defReply(p,n){const ms=legal(p);let best=[],bl=-1;
+ for(const m of ms){const c=doMove(p,m);let len=99;for(let j=1;j<=n;j+=2)if(mateIn(p,j)){len=j;break}undoMove(p,m,c);
+  const sc=len*2+((m>>15)?0:1);if(sc>bl){bl=sc;best=[m]}else if(sc===bl)best.push(m)}
+ return best.length?best[Math.random()*best.length|0]:0}
+return{mateIn,mateMoves,defMated,defReply,newPos,clone,gen,legal,doMove,undoMove,attacked,inCheck,kingSq,perft,key,think,evalPos,STEP,SLIDE,PROMO,BASE,INF,PR}
 })();
 </script>
 <script>
@@ -337,7 +363,8 @@ function pieceH(v,pid,upright){const o=v>0?1:-1,ty=v*o,ch=ty===8?(o===1?'玉':'�
 /* ===== 對局 ===== */
 function newGame(){
  const W=OPT.W,me=OPT.side==='rand'?(Math.random()<.5?1:-1):OPT.side==='gote'?-1:1,P=ENG.newPos(W);
- G={W,pos:P,me,diff:OPT.diff,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ TUT.stop();
+ G={mode:'game',W,pos:P,me,diff:OPT.diff,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],tok:Math.random()};
  let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
  NAME=DIFFN[G.diff];SEL=null;G.legal=ENG.legal(P);G.reps.set(ENG.key(P),1);
  closeModal();layout();render();BGM.start();
@@ -356,6 +383,8 @@ function play(m){
  const chk=ENG.inCheck(P);G.koi=[chk?1:0,0];
  const k=ENG.key(P),n=(G.reps.get(k)||0)+1;G.reps.set(k,n);
  G.legal=ENG.legal(P);render();
+ if(G.mode==='lesson')return lessonAfter(m);
+ if(G.mode==='tsume'){if(chk)toast('王手');return tsumeAfter(m,s,chk)}
  if(!G.legal.length)return end(s,'詰み');
  if(n>=4)return end(W===5?-1:0,'千日手');
  if(chk){toast('王手');say('おうて')}
@@ -395,7 +424,7 @@ function draw(){
  const P=G.pos,W=G.W,N=W*W,fl=G.me===-1,tg=targets();
  let h='';
  for(let dp=0;dp<N;dp++){const sq=fl?N-1-dp:dp,v=P.b[sq];let c='sq';
-  if(G.last&&(G.last.t===sq||G.last.f===sq))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';
+  if(G.last&&(G.last.t===sq||G.last.f===sq))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';if(G.goal===sq)c+=' goal';
   h+=`<div class="${c}" data-sq="${sq}">${v?pieceH(v,G.ids[sq]):''}</div>`}
  if(W===9)for(const [x,y] of [[3,3],[3,6],[6,3],[6,6]])h+=`<i class="star" style="left:calc(var(--sq)*${x});top:calc(var(--sq)*${y})"></i>`;
  $('board').innerHTML=h;
@@ -404,11 +433,13 @@ function draw(){
  for(const who of [0,1]){const side=who===0?G.me:-G.me,hi=side===1?0:1;let s='';
   for(const ty of [7,6,5,4,3,2,1]){const n=P.h[hi][ty];if(!n)continue;const ids=G.hid[hi][ty];
    s+=`<div class="hp${who===0&&SEL==='h'+ty?' sel':''}"${who===0?` data-ht="${ty}"`:''}>${pieceH(side*ty,ids[ids.length-1],who===0)}${n>1?`<b>${n}</b>`:''}</div>`}
+  if(who===1&&G.mode==='tsume')s='<span class="pill">盤上和你的持駒以外，其餘棋子全部</span>';
   $(who===0?'h0':'h1').innerHTML=s||'<span class="pill">（無持駒）</span>'}
- $('oppWho').innerHTML=`<b>${NAME}</b>${G.me===1?'後手':'先手'}`;$('meSide').textContent=G.me===1?'先手':'後手';
- $('rinfo').textContent=G.W===9?'本將棋':'五五將棋';
+ $('oppWho').innerHTML=`<b>${NAME}</b>${G.mode==='game'?(G.me===1?'後手':'先手'):''}`;$('meSide').textContent=G.mode==='tsume'?'攻方':G.me===1?'先手':'後手';
+ $('rinfo').textContent=G.mode==='lesson'?`新手教學 ${G.li+1}/${LESSONS.length}`:G.mode==='tsume'?`${G.tn} 手詰 第 ${G.ti+1} 題`:G.W===9?'本將棋':'五五將棋';
+ $('bResign').textContent=G.mode==='tsume'?'提示':'認輸';$('bResign').hidden=G.mode==='lesson';
  const myTurn=P.side===G.me&&!G.over;
- $('prompt').innerHTML=G.over?'對局結束':G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
+ $('prompt').innerHTML=G.mode==='tsume'&&!G.over?(G.thinking||P.side!==1?'玉方應對中…':`輪到你：每一步都要王手，<b>${G.rem} 手內</b>將死`):G.mode==='lesson'?'':G.over?'對局結束':G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
  $('kifu').innerHTML=G.kifu.map((t,i)=>`<span>${i+1} ${t}</span>`).join('');$('kifu').scrollTop=1e5;
  $('bUndo').disabled=!G.hist.length||G.thinking||G.over;
  syncBtns();
@@ -416,8 +447,135 @@ function draw(){
 function syncBtns(){$('bBgm').textContent=BGM_ON?'配樂開':'配樂關';$('bBgm').className=BGM_ON?'pri':'';$('bSnd').textContent=MUTE?'音效關':'音效開';$('bSnd').className=MUTE?'':'pri';$('bHint').className=HINT?'pri':'';document.body.classList.toggle('hint',HINT)}
 function modal(h){$('mbox').innerHTML=h;$('modal').hidden=false}
 function closeModal(){$('modal').hidden=true}
+/* ===== 新手教學（分關卡）與詰將棋 ===== */
+const S=(c,r)=>(r-1)*9+(9-c),sqSel=s=>`.sq[data-sq="${s}"]`;
+const LESSONS=[
+{t:'棋盤與目標',std:true,steps:[
+ {sel:'#board',t:'這是將棋盤',x:'9×9 的棋盤，雙方各 20 枚棋子。你在下方，棋子尖端朝上；對手的棋子倒過來、尖端朝下。'},
+ {sel:'#h1',t:'持駒區',x:'上面是對手的持駒區，下面是你的。吃到的棋子會放在這裡，之後可以再「打」到棋盤上。'},
+ {sel:sqSel(S(5,9)),t:'目標：將死對方的王',x:'這是你的「玉」，對方也有一枚「王」。把對方的王逼到無路可逃，就是「將死」，你就贏了。'},
+ {sel:'#bHint',t:'走法提示',x:'不記得棋子怎麼走時，按這個「走法」按鈕，棋子上會出現紅點和長條。接下來每一課都會用到。'}]},
+{t:'步兵',b:[[S(5,7),1]],steps:[
+ {sel:sqSel(S(5,7)),t:'步兵',x:'步兵只能往前走一格。棋子上方的紅點就是它能走的方向。'},
+ {task:{from:S(5,7),goal:S(5,6)},t:'走走看',x:'點步兵，再點星星，往前走一格。'}]},
+{t:'香車',b:[[S(2,9),2]],steps:[
+ {sel:sqSel(S(2,9)),t:'香車',x:'香車只能往前直走，但可以一直走到底，不能跳過棋子。紅色長條代表「可以一直走」。'},
+ {task:{from:S(2,9),goal:S(2,4)},t:'一口氣衝過去',x:'把香車一路走到星星的位置。'}]},
+{t:'桂馬',b:[[S(8,9),3],[S(8,8),1],[S(8,7),1]],steps:[
+ {sel:sqSel(S(8,9)),t:'桂馬',x:'桂馬往前兩格、再往左或右偏一格，是唯一能「跳過」棋子的棋子。藍點是它落地的位置。'},
+ {task:{from:S(8,9),goal:S(7,7)},t:'跳過去',x:'雖然前面有步兵擋著，桂馬還是可以跳到星星的位置。'}]},
+{t:'銀將',b:[[S(5,5),4]],steps:[
+ {sel:sqSel(S(5,5)),t:'銀將',x:'銀將可以往前三個方向和斜後方走一格，但正左右和正後方不行。'},
+ {task:{from:S(5,5),goal:S(4,6)},t:'斜著退一步',x:'把銀將往斜後方走到星星。這是金將做不到的走法。'}]},
+{t:'金將',b:[[S(5,5),5]],steps:[
+ {sel:sqSel(S(5,5)),t:'金將',x:'金將可以往前三格、左右和正後方走一格，只有斜後方不行。'},
+ {task:{from:S(5,5),goal:S(4,5)},t:'橫著走',x:'把金將往旁邊走到星星。這是銀將做不到的走法。'}]},
+{t:'角行',b:[[S(8,8),6],[S(4,4),-1]],steps:[
+ {sel:sqSel(S(8,8)),t:'角行',x:'角行可以斜著一直走，直到碰到棋子為止。'},
+ {task:{from:S(8,8),goal:S(4,4)},t:'吃子',x:'走到對方棋子的位置就能把它吃掉。用角行一路斜走，吃掉星星上的步兵！'}]},
+{t:'飛車',b:[[S(2,5),7],[S(7,5),-4]],steps:[
+ {sel:sqSel(S(2,5)),t:'飛車',x:'飛車可以直的、橫的一直走，是最強的棋子之一。'},
+ {task:{from:S(2,5),goal:S(7,5)},t:'橫掃過去',x:'用飛車往左一路走，吃掉對方的銀將。'}]},
+{t:'玉將與王手',b:[[S(5,8),8],[S(5,2),-2]],steps:[
+ {sel:sqSel(S(5,2)),t:'王手！',x:'對方的香車正對著你的玉，這叫「王手」（將軍）。被王手時，下一步一定要解除，不然玉就會被吃掉。'},
+ {sel:sqSel(S(5,8)),t:'玉將',x:'玉可以往八個方向各走一格。解除王手有三種方法：逃走、吃掉攻擊的棋子、或擋在中間。'},
+ {task:{from:S(5,8)},t:'逃走',x:'點你的玉，再點一個藍點，往旁邊躲開香車的直線。往前或往後走還在直線上，所以沒有藍點。'}]},
+{t:'吃子與打入',b:[[S(5,8),7],[S(5,4),-1]],steps:[
+ {task:{from:S(5,8),goal:S(5,4)},t:'先吃子',x:'用飛車往前吃掉對方的步兵。'},
+ {sel:'#h0',t:'變成你的持駒',x:'吃到的步兵跑到你的持駒區了！將棋最特別的地方：吃到的棋子可以變成自己的兵力。'},
+ {task:{drop:1,goal:S(3,6)},t:'打入',x:'點持駒區的步兵，再點星星，把它「打」到棋盤上。打入要用掉一步。'}]},
+{t:'升變',b:[[S(3,4),4],[S(7,2),1]],steps:[
+ {sel:'#board',t:'敵陣',x:'對手那一側的三排叫「敵陣」。棋子走進、走出或在敵陣裡移動時，可以翻面「升變」，變得更強。'},
+ {task:{from:S(3,4),goal:S(3,3),promote:true},t:'升變看看',x:'把銀將往前走進敵陣。跳出選單時，選「升變」。'},
+ {sel:sqSel(S(3,3)),t:'成銀',x:'翻面後的銀叫「成銀」，字變成紅色，走法變得和金將一樣。飛車、角行升變後更厲害，會變成「龍」和「馬」。'},
+ {task:{from:S(7,2),goal:S(7,1)},t:'一定要升變',x:'步兵走到最後一排就再也不能動，所以一定會自動升變成「と」。把步兵往前走。'}]},
+{t:'禁手：二步',b:[[S(5,7),1]],hand:{1:1},steps:[
+ {sel:sqSel(S(5,7)),t:'二步',x:'同一直行已經有你的步兵（沒升變的）時，不能再打一枚步兵到同一行，這叫「二步」，是禁手。'},
+ {task:{drop:1,goal:S(4,5)},t:'找出能打的地方',x:'點持駒的步兵，你會發現第 5 行沒有藍點。把它打到星星的位置。'}]},
+{t:'將死對方',b:[[S(5,3),1],[S(5,1),-8],[S(1,9),8]],hand:{5:1},steps:[
+ {sel:sqSel(S(5,1)),t:'最後一課',x:'用剛學會的「打入」，把對方的王將死！'},
+ {task:{drop:5,goal:S(5,2),mate:true},t:'頭金',x:'把持駒的金打在王的正前方。後面有步兵撐著，王吃不掉金，也無路可逃，這招叫「頭金」。'}]}
+];
+const TSUME={1:[{"b":[[6,5],[8,-8],[15,6],[32,15]],"h":[],"m":17295},{"b":[[5,-4],[6,-8],[15,-2],[22,15],[25,12]],"h":[[4,1]],"m":133120},{"b":[[7,-1],[8,-8],[23,15],[25,2],[26,5]],"h":[[2,1]],"m":67712},{"b":[[7,-1],[8,-8],[25,14]],"h":[[5,1]],"m":166016},{"b":[[5,9],[7,-8],[8,-5],[14,7],[15,-5],[24,12]],"h":[[4,1]],"m":18318},{"b":[[7,-8],[23,5],[25,12]],"h":[[1,1],[4,1]],"m":133120},{"b":[[5,-8],[21,4],[23,9],[34,7]],"h":[[1,1],[4,1]],"m":132864},{"b":[[8,-8],[26,5],[35,2]],"h":[[2,1],[6,1]],"m":2202},{"b":[[5,4],[6,-8]],"h":[[2,1],[5,1]],"m":165760},{"b":[[16,4],[17,-8],[26,-5],[35,14]],"h":[[2,1],[6,1]],"m":3363},{"b":[[3,14],[5,-4],[8,14],[15,-8],[43,15]],"h":[[5,1]],"m":2091},{"b":[[5,-4],[6,-8],[14,-4],[31,14]],"h":[[2,1],[7,1]],"m":230272}],3:[{"b":[[7,-5],[8,-4],[15,5],[17,-8],[35,9],[43,14]],"h":[],"m":4267},{"b":[[8,-1],[17,-8],[24,9],[33,12]],"h":[[6,1]],"m":3233},{"b":[[6,-1],[7,-4],[15,-8],[34,4],[44,14]],"h":[],"m":19490},{"b":[[6,-4],[7,-5],[16,-8],[33,12],[34,6]],"h":[[1,1]],"m":19490},{"b":[[5,5],[8,-2],[14,12],[16,-8],[33,12]],"h":[[5,1]],"m":167040},{"b":[[7,-8],[25,9]],"h":[[7,2]],"m":231424},{"b":[[8,-8],[15,5]],"h":[[4,1],[6,1]],"m":199680},{"b":[[5,-8],[14,-1],[15,-3],[22,4]],"h":[[3,1],[7,1]],"m":101376},{"b":[[11,15],[13,-5],[14,-8],[15,4],[23,-5],[33,14]],"h":[[4,1],[5,1]],"m":2977},{"b":[[14,-8],[23,6],[42,7]],"h":[[5,1],[6,1]],"m":18346}]};
+const TOT={1:18,2:4,3:4,4:4,5:4,6:2,7:2};
+function prog(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return{}}}
+function saveProg(k,id){const p=prog(k);p[id]=1;try{localStorage.setItem(k,JSON.stringify(p))}catch(e){}}
+function setupMode(P,extra){
+ TUT.stop();const W=P.W;
+ G=Object.assign({W,pos:P,me:1,diff:0,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],goal:null,tok:Math.random()},extra);
+ let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
+ for(const hi of [0,1])for(let t=1;t<=7;t++)for(let c=0;c<P.h[hi][t];c++)G.hid[hi][t].push(id++);
+ SEL=null;G.legal=ENG.legal(P);closeModal();layout();render();BGM.start();
+}
+function startLesson(i){
+ const L=LESSONS[i];let P;
+ if(L.std)P=ENG.newPos(9);
+ else{P={W:9,b:new Int8Array(81),h:[new Int8Array(9),new Int8Array(9)],side:1};for(const [s,v] of L.b)P.b[s]=v;
+  if(!L.b.some(e=>e[1]===8))P.b[S(1,9)]=8;if(!L.b.some(e=>e[1]===-8))P.b[S(9,1)]=-8;for(const t in L.hand||{})P.h[0][t]=L.hand[t]}
+ NAME='對手';setupMode(P,{mode:'lesson',li:i});TUT.start(L.steps);
+}
+function startTsume(n,i){
+ const q=TSUME[n][i],P={W:9,b:new Int8Array(81),h:[new Int8Array(9),new Int8Array(9)],side:1};
+ for(const [s,v] of q.b)P.b[s]=v;for(const [t,c] of q.h)P.h[0][t]=c;
+ const B=ENG.BASE,used={};P.b.forEach(v=>{if(v&&Math.abs(v)!==8){const t=B[Math.abs(v)]||Math.abs(v);used[t]=(used[t]||0)+1}});
+ for(let t=1;t<=7;t++)P.h[1][t]=Math.max(0,TOT[t]-(used[t]||0)-P.h[0][t]);
+ NAME='玉方';setupMode(P,{mode:'tsume',tn:n,ti:i,rem:n});
+}
+function retry(msg){toast(msg);setTimeout(()=>{if(G&&G.hist.length)undo()},900)}
+function lessonAfter(m){
+ const t=TUT.cur.task,P=G.pos;if(!t)return;
+ if(t.promote&&!(m&ENG.PR))return retry('這次要選升變');
+ if(t.mate){if(!G.legal.length){sfx('win');say('つみ');toast('詰み！');setTimeout(()=>TUT.next(),1300)}else retry('還沒將死');return}
+ toast('很好！');P.side=1;G.legal=ENG.legal(P);G.hist=[];SEL=null;setTimeout(()=>{TUT.next()},750);
+}
+function lessonDone(){
+ saveProg('sg_les',G.li);const i=G.li,last=i>=LESSONS.length-1;sfx('stamp');
+ modal(`<h2>第 ${i+1} 課完成！</h2><p>「${LESSONS[i].t}」學會了。</p>${last?`<div class="sealrow"><img src="${BRAND.seal}" alt="鳩特數理朱印"></div><p>全部課程完成！接下來可以挑戰詰將棋，或直接和幼年鳩特下一局。</p>`:''}
+ <div class="btns"><button data-act="lessons">課程列表</button>${last?'<button class="pri" data-act="tsumes">挑戰詰將棋</button>':`<button class="pri" data-act="lesson" data-i="${i+1}">下一課：${LESSONS[i+1].t}</button>`}</div>`);
+}
+function tsumeAfter(m,s,chk){
+ const P=G.pos;
+ if(s===1){
+  if(!chk)return retry('詰將棋每一步都要王手！');
+  if(!G.legal.length){G.over=true;render();return tsumeDone()}
+  if(!ENG.defMated(P,G.rem-1))return retry('這步會被逃掉，再想想');
+  G.rem-=1;G.thinking=true;render();const g=G;
+  setTimeout(()=>{if(G!==g)return;G.thinking=false;play(ENG.defReply(P,G.rem-1))},650);
+ }else{G.rem-=1;render()}
+}
+function tsumeDone(){
+ const n=G.tn,i=G.ti,L=TSUME[n],last=i>=L.length-1;saveProg('sg_tsu',n+'-'+i);sfx('win');setTimeout(()=>say('つみ'),200);
+ modal(`<h2>正解！詰み</h2><p>${n} 手詰第 ${i+1} 題完成。</p><div class="sealrow"><img src="${BRAND.seal}" alt="鳩特數理朱印"></div>
+ <div class="btns"><button data-act="tsumes">題目列表</button>${last?(n===1?'<button class="pri" data-act="tsume" data-n="3" data-i="0">挑戰三手詰</button>':''):`<button class="pri" data-act="tsume" data-n="${n}" data-i="${i+1}">下一題</button>`}</div>`);sfx('stamp');
+}
+function tsumeHint(){if(!G||G.mode!=='tsume'||G.over||G.thinking||G.pos.side!==1)return;const m=ENG.mateIn(G.pos,G.rem);if(!m)return;
+ SEL=(m>>15)?'h'+(m>>15):(m&127);G.goal=(m>>7)&127;toast('提示');render()}
+function showLessons(){const p=prog('sg_les');
+ modal(`<h2>新手教學</h2><p class="pill">從零開始，一課學一件事。每課只要幾十秒。</p><div class="list">${LESSONS.map((L,i)=>`<button data-act="lesson" data-i="${i}"><span>${i+1}</span>${L.t}${p[i]?'<em>✓</em>':''}</button>`).join('')}</div><div class="btns"><button data-act="menu">返回</button></div>`)}
+function showTsumes(){const p=prog('sg_tsu');const grid=n=>TSUME[n].map((_,i)=>`<button class="tq${p[n+'-'+i]?' done':''}" data-act="tsume" data-n="${n}" data-i="${i}">${i+1}</button>`).join('');
+ modal(`<h2>詰將棋</h2><p>你是攻方，要在規定的手數內將死對方的王。規則：</p><p class="pill">一、你的每一步都必須是王手。二、玉方會用最頑強的方式逃。三、盤上和你的持駒以外的棋子，全部都在玉方手上。</p>
+ <h3>一手詰（走一步就將死）</h3><div class="tgrid">${grid(1)}</div><h3>三手詰（你、玉方、你）</h3><div class="tgrid">${grid(3)}</div><div class="btns"><button data-act="menu">返回</button></div>`)}
+const TUT={on:false,steps:[],i:0,iv:0,
+ get cur(){return this.steps[this.i]||{}},
+ start(st){this.steps=st;this.i=0;this.on=true;$('tut').hidden=false;clearInterval(this.iv);this.iv=setInterval(()=>this.place(),120);this.enter()},
+ stop(){this.on=false;clearInterval(this.iv);$('tut').hidden=true},
+ enter(){const t=this.cur.task;if(G){G.goal=t&&t.goal!=null?t.goal:null;SEL=null;render()}this.paint()},
+ next(){this.i++;if(this.i>=this.steps.length){this.stop();return lessonDone()}this.enter()},
+ paint(){const s=this.cur;$('tutBox').innerHTML=`<b>${s.t}</b><div class="tx">${s.x}</div><div class="tb">${s.task?'<span class="pill">照著框起來的地方操作</span>':'<span class="pill"></span><button class="pri" data-act="tutnext">下一步</button>'}<button data-act="tutquit">離開</button></div>`;this.place()},
+ target(){const s=this.cur,t=s.task;if(!t)return s.sel;
+  if(t.drop)return SEL==='h'+t.drop?sqSel(t.goal):`#h0 .hp[data-ht="${t.drop}"]`;
+  if(SEL===t.from)return t.goal!=null?sqSel(t.goal):null;return sqSel(t.from)},
+ place(){if(!this.on)return;const box=$('tutBox'),sp=$('tutSpot'),ar=$('tutArrow'),dim=$('tutDim'),sel=this.target(),el=sel&&document.querySelector(sel),H=innerHeight;
+  if(!el||!el.getBoundingClientRect().width){sp.hidden=ar.hidden=true;dim.hidden=!!this.cur.task;box.style.top=Math.max(10,H-box.offsetHeight-14)+'px';return}
+  dim.hidden=true;sp.hidden=false;const r=el.getBoundingClientRect(),p=4,big=r.height>H*.4;
+  Object.assign(sp.style,{left:r.left-p+'px',top:r.top-p+'px',width:r.width+2*p+'px',height:r.height+2*p+'px'});
+  const below=r.top+r.height/2<H*.5;ar.hidden=big;
+  box.style.top=(big?Math.max(10,H-box.offsetHeight-14):below?Math.min(H-box.offsetHeight-10,r.bottom+p+34):Math.max(10,r.top-p-34-box.offsetHeight))+'px';
+  ar.className=below?'up':'';ar.style.left=r.left+r.width/2-12+'px';ar.style.top=(below?r.bottom+p+2:r.top-p-30)+'px'}
+};
+
 /* ===== 操作 ===== */
-function snapshot(){const P=G.pos;return{pos:ENG.clone(P),ids:Int32Array.from(G.ids),hid:G.hid.map(a=>a.map(x=>x.slice())),kn:G.kifu.length,last:G.last,lastTo:G.lastTo,reps:new Map(G.reps)}}
+function snapshot(){const P=G.pos;return{pos:ENG.clone(P),ids:Int32Array.from(G.ids),hid:G.hid.map(a=>a.map(x=>x.slice())),kn:G.kifu.length,last:G.last,lastTo:G.lastTo,reps:new Map(G.reps),rem:G.rem}}
 function tryMove(cands){
  if(!cands.length){SEL=null;return render()}
  const pro=cands.find(m=>m&ENG.PR),non=cands.find(m=>!(m&ENG.PR));
@@ -430,14 +588,18 @@ function tryMove(cands){
 function onSq(sq){
  if(!G||G.over||G.thinking||G.pos.side!==G.me)return;
  const P=G.pos,v=P.b[sq];
+ if(G.mode==='lesson'){const t=TUT.cur.task;if(!t)return;
+  if(t.drop){if(SEL==='h'+t.drop&&sq===t.goal)tryMove(G.legal.filter(m=>(m>>15)===t.drop&&((m>>7)&127)===sq));return}
+  if(SEL!==t.from){if(sq===t.from){SEL=sq;sfx('tap');render()}return}
+  if(t.goal!=null&&sq!==t.goal){if(sq===t.from){SEL=null;render()}return}}
  if(typeof SEL==='string'){const ty=+SEL.slice(1);const c=G.legal.filter(m=>(m>>15)===ty&&((m>>7)&127)===sq);if(c.length)return tryMove(c)}
  if(v&&v*G.me>0){SEL=SEL===sq?null:sq;sfx('tap');return render()}
  if(typeof SEL==='number')return tryMove(G.legal.filter(m=>!(m>>15)&&(m&127)===SEL&&((m>>7)&127)===sq));
  SEL=null;render();
 }
-function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==G.me)return;SEL=SEL==='h'+ty?null:'h'+ty;sfx('tap');render()}
+function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==G.me)return;if(G.mode==='lesson'&&TUT.cur.task?.drop!==ty)return;SEL=SEL==='h'+ty?null:'h'+ty;sfx('tap');render()}
 function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;const s=G.hist.pop();
- Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps});G.kifu.length=s.kn;G.legal=ENG.legal(G.pos);SEL=null;render()}
+ Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps,rem:s.rem,goal:G.mode==='lesson'?G.goal:null});G.kifu.length=s.kn;G.legal=ENG.legal(G.pos);SEL=null;render()}
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特將棋</h2></div></div>
@@ -447,7 +609,7 @@ function showMenu(){
  <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}</div>
  <p class="pill">${['只看一步，常常亂走。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。'][OPT.diff]}</p>
  <h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>
- <div class="btns"><button data-act="rules">規則與走法</button><button class="pri" data-act="start">開始</button></div>`)}
+ <div class="btns"><button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">開始對局</button></div>`)}
 function showRules(){
  const row=(ty,t)=>`<div class="showhint">${pieceH(ty,0,true)}</div><div><b>${t[0]}</b><br><small>${t[1]}</small></div>`;
  modal(`<h2>規則與走法</h2>
@@ -467,6 +629,13 @@ function act(a,el){
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='promo1'||a==='promo0'){closeModal();const pp=G.pendingPromo;G.pendingPromo=null;return play(pp[a==='promo1'?0:1])}
  if(a==='undo')return undo();
+ if(a==='lessons')return showLessons();
+ if(a==='lesson')return startLesson(+el.dataset.i);
+ if(a==='tsumes')return showTsumes();
+ if(a==='tsume')return startTsume(+el.dataset.n,+el.dataset.i);
+ if(a==='tutnext')return TUT.next();
+ if(a==='tutquit'){TUT.stop();return showLessons()}
+ if(a==='resign'&&G&&G.mode==='tsume')return tsumeHint();
  if(a==='resign'){if(!G||G.over)return;return modal(`<h2>確定認輸？</h2><p>認輸就是日本將棋說的「投了」，這局會直接結束。</p><div class="btns"><button data-act="close">繼續下</button><button class="red" data-act="resign2">認輸</button></div>`)}
  if(a==='resign2'){closeModal();if(worker)worker.onmessage=null;G.thinking=false;say('まけました');return end(-G.me,'投了')}
  if(a==='hint'){HINT=!HINT;try{localStorage.setItem('sg_hint',HINT?'1':'0')}catch(e){}return syncBtns()}
