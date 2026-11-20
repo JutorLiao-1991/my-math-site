@@ -68,5 +68,27 @@ console.log('ok');
         self.assertIn("ok", out.stdout)
 
 
+    def test_tsume_puzzles_have_unique_answers(self):
+        data = re.search(r"const TSUME=(\{1:.*?\]\,3:.*?\]\});", PAGE, re.S).group(1)
+        out = run_node("const TSUME=" + data + r""";
+const E=ENGINE,TOT={1:18,2:4,3:4,4:4,5:4,6:2,7:2};
+for(const n of [1,3]){if(TSUME[n].length<8)throw new Error('too few '+n);
+ TSUME[n].forEach((q,i)=>{const p={W:9,b:new Int8Array(81),h:[new Int8Array(9),new Int8Array(9)],side:1};
+  for(const [s,v] of q.b)p.b[s]=v;for(const [t,c] of q.h)p.h[0][t]=c;const used={};
+  p.b.forEach(v=>{if(v&&Math.abs(v)!==8){const t=E.BASE[Math.abs(v)]||Math.abs(v);used[t]=(used[t]||0)+1}});
+  for(let t=1;t<=7;t++)p.h[1][t]=TOT[t]-(used[t]||0)-p.h[0][t];
+  const ms=E.mateMoves(p,n);if(ms.length!==1||ms[0]!==q.m)throw new Error(n+'-'+i+' answers '+ms.length);
+  if(n===3&&E.mateIn(p,1))throw new Error(n+'-'+i+' has mate in 1');})}
+console.log('ok');""")
+        self.assertEqual(out.returncode, 0, out.stderr)
+        self.assertIn("ok", out.stdout)
+
+    def test_lessons_cover_basics(self):
+        for title in ("步兵", "香車", "桂馬", "銀將", "金將", "角行", "飛車", "玉將與王手", "吃子與打入", "升變", "禁手：二步", "將死對方"):
+            self.assertIn(f"t:'{title}'", PAGE)
+        self.assertIn('data-act="lessons">新手教學</button>', PAGE)
+        self.assertIn('data-act="tsumes">詰將棋</button>', PAGE)
+
+
 if __name__ == "__main__":
     unittest.main()
