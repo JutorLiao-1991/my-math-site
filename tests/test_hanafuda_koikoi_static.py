@@ -19,9 +19,21 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
 
     def test_page_basics_and_card_credit(self):
         self.assertIn('href="../index.html"', PAGE)
-        self.assertEqual(PAGE.count("data:image/webp;base64,"), 48)
+        self.assertEqual(PAGE.split("const IMG=")[1].split("];")[0].count("data:image/webp;base64,"), 48)
+        for key in ("gold", "paper", "seal"):
+            self.assertIn(f'"{key}":"data:image/webp;base64,', PAGE)
+        for name in ("幼年鳩特", "青年鳩特", "成年鳩特"):
+            self.assertIn(name, PAGE)
         self.assertIn("Louie Mantia", PAGE)
         self.assertIn("creativecommons.org/licenses/by-sa/4.0", PAGE)
+
+    def test_tutorial_is_scripted_and_reachable(self):
+        self.assertIn('data-act="tutorial">新手教學</button>', PAGE)
+        self.assertIn("const STEPS=[", PAGE)
+        for gate in ("flip0", "after0", "choose", "decide", "turn0"):
+            self.assertIn(f"'{gate}'", PAGE)
+        self.assertIn("allow:'koi'", PAGE)
+        self.assertIn("allow:'stop'", PAGE)
 
     def test_engine_plays_full_games(self):
         script = PAGE.split("<script>")[1].split("</script>")[0]
