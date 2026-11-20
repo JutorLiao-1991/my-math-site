@@ -91,6 +91,28 @@ body.hint .hints,.showhint .hints{display:block}
 .list span{width:1.8em;color:var(--gold);font-weight:700}.list em{margin-left:auto;color:#6fd17f;font-style:normal;font-weight:700}
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px}.tq{min-height:44px;font-weight:700}.tq.done{background:#2f6b3a}
 @media (prefers-reduced-motion:reduce){#tutSpot,#tutArrow{animation:none}}
+/* ===== 和風勝敗畫面 ===== */
+#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 18px;text-align:center;overflow:hidden;color:#f3ece0}
+#fin.win{background:radial-gradient(circle at 50% 38%,#6a1e12,#1c0b07 72%)}
+#fin.lose{background:radial-gradient(circle at 50% 38%,#3c3c42,#111114 75%)}
+#fin.draw{background:radial-gradient(circle at 50% 38%,#3a2b22,#1d1714 75%)}
+#fin .rays{position:absolute;left:50%;top:36%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#e0b43c30 0 5deg,#0000 5deg 15deg);animation:fspin 40s linear infinite;pointer-events:none}
+#fin .big{position:relative;font:900 min(44vw,210px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;color:#fff1d2;text-shadow:0 0 34px #e0b43ccc,0 7px 0 #8a1a10;animation:fbig .7s cubic-bezier(.2,1.5,.4,1) forwards}
+#fin.lose .big{color:#d9d5cc;text-shadow:0 0 22px #000a;animation:fink 2.4s ease-out forwards}
+#fin.draw .big{color:#e8dcc4;text-shadow:0 0 20px #e0b43c55}
+#fin .fsub{position:relative;font-size:19px;font-weight:700}
+#fin .fline{position:relative;font-size:15px;color:#d8ccb8;max-width:30em}
+#fin .fstat{position:relative;font-size:14px;color:#bfae9c}
+#fin .fseal{position:relative;height:96px;transform:rotate(-8deg);animation:sealin .5s .9s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 2px 3px #0008)}
+#fin .btns{position:relative;justify-content:center;margin-top:6px}
+#fin .fall{position:absolute;top:-6vh;pointer-events:none;animation:ffall linear forwards}
+#fin .petal{width:14px;height:10px;background:radial-gradient(circle at 30% 30%,#ffe3ea,#f29ab4);border-radius:80% 0 80% 0}
+#fin .leaf{width:18px;height:18px;background:#a8452c;clip-path:polygon(50% 0,62% 30%,95% 24%,72% 52%,90% 86%,55% 70%,50% 100%,45% 70%,10% 86%,28% 52%,5% 24%,38% 30%)}
+@keyframes fspin{to{transform:rotate(360deg)}}
+@keyframes fbig{0%{opacity:0;transform:scale(2.6) rotate(-10deg)}60%{opacity:1;transform:scale(.92)}100%{opacity:1;transform:none}}
+@keyframes fink{0%{opacity:0;transform:scale(1.25)}40%{opacity:.35}100%{opacity:.94;transform:none}}
+@keyframes ffall{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){#fin .rays,#fin .big,#fin .fall,#fin .fseal{animation:none}#fin .fall{display:none}}
 #toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font:800 28px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;padding:14px 26px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;letter-spacing:.15em}
 #toast.show{opacity:1}
 @media (orientation:landscape) and (min-width:700px){
@@ -396,6 +418,29 @@ const BGM={
 
 
 
+/* ===== 和風勝敗畫面：勝＝太鼓與上行旋律、櫻花；負＝尺八下行與鈴聲、落葉 ===== */
+function drum(t,v){const a=AC,o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t;o.frequency.setValueAtTime(120,s);o.frequency.exponentialRampToValueAtTime(46,s+.3);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+.6);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+.65);noise(.1,700,.7,v*.6,null,t)}
+SFX.fanfare=()=>{const a=ac();if(!a||MUTE)return;[0,.22,.44,.58,.72].forEach((t,i)=>drum(t,i<3?.75:.6));
+ [293.66,311.13,392,440,466.16,587.33].forEach((f,i)=>tone(f,.55,.18,1+i*.13,'triangle'));[587.33,880,1174.66].forEach(f=>tone(f,1.8,.11,1.85,'triangle'));drum(1.85,.8)};
+SFX.lament=()=>{const a=ac();if(!a||MUTE)return;const s=a.currentTime+.15,o=a.createOscillator(),g=a.createGain(),v=a.createOscillator(),vg=a.createGain();
+ o.frequency.setValueAtTime(466,s);o.frequency.linearRampToValueAtTime(440,s+.5);o.frequency.linearRampToValueAtTime(311,s+1.7);v.frequency.value=5;vg.gain.value=6;v.connect(vg);vg.connect(o.frequency);
+ g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.35);g.gain.setValueAtTime(.17,s+1.4);g.gain.linearRampToValueAtTime(0,s+2);o.connect(g);g.connect(a.destination);[o,v].forEach(x=>{x.start(s);x.stop(s+2.1)});
+ noise(1.8,900,1.2,.05,'swish',.15);[1,2.76,5.4].forEach((m,i)=>tone(660*m,2.8-i*.6,.12/(i+1),2.2,'sine'))};
+SFX.even=()=>{[392,440,392].forEach((f,i)=>tone(f,.6,.14,i*.3,'triangle'))};
+function recGet(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return{}}}
+function recAdd(k,who,res){const R=recGet(k),r=R[who]||{w:0,l:0,d:0,s:0};r[res]++;r.s=res==='w'?Math.max(1,r.s+1):0;R[who]=r;try{localStorage.setItem(k,JSON.stringify(R))}catch(e){}return r}
+function recLine(who,r){return `對${who}：${r.w} 勝 ${r.l} 敗${r.d?` ${r.d} 和`:''}${r.s>=2?`・目前 ${r.s} 連勝`:''}`}
+function showFinale(kind,o){
+ let f=$('fin');if(!f){f=document.createElement('div');f.id='fin';document.body.appendChild(f)}
+ f.className=kind;f.hidden=false;closeModal();
+ f.innerHTML=`${kind==='win'?'<div class="rays"></div>':''}<div class="big">${kind==='win'?'勝':kind==='lose'?'負':'和'}</div><div class="fsub">${o.sub||''}</div>${o.line?`<div class="fline">${o.line}</div>`:''}${o.stat?`<div class="fstat">${o.stat}</div>`:''}${kind==='win'?`<img class="fseal" src="${BRAND.seal}" alt="鳩特數理朱印">`:''}<div class="btns">${o.btns||''}</div>`;
+ if(!RMF){const n=kind==='win'?34:kind==='lose'?16:0;for(let i=0;i<n;i++){const e=document.createElement('i');e.className='fall '+(kind==='win'?'petal':'leaf');
+  e.style.cssText=`left:${Math.random()*100}vw;--dx:${(Math.random()*30-15).toFixed(1)}vw;--r:${Math.random()*720-360|0}deg;animation-duration:${(kind==='win'?4:7)+Math.random()*4}s;animation-delay:${Math.random()*(kind==='win'?2.5:4)}s`;f.appendChild(e)}}
+ sfx(kind==='win'?'fanfare':kind==='lose'?'lament':'even');
+}
+const RMF=!SIM&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function hideFinale(){const f=$('fin');if(f)f.hidden=true}
+
 /* ===== 基本資料 ===== */
 const DIFFN=['嬰兒鳩特','幼年鳩特','青年鳩特','成年鳩特','大師鳩特'];
 const CH={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'杏',11:'圭',12:'全',14:'馬',15:'龍'};
@@ -457,13 +502,13 @@ function aiTurn(){
 }
 function end(winner,why){
  G.over=true;G.thinking=false;render();const n=G.kifu.length;
- const res=winner===0?'和局':winner===G.me?'你贏了！':`${NAME}贏了`;
- let line=winner===0?'同一個局面出現四次，按規則判為和局。':why==='千日手'?'同一個局面出現四次。五五將棋的千日手規定先手輸。':why==='投了'?`${winner===G.me?NAME:'你'}認輸了。`:`${winner===G.me?NAME:'你'}的玉將被將死了。`;
+ const kind=winner===0?'draw':winner===G.me?'win':'lose';
+ const line=(winner===0?'同一個局面出現四次，按規則判為和局。':why==='千日手'?'同一個局面出現四次，五五將棋的千日手規定先手輸。':why==='投了'?`${winner===G.me?NAME:'你'}認輸了。`:`${winner===G.me?NAME:'你'}的玉將被將死了。`)+`共 ${n} 手。`;
  if(winner===G.me)setTimeout(()=>say(why==='投了'?'まいりました':`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
  else if(winner)setTimeout(()=>say(`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
- if(winner===G.me)sfx('win');
- modal(`<h2>${res}</h2><p>${line}</p><p class="pill">共 ${n} 手。</p>${winner===G.me?`<div class="sealrow"><img src="${BRAND.seal}" alt="鳩特數理朱印"></div>`:''}<div class="btns"><button data-act="menu">選單</button><button class="pri" data-act="again">再下一局</button></div>`);
- if(winner===G.me)sfx('stamp');
+ const r=recAdd('rec_sg_'+G.W,NAME,kind==='win'?'w':kind==='lose'?'l':'d');
+ const g=G;setTimeout(()=>{if(G!==g)return;showFinale(kind,{sub:kind==='win'?'你贏了！':kind==='lose'?`${NAME}贏了`:'和局',line,stat:recLine(NAME,r)+`（${G.W===9?'本將棋':'五五將棋'}）`,
+  btns:`<button data-act="menu">選單</button>${kind==='lose'&&G.diff>0?`<button data-act="easier">換${DIFFN[G.diff-1]}</button>`:''}<button class="pri" data-act="again">再下一局</button>`})},900);
 }
 /* ===== 畫面 ===== */
 function layout(){
@@ -662,7 +707,7 @@ function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;const s=G.hist.
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特將棋</h2></div></div>
- <p>日本將棋，和三位鳩特對戰。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
+ <p>日本將棋，和五位鳩特對戰。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
  <h3>棋盤</h3><div class="opts">${o('W',9,'本將棋 9×9')}${o('W',5,'五五將棋 5×5')}</div>
  <p class="pill">${OPT.W===9?'正式的將棋，每人 20 枚棋子。':'縮小版，每人 6 枚棋子，一局很快，適合入門。'}</p>
  <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}</div>
@@ -681,6 +726,8 @@ function showRules(){
  <h3>千日手</h3><p>同一個局面出現四次，本將棋判和局，五五將棋判先手輸。</p>
  <div class="btns"><button class="pri" data-act="close">知道了</button></div>`)}
 function act(a,el){
+ if(['menu','start','again','easier','lessons','tsumes'].includes(a))hideFinale();
+ if(a==='easier'){OPT.diff=Math.max(0,G.diff-1);OPT.W=G.W;return newGame()}
  if(a==='opt'){const v=el.dataset.v;OPT[el.dataset.k]=isNaN(+v)?v:+v;return showMenu()}
  if(a==='start'||a==='again')return newGame();
  if(a==='menu')return showMenu();

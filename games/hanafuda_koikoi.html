@@ -120,6 +120,51 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .tcards{display:flex;gap:4px;margin:8px 0}.tcards .card{--cw:42px;cursor:default}
 .tutnote{color:var(--gold);font-weight:700}
 @media (prefers-reduced-motion:reduce){#tutSpot,#tutArrow{animation:none}}
+/* ===== 結算捲軸（沿用北海道行程的捲軸樣式） ===== */
+.sc{--paper:#fffdf7;--paper2:#f3ecdc;--wood:#5a3317;--wood2:#2e1909;--mount:#e7dcc4;color:#1f1a12;margin:4px 8px 12px}
+.sc-head{position:relative;display:flex;align-items:center;justify-content:center;min-height:56px;padding:10px 26px;border-radius:12px/50%;background:linear-gradient(180deg,#fff 0%,var(--paper) 30%,var(--paper2) 72%,#d6ccb5 100%);box-shadow:0 3px 6px #0006,inset 0 -2px 0 #78643c2e}
+.sc-head::before,.sc-head::after,.sc-roll::before,.sc-roll::after{content:"";position:absolute;top:50%;width:14px;height:78%;transform:translateY(-50%);border-radius:7px;background:linear-gradient(180deg,#8a5a30,var(--wood) 45%,var(--wood2));box-shadow:0 1px 2px #0006}
+.sc-head::before,.sc-roll::before{left:-5px}.sc-head::after,.sc-roll::after{right:-5px}
+.sc-label{display:inline-block;padding:3px 12px;border:1px solid #cdbf9c;background:#fbf7ea;box-shadow:inset 0 0 0 2px #fbf7ea,inset 0 0 0 3px #e3d6b5;font:800 18px/1.3 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;letter-spacing:.06em}
+.sc-body{height:0;overflow:hidden;margin:-4px 12px 0;background:var(--mount);padding:0 7px;transition:height .9s cubic-bezier(.4,.15,.3,1)}
+.sc-paper{position:relative;overflow:hidden;min-height:122px;padding:10px 14px 14px;background:var(--paper);background-image:repeating-linear-gradient(0deg,#968a5a0d 0 1px,#0000 1px 4px),repeating-linear-gradient(90deg,#968a5a09 0 1px,#0000 1px 7px);box-shadow:inset 0 6px 8px -6px #0005}
+.sc-roll{position:relative;height:18px;margin:0 6px;border-radius:9px/50%;background:linear-gradient(180deg,#fff,var(--paper) 35%,var(--paper2) 70%,#cfc4aa);box-shadow:0 3px 5px #0005}
+.sc-roll::before,.sc-roll::after{height:22px}
+.sc-row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:9px 2px;border-bottom:1px dashed #d9ccae;font:700 21px/1.3 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;visibility:hidden}
+.sc-row small{font:400 13px/1 -apple-system,"PingFang TC",sans-serif;color:#7a6a55;margin-left:8px}
+.sc-row .pt{white-space:nowrap}
+.sc-row.show{visibility:visible;animation:scin .45s cubic-bezier(.2,1.5,.4,1) both}
+.sc-row.still{animation:none}
+.sc-row.mul{color:#9a6a12;font-size:18px}
+.sc-row.tot{border-bottom:0;padding-top:14px;color:#b8332a;font-size:26px}
+.sc-row.note{visibility:visible;border:0;display:block;text-align:center;font-size:17px;line-height:1.7;padding:20px 4px}
+.sc-seal{position:absolute;right:6px;bottom:4px;height:min(82px,64%);width:auto;opacity:0;transform:rotate(-9deg);mix-blend-mode:multiply;pointer-events:none}
+.sc-seal.show{opacity:.92;animation:scseal .5s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes scin{0%{opacity:0;transform:scale(1.8)}60%{opacity:1;transform:scale(.95)}100%{opacity:1;transform:none}}
+@keyframes scseal{0%{opacity:0;transform:scale(2.3) rotate(-20deg)}60%{opacity:.95;transform:scale(.92) rotate(-10deg)}100%{opacity:.92;transform:rotate(-9deg)}}
+@media (prefers-reduced-motion:reduce){.sc-body{transition:none}.sc-row.show,.sc-seal.show{animation:none}}
+/* ===== 和風勝敗畫面 ===== */
+#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 18px;text-align:center;overflow:hidden;color:#f3ece0}
+#fin.win{background:radial-gradient(circle at 50% 38%,#6a1e12,#1c0b07 72%)}
+#fin.lose{background:radial-gradient(circle at 50% 38%,#3c3c42,#111114 75%)}
+#fin.draw{background:radial-gradient(circle at 50% 38%,#3a2b22,#1d1714 75%)}
+#fin .rays{position:absolute;left:50%;top:36%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#e0b43c30 0 5deg,#0000 5deg 15deg);animation:fspin 40s linear infinite;pointer-events:none}
+#fin .big{position:relative;font:900 min(44vw,210px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;color:#fff1d2;text-shadow:0 0 34px #e0b43ccc,0 7px 0 #8a1a10;animation:fbig .7s cubic-bezier(.2,1.5,.4,1) forwards}
+#fin.lose .big{color:#d9d5cc;text-shadow:0 0 22px #000a;animation:fink 2.4s ease-out forwards}
+#fin.draw .big{color:#e8dcc4;text-shadow:0 0 20px #e0b43c55}
+#fin .fsub{position:relative;font-size:19px;font-weight:700}
+#fin .fline{position:relative;font-size:15px;color:#d8ccb8;max-width:30em}
+#fin .fstat{position:relative;font-size:14px;color:#bfae9c}
+#fin .fseal{position:relative;height:96px;transform:rotate(-8deg);animation:sealin .5s .9s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 2px 3px #0008)}
+#fin .btns{position:relative;justify-content:center;margin-top:6px}
+#fin .fall{position:absolute;top:-6vh;pointer-events:none;animation:ffall linear forwards}
+#fin .petal{width:14px;height:10px;background:radial-gradient(circle at 30% 30%,#ffe3ea,#f29ab4);border-radius:80% 0 80% 0}
+#fin .leaf{width:18px;height:18px;background:#a8452c;clip-path:polygon(50% 0,62% 30%,95% 24%,72% 52%,90% 86%,55% 70%,50% 100%,45% 70%,10% 86%,28% 52%,5% 24%,38% 30%)}
+@keyframes fspin{to{transform:rotate(360deg)}}
+@keyframes fbig{0%{opacity:0;transform:scale(2.6) rotate(-10deg)}60%{opacity:1;transform:scale(.92)}100%{opacity:1;transform:none}}
+@keyframes fink{0%{opacity:0;transform:scale(1.25)}40%{opacity:.35}100%{opacity:.94;transform:none}}
+@keyframes ffall{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
+@media (prefers-reduced-motion:reduce){#fin .rays,#fin .big,#fin .fall,#fin .fseal{animation:none}#fin .fall{display:none}}
 #toast{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font-size:24px;font-weight:800;padding:12px 22px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
 @media (orientation:landscape) and (min-width:700px){
@@ -369,6 +414,29 @@ const SFX={
  win(){[523,659,784,1047].forEach((f,k)=>tone(f,.45,.2,k*.11))}
 };
 const sfx=n=>{if(!SIM)SFX[n]()};
+/* ===== 和風勝敗畫面：勝＝太鼓與上行旋律、櫻花；負＝尺八下行與鈴聲、落葉 ===== */
+function drum(t,v){const a=AC,o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t;o.frequency.setValueAtTime(120,s);o.frequency.exponentialRampToValueAtTime(46,s+.3);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+.6);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+.65);noise(.1,700,.7,v*.6,null,t)}
+SFX.fanfare=()=>{const a=ac();if(!a||MUTE)return;[0,.22,.44,.58,.72].forEach((t,i)=>drum(t,i<3?.75:.6));
+ [293.66,311.13,392,440,466.16,587.33].forEach((f,i)=>tone(f,.55,.18,1+i*.13,'triangle'));[587.33,880,1174.66].forEach(f=>tone(f,1.8,.11,1.85,'triangle'));drum(1.85,.8)};
+SFX.lament=()=>{const a=ac();if(!a||MUTE)return;const s=a.currentTime+.15,o=a.createOscillator(),g=a.createGain(),v=a.createOscillator(),vg=a.createGain();
+ o.frequency.setValueAtTime(466,s);o.frequency.linearRampToValueAtTime(440,s+.5);o.frequency.linearRampToValueAtTime(311,s+1.7);v.frequency.value=5;vg.gain.value=6;v.connect(vg);vg.connect(o.frequency);
+ g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.35);g.gain.setValueAtTime(.17,s+1.4);g.gain.linearRampToValueAtTime(0,s+2);o.connect(g);g.connect(a.destination);[o,v].forEach(x=>{x.start(s);x.stop(s+2.1)});
+ noise(1.8,900,1.2,.05,'swish',.15);[1,2.76,5.4].forEach((m,i)=>tone(660*m,2.8-i*.6,.12/(i+1),2.2,'sine'))};
+SFX.even=()=>{[392,440,392].forEach((f,i)=>tone(f,.6,.14,i*.3,'triangle'))};
+function recGet(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){return{}}}
+function recAdd(k,who,res){const R=recGet(k),r=R[who]||{w:0,l:0,d:0,s:0};r[res]++;r.s=res==='w'?Math.max(1,r.s+1):0;R[who]=r;try{localStorage.setItem(k,JSON.stringify(R))}catch(e){}return r}
+function recLine(who,r){return `對${who}：${r.w} 勝 ${r.l} 敗${r.d?` ${r.d} 和`:''}${r.s>=2?`・目前 ${r.s} 連勝`:''}`}
+function showFinale(kind,o){
+ let f=$('fin');if(!f){f=document.createElement('div');f.id='fin';document.body.appendChild(f)}
+ f.className=kind;f.hidden=false;closeModal();
+ f.innerHTML=`${kind==='win'?'<div class="rays"></div>':''}<div class="big">${kind==='win'?'勝':kind==='lose'?'負':'和'}</div><div class="fsub">${o.sub||''}</div>${o.line?`<div class="fline">${o.line}</div>`:''}${o.stat?`<div class="fstat">${o.stat}</div>`:''}${kind==='win'?`<img class="fseal" src="${BRAND.seal}" alt="鳩特數理朱印">`:''}<div class="btns">${o.btns||''}</div>`;
+ if(!RMF){const n=kind==='win'?34:kind==='lose'?16:0;for(let i=0;i<n;i++){const e=document.createElement('i');e.className='fall '+(kind==='win'?'petal':'leaf');
+  e.style.cssText=`left:${Math.random()*100}vw;--dx:${(Math.random()*30-15).toFixed(1)}vw;--r:${Math.random()*720-360|0}deg;animation-duration:${(kind==='win'?4:7)+Math.random()*4}s;animation-delay:${Math.random()*(kind==='win'?2.5:4)}s`;f.appendChild(e)}}
+ sfx(kind==='win'?'fanfare':kind==='lose'?'lament':'even');
+}
+const RMF=!SIM&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+function hideFinale(){const f=$('fin');if(f)f.hidden=true}
+
 /* ===== 配樂：程式即時合成的原創和風音樂（都節音階：古箏、尺八、太鼓） ===== */
 let BGM_ON=true;try{BGM_ON=localStorage.getItem('hf_bgm')!=='0'}catch(e){}
 const RHY=['x.x.x...x.x.x...','x..xx...x..x....','x.xxx...x...x...','x...x.x.x.x.x...','x..x..x.x.......','xx..x...x.xx....'];
@@ -639,22 +707,34 @@ const STAMP={tok:0};
 function stampEl(it,anim){const d=document.createElement('div');d.className='stamp '+it.c+(anim?'':' still');d.innerHTML=`<span>${it.h}</span><span class="pt">${it.pt}</span>`;$('stamps').appendChild(d)}
 function showRoundEnd(w,list,base,mul,notes){
  const last=G.round>=G.rounds;
- let after=`<p>累計：你 ${G.totals[0]} 文　${NAME[1]} ${G.totals[1]} 文</p>`;
- if(last){const d=G.totals[0]-G.totals[1];after+=`<h3>${d>0?'恭喜，你獲勝！':d<0?`${NAME[1]}獲勝，再挑戰一次？`:'平手！'}</h3><p class="pill">牌局編號 ${G.seed}，輸入同一個編號可以重玩同樣的發牌。</p><div class="btns"><button class="pri" data-act="menu">再玩一次</button></div>`;}
- else after+=`<div class="btns"><button class="pri" data-act="next">下一局</button></div>`;
+ let after=`<p class="pill" style="text-align:center">累計：你 ${G.totals[0]} 文　${NAME[1]} ${G.totals[1]} 文</p>`;
  if(G.tut)after=`<p class="tutnote">教學完成！你已經學會配對吃牌、翻牌、成役、來來和結算。</p><p class="pill">正式對局一局有 8 回合，手牌打完前都沒人結算就是流局。更多役請看「役表」。</p><div class="btns"><button data-act="tutorial">再看一次</button><button class="pri" data-act="menu">開始正式對局</button></div>`;
- if(w<0){modal(`<h2>流局</h2><p>牌都出完了，雙方都沒有結算，本局不計分，莊家不變。</p>${after}`);return}
- modal(`<h2>${w===0?'你贏了這一局！':`${NAME[1]}贏了這一局`}</h2><div class="stamps" id="stamps"></div><div id="after" hidden>${after}</div><div class="btns" id="skipb"><button data-act="skip">略過</button></div>`);
- const items=list.map(([n,p])=>({h:`${n}<small>${YOMI[n]}</small>`,pt:`${p} 文`,say:YOMI[n],c:''}));
- if(notes.some(x=>x.startsWith('7')))items.push({h:'七文以上',pt:'×2',say:'しちもん いじょう、ばい',c:'mul'});
- if(notes.some(x=>x.startsWith('對手')))items.push({h:'來來返し',pt:'×2',say:'こいこい がえし、ばい',c:'mul'});
- items.push({h:'合計',pt:`${base*mul} 文`,say:`ごうけい、${base*mul}もん`,c:'tot'});
+ else after+=`<div class="btns"><button class="pri" data-act="${last?'final':'next'}">${last?'看最終結果':'下一局'}</button></div>`;
+ const head=w<0?'流局':w===0?'你贏了':`${NAME[1]}贏了`;
+ const items=w<0?[]:list.map(([n,p])=>({h:`${n}<small>${YOMI[n]}</small>`,pt:`${p} 文`,say:YOMI[n],c:''}));
+ if(w>=0){if(notes.some(x=>x.startsWith('7')))items.push({h:'七文以上',pt:'×2',say:'しちもん いじょう、ばい',c:'mul'});
+  if(notes.some(x=>x.startsWith('對手')))items.push({h:'來來返し',pt:'×2',say:'こいこい がえし、ばい',c:'mul'});
+  items.push({h:'合計',pt:`${base*mul} 文`,say:`ごうけい、${base*mul}もん`,c:'tot'})}
+ const paper=w<0?'<div class="sc-row note">牌都出完了，雙方都沒有結算。<br>本局不計分，莊家不變。</div>'
+  :items.map((it,i)=>`<div class="sc-row ${it.c}" data-i="${i}"><span>${it.h}</span><span class="pt">${it.pt}</span></div>`).join('')+`<img class="sc-seal" src="${BRAND.seal}" alt="鳩特數理朱印">`;
+ modal(`<div class="sc"><div class="sc-head"><span class="sc-label">第 ${G.round} 局・${head}</span></div><div class="sc-body" id="scb"><div class="sc-paper" id="scp">${paper}</div></div><div class="sc-roll"></div></div><div id="after" hidden>${after}</div><div class="btns" id="skipb"><button data-act="skip">略過</button></div>`);
+ const body=$('scb'),pp=$('scp'),full=pp.offsetHeight,ms=RMF?0:Math.round(Math.max(650,Math.min(1400,full*2.4)));
+ body.style.transitionDuration=ms+'ms';requestAnimationFrame(()=>requestAnimationFrame(()=>{body.style.height=full+'px'}));sfx('flip');
+ const rows=[...pp.querySelectorAll('.sc-row[data-i]')],seal=pp.querySelector('.sc-seal');
  const tok=++STAMP.tok;let k=0;
  const finish=()=>{if(STAMP.tok!==tok)return;STAMP.tok++;$('after').hidden=false;$('skipb').hidden=true};
- const sealIt=()=>{const d=document.createElement('div');d.className='sealrow';d.innerHTML=`<img src="${BRAND.seal}" alt="鳩特數理朱印">`;$('stamps').appendChild(d)};
- const step=()=>{if(STAMP.tok!==tok)return;if(k>=items.length){sealIt();sfx('stamp');return setTimeout(finish,500)}const it=items[k++];stampEl(it,true);sfx('stamp');sayThen(it.say,step)};
- STAMP.skip=()=>{if(STAMP.tok!==tok)return;try{speechSynthesis.cancel()}catch(e){}while(k<items.length)stampEl(items[k++],false);if(!$('stamps').querySelector('.sealrow'))sealIt();finish()};
- setTimeout(step,900);
+ const step=()=>{if(STAMP.tok!==tok)return;
+  if(k>=items.length){if(seal){seal.classList.add('show');sfx('stamp')}return setTimeout(finish,seal?650:0)}
+  const it=items[k];rows[k++].classList.add('show');sfx('stamp');sayThen(it.say,step)};
+ STAMP.skip=()=>{if(STAMP.tok!==tok)return;try{speechSynthesis.cancel()}catch(e){}body.style.transitionDuration='0ms';body.style.height=full+'px';rows.forEach(r=>r.classList.add('show','still'));if(seal)seal.classList.add('show');finish()};
+ setTimeout(step,ms+300);
+}
+function showFinal(){
+ const d=G.totals[0]-G.totals[1],kind=d>0?'win':d<0?'lose':'draw';
+ const r=recAdd('rec_hf',NAME[1],kind==='win'?'w':kind==='lose'?'l':'d');
+ showFinale(kind,{sub:`你 ${G.totals[0]} 文 ： ${G.totals[1]} 文 ${NAME[1]}`,
+  line:kind==='win'?'見好就收、該拚就拚，漂亮的一場！':kind==='lose'?`這次${NAME[1]}技高一籌。多留意對手差一張就成的役，下一場一定更好。`:'勢均力敵，再來一場分高下！',
+  stat:recLine(NAME[1],r)+`　牌局編號 ${G.seed}`,btns:'<button data-act="menu">選單</button><button class="pri" data-act="rematch">再戰一場</button>'});
 }
 let OPT={diff:1,rounds:6};
 function showMenu(){
@@ -679,6 +759,7 @@ function showRules(){
  <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`);
 }
 function act(a,el){
+ if(['menu','start','tutorial','rematch'].includes(a))hideFinale();
  if(a==='opt'){OPT[el.dataset.k]=+el.dataset.v;return showMenu()}
  if(a==='start'){const v=parseInt($('seedIn').value,10);closeModal();newGame(OPT.diff,OPT.rounds,Number.isFinite(v)&&v>0?v%1000000:1+Math.floor(Math.random()*999999));return}
  if(a==='tutnext')return TUT.next();
@@ -694,6 +775,8 @@ function act(a,el){
  if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('hf_mute',MUTE?'1':'0')}catch(e){}if(!MUTE)sfx('tap');return syncBtns()}
  if(a==='lab'){document.body.classList.toggle('lab');try{localStorage.setItem('hf_lab',document.body.classList.contains('lab')?'1':'0')}catch(e){}return syncBtns()}
  if(a==='next'){closeModal();return startRound()}
+ if(a==='final')return showFinal();
+ if(a==='rematch'){hideFinale();return newGame(OPT.diff,OPT.rounds,1+Math.floor(Math.random()*999999))}
  if(a==='stop'){closeModal();if(G.tut)TUT.next();return endRound(0)}
  if(a==='koi'){closeModal();const s=calc(G.caps[0]).total;G.koi[0]++;G.last[0]=s;log(`你喊「來來」！目前 ${s} 文`);toast('來來！');if(!say('こいこい'))sfx('koi');if(G.tut)TUT.next();G.turn=1;return beginTurn()}
 }
