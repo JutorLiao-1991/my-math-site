@@ -670,11 +670,31 @@ function playSound(type) {
     try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === "suspended") audioContext.resume();
-        const o = audioContext.createOscillator(), g = audioContext.createGain(), now = audioContext.currentTime;
+        const now = audioContext.currentTime;
+        if (type === "correct") {
+            // 叮咚：高音 E6「叮」接 C6「咚」，每個音加一點高八度泛音讓聲音更清脆，像鐘聲一樣自然衰減
+            const master = audioContext.createGain();
+            master.gain.value = 0.9; master.connect(audioContext.destination);
+            const bell = (freq, start, length, volume) => {
+                [[1, volume], [2, volume * 0.28], [3, volume * 0.08]].forEach(([mult, vol]) => {
+                    const o = audioContext.createOscillator(), g = audioContext.createGain();
+                    o.type = "sine"; o.frequency.setValueAtTime(freq * mult, start);
+                    g.gain.setValueAtTime(0.0001, start);
+                    g.gain.exponentialRampToValueAtTime(vol, start + 0.008);
+                    g.gain.exponentialRampToValueAtTime(0.0001, start + length / mult);
+                    o.connect(g); g.connect(master);
+                    o.start(start); o.stop(start + length / mult + 0.02);
+                });
+            };
+            bell(1318.5, now, 0.55, 0.22);          // 叮
+            bell(1046.5, now + 0.16, 0.85, 0.2);    // 咚
+            return;
+        }
+        const o = audioContext.createOscillator(), g = audioContext.createGain();
         o.connect(g); g.connect(audioContext.destination);
-        o.type = type === "correct" ? "sine" : "triangle";
-        o.frequency.setValueAtTime(type === "correct" ? 620 : 240, now);
-        o.frequency.linearRampToValueAtTime(type === "correct" ? 820 : 150, now + 0.18);
+        o.type = "triangle";
+        o.frequency.setValueAtTime(240, now);
+        o.frequency.linearRampToValueAtTime(150, now + 0.18);
         g.gain.setValueAtTime(0.001, now); g.gain.exponentialRampToValueAtTime(0.13, now + 0.02); g.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
         o.start(now); o.stop(now + 0.23);
     } catch (error) { /* 音效失敗不影響作答 */ }
