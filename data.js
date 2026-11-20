@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年11月17日"
+    lastUpdated: "2026年11月20日"
 };
 
 // --- 課程資料區 ---
@@ -289,6 +289,15 @@ const lessonData = [
         tagClass: "chem",
         tagName: "國中理化",
         desc: "來場元素JUNO吧！"
+    },
+    {
+        title: "月相觀測（國三）",
+        category: "junior",
+        grades: [9],
+        url: "junior/science/moon_phase.html",
+        tagClass: "phys",
+        tagName: "國中地科",
+        desc: "從地球北極上空俯瞰日、地、月，選初一、初七、十五、廿二與 0、6、12、18 點，再進入地球用第一人稱（附方位）看月亮在哪、亮哪一邊；含滑桿自由模式、月出月落、講解表、自修任務與投影模式。"
     },
     {
         title: "時區地球儀：世界現在幾點？（國三）",
