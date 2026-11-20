@@ -39,6 +39,11 @@ main{display:flex;flex-direction:column;min-height:0}
 .hp .pc{--s:.86!important}
 .hp b{position:absolute;right:-5px;bottom:-4px;background:var(--red);color:#fff;border-radius:8px;font-size:11px;line-height:16px;padding:0 5px}
 .hp.sel{background:#7ec8ff66}
+.wide{width:100%;margin:4px 0 6px}
+#evb{display:flex;align-items:center;gap:8px;width:calc(var(--sq)*var(--n) + 22px);font-size:12px;cursor:pointer}
+#evb b{font-size:12px}.evt{flex:1;height:10px;border-radius:5px;background:#5a1a14;overflow:hidden;box-shadow:inset 0 0 0 1px #0007}
+#evf{display:block;height:100%;width:50%;background:linear-gradient(90deg,#e0b43c,#f6dc86);transition:width .6s ease}
+#evP{font-weight:700;color:var(--gold);min-width:2.6em;text-align:right}
 #bw{display:grid;grid-template-columns:auto auto;gap:2px}
 #colL{display:flex;font-size:11px;color:var(--mut)}#colL span{width:var(--sq);text-align:center}
 #rowL{display:flex;flex-direction:column;font-size:11px;color:var(--mut)}#rowL span{height:var(--sq);display:flex;align-items:center;padding-left:3px}
@@ -128,13 +133,14 @@ body.hint .hints,.showhint .hints{display:block}
 <div id="app">
  <header>
   <a class="home" href="../index.html" aria-label="回教材首頁">←</a><b>鳩特將棋</b><span class="pill" id="rinfo"></span><span class="sp"></span>
-  <button id="bBgm" data-act="bgm">配樂</button><button id="bSnd" data-act="snd">音效</button><button id="bHint" data-act="hint">走法</button><button id="bUndo" data-act="undo">悔棋</button><button id="bResign" data-act="resign">認輸</button><button data-act="menu">選單</button>
+  <button id="bBgm" data-act="bgm">配樂</button><button id="bSnd" data-act="snd">音效</button><button id="bHint" data-act="hint">走法</button><button id="bTip" data-act="tip">提示</button><button id="bUndo" data-act="undo">悔棋</button><button id="bResign" data-act="resign">認輸</button><button data-act="menu">選單</button>
  </header>
  <main>
   <section id="stage">
    <div class="handrow"><span class="who" id="oppWho"></span><div class="hand" id="h1"></div></div>
+   <div id="evb" data-act="evinfo" hidden><b id="evL">你</b><div class="evt"><i id="evf"></i></div><span id="evP">50%</span><span class="pill" id="evR"></span></div>
    <div id="bw"><div id="colL"></div><div></div><div id="board"></div><div id="rowL"></div></div>
-   <div class="handrow" style="margin-top:12px"><span class="who"><b>你</b><span id="meSide"></span></span><div class="hand" id="h0"></div></div>
+   <div class="handrow" style="margin-top:12px"><span class="who"><b id="meName">你</b><span id="meSide"></span></span><div class="hand" id="h0"></div></div>
   </section>
   <section id="panel"><div id="prompt"></div><div id="kifu"></div></section>
  </main>
@@ -273,7 +279,25 @@ function searchM(p,depth,alpha,beta,ply,ctx,h){
   if(v>best){best=v;bm=m;if(v>alpha){alpha=v;if(alpha>=beta){if(quiet){const K=ctx.killers[ply]||(ctx.killers[ply]=[0,0]);if(K[0]!==m){K[1]=K[0];K[0]=m}ctx.hist.set(m,(ctx.hist.get(m)||0)+depth*depth)}break}}}}
  TK[ix]=h;TD[ix]=depth;TS[ix]=best;TF[ix]=best<=a0?2:best>=beta?1:0;TM[ix]=bm;
  return best}
+/* ---------- 大師鳩特的開局定跡（本將棋） ---------- */
+const BOOK_SRC=[
+ '7g7f 3c3d 2g2f 8c8d 2f2e 8d8e 6i7h 4a3b 2e2d 2c2d 2h2d 8e8f 8g8f 8b8f 2d3d',
+ '7g7f 8c8d 7i6h 3c3d 6g6f 7a6b 5g5f 5c5d 3i4h 3a4b 4i5h 4a3b 6i7h 5a4a 5i6i 6a5b 6h7g',
+ '7g7f 3c3d 6g6f 8c8d 2h6h 8d8e 8h7g 7a6b 5i4h 5a4b 4h3h 4b3b 3h2h 6a5b 3i3h',
+ '7g7f 3c3d 2g2f 4c4d 2f2e 2b3c 5i6h 8b4b 6h7h 5a6b 3i4h 6b7b',
+ '7g7f 8c8d 2h6h 3c3d 5i4h 5a4b 4h3h 4b3b 3h2h 7a6b 3i3h',
+ '2g2f 3c3d 7g7f 4c4d 3i4h 8b4b 5i6h 5a6b 6h7h 6b7b',
+ '2g2f 8c8d 7g7f 8d8e 8h7g 3c3d 7i8h 4a3b 6i7h 7a7b'
+];
+function usi(W,t){const fx=c=>W-(+c),ry=c=>c.charCodeAt(0)-97;
+ if(t[1]==='*'){const ty={P:1,L:2,N:3,S:4,G:5,B:6,R:7}[t[0]];return (ty<<15)|((ry(t[3])*W+fx(t[2]))<<7)}
+ return (ry(t[1])*W+fx(t[0]))|((ry(t[3])*W+fx(t[2]))<<7)|(t[4]==='+'?PR:0)}
+let BOOK=null;
+function bookMove(p,hist){if(p.W!==9||!hist)return 0;if(!BOOK)BOOK=BOOK_SRC.map(l=>l.split(' ').map(x=>usi(9,x)));
+ const c=[];for(const L of BOOK){if(L.length<=hist.length)continue;let ok=true;for(let i=0;i<hist.length;i++)if(L[i]!==hist[i]){ok=false;break}if(ok)c.push(L[hist.length])}
+ const lg=legal(p),cc=c.filter(m=>lg.includes(m));return cc.length?cc[Math.random()*cc.length|0]:0}
 function thinkMaster(p,root,opt){
+ if(opt.book&&opt.hist){const bm=bookMove(p,opt.hist);if(bm)return{m:bm,s:0,book:true}}
  const ctx={nodes:0,dl:Date.now()+(opt.time||(p.W===9?4500:3200)),stop:false,killers:[],hist:new Map(),ext:0,extMax:3};
  const m1=mateMoves(p,1);if(m1.length)return{m:m1[0],s:INF};
  if(p.W===5||root.length<120){const m3=mateIn(p,3);if(m3)return{m:m3,s:INF-3}}
@@ -303,7 +327,7 @@ function defReply(p,n){const ms=legal(p);let best=[],bl=-1;
  for(const m of ms){const c=doMove(p,m);let len=99;for(let j=1;j<=n;j+=2)if(mateIn(p,j)){len=j;break}undoMove(p,m,c);
   const sc=len*2+((m>>15)?0:1);if(sc>bl){bl=sc;best=[m]}else if(sc===bl)best.push(m)}
  return best.length?best[Math.random()*best.length|0]:0}
-return{mateIn,mateMoves,defMated,defReply,newPos,clone,gen,legal,doMove,undoMove,attacked,inCheck,kingSq,perft,key,think,evalPos,STEP,SLIDE,PROMO,BASE,INF,PR}
+return{usi,bookMove,BOOK_SRC,mateIn,mateMoves,defMated,defReply,newPos,clone,gen,legal,doMove,undoMove,attacked,inCheck,kingSq,perft,key,think,evalPos,STEP,SLIDE,PROMO,BASE,INF,PR}
 })();
 </script>
 <script>
@@ -450,9 +474,16 @@ const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
 const HP={0:[50,15],1:[78,25],2:[87,58],3:[84,87],4:[50,89],5:[16,87],6:[13,58],7:[22,25],8:[34,17],9:[66,17]};
 const ANG=[0,45,90,135,0,45,90,135];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:2,side:'sente'},worker=null,HINT=false;
+let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:2,side:'sente',hc:'none',flip:1},worker=null,HINT=false;
 try{HINT=localStorage.getItem('sg_hint')==='1'}catch(e){}
-try{worker=new Worker(URL.createObjectURL(new Blob([document.getElementById('eng').textContent+';onmessage=e=>postMessage(ENGINE.think(e.data.p,e.data.o));'],{type:'text/javascript'})))}catch(e){worker=null}
+try{worker=new Worker(URL.createObjectURL(new Blob([document.getElementById('eng').textContent+';onmessage=e=>{const r=ENGINE.think(e.data.p,e.data.o);r.id=e.data.id;postMessage(r)};'],{type:'text/javascript'})))}catch(e){worker=null}
+const WQ=new Map();let WID=0;if(worker)worker.onmessage=e=>{const f=WQ.get(e.data.id);if(f){WQ.delete(e.data.id);f(e.data)}};
+function askEngine(pos,o){return new Promise(res=>{const p={W:pos.W,b:Array.from(pos.b),h:[Array.from(pos.h[0]),Array.from(pos.h[1])],side:pos.side};
+ if(worker){const id=++WID;WQ.set(id,res);worker.postMessage({id,p,o})}else setTimeout(()=>res(ENG.think(p,o)),30)})}
+const HC={9:{kyo:[[8,0]],kaku:[[7,1]],hisha:[[1,1]],hikyo:[[1,1],[8,0]],nimai:[[1,1],[7,1]]},5:{kaku:[[1,0]],hisha:[[0,0]],nimai:[[0,0],[1,0]]}};
+const HCN={none:'不讓',kyo:'讓香',kaku:'讓角',hisha:'讓飛',hikyo:'讓飛香',nimai:'讓二枚'};
+const VW=()=>G.pvp?G.view:G.me,ctl=()=>G.pvp?G.pos.side:G.me,SN=s=>s===1?'先手':'後手';
+const nameOf=()=>G.pvp?'雙人對戰':DIFFN[G.diff];
 function say(t){if(MUTE||!window.speechSynthesis)return false;try{const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.pitch=1.05;const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u);return true}catch(e){return false}}
 let tT;function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),1100)}
 SFX.koma=()=>{noise(.045,1900,1.1,1.5);noise(.03,600,1,.7);tone(820,.04,.18,0,'triangle')};
@@ -461,27 +492,55 @@ function hintsH(ty){let h='';for(const d of ENG.STEP[ty]||[])h+=`<i class="hd${d
  for(const d of ENG.SLIDE[ty]||[])h+=`<i class="hd sl" style="left:${HP[d][0]}%;top:${HP[d][1]}%;transform:translate(-50%,-50%) rotate(${ANG[d]}deg)"></i>`;
  return `<span class="hints">${h}</span>`}
 function pieceH(v,pid,upright){const o=v>0?1:-1,ty=v*o,ch=ty===8?(o===1?'玉':'王'):CH[ty];
- const g=upright===undefined?(G&&o!==G.me):!upright;
+ const g=upright===undefined?(G&&o!==VW()):!upright;
  return `<div class="pc${g?' g':''}${ty>=9?' pr':''}"${pid?` data-pid="${pid}"`:''} style="--s:${SC[ty]}"><div class="k"><span class="ch">${ch}</span>${hintsH(ty)}</div></div>`}
 /* ===== 對局 ===== */
 function newGame(){
- const W=OPT.W,me=OPT.side==='rand'?(Math.random()<.5?1:-1):OPT.side==='gote'?-1:1,P=ENG.newPos(W);
- TUT.stop();
- G={mode:'game',W,pos:P,me,diff:OPT.diff,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ const W=OPT.W,pvp=OPT.diff==='pvp';let hc=pvp?'none':OPT.hc;if(!HC[W][hc])hc='none';
+ const me=pvp||hc!=='none'?1:OPT.side==='rand'?(Math.random()<.5?1:-1):OPT.side==='gote'?-1:1,P=ENG.newPos(W);
+ if(hc!=='none'){for(const [x,y] of HC[W][hc])P.b[y*W+x]=0;P.side=-1}
+ TUT.stop();hideFinale();
+ G={mode:'game',W,pos:P,me,view:me,diff:pvp?3:OPT.diff,pvp,flip:!!OPT.flip,hc,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),mvs:[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
  let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
- NAME=DIFFN[G.diff];SEL=null;G.legal=ENG.legal(P);G.reps.set(ENG.key(P),1);
- closeModal();layout();render();BGM.start();
- if(P.side!==G.me)aiTurn();
+ NAME=nameOf();SEL=null;G.legal=ENG.legal(P);G.reps.set(ENG.key(P),1);
+ closeModal();layout();render();BGM.start();saveGame();afterTurnStart();
 }
+function afterTurnStart(){if(!G||G.over||G.mode!=='game')return;if(!G.pvp&&G.pos.side!==G.me)aiTurn();else requestEval()}
+/* ===== 形勢判斷與提示 ===== */
+function requestEval(){if(!G||G.mode!=='game'||G.over)return;const g=G,key=ENG.key(G.pos),side=G.pos.side;
+ askEngine(G.pos,{diff:4,time:650}).then(r=>{if(G!==g||G.over||ENG.key(G.pos)!==key)return;
+  G.evS=Math.abs(r.s)>ENG.INF/2?(r.s>0?1:-1)*side*ENG.INF:r.s*side;G.tip={m:r.m,key};drawEval()})}
+function winRate(){const s=G.evS;if(s===undefined)return null;const ps=Math.abs(s)>=ENG.INF?(s>0?1:0):1/(1+Math.exp(-s/700));const base=G.pvp?VW():G.me;return base===1?ps:1-ps}
+function drawEval(){const e=$('evb');if(!e)return;const w=G&&G.mode==='game'?winRate():null;e.hidden=w===null;if(w===null)return;
+ const pc=Math.round(w*100);$('evL').textContent=G.pvp?SN(VW()):'你';$('evP').textContent=pc+'%';$('evf').style.width=pc+'%';$('evR').textContent=G.pvp?SN(-VW()):NAME}
+function moveText(m){const P=G.pos,W=G.W,s=P.side,f=m&127,to=(m>>7)&127,dt=m>>15,pr=(m>>14)&1,mover=dt||Math.abs(P.b[f]);
+ const nm=mover===8?(s===1?'玉':'王'):KN[mover];
+ return (s===1?'▲':'△')+(G.lastTo===to?'同':ZEN[W-(to%W)-1]+KJ[(to/W)|0])+nm+(dt?'打':pr?'成':canPromote(m)?'不成':'')}
+function reasonOf(m){const P=G.pos,to=(m>>7)&127,dt=m>>15,c=P.b[to],r=[],was=ENG.inCheck(P);
+ if(c)r.push(`吃掉對方的${KN[Math.abs(c)]||'王'}`);if(dt)r.push(`把持駒的${KN[dt]}打入`);if(m&ENG.PR)r.push('升變');
+ const q=ENG.clone(P);ENG.doMove(q,m);if(!ENG.legal(q).length)r.unshift('直接將死！');else if(ENG.inCheck(q))r.push('王手');if(was)r.push('解除王手');
+ if(!r.length)r.push('穩住陣形、等待時機');return r.join('、')}
+function hintGame(){if(!G||G.mode!=='game'||G.over||G.thinking||G.pos.side!==ctl())return;const key=ENG.key(G.pos);
+ const show=m=>{if(!m||!G||ENG.key(G.pos)!==key)return;SEL=(m>>15)?'h'+(m>>15):(m&127);G.goal=(m>>7)&127;G.tipTxt=`建議 ${moveText(m)}：${reasonOf(m)}`;render()};
+ if(G.tip&&G.tip.key===key)return show(G.tip.m);
+ G.tipTxt='大師鳩特幫你想一下…';render();askEngine(G.pos,{diff:4,time:1500}).then(r=>show(r.m))}
+/* ===== 存檔續下 ===== */
+function saveGame(){if(!G||G.mode!=='game')return;try{if(G.over)return localStorage.removeItem('sg_save');const P=G.pos;
+ localStorage.setItem('sg_save',JSON.stringify({W:G.W,me:G.me,diff:G.diff,pvp:G.pvp,flip:G.flip,view:G.view,hc:G.hc,b:Array.from(P.b),h:[Array.from(P.h[0]),Array.from(P.h[1])],side:P.side,ids:Array.from(G.ids),hid:G.hid,kifu:G.kifu,last:G.last,lastTo:G.lastTo,reps:[...G.reps],mvs:G.mvs}))}catch(e){}}
+function savedInfo(){try{return JSON.parse(localStorage.getItem('sg_save')||'null')}catch(e){return null}}
+function resumeSaved(){const d=savedInfo();if(!d)return;TUT.stop();hideFinale();
+ const P={W:d.W,b:Int8Array.from(d.b),h:[Int8Array.from(d.h[0]),Int8Array.from(d.h[1])],side:d.side};
+ G={mode:'game',W:d.W,pos:P,me:d.me,view:d.view,diff:d.diff,pvp:d.pvp,flip:d.flip,hc:d.hc||'none',ids:Int32Array.from(d.ids),hid:d.hid,kifu:d.kifu,last:d.last,lastTo:d.lastTo,hist:[],reps:new Map(d.reps),mvs:d.mvs||[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ NAME=nameOf();SEL=null;G.legal=ENG.legal(P);closeModal();layout();render();BGM.start();afterTurnStart()}
 function canPromote(m){return G.legal.includes(m|ENG.PR)&&!(m&ENG.PR)&&!(m>>15)}
 function play(m){
- const P=G.pos,W=G.W,s=P.side,f=m&127,to=(m>>7)&127,dt=m>>15,pr=(m>>14)&1,hi=s===1?0:1;
- const mover=dt||Math.abs(P.b[f]);
- const nm=mover===8?(s===1?'玉':'王'):KN[mover];
- const txt=(s===1?'▲':'△')+(G.lastTo===to?'同':ZEN[W-(to%W)-1]+KJ[(to/W)|0])+nm+(dt?'打':pr?'成':canPromote(m)?'不成':'');
+ const P=G.pos,W=G.W,s=P.side,f=m&127,to=(m>>7)&127,dt=m>>15,hi=s===1?0:1;
+ const txt=moveText(m);
  if(dt){G.ids[to]=G.hid[hi][dt].pop()}
  else{const c=P.b[to];if(c){const ct=Math.abs(c);G.hid[hi][ENG.BASE[ct]||ct].push(G.ids[to])}G.ids[to]=G.ids[f];G.ids[f]=0}
- ENG.doMove(P,m);G.kifu.push(txt);G.last={f:dt?-1:f,t:to};G.lastTo=to;SEL=null;
+ if(G.mvs)G.mvs.push(m);
+ ENG.doMove(P,m);G.kifu.push(txt);G.last={f:dt?-1:f,t:to};G.lastTo=to;SEL=null;G.goal=null;G.tipTxt=null;
+ if(G.pvp&&G.flip)G.view=P.side;
  sfx('koma');
  const chk=ENG.inCheck(P);G.koi=[chk?1:0,0];
  const k=ENG.key(P),n=(G.reps.get(k)||0)+1;G.reps.set(k,n);
@@ -491,30 +550,29 @@ function play(m){
  if(!G.legal.length)return end(s,'詰み');
  if(n>=4)return end(W===5?-1:0,'千日手');
  if(chk){toast('王手');say('おうて')}
- if(P.side!==G.me)aiTurn();
+ saveGame();afterTurnStart();
 }
 function aiTurn(){
  G.thinking=true;render();const g=G,t0=Date.now();
- const done=r=>{if(G!==g||G.over)return;setTimeout(()=>{if(G!==g)return;G.thinking=false;if(!r.m)return end(G.me,'投了');play(r.m)},Math.max(0,450-(Date.now()-t0)))};
- const msg={p:{W:G.W,b:Array.from(G.pos.b),h:[Array.from(G.pos.h[0]),Array.from(G.pos.h[1])],side:G.pos.side},o:{diff:G.diff}};
- if(worker){worker.onmessage=e=>done(e.data);worker.postMessage(msg)}
- else setTimeout(()=>done(ENG.think(G.pos,{diff:G.diff})),60);
+ askEngine(G.pos,{diff:G.diff,hist:G.hc==='none'?G.mvs.slice():null,book:true}).then(r=>{if(G!==g||G.over)return;
+  setTimeout(()=>{if(G!==g||G.over)return;G.thinking=false;if(!r.m)return end(G.me,'投了');play(r.m)},Math.max(0,450-(Date.now()-t0)))});
 }
 function end(winner,why){
- G.over=true;G.thinking=false;render();const n=G.kifu.length;
- const kind=winner===0?'draw':winner===G.me?'win':'lose';
- const line=(winner===0?'同一個局面出現四次，按規則判為和局。':why==='千日手'?'同一個局面出現四次，五五將棋的千日手規定先手輸。':why==='投了'?`${winner===G.me?NAME:'你'}認輸了。`:`${winner===G.me?NAME:'你'}的玉將被將死了。`)+`共 ${n} 手。`;
- if(winner===G.me)setTimeout(()=>say(why==='投了'?'まいりました':`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
- else if(winner)setTimeout(()=>say(`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
- const r=recAdd('rec_sg_'+G.W,NAME,kind==='win'?'w':kind==='lose'?'l':'d');
- const g=G;setTimeout(()=>{if(G!==g)return;showFinale(kind,{sub:kind==='win'?'你贏了！':kind==='lose'?`${NAME}贏了`:'和局',line,stat:recLine(NAME,r)+`（${G.W===9?'本將棋':'五五將棋'}）`,
-  btns:`<button data-act="menu">選單</button>${kind==='lose'&&G.diff>0?`<button data-act="easier">換${DIFFN[G.diff-1]}</button>`:''}<button class="pri" data-act="again">再下一局</button>`})},900);
+ G.over=true;G.thinking=false;render();saveGame();const n=G.kifu.length;
+ const kind=winner===0?'draw':(G.pvp||winner===G.me)?'win':'lose';
+ const loser=G.pvp?SN(-winner):(winner===G.me?NAME:'你');
+ const line=(winner===0?'同一個局面出現四次，按規則判為和局。':why==='千日手'?'同一個局面出現四次，五五將棋的千日手規定先手輸。':why==='投了'?`${loser}認輸了。`:`${loser}的玉將被將死了。`)+`共 ${n} 手。`;
+ if(winner)setTimeout(()=>say(why==='投了'&&!G.pvp&&winner===G.me?'まいりました':`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
+ const who=NAME+(G.hc!=='none'?`（${HCN[G.hc]}）`:'');
+ const r=G.pvp?null:recAdd('rec_sg_'+G.W,who,kind==='win'?'w':kind==='lose'?'l':'d');
+ const g=G;setTimeout(()=>{if(G!==g)return;showFinale(kind,{sub:winner===0?'和局':G.pvp?`${SN(winner)}獲勝！`:kind==='win'?'你贏了！':`${NAME}贏了`,line,stat:r?recLine(who,r)+`（${G.W===9?'本將棋':'五五將棋'}）`:'',
+  btns:`<button data-act="menu">選單</button>${!G.pvp&&kind==='lose'&&G.diff>0?`<button data-act="easier">換${DIFFN[G.diff-1]}</button>`:''}<button class="pri" data-act="again">再下一局</button>`})},900);
 }
 /* ===== 畫面 ===== */
 function layout(){
  if(!G)return;const W=G.W,land=matchMedia('(orientation:landscape) and (min-width:700px)').matches;
  const hdr=document.querySelector('header').offsetHeight;
- const aw=(land?innerWidth*.66:innerWidth)-40,ah=innerHeight-hdr-(land?40:110);
+ const aw=(land?innerWidth*.66:innerWidth)-40,ah=innerHeight-hdr-(land?56:128);
  const sq=Math.max(24,Math.min(aw/W,ah/(W+2.1),W===9?66:92));
  const r=document.documentElement.style;r.setProperty('--sq',sq.toFixed(1)+'px');r.setProperty('--n',W);
 }
@@ -524,7 +582,7 @@ function render(){if(!G)return;const prev=snap();draw();if(RM)return;
   e.animate([{transform:`translate(${dx}px,${dy}px) scale(${(p.width/r.width).toFixed(3)})`},{transform:'none'}],{duration:280,easing:'cubic-bezier(.2,.7,.3,1)'})})}
 function targets(){const t=new Set();if(SEL===null)return t;for(const m of G.legal){if(typeof SEL==='string'){if((m>>15)===+SEL.slice(1))t.add((m>>7)&127)}else if(!(m>>15)&&(m&127)===SEL)t.add((m>>7)&127)}return t}
 function draw(){
- const P=G.pos,W=G.W,N=W*W,fl=G.me===-1,tg=targets();
+ const P=G.pos,W=G.W,N=W*W,fl=VW()===-1,tg=targets(),cs=G.over||G.thinking?0:ctl();
  let h='';
  for(let dp=0;dp<N;dp++){const sq=fl?N-1-dp:dp,v=P.b[sq];let c='sq';
   if(G.last&&(G.last.t===sq||G.last.f===sq))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';if(G.goal===sq)c+=' goal';
@@ -533,16 +591,16 @@ function draw(){
  $('board').innerHTML=h;
  $('colL').innerHTML=Array.from({length:W},(_,x)=>`<span>${fl?x+1:W-x}</span>`).join('');
  $('rowL').innerHTML=Array.from({length:W},(_,y)=>`<span>${KJ[fl?W-1-y:y]}</span>`).join('');
- for(const who of [0,1]){const side=who===0?G.me:-G.me,hi=side===1?0:1;let s='';
+ for(const who of [0,1]){const side=who===0?VW():-VW(),hi=side===1?0:1,mine=side===cs;let s='';
   for(const ty of [7,6,5,4,3,2,1]){const n=P.h[hi][ty];if(!n)continue;const ids=G.hid[hi][ty];
-   s+=`<div class="hp${who===0&&SEL==='h'+ty?' sel':''}"${who===0?` data-ht="${ty}"`:''}>${pieceH(side*ty,ids[ids.length-1],who===0)}${n>1?`<b>${n}</b>`:''}</div>`}
+   s+=`<div class="hp${mine&&SEL==='h'+ty?' sel':''}"${mine?` data-ht="${ty}"`:''}>${pieceH(side*ty,ids[ids.length-1],who===0)}${n>1?`<b>${n}</b>`:''}</div>`}
   if(who===1&&G.mode==='tsume')s='<span class="pill">盤上和你的持駒以外，其餘棋子全部</span>';
   $(who===0?'h0':'h1').innerHTML=s||'<span class="pill">（無持駒）</span>'}
- $('oppWho').innerHTML=`<b>${NAME}</b>${G.mode==='game'?(G.me===1?'後手':'先手'):''}`;$('meSide').textContent=G.mode==='tsume'?'攻方':G.me===1?'先手':'後手';
+ $('oppWho').innerHTML=G.pvp?`<b>${SN(-VW())}</b>`:`<b>${NAME}</b>${G.mode==='game'?(G.me===1?'後手':'先手')+(G.hc!=='none'?'・'+HCN[G.hc]:''):''}`;$('meName').textContent=G.pvp?SN(VW()):'你';$('meSide').textContent=G.pvp?'':G.mode==='tsume'?'攻方':G.me===1?'先手':'後手';
  $('rinfo').textContent=G.mode==='lesson'?`新手教學 ${G.li+1}/${LESSONS.length}`:G.mode==='tsume'?`${G.tn} 手詰 第 ${G.ti+1} 題`:G.W===9?'本將棋':'五五將棋';
- $('bResign').textContent=G.mode==='tsume'?'提示':'認輸';$('bResign').hidden=G.mode==='lesson';
- const myTurn=P.side===G.me&&!G.over;
- $('prompt').innerHTML=G.mode==='tsume'&&!G.over?(G.thinking||P.side!==1?'玉方應對中…':`輪到你：每一步都要王手，<b>${G.rem} 手內</b>將死`):G.mode==='lesson'?'':G.over?'對局結束':G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
+ $('bResign').hidden=G.mode!=='game';$('bTip').hidden=G.mode==='lesson';drawEval();
+ const myTurn=P.side===ctl()&&!G.over;
+ $('prompt').innerHTML=G.mode==='tsume'&&!G.over?(G.thinking||P.side!==1?'玉方應對中…':`輪到你：每一步都要王手，<b>${G.rem} 手內</b>將死`):G.mode==='lesson'?'':G.over?'對局結束':G.tipTxt?`<b style="color:#ffe28a">${G.tipTxt}</b>`:G.pvp&&!ENG.inCheck(P)?`${SN(P.side)}的回合：點自己的棋子或持駒`:G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
  $('kifu').innerHTML=G.kifu.map((t,i)=>`<span>${i+1} ${t}</span>`).join('');$('kifu').scrollTop=1e5;
  $('bUndo').disabled=!G.hist.length||G.thinking||G.over;
  syncBtns();
@@ -606,7 +664,7 @@ function prog(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch(e){r
 function saveProg(k,id){const p=prog(k);p[id]=1;try{localStorage.setItem(k,JSON.stringify(p))}catch(e){}}
 function setupMode(P,extra){
  TUT.stop();const W=P.W;
- G=Object.assign({W,pos:P,me:1,diff:0,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],goal:null,tok:Math.random()},extra);
+ G=Object.assign({W,pos:P,me:1,view:1,pvp:false,hc:'none',mvs:[],diff:0,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),over:false,thinking:false,koi:[0,0],goal:null,tok:Math.random()},extra);
  let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
  for(const hi of [0,1])for(let t=1;t<=7;t++)for(let c=0;c<P.h[hi][t];c++)G.hid[hi][t].push(id++);
  SEL=null;G.legal=ENG.legal(P);closeModal();layout();render();BGM.start();
@@ -679,7 +737,7 @@ const TUT={on:false,steps:[],i:0,iv:0,
 };
 
 /* ===== 操作 ===== */
-function snapshot(){const P=G.pos;return{pos:ENG.clone(P),ids:Int32Array.from(G.ids),hid:G.hid.map(a=>a.map(x=>x.slice())),kn:G.kifu.length,last:G.last,lastTo:G.lastTo,reps:new Map(G.reps),rem:G.rem}}
+function snapshot(){const P=G.pos;return{pos:ENG.clone(P),ids:Int32Array.from(G.ids),hid:G.hid.map(a=>a.map(x=>x.slice())),kn:G.kifu.length,last:G.last,lastTo:G.lastTo,reps:new Map(G.reps),rem:G.rem,view:G.view,mvn:G.mvs?G.mvs.length:0}}
 function tryMove(cands){
  if(!cands.length){SEL=null;return render()}
  const pro=cands.find(m=>m&ENG.PR),non=cands.find(m=>!(m&ENG.PR));
@@ -690,29 +748,33 @@ function tryMove(cands){
  play(cands[0]);
 }
 function onSq(sq){
- if(!G||G.over||G.thinking||G.pos.side!==G.me)return;
+ if(!G||G.over||G.thinking||G.pos.side!==ctl())return;
  const P=G.pos,v=P.b[sq];
  if(G.mode==='lesson'){const t=TUT.cur.task;if(!t)return;
   if(t.drop){if(SEL==='h'+t.drop&&sq===t.goal)tryMove(G.legal.filter(m=>(m>>15)===t.drop&&((m>>7)&127)===sq));return}
   if(SEL!==t.from){if(sq===t.from){SEL=sq;sfx('tap');render()}return}
   if(t.goal!=null&&sq!==t.goal){if(sq===t.from){SEL=null;render()}return}}
  if(typeof SEL==='string'){const ty=+SEL.slice(1);const c=G.legal.filter(m=>(m>>15)===ty&&((m>>7)&127)===sq);if(c.length)return tryMove(c)}
- if(v&&v*G.me>0){SEL=SEL===sq?null:sq;sfx('tap');return render()}
+ if(v&&v*ctl()>0){SEL=SEL===sq?null:sq;G.goal=null;G.tipTxt=null;sfx('tap');return render()}
  if(typeof SEL==='number')return tryMove(G.legal.filter(m=>!(m>>15)&&(m&127)===SEL&&((m>>7)&127)===sq));
  SEL=null;render();
 }
-function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==G.me)return;if(G.mode==='lesson'&&TUT.cur.task?.drop!==ty)return;SEL=SEL==='h'+ty?null:'h'+ty;sfx('tap');render()}
+function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==ctl())return;if(G.mode==='lesson'&&TUT.cur.task?.drop!==ty)return;SEL=SEL==='h'+ty?null:'h'+ty;sfx('tap');render()}
 function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;const s=G.hist.pop();
- Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps,rem:s.rem,goal:G.mode==='lesson'?G.goal:null});G.kifu.length=s.kn;G.legal=ENG.legal(G.pos);SEL=null;render()}
+ Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps,rem:s.rem,view:s.view,goal:G.mode==='lesson'?G.goal:null,tipTxt:null,tip:null});G.kifu.length=s.kn;if(G.mvs)G.mvs.length=s.mvn;G.legal=ENG.legal(G.pos);SEL=null;render();saveGame();if(G.mode==='game')requestEval()}
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
+ const pvp=OPT.diff==='pvp',hcs=Object.keys(HC[OPT.W]),sv=savedInfo();if(!HC[OPT.W][OPT.hc])OPT.hc='none';
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特將棋</h2></div></div>
- <p>日本將棋，和五位鳩特對戰。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
+ <p>日本將棋，和五位鳩特對戰，或兩個人用同一台裝置對下。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
+ ${sv&&!canResume()?`<button class="pri wide" data-act="resumesave">繼續上次的對局（${sv.pvp?'雙人對戰':DIFFN[sv.diff]}・${sv.W===9?'本將棋':'五五將棋'}・已下 ${sv.kifu.length} 手）</button>`:''}
  <h3>棋盤</h3><div class="opts">${o('W',9,'本將棋 9×9')}${o('W',5,'五五將棋 5×5')}</div>
  <p class="pill">${OPT.W===9?'正式的將棋，每人 20 枚棋子。':'縮小版，每人 6 枚棋子，一局很快，適合入門。'}</p>
- <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}</div>
- <p class="pill">${['只看一步，常常亂走，適合第一次下棋。','只看一步，但會算吃子交換，不太會白白送子。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。','會戰術：記住算過的局面、追著王手多算幾步、先找三手內的將死，也懂得保護自己的王。每步最多想 4.5 秒。'][OPT.diff]}</p>
- <h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>
+ <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}${o('diff','pvp','雙人對戰')}</div>
+ <p class="pill">${pvp?'兩個人輪流在同一台裝置上下棋。':['只看一步，常常亂走，適合第一次下棋。','只看一步，但會算吃子交換，不太會白白送子。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。','會戰術也懂定跡：開局照常見棋譜走，之後記住算過的局面、追著王手多算幾步、先找三手內的將死，也懂得保護自己的王。每步最多想 4.5 秒。'][OPT.diff]}</p>
+ ${pvp?`<h3>棋盤方向</h3><div class="opts">${o('flip',1,'每步自動翻轉')}${o('flip',0,'固定先手在下')}</div>`
+ :`<h3>讓子</h3><div class="opts">${o('hc','none','不讓')}${hcs.map(k=>o('hc',k,HCN[k])).join('')}</div><p class="pill">${OPT.hc==='none'?'雙方棋子一樣多。':'鳩特拿掉棋子並且先下，你固定坐在下方。適合挑戰比自己強的鳩特。'}</p>
+ ${OPT.hc==='none'?`<h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>`:''}`}
  <div class="btns">${canResume()?`<button data-act="resume">返回${G.mode==='lesson'?'教學':G.mode==='tsume'?'題目':'對局'}</button>`:''}<button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">${canResume()&&G.mode==='game'?'重新開局':'開始對局'}</button></div>`,'menu')}
 function showRules(){
  const row=(ty,t)=>`<div class="showhint">${pieceH(ty,0,true)}</div><div><b>${t[0]}</b><br><small>${t[1]}</small></div>`;
@@ -742,9 +804,11 @@ function act(a,el){
  if(a==='tsume')return startTsume(+el.dataset.n,+el.dataset.i);
  if(a==='tutnext')return TUT.next();
  if(a==='tutquit'){TUT.stop();return showLessons()}
- if(a==='resign'&&G&&G.mode==='tsume')return tsumeHint();
  if(a==='resign'){if(!G||G.over)return;return modal(`<h2>確定認輸？</h2><p>認輸就是日本將棋說的「投了」，這局會直接結束。</p><div class="btns"><button data-act="close">繼續下</button><button class="red" data-act="resign2">認輸</button></div>`)}
- if(a==='resign2'){closeModal();if(worker)worker.onmessage=null;G.thinking=false;say('まけました');return end(-G.me,'投了')}
+ if(a==='resign2'){closeModal();const loser=ctl();G.thinking=false;say('まけました');return end(-loser,'投了')}
+ if(a==='tip')return G&&G.mode==='tsume'?tsumeHint():hintGame();
+ if(a==='resumesave')return resumeSaved();
+ if(a==='evinfo')return modal(`<h2>形勢判斷</h2><p>大師鳩特在背景幫目前局面打分數：子力、持駒、王的安全度都會算進去，單位是「步兵＝100」。</p><p>再把分數換算成勝率：</p><p style="text-align:center;font-size:18px"><b>勝率 ≈ 1 ÷ (1 + e<sup>−分數 ÷ 700</sup>)</b></p><p class="pill">分數 0 時勝率 50%；領先 700 分（大約一枚飛車）時約 73%；領先越多越接近 100%，但永遠不會超過。這種 S 形曲線叫「邏輯函數」，高中數學會再遇到它。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`);
  if(a==='hint'){HINT=!HINT;try{localStorage.setItem('sg_hint',HINT?'1':'0')}catch(e){}return syncBtns()}
  if(a==='bgm'){BGM_ON=!BGM_ON;try{localStorage.setItem('hf_bgm',BGM_ON?'1':'0')}catch(e){}BGM_ON?BGM.start():BGM.stop();return syncBtns()}
  if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('hf_mute',MUTE?'1':'0')}catch(e){}return syncBtns()}
