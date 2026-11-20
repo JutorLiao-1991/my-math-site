@@ -144,11 +144,11 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 @keyframes scseal{0%{opacity:0;transform:scale(2.3) rotate(-20deg)}60%{opacity:.95;transform:scale(.92) rotate(-10deg)}100%{opacity:.92;transform:rotate(-9deg)}}
 @media (prefers-reduced-motion:reduce){.sc-body{transition:none}.sc-row.show,.sc-seal.show{animation:none}}
 /* ===== 和風勝敗畫面 ===== */
-#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;gap:10px;padding:24px 18px;text-align:center;overflow:hidden;color:#f3ece0}
+#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-x:hidden;overflow-y:auto;gap:10px;padding:24px 18px;text-align:center;color:#f3ece0}
 #fin.win{background:radial-gradient(circle at 50% 38%,#6a1e12,#1c0b07 72%)}
 #fin.lose{background:radial-gradient(circle at 50% 38%,#3c3c42,#111114 75%)}
 #fin.draw{background:radial-gradient(circle at 50% 38%,#3a2b22,#1d1714 75%)}
-#fin .rays{position:absolute;left:50%;top:36%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#e0b43c30 0 5deg,#0000 5deg 15deg);animation:fspin 40s linear infinite;pointer-events:none}
+#fin .rays{position:fixed;left:50%;top:36%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#e0b43c30 0 5deg,#0000 5deg 15deg);animation:fspin 40s linear infinite;pointer-events:none}
 #fin .big{position:relative;flex:none;font:900 min(38vw,190px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;color:#fff1d2;text-shadow:0 0 34px #e0b43ccc,0 7px 0 #8a1a10;animation:fbig .7s cubic-bezier(.2,1.5,.4,1) forwards}
 #fin.lose .big{color:#d9d5cc;text-shadow:0 0 22px #000a;animation:fink 2.4s ease-out forwards}
 #fin.draw .big{color:#e8dcc4;text-shadow:0 0 20px #e0b43c55}
@@ -157,7 +157,7 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #fin .fstat{position:relative;font-size:14px;color:#bfae9c}
 #fin .fseal{position:relative;height:96px;transform:rotate(-8deg);animation:sealin .5s .9s cubic-bezier(.2,1.5,.4,1) both;filter:drop-shadow(0 2px 3px #0008)}
 #fin .btns{position:relative;justify-content:center;margin-top:6px}
-#fin .fall{position:absolute;top:-6vh;pointer-events:none;animation:ffall linear forwards}
+#fin .fall{position:fixed;top:-6vh;pointer-events:none;animation:ffall linear forwards}
 #fin .petal{width:14px;height:10px;background:radial-gradient(circle at 30% 30%,#ffe3ea,#f29ab4);border-radius:80% 0 80% 0}
 #fin .leaf{width:18px;height:18px;background:#a8452c;clip-path:polygon(50% 0,62% 30%,95% 24%,72% 52%,90% 86%,55% 70%,50% 100%,45% 70%,10% 86%,28% 52%,5% 24%,38% 30%)}
 @keyframes fspin{to{transform:rotate(360deg)}}
@@ -165,8 +165,27 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 @keyframes fink{0%{opacity:0;transform:scale(1.25)}40%{opacity:.35}100%{opacity:.94;transform:none}}
 @keyframes ffall{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
 @media (prefers-reduced-motion:reduce){#fin .rays,#fin .big,#fin .fall,#fin .fseal{animation:none}#fin .fall{display:none}}
-.rk{position:relative;width:min(100%,420px);background:#00000059;border:1px solid #ffffff22;border-radius:12px;padding:10px 12px;text-align:left}
-.rk h3{margin:2px 0 8px;font-size:16px;color:var(--gold);text-align:center}
+.rk{position:relative;flex:none;width:min(100%,440px);text-align:left}
+.rk>.pill{text-align:center}
+.rk-sc{margin:4px 6px 10px}
+.rk-sc .sc-paper{min-height:0;padding:6px 12px 10px}
+.rk-sc .sc-label{font-size:17px}
+.rk-row{position:relative;display:grid;grid-template-columns:1.8em minmax(0,1fr) auto;align-items:baseline;gap:8px;padding:8px 2px;border-bottom:1px dashed #d9ccae;font:700 18px/1.3 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;opacity:0}
+.rk-row:last-child{border-bottom:0}
+.rk-sc.open .rk-row{animation:rkin .4s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--d,0ms)*.55 + var(--i)*70ms)}
+.rk-no{text-align:center;color:#5a4a35}
+.rk-row.top .rk-no{color:#b8332a;font-size:21px}
+.rk-row:first-child{font-size:20px}
+.rk-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk-pt{white-space:nowrap;text-align:right}
+.rk-pt small{display:block;font:400 11px/1.2 -apple-system,"PingFang TC",sans-serif;color:#8a7a62}
+.rk-row.me{background:linear-gradient(90deg,#0000,#e0b43c38 15%,#e0b43c38 85%,#0000)}
+.rk-row.me .rk-nm{color:#9a2a1e;text-decoration:underline 2px #b8332a88;text-underline-offset:4px}
+.rk-seal{position:absolute;right:4.8em;top:50%;height:52px;margin-top:-26px;opacity:0;mix-blend-mode:multiply;pointer-events:none}
+.rk-seal.show{opacity:.85;animation:scseal .5s cubic-bezier(.2,1.5,.4,1) both}
+.rk-sc .sc-row.note{padding:16px 4px}
+@keyframes rkin{0%{opacity:0;transform:translateX(-14px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.rk-row,.rk-sc.open .rk-row{opacity:1;animation:none}.rk-seal.show{animation:none}}
 .rk-f{display:flex;gap:8px;margin-bottom:8px}.rk-f input{flex:1;min-width:0;width:auto}
 .rk-t{width:100%;border-collapse:collapse;font-size:14px}.rk-t th,.rk-t td{padding:5px 6px;border-bottom:1px solid #ffffff1a;text-align:left}
 .rk-t th{color:#bfae9c;font-weight:400;font-size:12px}.rk-t .n{text-align:right;font-variant-numeric:tabular-nums}
@@ -745,22 +764,38 @@ const rkTimeout=(pr,ms=8000)=>Promise.race([pr,new Promise((_,rej)=>setTimeout((
 async function rkTop(cat){const H=await rkReady();return rkTimeout(H.top(cat))}
 async function rkSubmit(cat,rec){const H=await rkReady();return rkTimeout(H.submit(cat,rec))}
 function rkErr(e){return /denied|PERMISSION/i.test(String(e&&e.message||e))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。'}
-function rkTable(list,hi){if(!list.length)return '<p class="pill" style="text-align:center">還沒有人上榜，搶第一吧！</p>';
- return `<table class="rk-t"><tr><th>名次</th><th>名字</th><th class="n">文數</th><th class="n">對手</th></tr>${list.map((x,i)=>`<tr class="${x.id===hi?'me':''}"><td>${i+1}</td><td>${esc(x.n)}</td><td class="n"><b>${x.s}</b></td><td class="n">${x.o}</td></tr>`).join('')}</table>`}
+const KNUM=['一','二','三','四','五','六','七','八','九','十'];
+function rkScroll(title,list,hi){
+ const rows=!list?'':list.length?list.map((x,i)=>`<div class="rk-row${x.id===hi?' me':''}${i<3?' top':''}" style="--i:${i}"><b class="rk-no">${KNUM[i]||i+1}</b><span class="rk-nm">${esc(x.n)}</span><span class="rk-pt">${x.s} 文<small>對手 ${x.o} 文</small></span>${x.id===hi?`<img class="rk-seal" src="${BRAND.seal}" alt="">`:''}</div>`).join('')
+  :'<div class="sc-row note">還沒有人上榜，<br>搶第一吧！</div>';
+ return `<div class="sc rk-sc"><div class="sc-head"><span class="sc-label">${title}</span></div><div class="sc-body"><div class="sc-paper">${rows}</div></div><div class="sc-roll"></div></div>`}
+function rkShow(host,title,list,hi){
+ if(!host)return;host.innerHTML=rkScroll(title,list,hi);if(!list)return;
+ const sc=host.querySelector('.rk-sc'),body=sc.querySelector('.sc-body'),full=sc.querySelector('.sc-paper').offsetHeight;
+ const ms=RMF?0:Math.round(Math.max(600,Math.min(1300,full*2)));
+ sc.style.setProperty('--d',ms+'ms');body.style.transitionDuration=ms+'ms';
+ const open=()=>{body.style.height='auto'};
+ if(ms)body.addEventListener('transitionend',open,{once:true});
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{body.style.height=full+'px';sc.classList.add('open');if(!ms)open()}));
+ sfx('flip');
+ const seal=sc.querySelector('.rk-seal');
+ if(seal)setTimeout(()=>{if(seal.isConnected){seal.classList.add('show');sfx('stamp')}},ms?ms*.55+list.length*70+450:0);
+}
+const rkTitle=(d,r)=>`排行榜・${DIFFN[d]}・${r} 局`;
 function rkFinal(){
  const el=$('rkBox');if(!el)return;const cat=rkCat(G.diff,G.rounds),score=G.totals[0],g=G;
  if(G.seedManual){el.innerHTML='<p class="pill">手動輸入牌局編號的對局不列入排行榜。</p>';return}
- el.innerHTML='<p class="pill">讀取排行榜中…</p>';
+ el.innerHTML=rkScroll(rkTitle(g.diff,g.rounds),null)+'<p class="pill">讀取排行榜中…</p>';
  rkTop(cat).then(list=>{if(G!==g)return;const ok=score>0&&(list.length<10||score>list[list.length-1].s);
   let nm='';try{nm=localStorage.getItem('hf_name')||''}catch(e){}
-  el.innerHTML=`<h3>排行榜・${DIFFN[g.diff]}・${g.rounds} 局</h3>${ok?`<div class="rk-f"><input id="rkName" maxlength="12" placeholder="輸入你的名字" value="${esc(nm)}"><button class="pri" data-act="rksubmit">登上排行榜</button></div>`:`<p class="pill">${score>0?`再多 ${list[list.length-1].s-score+1} 文就能進前十！`:'這場沒有得分，下次加油！'}</p>`}<div id="rkList">${rkTable(list)}</div>`;
+  el.innerHTML=`${ok?`<div class="rk-f"><input id="rkName" maxlength="12" placeholder="輸入你的名字" value="${esc(nm)}"><button class="pri" data-act="rksubmit">登上排行榜</button></div>`:`<p class="pill">${score>0?`再多 ${list[list.length-1].s-score+1} 文就能進前十！`:'這場沒有得分，下次加油！'}</p>`}<div id="rkList"></div>`;rkShow($('rkList'),rkTitle(g.diff,g.rounds),list);
  }).catch(e=>{el.innerHTML=`<p class="pill">${rkErr(e)}</p>`});
 }
 function rkDoSubmit(){
  const inp=$('rkName');if(!inp)return;const n=inp.value.trim().slice(0,12);if(!n){inp.focus();return toast('請輸入名字')}
  try{localStorage.setItem('hf_name',n)}catch(e){}
  const cat=rkCat(G.diff,G.rounds),btn=document.querySelector('[data-act=rksubmit]');if(btn){btn.disabled=true;btn.textContent='送出中…'}
- rkSubmit(cat,{n,s:G.totals[0],o:G.totals[1],sd:G.seed}).then(id=>rkTop(cat).then(list=>{$('rkBox').innerHTML=`<h3>排行榜・${DIFFN[G.diff]}・${G.rounds} 局</h3><p class="pill">已登上排行榜！</p>${rkTable(list,id)}`;sfx('stamp')}))
+ rkSubmit(cat,{n,s:G.totals[0],o:G.totals[1],sd:G.seed}).then(id=>rkTop(cat).then(list=>{$('rkBox').innerHTML=`<p class="pill">已登上排行榜！</p><div id="rkList"></div>`;rkShow($('rkList'),rkTitle(G.diff,G.rounds),list,id)}))
   .catch(e=>{if(btn){btn.disabled=false;btn.textContent='登上排行榜'}toast('送出失敗');const f=$('rkBox');f&&f.insertAdjacentHTML('beforeend',`<p class="pill">${rkErr(e)}</p>`)});
 }
 let RKV={d:1,r:6};
@@ -768,8 +803,8 @@ function showRank(){
  const o=(k,v,t)=>`<button data-act="rkopt" data-k="${k}" data-v="${v}" class="${RKV[k]===v?'on':''}">${t}</button>`;
  modal(`<h2>排行榜</h2><p class="pill">每個分類依最終文數排名，取前十名。手動輸入牌局編號的對局不列入。</p>
  <div class="opts">${DIFFN.map((n,i)=>o('d',i,n)).join('')}</div><div class="opts">${RK_ROUNDS.map(r=>o('r',r,r+' 局')).join('')}</div>
- <div id="rkView"><p class="pill">讀取中…</p></div><div class="btns"><button class="pri" data-act="menu">返回</button></div>`,'rank');
- const cat=rkCat(RKV.d,RKV.r);rkTop(cat).then(list=>{if(rkCat(RKV.d,RKV.r)===cat&&$('rkView'))$('rkView').innerHTML=rkTable(list)}).catch(e=>{if($('rkView'))$('rkView').innerHTML=`<p class="pill">${rkErr(e)}</p>`});
+ <div id="rkView" class="rk" style="width:auto">${rkScroll(rkTitle(RKV.d,RKV.r),null)}<p class="pill">讀取中…</p></div><div class="btns"><button class="pri" data-act="menu">返回</button></div>`,'rank');
+ const cat=rkCat(RKV.d,RKV.r);rkTop(cat).then(list=>{if(rkCat(RKV.d,RKV.r)===cat)rkShow($('rkView'),rkTitle(RKV.d,RKV.r),list)}).catch(e=>{if($('rkView'))$('rkView').innerHTML=`<p class="pill">${rkErr(e)}</p>`});
 }
 function showFinal(){
  const d=G.totals[0]-G.totals[1],kind=d>0?'win':d<0?'lose':'draw';
