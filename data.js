@@ -38,6 +38,14 @@ const lessonData = [
         desc: "和電腦對戰日本花札「こいこい」：三種難度、機率小幫手、可重現的牌局編號，附和風配樂與日語唸役。"
     },
     {
+        title: "鳩特將棋",
+        category: "games",
+        url: "games/shogi.html",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "和三位鳩特下日本將棋：本將棋 9×9 與入門的五五將棋 5×5，附走法提示、悔棋、棋譜與日語王手語音。"
+    },
+    {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
         grades: [2],
