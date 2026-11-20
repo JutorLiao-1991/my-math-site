@@ -289,6 +289,15 @@ const lessonData = [
         desc: "逐步練習單項式與多項式乘除、乘法公式，以及補缺項後完成多項式長除法。"
     },
     {
+        title: "因式分解（國二）",
+        category: "junior",
+        grades: [8],
+        url: "junior/math/factorization_grade8.html",
+        tagClass: "math",
+        tagName: "國中數學",
+        desc: "用代數磚拼長方形看懂因式分解，再練判型快答；提公因式、平方差、完全平方與十字交乘逐列填空，最後挑戰十分鐘十題考試。"
+    },
+    {
         title: "常見元素的週期表（國二）",
         category: "junior",
         grades: [8],
