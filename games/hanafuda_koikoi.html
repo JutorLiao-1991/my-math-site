@@ -271,6 +271,7 @@ let G=null,SEL=null,HELP=false;
 const wait=(f,ms)=>{if(SIM)return f();const g=G;setTimeout(()=>{if(G===g)f()},ms)};
 function log(t){G.log.unshift(t);if(G.log.length>40)G.log.pop()}
 function newGame(diff,rounds,seed,isAI,diffs){
+ TUT.off();
  NAME[1]=DIFFN[diff];
  G={diff,diffs,rounds,seed,round:0,totals:[0,0],isAI:isAI||[false,true],hist:[]};
  G.dealer=rng(seed)()<.5?0:1;
@@ -611,7 +612,8 @@ function draw(){
  }
 }
 function syncBtns(){$('bBgm').textContent=BGM_ON?'配樂開':'配樂關';$('bBgm').className=BGM_ON?'pri':'';$('bSnd').textContent=MUTE?'音效關':'音效開';$('bSnd').className=MUTE?'':'pri';$('bLab').className=document.body.classList.contains('lab')?'pri':''}
-function modal(h){$('mbox').innerHTML=h;$('modal').hidden=false}
+function modal(h,kind){$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').dataset.kind=kind||''}
+const canResume=()=>!!(G&&G.phase!=='end');
 function closeModal(){$('modal').hidden=true}
 let tT;function toast(t){if(SIM)return;const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),1300)}
 const listH=l=>`<table>${l.map(x=>`<tr><td>${x[0]}</td><td class="n">${x[1]} 文</td></tr>`).join('')}</table>`;
@@ -663,7 +665,7 @@ function showMenu(){
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>
  <h3>牌局編號</h3><input id="seedIn" inputmode="numeric" placeholder="留空＝隨機">
  <p class="pill">同一個編號會發出一模一樣的牌，可以讓兩組學生比分數或重播檢討。</p>
- <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">開始</button></div>`);
+ <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns">${canResume()?'<button data-act="resume">返回牌局</button>':''}<button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">${canResume()?'重新開始':'開始'}</button></div>`,'menu');
 }
 function showRules(){
  const rows=[['五光','五張光札',10],['四光','四張光札（不含雨）',8],['雨四光','四張光札（含柳雨）',7],['三光','三張光札（不含雨）',5],['豬鹿蝶','萩豬＋紅葉鹿＋牡丹蝶',5],['花見酒','櫻幕＋菊盃',5],['月見酒','芒月＋菊盃',5],['赤短','三張赤短（松梅櫻）',5],['青短','三張青短（牡丹菊紅葉）',5],['赤短青短','赤短與青短同時成立',10],['種','種札 5 張，每多 1 張＋1','1～'],['短','短冊 5 張，每多 1 張＋1','1～'],['素','素札 10 張，每多 1 張＋1（菊盃也算素札）','1～']];
@@ -684,7 +686,8 @@ function act(a,el){
  if(a==='tutorial')return startTutorial();
  if(a==='skip')return STAMP.skip&&STAMP.skip();
  if(a==='rules')return showRules();
- if(a==='menu'){if(G&&G.tut){TUT.off();G=null}return showMenu()}
+ if(a==='menu')return showMenu();
+ if(a==='resume')return closeModal();
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='helper'){HELP=!HELP;return G.phase==='deal'?null:render()}
  if(a==='bgm'){BGM_ON=!BGM_ON;try{localStorage.setItem('hf_bgm',BGM_ON?'1':'0')}catch(e){}BGM_ON?BGM.start():BGM.stop();return syncBtns()}
@@ -717,6 +720,7 @@ else{
  document.addEventListener('click',e=>{
   ac();if(G)BGM.start();
   if(!SPK&&window.speechSynthesis){SPK=true;try{speechSynthesis.getVoices();const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
+  if(e.target.id==='modal'&&$('modal').dataset.kind==='menu'&&canResume())return closeModal();
   const a=e.target.closest('[data-act]');if(a)return act(a.dataset.act,a);
   const c=e.target.closest('.card[data-id]');if(!c||$('modal').contains(c))return;
   const id=+c.dataset.id;
