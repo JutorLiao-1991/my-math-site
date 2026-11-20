@@ -35,6 +35,14 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         self.assertIn("allow:'koi'", PAGE)
         self.assertIn("allow:'stop'", PAGE)
 
+    def test_leaderboard_wired(self):
+        self.assertIn('hanafuda_rank/', PAGE)
+        self.assertIn('data-act="rank">排行榜</button>', PAGE)
+        self.assertIn("G.seedManual", PAGE)
+        self.assertIn("const esc=", PAGE)
+        for r in ("3", "6", "12"):
+            self.assertIn(r, PAGE.split("const RK_ROUNDS=")[1].split(";")[0])
+
     def test_engine_plays_full_games(self):
         script = PAGE.split("<script>")[1].split("</script>")[0]
         js = (

@@ -144,12 +144,12 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 @keyframes scseal{0%{opacity:0;transform:scale(2.3) rotate(-20deg)}60%{opacity:.95;transform:scale(.92) rotate(-10deg)}100%{opacity:.92;transform:rotate(-9deg)}}
 @media (prefers-reduced-motion:reduce){.sc-body{transition:none}.sc-row.show,.sc-seal.show{animation:none}}
 /* ===== 和風勝敗畫面 ===== */
-#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:24px 18px;text-align:center;overflow:hidden;color:#f3ece0}
+#fin{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;align-items:center;justify-content:safe center;overflow-y:auto;gap:10px;padding:24px 18px;text-align:center;overflow:hidden;color:#f3ece0}
 #fin.win{background:radial-gradient(circle at 50% 38%,#6a1e12,#1c0b07 72%)}
 #fin.lose{background:radial-gradient(circle at 50% 38%,#3c3c42,#111114 75%)}
 #fin.draw{background:radial-gradient(circle at 50% 38%,#3a2b22,#1d1714 75%)}
 #fin .rays{position:absolute;left:50%;top:36%;width:180vmax;height:180vmax;margin:-90vmax 0 0 -90vmax;background:repeating-conic-gradient(#e0b43c30 0 5deg,#0000 5deg 15deg);animation:fspin 40s linear infinite;pointer-events:none}
-#fin .big{position:relative;font:900 min(44vw,210px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;color:#fff1d2;text-shadow:0 0 34px #e0b43ccc,0 7px 0 #8a1a10;animation:fbig .7s cubic-bezier(.2,1.5,.4,1) forwards}
+#fin .big{position:relative;flex:none;font:900 min(38vw,190px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif TC",serif;color:#fff1d2;text-shadow:0 0 34px #e0b43ccc,0 7px 0 #8a1a10;animation:fbig .7s cubic-bezier(.2,1.5,.4,1) forwards}
 #fin.lose .big{color:#d9d5cc;text-shadow:0 0 22px #000a;animation:fink 2.4s ease-out forwards}
 #fin.draw .big{color:#e8dcc4;text-shadow:0 0 20px #e0b43c55}
 #fin .fsub{position:relative;font-size:19px;font-weight:700}
@@ -165,6 +165,13 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 @keyframes fink{0%{opacity:0;transform:scale(1.25)}40%{opacity:.35}100%{opacity:.94;transform:none}}
 @keyframes ffall{to{transform:translate(var(--dx),112vh) rotate(var(--r))}}
 @media (prefers-reduced-motion:reduce){#fin .rays,#fin .big,#fin .fall,#fin .fseal{animation:none}#fin .fall{display:none}}
+.rk{position:relative;width:min(100%,420px);background:#00000059;border:1px solid #ffffff22;border-radius:12px;padding:10px 12px;text-align:left}
+.rk h3{margin:2px 0 8px;font-size:16px;color:var(--gold);text-align:center}
+.rk-f{display:flex;gap:8px;margin-bottom:8px}.rk-f input{flex:1;min-width:0;width:auto}
+.rk-t{width:100%;border-collapse:collapse;font-size:14px}.rk-t th,.rk-t td{padding:5px 6px;border-bottom:1px solid #ffffff1a;text-align:left}
+.rk-t th{color:#bfae9c;font-weight:400;font-size:12px}.rk-t .n{text-align:right;font-variant-numeric:tabular-nums}
+.rk-t tr.me td{background:#e0b43c33;color:#ffe6a0}
+.box .rk-t th,.box .rk-t td{border-bottom-color:var(--line)}
 #toast{position:fixed;left:50%;top:30%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font-size:24px;font-weight:800;padding:12px 22px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s}
 #toast.show{opacity:1}
 @media (orientation:landscape) and (min-width:700px){
@@ -429,7 +436,7 @@ function recLine(who,r){return `對${who}：${r.w} 勝 ${r.l} 敗${r.d?` ${r.d} 
 function showFinale(kind,o){
  let f=$('fin');if(!f){f=document.createElement('div');f.id='fin';document.body.appendChild(f)}
  f.className=kind;f.hidden=false;closeModal();
- f.innerHTML=`${kind==='win'?'<div class="rays"></div>':''}<div class="big">${kind==='win'?'勝':kind==='lose'?'負':'和'}</div><div class="fsub">${o.sub||''}</div>${o.line?`<div class="fline">${o.line}</div>`:''}${o.stat?`<div class="fstat">${o.stat}</div>`:''}${kind==='win'?`<img class="fseal" src="${BRAND.seal}" alt="鳩特數理朱印">`:''}<div class="btns">${o.btns||''}</div>`;
+ f.innerHTML=`${kind==='win'?'<div class="rays"></div>':''}<div class="big">${kind==='win'?'勝':kind==='lose'?'負':'和'}</div><div class="fsub">${o.sub||''}</div>${o.line?`<div class="fline">${o.line}</div>`:''}${o.stat?`<div class="fstat">${o.stat}</div>`:''}${kind==='win'?`<img class="fseal" src="${BRAND.seal}" alt="鳩特數理朱印">`:''}${o.extra||''}<div class="btns">${o.btns||''}</div>`;
  if(!RMF){const n=kind==='win'?34:kind==='lose'?16:0;for(let i=0;i<n;i++){const e=document.createElement('i');e.className='fall '+(kind==='win'?'petal':'leaf');
   e.style.cssText=`left:${Math.random()*100}vw;--dx:${(Math.random()*30-15).toFixed(1)}vw;--r:${Math.random()*720-360|0}deg;animation-duration:${(kind==='win'?4:7)+Math.random()*4}s;animation-delay:${Math.random()*(kind==='win'?2.5:4)}s`;f.appendChild(e)}}
  sfx(kind==='win'?'fanfare':kind==='lose'?'lament':'even');
@@ -729,12 +736,48 @@ function showRoundEnd(w,list,base,mul,notes){
  STAMP.skip=()=>{if(STAMP.tok!==tok)return;try{speechSynthesis.cancel()}catch(e){}body.style.transitionDuration='0ms';body.style.height=full+'px';rows.forEach(r=>r.classList.add('show','still'));if(seal)seal.classList.add('show');finish()};
  setTimeout(step,ms+300);
 }
+/* ===== 排行榜（Firebase，所有人共用） ===== */
+const RK_ROUNDS=[3,6,12];
+const rkCat=(d,r)=>`d${d}_r${r}`;
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function rkReady(ms=6000){return new Promise((res,rej)=>{if(window.HFRank)return res(window.HFRank);const t=setTimeout(()=>rej(new Error('offline')),ms);addEventListener('hfrank-ready',()=>{clearTimeout(t);res(window.HFRank)},{once:true})})}
+const rkTimeout=(pr,ms=8000)=>Promise.race([pr,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+async function rkTop(cat){const H=await rkReady();return rkTimeout(H.top(cat))}
+async function rkSubmit(cat,rec){const H=await rkReady();return rkTimeout(H.submit(cat,rec))}
+function rkErr(e){return /denied|PERMISSION/i.test(String(e&&e.message||e))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。'}
+function rkTable(list,hi){if(!list.length)return '<p class="pill" style="text-align:center">還沒有人上榜，搶第一吧！</p>';
+ return `<table class="rk-t"><tr><th>名次</th><th>名字</th><th class="n">文數</th><th class="n">對手</th></tr>${list.map((x,i)=>`<tr class="${x.id===hi?'me':''}"><td>${i+1}</td><td>${esc(x.n)}</td><td class="n"><b>${x.s}</b></td><td class="n">${x.o}</td></tr>`).join('')}</table>`}
+function rkFinal(){
+ const el=$('rkBox');if(!el)return;const cat=rkCat(G.diff,G.rounds),score=G.totals[0],g=G;
+ if(G.seedManual){el.innerHTML='<p class="pill">手動輸入牌局編號的對局不列入排行榜。</p>';return}
+ el.innerHTML='<p class="pill">讀取排行榜中…</p>';
+ rkTop(cat).then(list=>{if(G!==g)return;const ok=score>0&&(list.length<10||score>list[list.length-1].s);
+  let nm='';try{nm=localStorage.getItem('hf_name')||''}catch(e){}
+  el.innerHTML=`<h3>排行榜・${DIFFN[g.diff]}・${g.rounds} 局</h3>${ok?`<div class="rk-f"><input id="rkName" maxlength="12" placeholder="輸入你的名字" value="${esc(nm)}"><button class="pri" data-act="rksubmit">登上排行榜</button></div>`:`<p class="pill">${score>0?`再多 ${list[list.length-1].s-score+1} 文就能進前十！`:'這場沒有得分，下次加油！'}</p>`}<div id="rkList">${rkTable(list)}</div>`;
+ }).catch(e=>{el.innerHTML=`<p class="pill">${rkErr(e)}</p>`});
+}
+function rkDoSubmit(){
+ const inp=$('rkName');if(!inp)return;const n=inp.value.trim().slice(0,12);if(!n){inp.focus();return toast('請輸入名字')}
+ try{localStorage.setItem('hf_name',n)}catch(e){}
+ const cat=rkCat(G.diff,G.rounds),btn=document.querySelector('[data-act=rksubmit]');if(btn){btn.disabled=true;btn.textContent='送出中…'}
+ rkSubmit(cat,{n,s:G.totals[0],o:G.totals[1],sd:G.seed}).then(id=>rkTop(cat).then(list=>{$('rkBox').innerHTML=`<h3>排行榜・${DIFFN[G.diff]}・${G.rounds} 局</h3><p class="pill">已登上排行榜！</p>${rkTable(list,id)}`;sfx('stamp')}))
+  .catch(e=>{if(btn){btn.disabled=false;btn.textContent='登上排行榜'}toast('送出失敗');const f=$('rkBox');f&&f.insertAdjacentHTML('beforeend',`<p class="pill">${rkErr(e)}</p>`)});
+}
+let RKV={d:1,r:6};
+function showRank(){
+ const o=(k,v,t)=>`<button data-act="rkopt" data-k="${k}" data-v="${v}" class="${RKV[k]===v?'on':''}">${t}</button>`;
+ modal(`<h2>排行榜</h2><p class="pill">每個分類依最終文數排名，取前十名。手動輸入牌局編號的對局不列入。</p>
+ <div class="opts">${DIFFN.map((n,i)=>o('d',i,n)).join('')}</div><div class="opts">${RK_ROUNDS.map(r=>o('r',r,r+' 局')).join('')}</div>
+ <div id="rkView"><p class="pill">讀取中…</p></div><div class="btns"><button class="pri" data-act="menu">返回</button></div>`,'rank');
+ const cat=rkCat(RKV.d,RKV.r);rkTop(cat).then(list=>{if(rkCat(RKV.d,RKV.r)===cat&&$('rkView'))$('rkView').innerHTML=rkTable(list)}).catch(e=>{if($('rkView'))$('rkView').innerHTML=`<p class="pill">${rkErr(e)}</p>`});
+}
 function showFinal(){
  const d=G.totals[0]-G.totals[1],kind=d>0?'win':d<0?'lose':'draw';
  const r=recAdd('rec_hf',NAME[1],kind==='win'?'w':kind==='lose'?'l':'d');
  showFinale(kind,{sub:`你 ${G.totals[0]} 文 ： ${G.totals[1]} 文 ${NAME[1]}`,
   line:kind==='win'?'見好就收、該拚就拚，漂亮的一場！':kind==='lose'?`這次${NAME[1]}技高一籌。多留意對手差一張就成的役，下一場一定更好。`:'勢均力敵，再來一場分高下！',
-  stat:recLine(NAME[1],r)+`　牌局編號 ${G.seed}`,btns:'<button data-act="menu">選單</button><button class="pri" data-act="rematch">再戰一場</button>'});
+  stat:recLine(NAME[1],r)+`　牌局編號 ${G.seed}`,extra:'<div id="rkBox" class="rk"></div>',btns:'<button data-act="menu">選單</button><button class="pri" data-act="rematch">再戰一場</button>'});
+ rkFinal();
 }
 let OPT={diff:1,rounds:6};
 function showMenu(){
@@ -745,7 +788,7 @@ function showMenu(){
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>
  <h3>牌局編號</h3><input id="seedIn" inputmode="numeric" placeholder="留空＝隨機">
  <p class="pill">同一個編號會發出一模一樣的牌，可以讓兩組學生比分數或重播檢討。</p>
- <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns">${canResume()?'<button data-act="resume">返回牌局</button>':''}<button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">${canResume()?'重新開始':'開始'}</button></div>`,'menu');
+ <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns">${canResume()?'<button data-act="resume">返回牌局</button>':''}<button data-act="rank">排行榜</button><button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">${canResume()?'重新開始':'開始'}</button></div>`,'menu');
 }
 function showRules(){
  const rows=[['五光','五張光札',10],['四光','四張光札（不含雨）',8],['雨四光','四張光札（含柳雨）',7],['三光','三張光札（不含雨）',5],['豬鹿蝶','萩豬＋紅葉鹿＋牡丹蝶',5],['花見酒','櫻幕＋菊盃',5],['月見酒','芒月＋菊盃',5],['赤短','三張赤短（松梅櫻）',5],['青短','三張青短（牡丹菊紅葉）',5],['赤短青短','赤短與青短同時成立',10],['種','種札 5 張，每多 1 張＋1','1～'],['短','短冊 5 張，每多 1 張＋1','1～'],['素','素札 10 張，每多 1 張＋1（菊盃也算素札）','1～']];
@@ -759,9 +802,9 @@ function showRules(){
  <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`);
 }
 function act(a,el){
- if(['menu','start','tutorial','rematch'].includes(a))hideFinale();
+ if(['menu','start','tutorial','rematch','rank'].includes(a))hideFinale();
  if(a==='opt'){OPT[el.dataset.k]=+el.dataset.v;return showMenu()}
- if(a==='start'){const v=parseInt($('seedIn').value,10);closeModal();newGame(OPT.diff,OPT.rounds,Number.isFinite(v)&&v>0?v%1000000:1+Math.floor(Math.random()*999999));return}
+ if(a==='start'){const v=parseInt($('seedIn').value,10),man=Number.isFinite(v)&&v>0;closeModal();newGame(OPT.diff,OPT.rounds,man?v%1000000:1+Math.floor(Math.random()*999999));G.seedManual=man;return}
  if(a==='tutnext')return TUT.next();
  if(a==='tutquit'){TUT.off();G=null;return showMenu()}
  if(a==='tutorial')return startTutorial();
@@ -775,6 +818,9 @@ function act(a,el){
  if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('hf_mute',MUTE?'1':'0')}catch(e){}if(!MUTE)sfx('tap');return syncBtns()}
  if(a==='lab'){document.body.classList.toggle('lab');try{localStorage.setItem('hf_lab',document.body.classList.contains('lab')?'1':'0')}catch(e){}return syncBtns()}
  if(a==='next'){closeModal();return startRound()}
+ if(a==='rksubmit')return rkDoSubmit();
+ if(a==='rank')return showRank();
+ if(a==='rkopt'){RKV[el.dataset.k]=+el.dataset.v;return showRank()}
  if(a==='final')return showFinal();
  if(a==='rematch'){hideFinale();return newGame(OPT.diff,OPT.rounds,1+Math.floor(Math.random()*999999))}
  if(a==='stop'){closeModal();if(G.tut)TUT.next();return endRound(0)}
@@ -812,6 +858,18 @@ else{
  showMenu();
 }
 }
+</script>
+<script type="module">
+/* 排行榜連線：沿用元素 JUNO 的 Firebase 即時資料庫，資料放在 hanafuda_rank/ 底下 */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+const app=initializeApp({apiKey:"AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",authDomain:"element-uno.firebaseapp.com",databaseURL:"https://element-uno-default-rtdb.firebaseio.com",projectId:"element-uno",storageBucket:"element-uno.firebasestorage.app",messagingSenderId:"665324599764",appId:"1:665324599764:web:d151cd9014e600fcd53e41"},"hanafuda-rank");
+const db=getDatabase(app);
+window.HFRank={
+ async top(cat){const snap=await get(query(ref(db,"hanafuda_rank/"+cat),orderByChild("s"),limitToLast(10)));const a=[];snap.forEach(c=>{a.push({id:c.key,...c.val()})});return a.sort((x,y)=>y.s-x.s||(x.t||0)-(y.t||0))},
+ async submit(cat,rec){const r=await push(ref(db,"hanafuda_rank/"+cat),{...rec,t:serverTimestamp()});return r.key}
+};
+dispatchEvent(new Event("hfrank-ready"));
 </script>
 </body>
 </html>
