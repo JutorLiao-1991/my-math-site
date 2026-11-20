@@ -503,7 +503,8 @@ function draw(){
  syncBtns();
 }
 function syncBtns(){$('bBgm').textContent=BGM_ON?'配樂開':'配樂關';$('bBgm').className=BGM_ON?'pri':'';$('bSnd').textContent=MUTE?'音效關':'音效開';$('bSnd').className=MUTE?'':'pri';$('bHint').className=HINT?'pri':'';document.body.classList.toggle('hint',HINT)}
-function modal(h){$('mbox').innerHTML=h;$('modal').hidden=false}
+function modal(h,kind){$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').dataset.kind=kind||''}
+const canResume=()=>!!(G&&!G.over);
 function closeModal(){$('modal').hidden=true}
 /* ===== 新手教學（分關卡）與詰將棋 ===== */
 const S=(c,r)=>(r-1)*9+(9-c),sqSel=s=>`.sq[data-sq="${s}"]`;
@@ -667,7 +668,7 @@ function showMenu(){
  <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}</div>
  <p class="pill">${['只看一步，常常亂走，適合第一次下棋。','只看一步，但會算吃子交換，不太會白白送子。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。','會戰術：記住算過的局面、追著王手多算幾步、先找三手內的將死，也懂得保護自己的王。每步最多想 4.5 秒。'][OPT.diff]}</p>
  <h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>
- <div class="btns"><button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">開始對局</button></div>`)}
+ <div class="btns">${canResume()?`<button data-act="resume">返回${G.mode==='lesson'?'教學':G.mode==='tsume'?'題目':'對局'}</button>`:''}<button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">${canResume()&&G.mode==='game'?'重新開局':'開始對局'}</button></div>`,'menu')}
 function showRules(){
  const row=(ty,t)=>`<div class="showhint">${pieceH(ty,0,true)}</div><div><b>${t[0]}</b><br><small>${t[1]}</small></div>`;
  modal(`<h2>規則與走法</h2>
@@ -683,6 +684,7 @@ function act(a,el){
  if(a==='opt'){const v=el.dataset.v;OPT[el.dataset.k]=isNaN(+v)?v:+v;return showMenu()}
  if(a==='start'||a==='again')return newGame();
  if(a==='menu')return showMenu();
+ if(a==='resume')return closeModal();
  if(a==='rules')return showRules();
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='promo1'||a==='promo0'){closeModal();const pp=G.pendingPromo;G.pendingPromo=null;return play(pp[a==='promo1'?0:1])}
@@ -706,6 +708,7 @@ addEventListener('resize',()=>{layout()});
 document.addEventListener('visibilitychange',()=>{document.hidden?BGM.stop():(G&&BGM.start())});
 document.addEventListener('click',e=>{
  ac();if(G)BGM.start();
+ if(e.target.id==='modal'&&$('modal').dataset.kind==='menu'&&canResume())return closeModal();
  const a=e.target.closest('[data-act]');if(a)return act(a.dataset.act,a);
  if($('modal').contains(e.target)&&!$('modal').hidden)return;
  const h=e.target.closest('.hp[data-ht]');if(h)return onHand(+h.dataset.ht);
