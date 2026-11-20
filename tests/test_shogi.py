@@ -20,7 +20,7 @@ class ShogiTest(unittest.TestCase):
         card = re.search(r'\{[^{}]*url: "games/shogi.html"[^{}]*\}', data)
         self.assertIsNotNone(card)
         self.assertIn('category: "games"', card.group(0))
-        for name in ("幼年鳩特", "青年鳩特", "成年鳩特"):
+        for name in ("嬰兒鳩特", "幼年鳩特", "青年鳩特", "成年鳩特", "大師鳩特"):
             self.assertIn(name, PAGE)
         self.assertIn('href="../index.html"', PAGE)
 
@@ -60,7 +60,7 @@ console.log('ok');
         out = run_node(r"""
 const E=ENGINE;
 for(const W of [5,9]){let p=E.newPos(W);
- for(let i=0;i<24;i++){const ms=E.legal(p);if(!ms.length)break;const r=E.think(p,{diff:i%3,time:120});
+ for(let i=0;i<24;i++){const ms=E.legal(p);if(!ms.length)break;const r=E.think(p,{diff:i%5,time:120});
   if(!ms.includes(r.m))throw new Error('illegal '+W);E.doMove(p,r.m)}}
 console.log('ok');
 """)
