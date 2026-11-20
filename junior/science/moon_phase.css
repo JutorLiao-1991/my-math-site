@@ -35,8 +35,8 @@ body.projection header,body.projection .toolbar,body.projection #study-panel,bod
 body.projection .shell{padding-top:10px;max-width:min(1880px,100%)}
 body.projection .lab-grid{grid-template-columns:minmax(0,2.1fr) minmax(320px,.9fr)}
 body.projection .lab-main-panel h2{font-size:1.45rem}
-body.projection #sky{width:auto;max-width:100%;height:max(340px,calc(100vh - 330px));margin:0 auto}
-body.projection .readings{grid-template-columns:repeat(6,1fr);gap:8px}
+body.projection #sky{width:min(100%,calc((100vh - 330px)*1.6));width:min(100%,calc((100dvh - 330px)*1.6));height:auto;margin:0 auto}
+@media (min-width:900px){body.projection .readings{grid-template-columns:repeat(6,1fr);gap:8px}}
 body.projection .reading{padding:8px 4px}
 body.projection .reading .muted{font-size:.8rem}
 body.projection button,body.projection select{min-height:48px;font-size:1.02rem}
@@ -65,7 +65,8 @@ body.projection #proj-hint{display:block}
   body.science-layout .lab-grid>*,body.science-layout .lab-sidebar-content>.panel{margin-top:0}
   body.science-layout .lab-sidebar-content>.panel{margin-inline:12px;padding:16px}
   body.science-layout .lab-mode-panel .row{flex-wrap:nowrap}
-  body.science-layout .lab-mode-panel button{flex:1;padding-inline:6px}
+  body.science-layout .lab-mode-panel button{flex:1;padding-inline:6px;white-space:nowrap;font-size:.92rem}
+  body.science-layout.projection #sky{width:100%}
 }
 @media (orientation:landscape) and (min-width:568px) {
   .science-layout .lab-main-panel #sky{position:sticky;top:0;z-index:5}

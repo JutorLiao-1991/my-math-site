@@ -563,7 +563,7 @@
     if (name === 'study') resetScene();   // 進入自修模式：畫面全部回到初始狀態並停止
     modeName = name; document.body.dataset.study = String(name === 'study'); document.body.classList.toggle('projection', name === 'projection');
     $('study-panel').hidden = name !== 'study'; $('free-panel').hidden = name !== 'free'; $('worksheet-panel').hidden = name === 'study';
-    $('proj-hint').hidden = name !== 'projection'; $('fullscreen').hidden = name !== 'projection';
+    $('proj-hint').hidden = name !== 'projection'; $('fullscreen').hidden = name !== 'projection' || !document.fullscreenEnabled;
     [['free-mode', 'free'], ['study-mode', 'study'], ['proj-mode', 'projection']].forEach(([id, n]) => $(id).setAttribute('aria-pressed', String(name === n)));
     if (name !== 'projection' && document.fullscreenElement) document.exitFullscreen?.();
     syncURL(); kick();
