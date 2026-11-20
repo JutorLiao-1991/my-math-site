@@ -205,9 +205,67 @@ function search(p,depth,alpha,beta,ply,ctx){
  for(const m of ms){const cap=doMove(p,m);const v=-search(p,depth-1,-beta,-alpha,ply+1,ctx);undoMove(p,m,cap);if(ctx.stop)return 0;
   if(v>best){best=v;if(v>alpha){alpha=v;if(alpha>=beta)break}}}
  return best}
+/* ---------- 大師鳩特：置換表、殺手走法、王手延伸、王的安全度 ---------- */
+const TB=1<<20,TMASK=TB-1,TK=new Int32Array(TB),TD=new Int8Array(TB),TS=new Int32Array(TB),TF=new Int8Array(TB),TM=new Int32Array(TB);
+let zs=0x2545F491;const zr=()=>{zs^=zs<<13;zs^=zs>>>17;zs^=zs<<5;return zs|0};
+const ZB=[];for(let i=0;i<81;i++){ZB[i]=[];for(let v=0;v<32;v++)ZB[i][v]=zr()}
+const ZH=[[],[]];for(let hi=0;hi<2;hi++)for(let t=0;t<9;t++){ZH[hi][t]=[];for(let c=0;c<20;c++)ZH[hi][t][c]=zr()}
+const ZSIDE=zr();
+function zHash(p){let h=p.side===1?0:ZSIDE;for(let i=0;i<p.b.length;i++)if(p.b[i])h^=ZB[i][p.b[i]+16];for(let hi=0;hi<2;hi++)for(let t=1;t<=7;t++)h^=ZH[hi][t][p.h[hi][t]];return h}
+function zNext(p,m,h){const s=p.side,b=p.b,to=(m>>7)&127,dt=m>>15,hi=s===1?0:1,hh=p.h[hi];h^=ZSIDE;
+ if(dt){h^=ZB[to][dt*s+16]^ZH[hi][dt][hh[dt]]^ZH[hi][dt][hh[dt]-1];return h}
+ const f=m&127,v=b[f],c=b[to];let nv=v;if(m&PR)nv=PROMO[v*s]*s;
+ h^=ZB[f][v+16]^ZB[to][nv+16];if(c){h^=ZB[to][c+16];const ct=BASE[c<0?-c:c]||(c<0?-c:c);if(ct<8)h^=ZH[hi][ct][hh[ct]]^ZH[hi][ct][hh[ct]+1]}
+ return h}
+function evalM(p){let sc=evalPos(p)*p.side;const b=p.b,W=p.W,t=nbt(W);
+ for(const s of [1,-1]){const k=kingSq(p,s);if(k<0)continue;const kx=k%W,ky=(k/W)|0;let att=0,def=0,esc=0;
+  for(let i=0;i<b.length;i++){const v=b[i];if(!v)continue;const dx=Math.abs(i%W-kx),dy=Math.abs(((i/W)|0)-ky);if(dx>2||dy>2)continue;const ty=v<0?-v:v;if(ty===8)continue;if(v*s>0)def+=(ty===5||ty===4||ty>=9&&ty<=12)?1:0;else att+=VAL[ty]}
+  for(let d=0;d<8;d++){const n=t[k*12+d];if(n>=0&&b[n]*s<=0&&!attacked(p,n,-s))esc++}
+  const hand=p.h[s===1?1:0];let ha=0;for(let ty=1;ty<=7;ty++)ha+=hand[ty]*VAL[ty];
+  let ks=def*22-att*9-ha*(def<2?6:3)+esc*8;
+  if(W===9){const home=s===1?ky>=7:ky<=1,side=kx<=2||kx>=6;if(home&&side)ks+=40;if(kx>=3&&kx<=5&&def<2)ks-=30}
+  sc+=s*ks}
+ return sc*p.side}
+function qsM(p,alpha,beta,qd,ctx,ply){const st=evalM(p);if(st>=beta)return st;if(st>alpha)alpha=st;if(qd>=6)return st;
+ const ms=[];gen(p,ms,true);const b=p.b,caps=[];
+ for(const m of ms){const c=b[(m>>7)&127];if(c){if(c===-8*p.side)return INF-ply;caps.push(m)}}
+ order(p,caps);let best=st;
+ for(const m of caps){const cap=doMove(p,m);const v=-qsM(p,-beta,-alpha,qd+1,ctx,ply+1);undoMove(p,m,cap);if(v>best){best=v;if(v>alpha){alpha=v;if(alpha>=beta)break}}}
+ return best}
+function orderM(p,ms,ttm,ply,ctx){const b=p.b,K=ctx.killers[ply]||[0,0],H=ctx.hist;
+ const k=ms.map(m=>{if(m===ttm)return 1e9;const to=(m>>7)&127,c=b[to];let sc=0;
+  if(c)sc=1e6+VAL[c<0?-c:c]*20-((m>>15)?0:VAL[Math.abs(b[m&127])]);else if(m===K[0])sc=9e5;else if(m===K[1])sc=8e5;else sc=(H.get(m)||0);
+  if(m&PR)sc+=5e5;return sc});
+ const idx=ms.map((_,i)=>i).sort((a,c)=>k[c]-k[a]),cp=ms.slice();for(let i=0;i<idx.length;i++)ms[i]=cp[idx[i]]}
+function searchM(p,depth,alpha,beta,ply,ctx,h){
+ if((++ctx.nodes&1023)===0&&Date.now()>ctx.dl)ctx.stop=true;if(ctx.stop)return 0;
+ const ms=[];gen(p,ms);const b=p.b,ek=-8*p.side;
+ for(let i=0;i<ms.length;i++)if(b[(ms[i]>>7)&127]===ek)return INF-ply;
+ if(depth<=0)return qsM(p,alpha,beta,0,ctx,ply);
+ const ix=h&TMASK;let ttm=0;
+ if(TK[ix]===h){ttm=TM[ix];if(TD[ix]>=depth){const v=TS[ix],fl=TF[ix];if(fl===0||(fl===1&&v>=beta)||(fl===2&&v<=alpha))return v}}
+ orderM(p,ms,ttm,ply,ctx);let best=-INF,bm=0;const a0=alpha;
+ for(const m of ms){const h2=zNext(p,m,h),to=(m>>7)&127,quiet=!b[to];const cap=doMove(p,m);
+  let ext=0;if(ctx.ext<ctx.extMax&&inCheck(p)){ext=1;ctx.ext++}
+  const v=-searchM(p,depth-1+ext,-beta,-alpha,ply+1,ctx,h2);if(ext)ctx.ext--;undoMove(p,m,cap);if(ctx.stop)return 0;
+  if(v>best){best=v;bm=m;if(v>alpha){alpha=v;if(alpha>=beta){if(quiet){const K=ctx.killers[ply]||(ctx.killers[ply]=[0,0]);if(K[0]!==m){K[1]=K[0];K[0]=m}ctx.hist.set(m,(ctx.hist.get(m)||0)+depth*depth)}break}}}}
+ TK[ix]=h;TD[ix]=depth;TS[ix]=best;TF[ix]=best<=a0?2:best>=beta?1:0;TM[ix]=bm;
+ return best}
+function thinkMaster(p,root,opt){
+ const ctx={nodes:0,dl:Date.now()+(opt.time||(p.W===9?4500:3200)),stop:false,killers:[],hist:new Map(),ext:0,extMax:3};
+ const m1=mateMoves(p,1);if(m1.length)return{m:m1[0],s:INF};
+ if(p.W===5||root.length<120){const m3=mateIn(p,3);if(m3)return{m:m3,s:INF-3}}
+ const h0=zHash(p),sc=new Map();let best=root[0],bestS=-INF;
+ for(let depth=1;depth<=10;depth++){let a=-INF,bm=0,bs=-INF;
+  root.sort((x,y)=>(sc.has(y)?sc.get(y):-INF)-(sc.has(x)?sc.get(x):-INF));
+  for(const m of root){const h2=zNext(p,m,h0),cap=doMove(p,m);const v=-searchM(p,depth-1,-INF,-a,1,ctx,h2);undoMove(p,m,cap);if(ctx.stop)break;sc.set(m,v);if(v>bs){bs=v;bm=m}if(v>a)a=v}
+  if(ctx.stop&&depth>1)break;if(bm){best=bm;bestS=bs}if(Math.abs(bs)>INF/2||Date.now()>ctx.dl-200)break}
+ return{m:best,s:bestS,nodes:ctx.nodes}}
 function think(po,opt){const p=clone(po),root=legal(p);if(!root.length)return{m:0,s:-INF};
- const d=opt.diff,W=p.W,maxD=d===0?1:d===1?2:(W===9?4:6),tl=opt.time||(d===0?150:d===1?700:2200),noise=d===0?180:d===1?30:0;
- if(d===0&&Math.random()<.2)return{m:root[Math.random()*root.length|0],s:0};
+ if(opt.diff===4)return thinkMaster(p,root,opt);
+ const d=opt.diff,W=p.W,LV=[[1,150,180,.2],[1,250,70,.04],[2,700,30,0],[W===9?4:6,2200,0,0]][d]||[2,700,30,0];
+ const maxD=LV[0],tl=opt.time||LV[1],noise=LV[2];
+ if(LV[3]&&Math.random()<LV[3])return{m:root[Math.random()*root.length|0],s:0};
  const ctx={nodes:0,dl:Date.now()+tl,stop:false},sc=new Map();let best=root[0],bestS=-INF;
  for(let depth=1;depth<=maxD;depth++){let a=-INF,bm=0,bs=-INF;
   root.sort((x,y)=>(sc.has(y)?sc.get(y):-INF)-(sc.has(x)?sc.get(x):-INF));
@@ -339,7 +397,7 @@ const BGM={
 
 
 /* ===== 基本資料 ===== */
-const DIFFN=['幼年鳩特','青年鳩特','成年鳩特'];
+const DIFFN=['嬰兒鳩特','幼年鳩特','青年鳩特','成年鳩特','大師鳩特'];
 const CH={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'杏',11:'圭',12:'全',14:'馬',15:'龍'};
 const KN={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'成香',11:'成桂',12:'成銀',14:'馬',15:'龍'};
 const SC={1:.8,2:.84,3:.86,4:.9,5:.9,6:.95,7:.95,8:1,9:.8,10:.84,11:.86,12:.9,14:.95,15:.95};
@@ -347,7 +405,7 @@ const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
 const HP={0:[50,15],1:[78,25],2:[87,58],3:[84,87],4:[50,89],5:[16,87],6:[13,58],7:[22,25],8:[34,17],9:[66,17]};
 const ANG=[0,45,90,135,0,45,90,135];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:1,side:'sente'},worker=null,HINT=false;
+let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:2,side:'sente'},worker=null,HINT=false;
 try{HINT=localStorage.getItem('sg_hint')==='1'}catch(e){}
 try{worker=new Worker(URL.createObjectURL(new Blob([document.getElementById('eng').textContent+';onmessage=e=>postMessage(ENGINE.think(e.data.p,e.data.o));'],{type:'text/javascript'})))}catch(e){worker=null}
 function say(t){if(MUTE||!window.speechSynthesis)return false;try{const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.pitch=1.05;const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;speechSynthesis.cancel();speechSynthesis.speak(u);return true}catch(e){return false}}
@@ -606,8 +664,8 @@ function showMenu(){
  <p>日本將棋，和三位鳩特對戰。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
  <h3>棋盤</h3><div class="opts">${o('W',9,'本將棋 9×9')}${o('W',5,'五五將棋 5×5')}</div>
  <p class="pill">${OPT.W===9?'正式的將棋，每人 20 枚棋子。':'縮小版，每人 6 枚棋子，一局很快，適合入門。'}</p>
- <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}</div>
- <p class="pill">${['只看一步，常常亂走。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。'][OPT.diff]}</p>
+ <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}</div>
+ <p class="pill">${['只看一步，常常亂走，適合第一次下棋。','只看一步，但會算吃子交換，不太會白白送子。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。','會戰術：記住算過的局面、追著王手多算幾步、先找三手內的將死，也懂得保護自己的王。每步最多想 4.5 秒。'][OPT.diff]}</p>
  <h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>
  <div class="btns"><button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">開始對局</button></div>`)}
 function showRules(){
