@@ -46,6 +46,14 @@ const lessonData = [
         desc: "和五位鳩特（嬰兒到大師）下日本將棋：本將棋 9×9 與入門的五五將棋 5×5，附 13 課新手教學、一手詰與三手詰題庫、走法提示與悔棋。"
     },
     {
+        title: "鳩特踩地雷",
+        category: "games",
+        url: "games/minesweeper.html",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "作戰地圖風的踩地雷：新兵、士官、特戰三種難度，每一盤都保證只靠推理就能解開；附四課新手教學（1-1、1-2-1 定式）與全站共用的榮譽榜。"
+    },
+    {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
         grades: [2],
