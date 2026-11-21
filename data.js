@@ -57,6 +57,15 @@ const lessonData = [
         desc: "作戰地圖風的踩地雷：新兵、士官、特戰三種難度，每一盤都保證只靠推理就能解開；附四課新手教學（1-1、1-2-1 定式）與全站共用的榮譽榜。"
     },
     {
+        title: "鳩特數獨",
+        category: "games",
+        url: "games/sudoku.html",
+        thumb: "games/thumbs/sudoku.svg",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "和紙與朱印風的數獨：幼年鳩特到鳩特大師四種難度，每題保證只靠推理解開；題目有種子碼可以和同學比同一題，提示會先講破題點再說明原因，附七課新手教學與每日挑戰榮譽榜。"
+    },
+    {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
         grades: [2],

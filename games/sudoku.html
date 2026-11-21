@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>鳩特數獨</title>
+<style>
+:root{--paper:#f4ecda;--paper2:#ebe0c7;--ink:#211c18;--ink2:#4a4038;--indigo:#2c4f86;--indigo-soft:#dbe4f2;--ver:#c23b2a;--ver-soft:#f6d9d2;--gold:#b08a3e;--cs:44px;
+ --serif:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;--zh:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;--num:"Avenir Next","Segoe UI","Roboto",var(--zh)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--zh);overscroll-behavior:none;
+ background-image:radial-gradient(120% 80% at 50% 0%,#fffaf0 0%,#0000 60%),repeating-linear-gradient(0deg,#0000 0 3px,#8a6d3b08 3px 4px),repeating-linear-gradient(90deg,#0000 0 5px,#8a6d3b06 5px 6px)}
+#app{position:relative;max-width:1080px;margin:0 auto;padding:0 12px calc(24px + env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;gap:8px;padding:10px 0 4px}
+header a{color:var(--ink);text-decoration:none;font-size:26px;line-height:1;padding:4px 8px}
+header h1{margin:0;font:900 21px/1.2 var(--serif);letter-spacing:.18em;flex:1;white-space:nowrap}
+header h1 small{font:700 12px var(--zh);letter-spacing:.05em;margin-left:8px;color:var(--ver);vertical-align:2px}
+.btn{appearance:none;border:1.5px solid var(--ink);border-radius:10px;padding:9px 14px;font:800 14px/1 var(--zh);color:var(--ink);background:#fffaf0;cursor:pointer;letter-spacing:.06em;white-space:nowrap;box-shadow:0 2px 0 var(--ink)}
+.btn:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
+.btn.pri{background:var(--ink);color:var(--paper)}
+.btn.ver{background:var(--ver);border-color:#7d2015;color:#fff;box-shadow:0 2px 0 #7d2015}
+.btn.on{background:var(--indigo);border-color:#1b3561;color:#fff;box-shadow:0 2px 0 #1b3561}
+.btn[disabled]{opacity:.4;pointer-events:none}
+#hud{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:2px 0 8px}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;border:1px solid #b9a98a;background:#fffaf0aa;font-size:13px;color:var(--ink2);cursor:pointer}
+.pill b{font:800 14px var(--num);letter-spacing:.08em;color:var(--ink)}
+.pill.daily{border-color:var(--ver);color:var(--ver)}
+.clock{display:flex;align-items:center;gap:6px;font:800 20px var(--num);letter-spacing:.04em}
+.icon{appearance:none;border:1.5px solid var(--ink);background:#fffaf0;border-radius:50%;width:38px;height:38px;font:900 13px var(--zh);color:var(--ink);cursor:pointer}
+/* 版面：直向上下、橫放左右 */
+#play{display:flex;flex-direction:column;align-items:center;gap:10px}
+#boardWrap{position:relative;width:var(--bs);height:var(--bs);--bs:min(calc(100vw - 24px),700px,calc(100dvh - 330px));min-width:288px;min-height:288px}
+#side{width:min(100%,700px);display:flex;flex-direction:column;gap:8px}
+@media (min-width:760px) and (min-aspect-ratio:5/4){
+ #play{flex-direction:row;align-items:flex-start;justify-content:center;gap:22px}
+ #boardWrap{--bs:min(calc(100dvh - 120px),calc(100vw - 400px),640px)}
+ #side{width:330px;flex:none}
+}
+/* 盤面 */
+#board{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:3px;padding:3px;background:var(--ink);border-radius:6px;box-shadow:0 10px 26px -10px #3b2a1499,0 0 0 1px var(--ink);user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.box{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:1px;background:#6b5f53;min-width:0;min-height:0}
+.cell{position:relative;min-width:0;min-height:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#fffaf0;cursor:pointer;font:600 calc(var(--bs) * .062)/1 var(--num);color:var(--indigo);transition:background .12s}
+.cell.given{font-family:var(--serif);font-weight:900;color:var(--ink)}
+.cell.peer{background:#f1e7d1}
+.cell.same{background:var(--indigo-soft)}
+.cell.sel{background:#c7d5ec;box-shadow:inset 0 0 0 2px var(--indigo)}
+.cell.conf{color:var(--ver)}
+.cell.conf::after{content:'';position:absolute;inset:3px;border-radius:50%;border:1.5px solid #c23b2a66}
+.cell.wrong{color:var(--ver);background:var(--ver-soft)}
+.cell.hl{background:#fff3c9}
+.cell.dim{filter:brightness(.82) saturate(.6)}
+.cell.ref::before{content:'';position:absolute;inset:8%;border-radius:50%;border:2.5px solid var(--ver);opacity:.85;animation:ring .5s ease-out}
+.cell.tgt{box-shadow:inset 0 0 0 3px var(--ver);animation:pulse 1.2s ease-in-out infinite}
+.cell.xx::after{content:'✕';position:absolute;font:900 calc(var(--bs) * .05) var(--zh);color:#c23b2a99}
+.cell.pop{animation:pop .28s ease-out}
+.cell.flash{animation:flash .6s ease-out}
+@keyframes ring{from{transform:scale(1.6);opacity:0}}
+@keyframes pulse{50%{box-shadow:inset 0 0 0 5px #c23b2a55}}
+@keyframes pop{40%{transform:scale(1.18)}}
+@keyframes flash{30%{background:#ffe8a3}}
+.notes{position:absolute;inset:2px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);font:600 calc(var(--bs) * .028)/1 var(--num);color:#6a5e52}
+.notes span{display:flex;align-items:center;justify-content:center}
+.notes span.fd{color:var(--indigo);font-weight:900}
+.notes span.st{color:var(--ver);text-decoration:line-through;font-weight:900}
+#pauseCover{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--paper2);border-radius:6px;border:3px solid var(--ink);font:900 22px var(--serif);letter-spacing:.2em;z-index:3}
+/* 控制區 */
+#tools{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.tool{appearance:none;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;font:700 12px var(--zh);color:var(--ink2);cursor:pointer;border-radius:10px}
+.tool i{font-style:normal;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:50%;border:1.5px solid var(--ink);background:#fffaf0;font:900 18px var(--zh);color:var(--ink)}
+.tool.on i{background:var(--indigo);color:#fff;border-color:#1b3561}
+.tool.on{color:var(--indigo)}
+.tool[disabled]{opacity:.35;pointer-events:none}
+.tool .badge{font:800 11px var(--num);color:var(--ver)}
+#pad{display:grid;grid-template-columns:repeat(9,1fr);gap:5px}
+@media (min-width:760px) and (min-aspect-ratio:5/4){#pad{grid-template-columns:repeat(3,1fr);gap:8px}#pad .k{height:64px;font-size:30px}}
+.k{appearance:none;position:relative;height:56px;border:1.5px solid var(--ink);border-radius:10px;background:#fffaf0;font:700 26px var(--num);color:var(--indigo);cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+.k:active{transform:translateY(2px);box-shadow:none}
+.k small{position:absolute;right:5px;bottom:3px;font:700 10px var(--num);color:#8a7c6c}
+.k.done{opacity:.28}
+.k.focus{background:var(--indigo);color:#fff}
+.k.focus small{color:#dbe4f2}
+body.note .k{color:#6a5e52;font-size:20px}
+body.note .k::before{content:'筆';position:absolute;left:5px;top:3px;font:900 10px var(--zh);color:var(--indigo)}
+/* 提示框 */
+#hintBox{border:1.5px solid var(--ink);border-radius:12px;background:#fffaf0;padding:12px 14px;box-shadow:0 3px 0 var(--ink);font-size:15px;line-height:1.6}
+#hintBox h3{margin:0 0 4px;font:900 15px var(--serif);letter-spacing:.12em;color:var(--ver)}
+#hintBox p{margin:0 0 8px}
+#hintBox .tech{display:inline-block;background:var(--ink);color:var(--paper);border-radius:6px;padding:1px 8px;font-weight:800;margin:0 2px}
+#hintBox .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+#hintBox ol{margin:0 0 8px;padding-left:1.3em}
+#mark{text-align:center;margin-top:14px;font:900 12px var(--serif);letter-spacing:.6em;color:#b9a98a}
+/* 彈出視窗 */
+#modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px;background:#2a1f1499;backdrop-filter:blur(3px)}
+#modal[hidden],#fin[hidden],#pauseCover[hidden]{display:none}
+.mbox{width:min(520px,100%);max-height:calc(100dvh - 28px);overflow:auto;background:var(--paper);border:2px solid var(--ink);border-radius:16px;padding:18px 18px 16px;box-shadow:0 20px 40px #0006}
+.mbox h2{margin:0 0 6px;font:900 24px var(--serif);letter-spacing:.2em;text-align:center}
+.mbox h4{margin:14px 0 6px;font:800 14px var(--zh);color:var(--ink2);letter-spacing:.1em}
+.mbox .note{color:var(--ink2);font-size:13.5px;line-height:1.6;margin:4px 0 10px}
+.mbtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lvbtn{appearance:none;text-align:left;border:1.5px solid var(--ink);border-radius:12px;background:#fffaf0;padding:10px 12px;cursor:pointer;box-shadow:0 2px 0 var(--ink);font-family:var(--zh);color:var(--ink)}
+.lvbtn b{display:block;font:900 16px var(--serif);letter-spacing:.1em}
+.lvbtn span{font-size:12px;color:var(--ink2)}
+.lvbtn em{float:right;font-style:normal;color:var(--ver);font:900 13px var(--serif)}
+.lvbtn.on{background:var(--indigo-soft);border-color:var(--indigo)}
+.lvbtn:active{transform:translateY(2px);box-shadow:none}
+.menuTop{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:6px}
+.menuTop svg{width:74px;height:74px}
+.row{display:flex;gap:8px;align-items:center}
+.seedin{flex:1;min-width:0;font:800 18px var(--num);letter-spacing:.12em;text-transform:uppercase;padding:10px 12px;border:1.5px solid var(--ink);border-radius:10px;background:#fffaf0;color:var(--ink)}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 2px;border-bottom:1px dashed #cdbd9c;font-size:14px}
+.opt small{display:block;color:var(--ink2);font-size:12px}
+.sw{appearance:none;width:48px;height:28px;border-radius:999px;background:#cdbd9c;position:relative;cursor:pointer;flex:none;transition:background .2s}
+.sw::after{content:'';position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:left .2s}
+.sw:checked{background:var(--indigo)}.sw:checked::after{left:23px}
+.lessons{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.lessons button{width:100%;display:flex;align-items:center;gap:10px;text-align:left}
+.lessons .no{flex:none;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font:900 14px var(--num)}
+.lessons .ok .no{background:var(--ver)}
+.lessons .t{flex:1}
+.lessons .t b{display:block;font:900 15px var(--serif);letter-spacing:.08em}
+.lessons .t span{font-size:12px;color:var(--ink2)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:6px 0}
+.tabs4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.tabs4 .btn{padding:9px 4px}
+@media (max-width:480px){.tabs4{grid-template-columns:1fr 1fr}}
+.rk{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.rk li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:10px;background:#fffaf0;border:1px solid #cdbd9c;font-size:14px}
+.rk li .n{width:26px;font:900 15px var(--num);color:var(--ink2)}
+.rk li .nm{flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rk li .tm{font:800 15px var(--num)}
+.rk li.g1{border-color:var(--gold);background:#fbf1d6}.rk li.g1 .n{color:var(--gold)}
+.rk li.me{border-color:var(--ver);box-shadow:0 0 0 2px #c23b2a44}
+.rkf{display:flex;gap:8px;margin:8px 0}
+.rkf input{flex:1;min-width:0;font:700 16px var(--zh);padding:9px 11px;border:1.5px solid var(--ink);border-radius:10px;background:#fffaf0}
+.pillnote{display:block;text-align:center;color:var(--ink2);font-size:13px;margin:8px 0}
+/* 完成畫面 */
+#fin{position:fixed;inset:0;z-index:15;display:flex;align-items:center;justify-content:center;padding:14px;background:#2a1f14aa}
+#fin .mbox{text-align:center;animation:rise .4s ease-out}
+@keyframes rise{from{transform:translateY(20px);opacity:0}}
+.seal{width:132px;height:132px;display:block;margin:2px auto 4px;animation:stamp .55s cubic-bezier(.2,1.6,.4,1) .15s both}
+@keyframes stamp{from{transform:scale(2.4) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(-4deg);opacity:1}}
+.ftitle{font:900 26px var(--serif);letter-spacing:.3em}
+.fstat{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:12px 0 6px}
+.fstat div{background:#fffaf0;border:1px solid #cdbd9c;border-radius:10px;padding:8px 4px}
+.fstat b{display:block;font:900 20px var(--num)}
+.fstat span{font-size:11.5px;color:var(--ink2)}
+#toast{position:fixed;left:50%;bottom:calc(26px + env(safe-area-inset-bottom));transform:translate(-50%,40px);opacity:0;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:14px;font-weight:700;transition:.25s;pointer-events:none;z-index:30;max-width:90vw;text-align:center}
+#toast.show{transform:translate(-50%,0);opacity:1}
+/* 教學泡泡 */
+#lessonBar{border:2px solid var(--ver);border-radius:12px;background:#fffaf0;padding:12px 14px;font-size:15px;line-height:1.65;box-shadow:0 3px 0 var(--ver)}
+#lessonBar h3{margin:0 0 4px;font:900 15px var(--serif);letter-spacing:.12em;color:var(--ver)}
+#lessonBar p{margin:0 0 8px}
+#lessonBar .row{justify-content:flex-end}
+#lessonBar .dots{flex:1;font:800 12px var(--num);color:var(--ink2);letter-spacing:.2em}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+<script src="../page_views.js" defer></script>
+</head>
+<body>
+<div id="app">
+ <header>
+  <a href="../index.html" aria-label="回首頁">‹</a>
+  <h1>鳩特數獨<small id="lvName"></small></h1>
+  <button class="btn" data-act="menu">選單</button>
+ </header>
+ <div id="hud">
+  <span class="pill" id="seedPill" data-act="copyseed" title="點一下複製種子碼，傳給朋友挑戰同一題">種子碼 <b id="seed">—</b></span>
+  <div class="clock"><span id="time" aria-live="off">0:00</span><button class="icon" data-act="pause" aria-label="暫停" id="pauseBtn">❚❚</button></div>
+ </div>
+ <main id="play">
+  <section id="boardWrap">
+   <div id="board" role="grid" aria-label="數獨盤面"></div>
+   <div id="pauseCover" hidden>暫停中<button class="btn pri" data-act="pause">繼續</button></div>
+  </section>
+  <section id="side">
+   <div id="lessonBar" hidden></div>
+   <div id="hintBox" hidden></div>
+   <div id="tools">
+    <button class="tool" data-act="undo"><i>↶</i>復原</button>
+    <button class="tool" data-act="erase"><i>⌫</i>擦除</button>
+    <button class="tool" data-act="note" id="noteBtn"><i>✎</i>筆記</button>
+    <button class="tool" data-act="allnotes"><i>⋯</i>全部筆記</button>
+    <button class="tool" data-act="hint" id="hintBtn"><i>？</i>提示<span class="badge" id="hintCount"></span></button>
+   </div>
+   <div id="pad"></div>
+  </section>
+ </main>
+ <div id="mark">鳩特數理</div>
+</div>
+<div id="modal" hidden><div class="mbox" id="mbox"></div></div>
+<div id="fin" hidden></div>
+<div id="toast" role="status"></div>
+<script src="sudoku_engine.js"></script>
+<script src="sudoku_bank.js"></script>
+<script>
+'use strict';
+const S = window.SDK, BANK = window.SUDOKU_BANK, LESSON_DATA = window.SUDOKU_TUTORIAL;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const LS = { get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無法儲存 */ } } };
+const LV = {
+  1: { n: '幼年鳩特', d: '只靠摒除法就能解完，提示數字多' },
+  2: { n: '青年鳩特', d: '摒除法＋唯一餘數' },
+  3: { n: '成年鳩特', d: '要用區塊摒除、數對、三數組' },
+  4: { n: '鳩特大師', d: '要用 X 翼、劍魚、XY 翼' }
+};
+const HINT_PEN = 30000, MISTAKE_PEN = 10000;
+const OPT = Object.assign({ lv: 1, check: false, autoClear: true, sound: true }, LS.get('sdk_opt', {}));
+const saveOpt = () => LS.set('sdk_opt', OPT);
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+const fmtTime = ms => { const s = Math.floor(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
+const fmtSec = ms => (ms / 1000).toFixed(1);
+let G = null, H = null, toastT = 0;
+
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2200); }
+
+/* ===== 音效（和風：木魚、琴音） ===== */
+let AC = null;
+function tone(f, t0, dur, type = 'sine', vol = .12) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0); o.connect(g); g.connect(AC.destination);
+  g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + .012); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  o.start(t0); o.stop(t0 + dur + .02);
+}
+function sfx(k) {
+  if (!OPT.sound) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
+    const t = AC.currentTime;
+    if (k === 'put') { tone(880, t, .09, 'triangle', .08); tone(1320, t, .05, 'sine', .03); }
+    else if (k === 'note') tone(1500, t, .04, 'sine', .04);
+    else if (k === 'erase') tone(420, t, .06, 'triangle', .05);
+    else if (k === 'bad') { tone(196, t, .22, 'sawtooth', .05); tone(185, t + .02, .22, 'sine', .06); }
+    else if (k === 'unit') [784, 988, 1175].forEach((f, i) => tone(f, t + i * .06, .25, 'triangle', .06));
+    else if (k === 'hint') [659, 880].forEach((f, i) => tone(f, t + i * .09, .35, 'sine', .07));
+    else if (k === 'win') [523, 587, 659, 784, 880, 1047, 1319].forEach((f, i) => tone(f, t + i * .085, .7, 'triangle', .07));
+    else if (k === 'stamp') { tone(90, t, .25, 'sine', .25); tone(140, t, .12, 'triangle', .1); }
+  } catch (e) { /* 音效可省略 */ }
+}
+
+/* ===== 盤面 ===== */
+const cells = [];
+(function buildBoard() {
+  const board = $('board');
+  for (let b = 0; b < 9; b++) {
+    const box = document.createElement('div'); box.className = 'box'; board.append(box);
+    for (const i of S.UNITS[18 + b]) {
+      const c = document.createElement('div'); c.className = 'cell'; c.dataset.i = i; c.setAttribute('role', 'gridcell');
+      cells[i] = c; box.append(c);
+    }
+  }
+  /* 依格子編號排序後再放回去（宮內順序已對，這裡只是保險） */
+  const pad = $('pad');
+  for (let d = 1; d <= 9; d++) { const k = document.createElement('button'); k.className = 'k'; k.dataset.d = d; k.innerHTML = `${d}<small></small>`; k.setAttribute('aria-label', `數字 ${d}`); pad.append(k); }
+})();
+
+function newState(o) {
+  return Object.assign({ mode: 'play', lv: 1, code: '', ranked: false, daily: null, given: [], sol: [], val: [], notes: new Array(81).fill(0), ms: 0, hints: 0, mistakes: 0,
+    done: false, sel: -1, focus: 0, noteMode: false, hist: [], paused: false, wrongs: new Set(), lesson: null }, o);
+}
+function loadPuzzle(puzzle, sol, o) {
+  G = newState(Object.assign({ given: puzzle.map(Boolean), sol, val: puzzle.slice() }, o));
+  H = null; $('hintBox').hidden = true; $('lessonBar').hidden = G.mode !== 'lesson';
+  document.body.classList.remove('note'); $('noteBtn').classList.remove('on');
+  $('pauseCover').hidden = true; $('hintBtn').disabled = false; $('pauseBtn').textContent = '❚❚';
+  renderAll();
+}
+function startGame(code, o = {}) {
+  const p = S.puzzleFromSeed(code, BANK);
+  if (!p) { toast('種子碼格式不對，例如 2-K7QM4X'); return false; }
+  OPT.lv = p.lv; saveOpt();
+  loadPuzzle(p.puzzle, p.solution, Object.assign({ lv: p.lv, code: p.code }, o));
+  closeModal(); $('fin').hidden = true;
+  return true;
+}
+const newRandom = lv => startGame(S.randomSeed(lv), { ranked: true });
+const newDaily = lv => { const d = today(); startGame(S.dailySeed(lv, d), { ranked: true, daily: d }); };
+
+function renderAll() {
+  $('lvName').textContent = G.mode === 'lesson' ? '新手教學' : LV[G.lv].n;
+  $('seed').textContent = G.mode === 'lesson' ? '教學' : G.code;
+  $('seedPill').classList.toggle('daily', !!G.daily);
+  $('seedPill').firstChild.textContent = G.daily ? `今日挑戰 ${G.daily.slice(5).replace('-', '/')}・` : '種子碼 ';
+  $('hintCount').textContent = G.hints ? `×${G.hints}` : '';
+  renderCells(); renderPad(); renderTime();
+}
+function renderCells() {
+  const sel = G.sel, sv = sel >= 0 ? G.val[sel] : 0, fd = G.focus || sv;
+  const conf = S.conflicts(G.val);
+  const peers = sel >= 0 ? new Set(S.PEERS[sel]) : new Set();
+  const L = G.lesson && G.lesson.view, Hv = H && H.view;
+  const V = L || Hv || {};
+  for (let i = 0; i < 81; i++) {
+    const c = cells[i], v = G.val[i];
+    const cls = ['cell'];
+    if (G.given[i]) cls.push('given');
+    if (i === sel) cls.push('sel'); else if (peers.has(i)) cls.push('peer');
+    if (fd && v === fd && i !== sel) cls.push('same');
+    if (conf.has(i) && !G.given[i]) cls.push('conf');
+    if (G.wrongs.has(i)) cls.push('wrong');
+    if (V.hl && V.hl.has(i)) cls.push('hl');
+    if (V.dim && !(V.hl && V.hl.has(i)) && !(V.refs && V.refs.has(i))) cls.push('dim');
+    if (V.refs && V.refs.has(i)) cls.push('ref');
+    if (V.tgt === i) cls.push('tgt');
+    if (V.xs && V.xs.has(i)) cls.push('xx');
+    c.className = cls.join(' ');
+    const strike = V.strike && V.strike[i];
+    if (v) { c.textContent = v; c.setAttribute('aria-label', `${S.cellName(i)}：${v}${G.given[i] ? '（題目）' : ''}`); }
+    else {
+      const m = G.notes[i] | (V.show && V.show[i] || 0) | (strike || 0);
+      if (m) {
+        let h = '<div class="notes">';
+        for (let d = 1; d <= 9; d++) h += `<span class="${strike && strike & S.bit(d) ? 'st' : fd === d && G.notes[i] & S.bit(d) ? 'fd' : ''}">${m & S.bit(d) ? d : ''}</span>`;
+        c.innerHTML = h + '</div>';
+      } else c.textContent = '';
+      c.setAttribute('aria-label', `${S.cellName(i)}：空格`);
+    }
+  }
+}
+function renderPad() {
+  const cnt = new Array(10).fill(0); G.val.forEach(v => { if (v) cnt[v]++; });
+  const sv = G.sel >= 0 ? G.val[G.sel] : 0;
+  document.querySelectorAll('#pad .k').forEach(k => {
+    const d = +k.dataset.d, left = 9 - cnt[d];
+    k.querySelector('small').textContent = left > 0 ? left : '';
+    k.classList.toggle('done', left <= 0);
+    k.classList.toggle('focus', (G.focus || sv) === d);
+  });
+}
+function renderTime() { $('time').textContent = fmtTime(G.ms); }
+
+/* ===== 計時 ===== */
+let lastTick = performance.now();
+setInterval(() => {
+  const now = performance.now(), dt = now - lastTick; lastTick = now;
+  if (!G || G.done || G.paused || G.mode === 'lesson' && G.lesson.key !== 'practice') return;
+  if (document.visibilityState !== 'visible' || !$('modal').hidden) return;
+  G.ms += Math.min(dt, 1000); renderTime();
+  if (Math.floor(G.ms / 5000) !== Math.floor((G.ms - dt) / 5000)) save();
+}, 250);
+document.addEventListener('visibilitychange', () => { lastTick = performance.now(); if (document.visibilityState === 'hidden') save(); });
+
+/* ===== 存檔（繼續上一局） ===== */
+function save() {
+  if (!G || G.mode !== 'play') return;
+  if (G.done) { LS.set('sdk_save', null); return; }
+  LS.set('sdk_save', { code: G.code, lv: G.lv, ranked: G.ranked, daily: G.daily, val: G.val, notes: G.notes, ms: Math.round(G.ms), hints: G.hints, mistakes: G.mistakes });
+}
+function resume() {
+  const s = LS.get('sdk_save', null); if (!s) return false;
+  const p = S.puzzleFromSeed(s.code, BANK); if (!p) return false;
+  loadPuzzle(p.puzzle, p.solution, { lv: p.lv, code: p.code, ranked: s.ranked && (!s.daily || s.daily === today()), daily: s.daily === today() ? s.daily : null });
+  if (Array.isArray(s.val) && s.val.length === 81) G.val = s.val.map((v, i) => (G.given[i] ? p.puzzle[i] : v | 0));
+  if (Array.isArray(s.notes) && s.notes.length === 81) G.notes = s.notes.map(n => n | 0);
+  G.ms = s.ms || 0; G.hints = s.hints || 0; G.mistakes = s.mistakes || 0;
+  if (OPT.check) G.val.forEach((v, i) => { if (v && !G.given[i] && v !== G.sol[i]) G.wrongs.add(i); });
+  closeModal(); renderAll(); return true;
+}
+
+/* ===== 操作 ===== */
+function snapshot() { G.hist.push({ val: G.val.slice(), notes: G.notes.slice(), sel: G.sel }); if (G.hist.length > 300) G.hist.shift(); }
+function select(i) {
+  if (G.done) return;
+  G.sel = i; G.focus = 0; renderCells(); renderPad();
+}
+function input(d) {
+  if (!G || G.done || G.paused) return;
+  const i = G.sel;
+  if (i < 0 || G.given[i]) {
+    /* 沒選格子：按數字＝把同一個數字全部亮起來 */
+    G.focus = G.focus === d ? 0 : d; G.sel = G.given[i] ? G.sel : -1; renderCells(); renderPad(); return;
+  }
+  if (G.mode === 'lesson' && G.lesson.key !== 'practice') return lessonInput(i, d);
+  if (G.noteMode && !G.val[i]) {
+    snapshot(); G.notes[i] ^= S.bit(d); sfx('note'); renderCells(); save(); return;
+  }
+  snapshot();
+  if (G.val[i] === d) { G.val[i] = 0; G.wrongs.delete(i); sfx('erase'); }
+  else {
+    G.val[i] = d; G.notes[i] = 0;
+    if (OPT.autoClear) for (const p of S.PEERS[i]) G.notes[p] &= ~S.bit(d);
+    if (OPT.check && d !== G.sol[i]) { G.wrongs.add(i); G.mistakes++; sfx('bad'); toast(`這格不是 ${d}（+${MISTAKE_PEN / 1000} 秒）`); }
+    else {
+      G.wrongs.delete(i);
+      if (S.conflicts(G.val).has(i)) sfx('bad'); else { sfx('put'); celebrateUnits(i); }
+      cells[i].classList.remove('pop'); void cells[i].offsetWidth;
+    }
+  }
+  closeHint(); renderCells(); renderPad(); cells[i].classList.add('pop');
+  checkWin(); save();
+}
+function celebrateUnits(i) {
+  const units = [S.rowOf(i), 9 + S.colOf(i), 18 + S.boxOf(i)].filter(u => S.UNITS[u].every(k => G.val[k] && G.val[k] === G.sol[k]));
+  if (!units.length) return;
+  setTimeout(() => { sfx('unit'); units.forEach(u => S.UNITS[u].forEach((k, n) => setTimeout(() => { cells[k].classList.remove('flash'); void cells[k].offsetWidth; cells[k].classList.add('flash'); }, n * 30))); }, 80);
+}
+function erase() {
+  const i = G.sel; if (G.done || i < 0 || G.given[i] || (!G.val[i] && !G.notes[i])) return;
+  if (G.mode === 'lesson' && G.lesson.key !== 'practice') return;
+  snapshot(); G.val[i] = 0; G.notes[i] = 0; G.wrongs.delete(i); sfx('erase'); closeHint(); renderCells(); renderPad(); save();
+}
+function undo() {
+  if (G.done || !G.hist.length || (G.mode === 'lesson' && G.lesson.key !== 'practice')) return;
+  const h = G.hist.pop(); G.val = h.val; G.notes = h.notes; G.sel = h.sel;
+  for (const i of [...G.wrongs]) if (G.val[i] === G.sol[i] || !G.val[i]) G.wrongs.delete(i);
+  sfx('erase'); closeHint(); renderCells(); renderPad(); save();
+}
+function toggleNote() {
+  G.noteMode = !G.noteMode; $('noteBtn').classList.toggle('on', G.noteMode); document.body.classList.toggle('note', G.noteMode);
+  toast(G.noteMode ? '筆記模式：按數字會寫成小字候選數' : '一般模式：按數字直接填入');
+}
+function allNotes() {
+  if (G.done || (G.mode === 'lesson' && G.lesson.key !== 'practice')) return;
+  snapshot(); const cand = S.candidates(G.val);
+  for (let i = 0; i < 81; i++) if (!G.val[i]) G.notes[i] = cand[i];
+  sfx('note'); toast('已經幫每個空格寫好所有可能的數字'); renderCells(); save();
+}
+function checkWin() {
+  if (G.val.includes(0)) return;
+  if (G.val.some((v, i) => v !== G.sol[i])) {
+    const bad = G.val.map((v, i) => (v !== G.sol[i] ? i : -1)).filter(i => i >= 0);
+    toast(S.conflicts(G.val).size ? '有數字重複了，找找紅圈的格子' : `還有 ${bad.length} 格不對，再檢查看看`);
+    return;
+  }
+  G.done = true; G.sel = -1; renderCells(); LS.set('sdk_save', null);
+  if (G.mode === 'lesson') return lessonDone();
+  /* 全盤依序閃一下 */
+  for (let i = 0; i < 81; i++) setTimeout(() => cells[i].classList.add('flash'), (S.rowOf(i) + S.colOf(i)) * 40);
+  sfx('win'); setTimeout(showWin, 1100);
+}
+
+/* ===== 提示：破題點 → 說明 → 填入 ===== */
+function closeHint() { if (!H) return; H = null; $('hintBox').hidden = true; renderCells(); }
+function hint() {
+  if (!G || G.done || G.paused || (G.mode === 'lesson' && G.lesson.key !== 'practice')) return;
+  if (H) { closeHint(); return; }
+  /* 先檢查有沒有填錯的格子 */
+  const wrong = []; for (let i = 0; i < 81; i++) if (G.val[i] && !G.given[i] && G.val[i] !== G.sol[i]) wrong.push(i);
+  G.hints++; renderAll(); sfx('hint');
+  if (wrong.length) {
+    H = { kind: 'wrong', wrong, view: { hl: new Set(wrong), refs: new Set(), dim: false } };
+    showHintBox(`<h3>先停一下</h3><p>有 <b>${wrong.length}</b> 格填的數字和答案不一樣（標成黃色）。錯的數字會讓後面的推理全部跟著錯。</p><div class="row"><button class="btn" data-act="hintclose">我自己改</button><button class="btn pri" data-act="hintfix">幫我擦掉</button></div>`);
+    save(); return;
+  }
+  const r = S.hint(G.val);
+  if (!r.step) { H = null; toast('目前找不到下一步，先檢查有沒有填錯'); return; }
+  const first = r.pre[0] || r.step;
+  H = { kind: 'step', r, stage: 1, view: { hl: new Set(first.cells), dim: true } };
+  const techs = [...new Set([...r.pre, r.step].map(s => s.name))];
+  showHintBox(`<h3>破題點</h3><p>這一步要用 ${techs.map(t => `<span class="tech">${t}</span>`).join('＋')}。先看亮起來的地方${r.pre.length ? `：${S.UNIT_NAME(first.unit)}` : `：${S.UNIT_NAME(r.step.unit)}`}。</p><div class="row"><button class="btn" data-act="hintclose">我自己想</button><button class="btn pri" data-act="hintmore">看說明</button></div>`);
+  renderCells(); save();
+}
+function hintMore() {
+  if (!H || H.kind !== 'step') return;
+  const { r } = H, st = r.step;
+  if (H.stage === 1) {
+    H.stage = 2;
+    const strike = {}, hl = new Set(st.cells), refs = new Set(st.refs);
+    if (r.pre.length) {
+      const cand = S.candidates(G.val);
+      r.pre.forEach(p => { p.cells.forEach(i => hl.add(i)); p.refs.forEach(i => refs.add(i)); p.elims.forEach(({ i, d }) => { strike[i] = (strike[i] || 0) | S.bit(d); }); });
+      /* 刪候選數的格子：把全部候選數秀出來，被刪的打紅線 */
+      const show = {}; for (const i in strike) show[i] = cand[i];
+      show[st.place.i] = cand[st.place.i];
+      H.view = { hl, refs, dim: true, tgt: st.place.i, strike, show };
+    } else H.view = { hl, refs, dim: true, tgt: st.place.i };
+    const lines = [...r.pre.map(p => `<li><span class="tech">${p.name}</span> ${esc(p.text)}</li>`), `<li><span class="tech">${st.name}</span> ${esc(st.text)}</li>`];
+    showHintBox(`<h3>說明</h3><ol>${lines.join('')}</ol><div class="row"><button class="btn" data-act="hintclose">我來填</button><button class="btn pri" data-act="hintfill">填入答案</button></div>`);
+    G.sel = st.place.i; renderCells(); renderPad();
+  }
+}
+function hintFill() {
+  if (!H || H.kind !== 'step') return;
+  const { i, d } = H.r.step.place; G.sel = i; H = null; $('hintBox').hidden = true;
+  const nm = G.noteMode; G.noteMode = false; input(d); G.noteMode = nm;
+}
+function hintFix() {
+  if (!H || H.kind !== 'wrong') return;
+  snapshot(); H.wrong.forEach(i => { G.val[i] = 0; G.wrongs.delete(i); }); closeHint(); renderCells(); renderPad(); save(); toast('已擦掉填錯的格子');
+}
+function showHintBox(html) { const b = $('hintBox'); b.innerHTML = html; b.hidden = false; }
+
+/* ===== 暫停 ===== */
+function togglePause() {
+  if (!G || G.done || G.mode === 'lesson') return;
+  G.paused = !G.paused; $('pauseCover').hidden = !G.paused; $('pauseBtn').textContent = G.paused ? '▶' : '❚❚';
+  lastTick = performance.now();
+}
+
+/* ===== 彈出視窗 ===== */
+function modal(html) { $('mbox').innerHTML = html; $('modal').hidden = false; lastTick = performance.now(); }
+function closeModal() { $('modal').hidden = true; lastTick = performance.now(); }
+const SEAL = (a, b, c, d, cls = 'seal') => `<svg class="${cls}" viewBox="0 0 140 140" aria-hidden="true"><defs><filter id="rough${cls}" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3.4"/></filter></defs><g filter="url(#rough${cls})" fill="#c23b2a"><path fill-rule="evenodd" d="M6 12a6 6 0 0 1 6-6h116a6 6 0 0 1 6 6v116a6 6 0 0 1-6 6H12a6 6 0 0 1-6-6zM15 15v110h110V15z"/><g font-family="'Noto Serif TC','Songti TC','PMingLiU',serif" font-weight="900" font-size="46" text-anchor="middle"><text x="96" y="64">${a}</text><text x="96" y="114">${b}</text><text x="44" y="64">${c}</text><text x="44" y="114">${d}</text></g></g></svg>`;
+function lvButtons(act) {
+  return `<div class="grid2">${[1, 2, 3, 4].map(l => `<button class="lvbtn${OPT.lv === l ? ' on' : ''}" data-act="${act}" data-v="${l}"><em>${'★'.repeat(l)}</em><b>${LV[l].n}</b><span>${LV[l].d}</span></button>`).join('')}</div>`;
+}
+function showMenu() {
+  const s = LS.get('sdk_save', null), done = LS.get('sdk_daily_done', {});
+  const resumeBtn = s && s.code ? `<button class="btn pri" data-act="resume">繼續上一局（${esc(LV[s.lv] ? LV[s.lv].n : '')}・${fmtTime(s.ms || 0)}）</button>` : '';
+  modal(`<div class="menuTop">${SEAL('鳩', '特', '數', '獨', 'seal-s')}<h2>鳩特數獨</h2></div>
+    <p class="note" style="text-align:center">每一列、每一行、每一宮都要放進 1～9 各一次。每一題都保證只靠推理就能解開，不用猜。</p>
+    ${resumeBtn ? `<div class="mbtns" style="margin-top:0">${resumeBtn}</div>` : ''}
+    <h4>開新的一局</h4>${lvButtons('new')}
+    <h4>今日挑戰 ${today().slice(5).replace('-', '/')}<small style="font-weight:600;letter-spacing:0">　全站同一題，比誰快</small></h4>
+    <div class="tabs4">${[1, 2, 3, 4].map(l => `<button class="btn${done[today() + '-' + l] ? ' on' : ''}" data-act="daily" data-v="${l}">${done[today() + '-' + l] ? '✓ ' : ''}${LV[l].n}</button>`).join('')}</div>
+    <div class="mbtns"><button class="btn" data-act="seedmenu">輸入種子碼</button><button class="btn ver" data-act="lessons">新手教學</button><button class="btn" data-act="rank">榮譽榜</button><button class="btn" data-act="settings">設定</button>${G && !G.done && G.code ? '<button class="btn" data-act="close">回到這一局</button>' : ''}</div>`);
+  const s2 = document.querySelector('.seal-s'); if (s2) { s2.style.width = '74px'; s2.style.height = '74px'; }
+}
+function showSeed() {
+  modal(`<h2>種子碼</h2><p class="note">每一題都有一組種子碼（例如 <b>2-K7QM4X</b>，開頭數字是難度）。把種子碼傳給同學，大家就能挑戰同一題、比比看誰快。<br>用種子碼開的題目不列入榮譽榜。</p>
+    <div class="row"><input class="seedin" id="seedIn" maxlength="9" placeholder="例如 2-K7QM4X" autocomplete="off" autocapitalize="characters" spellcheck="false"><button class="btn pri" data-act="seedgo">開始</button></div>
+    ${G && G.code ? `<p class="pillnote">目前這題：<b>${G.code}</b>　<button class="btn" data-act="copyseed">複製</button></p>` : ''}
+    <div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+  setTimeout(() => $('seedIn') && $('seedIn').focus(), 50);
+}
+function showSettings() {
+  const sw = (k, t, s) => `<label class="opt"><span>${t}<small>${s}</small></span><input type="checkbox" class="sw" data-opt="${k}" ${OPT[k] ? 'checked' : ''}></label>`;
+  modal(`<h2>設定</h2>
+    ${sw('check', '填錯立即提醒', `填的數字和答案不同時馬上標紅。每錯一次加 ${MISTAKE_PEN / 1000} 秒。`)}
+    ${sw('autoClear', '自動清除筆記', '填入數字時，同列、同行、同宮的同一個筆記自動擦掉。')}
+    ${sw('sound', '音效', '填數字、完成一列和解開時的聲音。')}
+    <p class="note">操作小技巧：沒有選格子時按數字，會把盤面上同一個數字全部亮起來。電腦可用方向鍵移動、數字鍵填入、N 切換筆記、Z 復原。</p>
+    <div class="mbtns"><button class="btn pri" data-act="menu">完成</button></div>`);
+}
+
+/* ===== 完成畫面＋榮譽榜 ===== */
+function showWin() {
+  const pen = G.hints * HINT_PEN + G.mistakes * MISTAKE_PEN, total = G.ms + pen;
+  if (G.daily) { const d = LS.get('sdk_daily_done', {}); d[`${G.daily}-${G.lv}`] = 1; LS.set('sdk_daily_done', d); }
+  const best = LS.get('sdk_best', {}); const isBest = !best[G.lv] || total < best[G.lv]; if (isBest) { best[G.lv] = Math.round(total); LS.set('sdk_best', best); }
+  $('fin').innerHTML = `<div class="mbox">${SEAL('鳩', '特', '數', '獨')}<div class="ftitle">解題完成</div>
+    <div class="pillnote">${LV[G.lv].n}・${G.daily ? `今日挑戰 ${G.daily.slice(5).replace('-', '/')}` : `種子碼 ${G.code}`}${isBest ? '・<b style="color:var(--ver)">個人新紀錄！</b>' : ''}</div>
+    <div class="fstat"><div><b>${fmtTime(G.ms)}</b><span>解題時間</span></div><div><b>${G.hints}</b><span>提示（+${HINT_PEN / 1000} 秒）</span></div><div><b>${G.mistakes}</b><span>填錯（+${MISTAKE_PEN / 1000} 秒）</span></div></div>
+    <div class="pillnote">成績 <b style="font-size:20px">${fmtSec(total)}</b> 秒</div>
+    <div id="rkBox">${G.ranked ? '<p class="pillnote">讀取榮譽榜中…</p>' : '<p class="pillnote">用種子碼開的題目不列入榮譽榜。</p>'}</div>
+    <div class="mbtns"><button class="btn pri" data-act="new" data-v="${G.lv}">再來一題</button><button class="btn" data-act="copyseed">複製種子碼</button><button class="btn" data-act="hidefin">看盤面</button><button class="btn" data-act="menu">選單</button></div></div>`;
+  $('fin').hidden = false; setTimeout(() => sfx('stamp'), 400);
+  if (G.ranked) rankFinal(Math.round(total));
+}
+const RK_DB = 'https://element-uno-default-rtdb.firebaseio.com';
+const rkPath = (lv, day) => (day ? `sdk_daily/${day.replace(/-/g, '')}/${lv}` : `sdk_rank/${lv}`);
+async function rkTop(lv, day) {
+  const r = await fetch(`${RK_DB}/${rkPath(lv, day)}.json?orderBy=%22s%22&limitToFirst=10`, { cache: 'no-store' });
+  if (!r.ok) throw new Error(r.status === 401 || r.status === 400 ? 'PERMISSION' : 'net');
+  const v = (await r.json()) || {};
+  return Object.entries(v).map(([id, x]) => ({ id, n: String(x.n || '').slice(0, 12), s: +x.s, t: x.t || 0 })).filter(x => x.s > 0).sort((a, b) => a.s - b.s || a.t - b.t);
+}
+async function rkSubmit(lv, day, n, s) {
+  const r = await fetch(`${RK_DB}/${rkPath(lv, day)}.json`, { method: 'POST', body: JSON.stringify({ n, s, t: { '.sv': 'timestamp' } }) });
+  if (!r.ok) throw new Error(r.status === 401 ? 'PERMISSION' : 'net');
+  return (await r.json()).name;
+}
+const rkErr = e => (/PERMISSION/.test(String(e && e.message)) ? '榮譽榜尚未開通（需要在 Firebase 加入權限規則）。' : '目前連不上榮譽榜，請確認網路後再試。');
+function rkList(list, hi) {
+  if (!list.length) return '<p class="pillnote">還沒有人上榜，搶第一吧！</p>';
+  return `<ol class="rk">${list.map((x, i) => `<li class="${i === 0 ? 'g1' : ''}${x.id === hi ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtSec(x.s)} 秒</span></li>`).join('')}</ol>`;
+}
+function rankFinal(total) {
+  const g = G, lv = g.lv, day = g.daily, title = `${LV[lv].n}${day ? '・今日挑戰' : ''}榮譽榜`;
+  rkTop(lv, day).then(list => {
+    if (G !== g) return;
+    const ok = list.length < 10 || total < list[list.length - 1].s;
+    $('rkBox').innerHTML = `<h4 style="text-align:center;margin:10px 0 4px">${title}</h4>${ok ? `<p class="pillnote">你擠進前十名了！留下名字：</p><div class="rkf"><input id="rkName" maxlength="12" placeholder="名字（最多 12 字）" value="${esc(LS.get('sdk_name', ''))}"><button class="btn ver" data-act="rksubmit" data-v="${total}">蓋章上榜</button></div>` : ''}<div id="rkList">${rkList(list)}</div>`;
+  }).catch(e => { if ($('rkBox')) $('rkBox').innerHTML = `<p class="pillnote">${rkErr(e)}</p>`; });
+}
+function rkDoSubmit(total) {
+  const inp = $('rkName'); if (!inp) return;
+  const n = inp.value.trim().slice(0, 12);
+  if (!n) { inp.focus(); return toast('請先輸入名字'); }
+  if (badName(n)) { inp.focus(); return toast('名字含有不適當的字詞，請換一個'); }
+  LS.set('sdk_name', n);
+  const lv = G.lv, day = G.daily, b = document.querySelector('[data-act=rksubmit]'); if (b) b.disabled = true;
+  rkSubmit(lv, day, n, total).then(id => rkTop(lv, day).then(list => {
+    const f = document.querySelector('.rkf'); if (f) f.remove();
+    $('rkList').innerHTML = rkList(list, id); sfx('stamp'); toast('已經蓋章上榜！');
+  })).catch(e => { if (b) b.disabled = false; toast(rkErr(e)); });
+}
+let RKV = { lv: 1, daily: false };
+function showRank() {
+  RKV.lv = OPT.lv;
+  const draw = () => {
+    modal(`<h2>榮譽榜</h2><p class="note">成績＝解題時間＋提示加秒＋填錯加秒。每個難度取前十名，所有人共用同一份榜單；今日挑戰每天換一題。</p>
+      <div class="tabs"><button class="btn${!RKV.daily ? ' on' : ''}" data-act="rkmode" data-v="0">歷來最快</button><button class="btn${RKV.daily ? ' on' : ''}" data-act="rkmode" data-v="1">今日挑戰</button></div>
+      <div class="tabs4">${[1, 2, 3, 4].map(l => `<button class="btn${RKV.lv === l ? ' on' : ''}" data-act="rklv" data-v="${l}">${LV[l].n}</button>`).join('')}</div>
+      <div id="rkView"><p class="pillnote">讀取中…</p></div><div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+    const lv = RKV.lv, day = RKV.daily ? today() : null;
+    rkTop(lv, day).then(list => { if (RKV.lv === lv && $('rkView')) $('rkView').innerHTML = rkList(list); }).catch(e => { if ($('rkView')) $('rkView').innerHTML = `<p class="pillnote">${rkErr(e)}</p>`; });
+  };
+  showRank.draw = draw; draw();
+}
+/* 名字過濾：擋掉常見的不雅字（與踩地雷共用同一份清單） */
+const BADW=['幹你','幹妳','幹他','幹她','幹拎','幹林','靠北','靠杯','靠背','靠夭','哭爸','操你','操妳','操他','肏','屌','雞巴','雞掰','機掰','機巴','機八','雞八','雞雞','智障','白癡','白痴','低能','腦殘','去死','死全家','婊','賤人','賤貨','妓','屄','尻','他媽','她媽','你媽','妳媽','媽的','三小','殺小','北七','王八','混蛋','廢物','畜生','畜牲','做愛','強姦','性交','陰莖','陰道','奶子','淫','色情','屁眼','肛','ㄍㄢ','ㄐㄅ','ㄎㄅ','ㄍㄋㄋ','ㄋㄇㄉ','ㄊㄇㄉ','ㄇㄉ','fuck','fuk','fck','fuq','shit','bitch','btch','cunt','dick','cock','pussy','asshole','bastard','slut','whore','nigg','fag','retard','porn','penis','vagina','sex','wtf','stfu','kys'];
+function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
+ t=t.replace(/[0@4]/g,c=>({'0':'o','@':'a','4':'a'}[c])).replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[5$]/g,'s').replace(/7/g,'t');
+ t=t.replace(/[\s​._\-~*+=#^%&\/\\,，。．、·'"`()（）\[\]{}<>《》「」『』:：;；?？]/g,'');
+ t=t.replace(/幹部|能幹|樹幹|才幹|骨幹|主幹|幹事|幹勁|幹練|苦幹|實幹|精幹|幹線|軀幹/g,'');
+ if(t.includes('幹'))return true;const u=t.replace(/(.)\1+/g,'$1');
+ return BADW.some(w=>t.includes(w)||u.includes(w))}
+
+/* ===== 新手教學 ===== */
+const LESSONS = [
+  { key: 'rule', t: '數獨的規則', s: '每列、每行、每宮都放 1～9' },
+  { key: 'hiddenBox', t: '宮摒除', s: '在一個宮裡，數字只剩一個位置' },
+  { key: 'hiddenLine', t: '行列摒除', s: '在一列或一行裡找唯一的位置' },
+  { key: 'nakedSingle', t: '唯一餘數', s: '一格只剩一個數字能填' },
+  { key: 'pointing', t: '筆記與區塊摒除', s: '用候選數刪去不可能的位置' },
+  { key: 'nakedPair', t: '數對', s: '兩格兩數，互相鎖住' },
+  { key: 'practice', t: '實戰演練', s: '自己解一題幼年鳩特' }
+];
+function showLessons() {
+  const done = LS.get('sdk_lessons', {});
+  modal(`<h2>新手教學</h2><p class="note">從規則開始，一課學一個技巧。每課都是真正的題目局面，跟著亮起來的地方一步一步做。</p>
+    <ul class="lessons">${LESSONS.map((l, k) => `<li class="${done[l.key] ? 'ok' : ''}"><button class="lvbtn" data-act="lesson" data-v="${k}"><span class="no">${done[l.key] ? '✓' : k + 1}</span><span class="t"><b>${l.t}</b><span>${l.s}</span></span></button></li>`).join('')}</ul>
+    <div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+}
+function startLesson(k) {
+  const meta = LESSONS[k], L = LESSON_DATA.find(x => x.key === meta.key);
+  const grid = S.parse(L.grid), sol = S.solve(grid);
+  closeModal(); $('fin').hidden = true;
+  loadPuzzle(grid, sol, { mode: 'lesson', lv: 1, code: '' });
+  G.lesson = { k, key: meta.key, data: L, step: 0, steps: lessonSteps(meta.key, L, grid), view: null };
+  if (meta.key === 'pointing' || meta.key === 'nakedPair') G.notes = S.candidates(grid);
+  $('lessonBar').hidden = false; $('hintBtn').disabled = meta.key !== 'practice';
+  showLessonStep();
+}
+function lessonSteps(key, L, g) {
+  const T = L.target || {}, d = T.d, U = L.unit, units = u => new Set(S.UNITS[u]);
+  const others = u => new Set(S.UNITS[u].filter(i => !g[i] && i !== T.i));
+  const lineOf = i => new Set([...S.UNITS[S.rowOf(i)], ...S.UNITS[9 + S.colOf(i)], ...S.UNITS[18 + S.boxOf(i)]]);
+  switch (key) {
+    case 'rule': return [
+      { text: '數獨的規則只有一條：每一列（橫的）、每一行（直的）、每一個粗框 3×3 的「宮」，都要剛好放進 1～9 各一次，不能重複。', view: {} },
+      { text: '看最上面這一列：只缺一格。1～9 裡少了哪個數字？點亮起來的那一格，再按下面的數字填進去。', view: { hl: units(S.rowOf(T.i)), dim: true, tgt: T.i }, expect: T }
+    ];
+    case 'hiddenBox': return [
+      { text: `「宮摒除」是最常用的方法：盯住一個宮，問「數字 ${d} 可以放在哪裡？」亮起來的是${S.UNIT_NAME(U)}，裡面還沒有 ${d}。`, view: { hl: units(U), dim: true } },
+      { text: `紅圈是盤面上已經有的 ${d}。每個 ${d} 都會擋住自己那一列和那一行，被擋住的空格打上 ✕。`, view: { hl: units(U), dim: true, refs: new Set(L.refs), xs: others(U) } },
+      { text: `${S.UNIT_NAME(U)}只剩一格能放 ${d}。點那一格，填入 ${d}！`, view: { hl: units(U), dim: true, refs: new Set(L.refs), xs: others(U), tgt: T.i }, expect: T }
+    ];
+    case 'hiddenLine': return [
+      { text: `摒除法也可以用在一列或一行。亮起來的是${S.UNIT_NAME(U)}，裡面還缺數字 ${d}。`, view: { hl: units(U), dim: true } },
+      { text: `紅圈是盤面上已經有的 ${d}，它們把這一${U < 9 ? '列' : '行'}的其他空格都擋住了（同一行、同一列或同一宮不能有兩個 ${d}）。`, view: { hl: units(U), dim: true, refs: new Set(L.refs), xs: others(U) } },
+      { text: `只剩一格沒被擋住。點它，填入 ${d}！`, view: { hl: units(U), dim: true, refs: new Set(L.refs), xs: others(U), tgt: T.i }, expect: T }
+    ];
+    case 'nakedSingle': {
+      const seen = [...new Set(L.refs.map(i => g[i]))].sort((a, b) => a - b);
+      return [
+        { text: '換個方向想：從「一格」出發。亮起來的是這一格所在的列、行和宮。', view: { hl: lineOf(T.i), dim: true, tgt: T.i } },
+        { text: `紅圈是這三個地方已經出現的數字：${seen.join('、')}。1～9 裡只有一個數字沒出現，這就叫「唯一餘數」。`, view: { hl: lineOf(T.i), dim: true, refs: new Set(L.refs), tgt: T.i } },
+        { text: '這一格只能填剩下的那個數字。點它並填進去！', view: { hl: lineOf(T.i), dim: true, refs: new Set(L.refs), tgt: T.i }, expect: T }
+      ];
+    }
+    case 'pointing': case 'nakedPair': {
+      const E = L.elim, strike = {}; E.elims.forEach(({ i, d: x }) => { strike[i] = (strike[i] || 0) | S.bit(x); });
+      const hlE = new Set([...S.UNITS[E.unit], ...E.elims.map(x => x.i)]);
+      return [
+        { text: key === 'pointing' ? '難一點的題目，要先寫「筆記」：把每一格可能填的數字用小字記下來，叫做候選數。這一課已經幫你寫好了。' : '這一課也先寫好了筆記。注意看候選數裡藏著的「數對」。', view: {} },
+        { text: E.text, view: { hl: hlE, dim: true, refs: new Set(E.refs), strike }, btn: '刪掉紅線的候選數' },
+        { text: `刪掉之後，局面就清楚了。${L.text}點它並填入！`, view: { hl: new Set(S.UNITS[L.unit]), dim: true, tgt: T.i }, expect: T, before: () => { E.elims.forEach(({ i, d: x }) => { G.notes[i] &= ~S.bit(x); }); } }
+      ];
+    }
+    default: return [{ text: '最後來實戰！這是一題幼年鳩特，只要用前面學的摒除法就能解完。卡住的時候可以按「提示」，它會先告訴你破題點。', view: {}, free: true }];
+  }
+}
+function showLessonStep() {
+  const Ls = G.lesson, st = Ls.steps[Ls.step], meta = LESSONS[Ls.k];
+  if (st.before) st.before();
+  Ls.view = st.free ? null : st.view;
+  if (st.expect) G.sel = -1;
+  const dots = Ls.steps.length > 1 ? `<span class="dots">${Ls.steps.map((_, n) => (n === Ls.step ? '●' : '○')).join(' ')}</span>` : '<span class="dots"></span>';
+  const btn = st.expect || st.free ? '' : `<button class="btn pri" data-act="lnext">${st.btn || '下一步'}</button>`;
+  $('lessonBar').innerHTML = `<h3>第 ${Ls.k + 1} 課・${meta.t}</h3><p>${esc(st.text)}</p><div class="row">${dots}<button class="btn" data-act="lessons">課程列表</button>${btn}</div>`;
+  renderCells(); renderPad();
+}
+function lessonNext() { const Ls = G.lesson; if (Ls.step < Ls.steps.length - 1) { Ls.step++; showLessonStep(); sfx('note'); } }
+function lessonInput(i, d) {
+  const st = G.lesson.steps[G.lesson.step];
+  if (!st.expect) { toast('先看完說明，按「下一步」'); return; }
+  if (i !== st.expect.i) { toast('先看紅框的那一格'); sfx('bad'); return; }
+  if (d !== st.expect.d) { toast('再想想看，這格放不下這個數字'); sfx('bad'); return; }
+  G.val[i] = d; G.notes[i] = 0; for (const p of S.PEERS[i]) G.notes[p] &= ~S.bit(d);
+  sfx('put'); cells[i].classList.add('pop'); renderCells(); renderPad();
+  setTimeout(lessonDone, 500);
+}
+function lessonDone() {
+  const Ls = G.lesson, done = LS.get('sdk_lessons', {}); done[Ls.key] = 1; LS.set('sdk_lessons', done);
+  G.done = true; sfx('win');
+  const next = Ls.k + 1 < LESSONS.length;
+  $('lessonBar').innerHTML = `<h3>第 ${Ls.k + 1} 課・完成！</h3><p>${['你學會規則了：每列、每行、每宮的數字都不能重複。', '這就是宮摒除：盯住一個宮、一個數字，把被擋住的格子刪掉。', '行列摒除和宮摒除的想法一樣，只是換成看一列或一行。', '唯一餘數：從一格出發，看它周圍已經出現的數字。', '區塊摒除讓候選數變少，答案就浮出來了。', '數對：兩格只能放兩個數字時，同一個單位的其他格子就不能放這兩個數字。', '恭喜你完成新手教學！可以挑戰幼年鳩特或青年鳩特了。'][Ls.k]}</p><div class="row"><span class="dots"></span><button class="btn" data-act="lessons">課程列表</button>${next ? `<button class="btn pri" data-act="lesson" data-v="${Ls.k + 1}">下一課</button>` : '<button class="btn pri" data-act="new" data-v="1">開始幼年鳩特</button>'}</div>`;
+  Ls.view = null; G.sel = -1; renderCells();
+}
+
+/* ===== 事件 ===== */
+$('board').addEventListener('pointerdown', e => {
+  const c = e.target.closest('.cell'); if (!c || !G) return;
+  if (G.paused) return;
+  select(+c.dataset.i);
+});
+$('pad').addEventListener('click', e => { const k = e.target.closest('.k'); if (k) input(+k.dataset.d); });
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  const v = b.dataset.v, act = b.dataset.act;
+  if (act === 'menu') { $('fin').hidden = true; showMenu(); }
+  else if (act === 'close') closeModal();
+  else if (act === 'new') { $('lessonBar').hidden = true; $('hintBtn').disabled = false; newRandom(+v); }
+  else if (act === 'daily') { $('lessonBar').hidden = true; $('hintBtn').disabled = false; newDaily(+v); }
+  else if (act === 'resume') { $('lessonBar').hidden = true; $('hintBtn').disabled = false; resume(); }
+  else if (act === 'seedmenu') showSeed();
+  else if (act === 'seedgo') { const c = $('seedIn').value; if (startGame(c, { ranked: false })) { $('lessonBar').hidden = true; $('hintBtn').disabled = false; } }
+  else if (act === 'settings') showSettings();
+  else if (act === 'rank') showRank();
+  else if (act === 'rkmode') { RKV.daily = v === '1'; showRank.draw(); }
+  else if (act === 'rklv') { RKV.lv = +v; showRank.draw(); }
+  else if (act === 'rksubmit') rkDoSubmit(+v);
+  else if (act === 'lessons') { showLessons(); }
+  else if (act === 'lesson') startLesson(+v);
+  else if (act === 'lnext') lessonNext();
+  else if (act === 'hidefin') $('fin').hidden = true;
+  else if (act === 'copyseed') {
+    if (!G || !G.code) return;
+    const text = `來挑戰鳩特數獨！${LV[G.lv].n}・種子碼 ${G.code}\n${location.origin}${location.pathname}?seed=${G.code}`;
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => toast(`已複製種子碼 ${G.code}`), () => toast(`種子碼：${G.code}`));
+  }
+  else if (act === 'pause') togglePause();
+  else if (act === 'undo') undo();
+  else if (act === 'erase') erase();
+  else if (act === 'note') toggleNote();
+  else if (act === 'allnotes') allNotes();
+  else if (act === 'hint') hint();
+  else if (act === 'hintclose') closeHint();
+  else if (act === 'hintmore') hintMore();
+  else if (act === 'hintfill') hintFill();
+  else if (act === 'hintfix') hintFix();
+});
+$('modal').addEventListener('click', e => { if (e.target === $('modal') && G && (G.code || G.mode === 'lesson')) closeModal(); });
+document.addEventListener('change', e => { const k = e.target.dataset && e.target.dataset.opt; if (k) { OPT[k] = e.target.checked; saveOpt(); if (k === 'check' && G) { G.wrongs.clear(); renderCells(); } } });
+document.addEventListener('keydown', e => {
+  if (e.target.id === 'seedIn' && e.key === 'Enter') { document.querySelector('[data-act=seedgo]').click(); return; }
+  if (e.target.id === 'rkName' && e.key === 'Enter') { document.querySelector('[data-act=rksubmit]').click(); return; }
+  if (!$('modal').hidden || !G || e.target.matches('input,textarea') || e.ctrlKey || e.metaKey || e.altKey) return;
+  const mv = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[e.key];
+  if (mv) { e.preventDefault(); let i = G.sel < 0 ? 40 : G.sel; const r = S.rowOf(i), c = S.colOf(i); i = mv === -9 ? ((r + 8) % 9) * 9 + c : mv === 9 ? ((r + 1) % 9) * 9 + c : mv === -1 ? r * 9 + (c + 8) % 9 : r * 9 + (c + 1) % 9; select(i); }
+  else if (/^[1-9]$/.test(e.key)) { e.preventDefault(); input(+e.key); }
+  else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') { e.preventDefault(); erase(); }
+  else if (e.key === 'n' || e.key === 'N') toggleNote();
+  else if (e.key === 'z' || e.key === 'Z') undo();
+  else if (e.key === 'h' || e.key === 'H') hint();
+  else if (e.key === 'Escape') { G.sel = -1; G.focus = 0; renderCells(); renderPad(); }
+});
+
+/* ===== 開始 ===== */
+(function boot() {
+  const q = new URLSearchParams(location.search).get('seed');
+  if (q && S.decodeSeed(q)) { startGame(q, { ranked: false }); return; }
+  const s = LS.get('sdk_save', null);
+  /* 先放一題在背景，開始畫面蓋在上面 */
+  if (!(s && resume())) { const p = S.puzzleFromSeed(S.randomSeed(OPT.lv), BANK); loadPuzzle(p.puzzle, p.solution, { lv: p.lv, code: p.code, ranked: true }); }
+  showMenu();
+})();
+</script>
+</body>
+</html>
