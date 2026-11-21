@@ -72,7 +72,7 @@ console.log('ok');
         data = re.search(r"const TSUME=(\{1:.*?\]\,3:.*?\]\});", PAGE, re.S).group(1)
         out = run_node("const TSUME=" + data + r""";
 const E=ENGINE,TOT={1:18,2:4,3:4,4:4,5:4,6:2,7:2};
-for(const n of [1,3]){if(TSUME[n].length<8)throw new Error('too few '+n);
+for(const n of [1,3]){if(TSUME[n].length<25)throw new Error('too few '+n);
  TSUME[n].forEach((q,i)=>{const p={W:9,b:new Int8Array(81),h:[new Int8Array(9),new Int8Array(9)],side:1};
   for(const [s,v] of q.b)p.b[s]=v;for(const [t,c] of q.h)p.h[0][t]=c;const used={};
   p.b.forEach(v=>{if(v&&Math.abs(v)!==8){const t=E.BASE[Math.abs(v)]||Math.abs(v);used[t]=(used[t]||0)+1}});
