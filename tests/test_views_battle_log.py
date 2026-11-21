@@ -87,5 +87,20 @@ class BattleLogTests(unittest.TestCase):
             self.assertIn(label, records)
 
 
+class ScratchpadTests(unittest.TestCase):
+    def test_every_practice_page_has_the_scratchpad(self):
+        pages = [p for p in ROOT.rglob("*.html") if "battle_log.js" in p.read_text(encoding="utf-8") and p.name != "index.html" or p.parent.name == "english" and "battle_log.js" in p.read_text(encoding="utf-8")]
+        self.assertGreaterEqual(len(pages), 25)
+        for p in pages:
+            html = p.read_text(encoding="utf-8")
+            m = re.search(r'src="([^"]*scratchpad\.js)"', html)
+            self.assertIsNotNone(m, p)
+            self.assertTrue(p.parent.joinpath(m.group(1)).resolve().exists(), p)
+
+    def test_scratchpad_script_parses(self):
+        out = subprocess.run(["node", "--check", str(ROOT / "scratchpad.js")], capture_output=True, text=True, timeout=30)
+        self.assertEqual(out.returncode, 0, out.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()
