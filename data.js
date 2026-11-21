@@ -459,7 +459,7 @@ const lessonData = [
         url: "senior/earth/celestial_sun.html",
         tagClass: "phys",
         tagName: "高中地科",
-        desc: "調整緯度、季節與真太陽時，同時觀察天球、太陽高度、白晝長度與直立竿影。"
+        desc: "黃道是太陽一年的路、日行軌跡是太陽一天的圈：從公轉、天球、地平線、一年的足跡（螺旋攤開成黃道）到第一人稱與竿影，看懂兩者的關係；含自修與投影模式。"
     },
     {
         title: "天球與恆星星軌（高一）",
