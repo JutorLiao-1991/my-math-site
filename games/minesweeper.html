@@ -445,7 +445,16 @@ function rkFinal(){const el=$('rkBox'),g=G,lv=g.lv;if(!el)return;el.innerHTML='<
  rkTop(lv).then(list=>{if(G!==g)return;const s=Math.round(g.ms),ok=list.length<10||s<list[list.length-1].s;
   el.innerHTML=`<h3 style="margin:8px 0 2px;text-align:center;color:#e3d27a;letter-spacing:.15em">${LV[lv].n}榮譽榜</h3>${ok?`<p style="text-align:center;margin:4px 0">你擠進前十名了！留下代號：</p><div class="rk-f"><input id="rkName" maxlength="12" placeholder="代號（最多 12 字）" value="${esc(LS.get('ms_name',''))}"><button class="btn pri" data-act="rksubmit">登上軍牌</button></div>`:''}<div id="rkList">${rkTags(list)}</div>`;rkClink(list.length);
  }).catch(e=>{el.innerHTML=`<p class="pill">${rkErr(e)}</p>`})}
+/* 名字過濾：擋掉常見的不雅字 */
+const BADW=['幹你','幹妳','幹他','幹她','幹拎','幹林','靠北','靠杯','靠背','靠夭','哭爸','操你','操妳','操他','肏','屌','雞巴','雞掰','機掰','機巴','機八','雞八','雞雞','智障','白癡','白痴','低能','腦殘','去死','死全家','婊','賤人','賤貨','妓','屄','尻','他媽','她媽','你媽','妳媽','媽的','三小','殺小','北七','王八','混蛋','廢物','畜生','畜牲','做愛','強姦','性交','陰莖','陰道','奶子','淫','色情','屁眼','肛','ㄍㄢ','ㄐㄅ','ㄎㄅ','ㄍㄋㄋ','ㄋㄇㄉ','ㄊㄇㄉ','ㄇㄉ','fuck','fuk','fck','fuq','shit','bitch','btch','cunt','dick','cock','pussy','asshole','bastard','slut','whore','nigg','fag','retard','porn','penis','vagina','sex','wtf','stfu','kys'];
+function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
+ t=t.replace(/[0@4]/g,c=>({'0':'o','@':'a','4':'a'}[c])).replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[5$]/g,'s').replace(/7/g,'t');
+ t=t.replace(/[\s​._\-~*+=#^%&\/\\,，。．、·'"`()（）\[\]{}<>《》「」『』:：;；?？]/g,'');
+ t=t.replace(/幹部|能幹|樹幹|才幹|骨幹|主幹|幹事|幹勁|幹練|苦幹|實幹|精幹|幹線|軀幹/g,'');
+ if(t.includes('幹'))return true;const u=t.replace(/(.)\1+/g,'$1');
+ return BADW.some(w=>t.includes(w)||u.includes(w))}
 function rkDoSubmit(){const inp=$('rkName');if(!inp)return;const n=inp.value.trim().slice(0,12);if(!n){inp.focus();return toast('請先輸入代號')}
+ if(badName(n)){inp.focus();return toast('代號含有不適當的字詞，請換一個')}
  LS.set('ms_name',n);const g=G,lv=g.lv,b=document.querySelector('[data-act=rksubmit]');if(b)b.disabled=true;
  rkSubmit(lv,{n,s:Math.round(g.ms)}).then(id=>rkTop(lv).then(list=>{const box=$('rkBox');if(!box)return;box.innerHTML=`<h3 style="margin:8px 0 2px;text-align:center;color:#e3d27a;letter-spacing:.15em">${LV[lv].n}榮譽榜</h3><p class="pill" style="display:block;text-align:center">已刻上軍牌！</p>${rkTags(list,id)}`;sfx('stamp');rkClink(list.length)}))
  .catch(e=>{if(b)b.disabled=false;toast(rkErr(e))})}
@@ -546,12 +555,14 @@ if(!SIM){
 </script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, query, orderByChild, limitToFirst, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, query, orderByChild, limitToFirst, get, serverTimestamp, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 const app=initializeApp({apiKey:"AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",authDomain:"element-uno.firebaseapp.com",databaseURL:"https://element-uno-default-rtdb.firebaseio.com",projectId:"element-uno",storageBucket:"element-uno.firebasestorage.app",messagingSenderId:"665324599764",appId:"1:665324599764:web:d151cd9014e600fcd53e41"},"ms-rank");
 const db=getDatabase(app);
+/* 讀寫完就斷線，避免佔用同時連線數 */
+let users=0,offT=0;const once=async f=>{users++;clearTimeout(offT);goOnline(db);try{return await f()}finally{users--;clearTimeout(offT);if(!users)offT=setTimeout(()=>{if(!users)goOffline(db)},1500)}};
 window.MSRank={
- async top(lv){const snap=await get(query(ref(db,"ms_rank/"+lv),orderByChild("s"),limitToFirst(10)));const out=[];snap.forEach(c=>{const v=c.val();if(v&&typeof v.s==="number")out.push({id:c.key,n:String(v.n||"").slice(0,12),s:v.s,t:v.t||0})});return out.sort((a,b)=>a.s-b.s||a.t-b.t)},
- async submit(lv,rec){const r=await push(ref(db,"ms_rank/"+lv),{n:rec.n,s:rec.s,t:serverTimestamp()});return r.key}
+ async top(lv){return once(async()=>{const snap=await get(query(ref(db,"ms_rank/"+lv),orderByChild("s"),limitToFirst(10)));const out=[];snap.forEach(c=>{const v=c.val();if(v&&typeof v.s==="number")out.push({id:c.key,n:String(v.n||"").slice(0,12),s:v.s,t:v.t||0})});return out.sort((a,b)=>a.s-b.s||a.t-b.t)})},
+ async submit(lv,rec){return once(async()=>{const r=await push(ref(db,"ms_rank/"+lv),{n:rec.n,s:rec.s,t:serverTimestamp()});return r.key})}
 };
 dispatchEvent(new Event("msrank-ready"));
 </script>

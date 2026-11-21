@@ -111,6 +111,8 @@ console.log(msg.join('\n')||'OK');
                   'BGM', 'SFX.bugle' if 'SFX.bugle' in HTML else 'bugle(', '任務完成', '任務失敗', '訓練中']:
             self.assertIn(s, HTML, s)
         self.assertIn("innerWidth<innerHeight", HTML)  # 特戰直向
+        self.assertIn("if(badName(n))", HTML)  # 榮譽榜名字過濾
+        self.assertIn("goOffline(db)", HTML)  # 讀寫完就斷線
         self.assertNotRegex(HTML, r'innerHTML=`[^`]*\$\{x\.n\}')  # 名字一定要先跳脫
 
 

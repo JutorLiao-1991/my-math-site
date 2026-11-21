@@ -28,7 +28,7 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         self.assertIn("creativecommons.org/licenses/by-sa/4.0", PAGE)
 
     def test_tutorial_is_scripted_and_reachable(self):
-        self.assertIn('data-act="tutorial">新手教學</button>', PAGE)
+        self.assertIn('data-act="tutorial"><b>新手教學</b>', PAGE)
         self.assertIn("const STEPS=[", PAGE)
         for gate in ("flip0", "after0", "choose", "decide", "turn0"):
             self.assertIn(f"'{gate}'", PAGE)
@@ -59,6 +59,32 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         out = subprocess.run(["node", "-"], input=js, capture_output=True, text=True, cwd=ROOT)
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertIn("ok", out.stdout)
+
+
+    def test_home_has_three_modes(self):
+        for s in ('data-act="solo"><b>對戰鳩特</b>', 'data-act="net"><b>雙人對決</b>', 'data-act="tutorial"><b>新手教學</b>'):
+            self.assertIn(s, PAGE)
+
+    def test_online_rooms_wired(self):
+        for s in ("hf_rooms", "hf_moves", "'松之間'", "'梅之間'", "'櫻之間'", "TURN_MS=30000", "DROP_MS=60000",
+                  "onDisconnect", "runTransaction", "goOffline", "netAwait('p',p)", "netAwait('c',", "netAwait('k',",
+                  "if(G.net&&G.net.seat===1)G.hands.reverse()", "function netAuto", "HFNet.claim(", "data-act=\"netrounds\""):
+            self.assertIn(s, PAGE, s)
+
+    def test_bad_name_filter(self):
+        m = re.search(r"(const BADW=.*?\nfunction badName\(v\)\{.*?\n.*?\n.*?\n.*?\n.*?\}\n)", PAGE, re.S)
+        self.assertIsNotNone(m)
+        js = m.group(1) + r"""
+const bad=['幹你娘','幹 你 娘','ㄍㄢˋ','靠北','f u c k','FUUUCK','sh1t','白痴','b!tch','操你媽'];
+const good=['小明','鳩特粉','幹部小華','能幹的人','Alice','王小美','數學好難'];
+console.log(bad.filter(x=>!badName(x)).join('|')+'#'+good.filter(x=>badName(x)).join('|'));
+"""
+        out = subprocess.run(["node", "-"], input=js, capture_output=True, text=True)
+        self.assertEqual(out.stdout.strip(), "#", out.stderr)
+
+    def test_slam_impact_effects(self):
+        for s in ("function slamFly", "function impact", "smash(){", "imp-ring", "imp-yk", "G.slam={c,t:take[0],big,yk"):
+            self.assertIn(s, PAGE, s)
 
 
 if __name__ == "__main__":

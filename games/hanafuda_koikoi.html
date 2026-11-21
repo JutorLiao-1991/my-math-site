@@ -90,8 +90,38 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .deck12 .card{--cw:34px;cursor:default}.deck12{grid-template-columns:minmax(0,1fr)}
 .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
 #fx{position:fixed;inset:0;pointer-events:none;z-index:40}
+.modes{display:grid;gap:10px;margin:14px 0 6px}
+.modes .mode{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;min-height:64px;border-radius:12px;background:linear-gradient(135deg,#4a3324,#2f231c);border:1px solid #6b5140;text-align:left}
+.modes .mode b{font-size:19px;letter-spacing:.1em;color:var(--gold)}.modes .mode small{color:var(--mut);font-size:13px}
+.modes .mode:first-child{background:linear-gradient(135deg,#7a2a1f,#3c1712);border-color:#a8483a}
+button.mini{min-height:28px;padding:2px 10px;font-size:13px}
+.nrooms{display:grid;gap:8px;margin:10px 0}
+.nroom{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;padding:10px 12px;border-radius:10px;background:#231b16;border:1px solid var(--line)}
+.nroom .nh{display:flex;align-items:baseline;gap:8px}.nroom .nh b{font-size:17px;letter-spacing:.1em}
+.nroom .nps{grid-column:1;display:flex;flex-wrap:wrap;gap:6px}.nroom button{grid-column:2;grid-row:1/3}
+.st{font-size:12px;padding:1px 8px;border-radius:999px;background:#ffffff14;color:var(--mut)}.st.wait{background:#2d5fa833;color:#8fb5ff}.st.play{background:#c8372d33;color:#ff9a8a}.st.full{background:#e0b43c22;color:var(--gold)}
+.np{font-size:14px;padding:2px 8px;border-radius:6px;background:#ffffff10}.np.empty{background:none;color:var(--mut)}.np.off{opacity:.55}
+.np i,.nseat i{font-style:normal;font-size:11px;margin-left:5px;padding:0 5px;border-radius:4px;background:var(--gold);color:#241a10}.nseat i.y{background:#2d5fa8;color:#fff}
+.nseats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.nseat{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px;border-radius:10px;background:#231b16;border:1px solid var(--line);min-height:74px}
+.nseat.me{border-color:var(--gold)}.nseat.empty{justify-content:center;align-items:center;color:var(--mut);border-style:dashed}
+.nseat b{font-size:17px}.nseat .rd{color:#7ddf8a;font-size:13px}.nseat .nr{color:var(--mut);font-size:13px}.nseat .off{color:#ff9a8a;font-size:13px}
+.pill.warn{color:#ff9a8a}
+#tmr{display:inline-block;margin-left:6px;padding:0 8px;border-radius:999px;background:#ffffff14;font-variant-numeric:tabular-nums;font-size:13px}#tmr.warn{background:#c8372d;color:#fff}
+#netbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 52px);transform:translateX(-50%);z-index:45;max-width:92vw;padding:8px 14px;border-radius:999px;background:#c8372df0;color:#fff;font-weight:700;font-size:14px;box-shadow:0 4px 12px #0008}
+#netbar[hidden]{display:none}
 #fx .fly{position:fixed;transform-origin:0 0;will-change:transform}
 #fx .fly .card{margin:0;box-shadow:0 6px 14px #0009}
+.slot{position:relative;flex:none;display:flex}
+.slot .slamC{position:absolute;left:18%;top:-14%;z-index:3;box-shadow:0 8px 16px #000b;pointer-events:none}
+#fx .imp-fl{position:fixed;border-radius:6px;background:radial-gradient(circle,#fffdf3 0,#fff6d6cc 45%,#fff0 75%);mix-blend-mode:screen}
+#fx .imp-fl.gold{background:radial-gradient(circle,#fff 0,#ffe08a 40%,#e0b43c00 80%)}
+#fx .imp-ring{position:fixed;border-radius:50%;border:3px solid #fff3d0;box-shadow:0 0 12px #ffd76a,inset 0 0 10px #ffd76a88}
+#fx .imp-ring.gold{border-width:5px;border-color:#ffe08a;box-shadow:0 0 22px #e0b43c,inset 0 0 18px #e0b43c}
+#fx .imp-sp{position:fixed;width:3px;border-radius:2px;transform-origin:50% 0;background:linear-gradient(#fff,#ffd76a00)}
+#fx .imp-sp.gold{width:4px;background:linear-gradient(#fff,#ffcf4a,#e0b43c00)}
+#fx .imp-scr{position:fixed;inset:0;background:radial-gradient(circle at var(--x) var(--y),#ffe9a0cc,#e0b43c33 30%,#0000 65%)}
+#fx .imp-yk{position:fixed;z-index:5;font:900 clamp(30px,9vw,54px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;color:#fff6d6;letter-spacing:.08em;white-space:nowrap;text-shadow:0 0 14px #e0b43c,0 0 4px #e0b43c,0 4px 0 #7a1d10}
 .bkov{position:absolute;inset:0;z-index:6}
 [hidden]{display:none!important}
 .stamps{display:flex;flex-direction:column;gap:9px;min-height:140px;margin:12px 0 6px}
@@ -229,6 +259,7 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 </div>
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast"></div>
+<div id="netbar" hidden></div>
 <div id="fx"></div>
 <div id="tut" hidden><div id="tutDim"></div><div id="tutSpot"></div><div id="tutArrow"></div><div id="tutBox"></div></div>
 <script>
@@ -338,20 +369,20 @@ function aiKoi(p,s){
 }
 
 /* ===== 遊戲流程 ===== */
-let G=null,SEL=null,HELP=false;
-const wait=(f,ms)=>{if(SIM)return f();const g=G;setTimeout(()=>{if(G===g)f()},ms)};
+let G=null,SEL=null,HELP=false,FAST=false;
+const wait=(f,ms)=>{if(SIM||FAST)return f();const g=G;setTimeout(()=>{if(G===g)f()},ms)};
 function log(t){G.log.unshift(t);if(G.log.length>40)G.log.pop()}
-function newGame(diff,rounds,seed,isAI,diffs){
+function newGame(diff,rounds,seed,isAI,diffs,net){
  TUT.off();
- NAME[1]=DIFFN[diff];
- G={diff,diffs,rounds,seed,round:0,totals:[0,0],isAI:isAI||[false,true],hist:[]};
- G.dealer=rng(seed)()<.5?0:1;
+ NAME[1]=net?net.opp:DIFFN[diff];
+ G={diff,diffs,rounds,seed,round:0,totals:[0,0],isAI:isAI||[false,true],hist:[],net:net||null};
+ G.dealer=rng(seed)()<.5?0:1;if(net&&net.seat===1)G.dealer=1-G.dealer;
  startRound();
 }
 function startRound(){
  G.round++;const r=rng(G.seed*31+G.round*7919);
  do{const d=[...Array(48).keys()];for(let i=47;i>0;i--){const j=Math.floor(r()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
-  G.hands=[d.slice(0,8),d.slice(8,16)];G.field=d.slice(16,24);G.deck=d.slice(24);
+  G.hands=[d.slice(0,8),d.slice(8,16)];if(G.net&&G.net.seat===1)G.hands.reverse();G.field=d.slice(16,24);G.deck=d.slice(24);
  }while([G.field,...G.hands].some(quad));
  Object.assign(G,{caps:[[],[]],koi:[0,0],last:[0,0],turn:G.dealer,flip:null,pending:null,log:[],fresh:[]});SEL=null;
  log(`第 ${G.round} 局開始，${NAME[G.dealer]}是莊家（先出牌）`);
@@ -361,27 +392,36 @@ function beginTurn(){
  const p=G.turn;
  if(!G.hands[0].length&&!G.hands[1].length)return endRound(-1);
  G.phase='play';render();
+ if(G.net)return netAwait('p',p);
  if(G.isAI[p])wait(()=>gate('ai',()=>{const o=G.tut?TUT.aiMove():aiPlay(p);playCard(p,o.h,o.t)}),850);
  else gate('turn0',()=>{});
 }
-function capture(p,c,t,verb){
- const ms=G.field.filter(f=>mon(f)===mon(c));
- if(!ms.length){sfx('tap');G.field.push(c);G.fresh=[c];log(`${NAME[p]}${verb}${nm(c)}，沒有配對，留在場上`);return}
- sfx('slap');
+function capture(p,c,t,verb,cb){
+ const ms=G.field.filter(f=>mon(f)===mon(c));if(G.flip===c)G.flip=null;
+ if(!ms.length){sfx('tap');G.field.push(c);G.fresh=[c];log(`${NAME[p]}${verb}${nm(c)}，沒有配對，留在場上`);render();return cb&&cb(false)}
  const take=ms.length===2?[ms.includes(t)?t:ms[0]]:ms;
- G.field=G.field.filter(f=>!take.includes(f));G.caps[p].push(c,...take);G.fresh=[c,...take];
- log(`${NAME[p]}${verb}${nm(c)}，吃下${take.map(nm).join('、')}`);
+ const b0=calc(G.caps[p]),b1=calc([...G.caps[p],c,...take]),big=b1.total>b0.total&&b1.total>G.last[p];
+ const yk=big?(b1.list.find(x=>!b0.list.some(y=>y[0]===x[0]&&y[1]>=x[1]))||b1.list[0]||[''])[0]:'';
+ const fin=()=>{if(!(G.slam&&G.slam.hit))sfx('slap');G.slam=null;G.field=G.field.filter(f=>!take.includes(f));G.caps[p].push(c,...take);G.fresh=[c,...take];
+  log(`${NAME[p]}${verb}${nm(c)}，吃下${take.map(nm).join('、')}`)};
+ if(SIM||FAST||RM){fin();render();return cb&&cb(false)}
+ const g=G;G.slam={c,t:take[0],big,yk,hit:false};render();
+ setTimeout(()=>{if(G!==g)return;fin();render();cb&&cb(true)},big?900:520);
 }
 function playCard(p,h,t){
- G.hands[p]=G.hands[p].filter(i=>i!==h);SEL=null;G.phase='busy';if(G.isAI[p])G.fromOpp=h;
- capture(p,h,t,'打出');render();wait(()=>drawStep(p),700);
+ if(G.net&&p===0)netLocal({a:'p',h,t:t==null?-1:t});
+ G.hands[p]=G.hands[p].filter(i=>i!==h);SEL=null;G.phase='busy';if(G.isAI[p]||(G.net&&p===1))G.fromOpp=h;
+ capture(p,h,t,'打出',sl=>wait(()=>drawStep(p),sl?380:700));
 }
 function drawStep(p){
  const c=G.deck.shift();G.flip=c;sfx('flip');const ms=G.field.filter(f=>mon(f)===mon(c));
- if(ms.length===2&&!G.isAI[p]){G.phase='drawChoose';G.pending=c;render();gate('choose',()=>{});return}
+ if(ms.length===2&&(G.net||!G.isAI[p])){G.pending=c;
+  if(G.net&&(p===1||FAST)){G.phase='busy';render();return netAwait('c',p)}
+  G.phase='drawChoose';render();gate('choose',()=>{});if(G.net)netAwait('c',0);return}
  const t=ms.length===2?aiTarget(p,c):null;
- render();wait(()=>gate('flip'+p,()=>{capture(p,c,t,'翻出');G.flip=null;render();wait(()=>afterTurn(p),550)}),650);
+ render();wait(()=>gate('flip'+p,()=>{capture(p,c,t,'翻出',sl=>wait(()=>afterTurn(p),sl?380:550))}),650);
 }
+function chooseDraw(p,id){const c=G.pending;G.pending=null;G.phase='busy';if(G.net&&p===0)netLocal({a:'c',t:id});capture(p,c,id,'翻出',sl=>wait(()=>afterTurn(p),sl?380:550))}
 function afterTurn(p){gate('after'+p,()=>afterTurnCore(p))}
 function afterTurnCore(p){
  const s=calc(G.caps[p]).total;
@@ -391,10 +431,13 @@ function afterTurnCore(p){
   if(G.isAI[p]){
    if(!aiKoi(p,s))return endRound(p);
    G.koi[p]++;G.last[p]=s;log(`${NAME[p]}喊「來來」！目前 ${s} 文，繼續拚`);toast(`${NAME[p]}：來來！`);if(!say('こいこい'))sfx('koi');
-  }else{G.phase='decide';render();showDecide(s);return}
+  }else if(G.net&&(p===1||FAST)){G.phase='busy';render();return netAwait('k',p)}
+  else{G.phase='decide';render();showDecide(s);if(G.net)netAwait('k',0);return}
  }
  G.turn=1-p;beginTurn();
 }
+function doKoi(p){const s=calc(G.caps[p]).total;G.koi[p]++;G.last[p]=s;
+ log(p===0?`你喊「來來」！目前 ${s} 文`:`${NAME[p]}喊「來來」！目前 ${s} 文，繼續拚`);toast(p===0?'來來！':`${NAME[p]}：來來！`);if(!say('こいこい'))sfx('koi');G.turn=1-p;beginTurn()}
 function endRound(w){
  G.phase='end';let base=0,mul=1,notes=[],list=[];
  if(w>=0){const r=calc(G.caps[w]);base=r.total;list=r.list;
@@ -403,8 +446,9 @@ function endRound(w){
   say('しょうぶ');G.totals[w]+=base*mul;G.dealer=w;log(`${NAME[w]}勝負！得 ${base*mul} 文`);
  }else log('流局：雙方都沒結算，本局不計分');
  G.hist.push({w,pts:base*mul});
- if(SIM){if(G.round<G.rounds)startRound();return}
+ if(SIM||FAST){if(G.round<G.rounds)startRound();else G.done=!SIM;return}
  render();if(w===0)sfx('win');showRoundEnd(w,list,base,mul,notes);
+ if(G.net){clearTimeout(NET.nextT);const g=G;NET.nextT=setTimeout(()=>{if(G===g&&G.phase==='end'&&!G.done&&!TUT.active)act(G.round<G.rounds?'next':'final')},NEXT_MS)}
 }
 
 /* ===== 牌面圖片：Louie Mantia 繪製，取自維基共享資源，CC BY-SA 4.0 ===== */
@@ -437,9 +481,10 @@ const SFX={
  flip(){noise(.22,1800,.6,.55,'swish')},
  yaku(){tone(988,.5,.22);tone(1319,.7,.18,.12)},
  koi(){tone(523,.14,.25,0,'square');tone(659,.14,.25,.13,'square');tone(784,.35,.25,.26,'square')},
- win(){[523,659,784,1047].forEach((f,k)=>tone(f,.45,.2,k*.11))}
+ win(){[523,659,784,1047].forEach((f,k)=>tone(f,.45,.2,k*.11))},
+ smash(){noise(.16,2600,.6,2.4);noise(.1,900,.9,2);noise(.5,180,.5,1.6);tone(58,.6,1.2,0,'sine');tone(116,.2,.8,0,'triangle');tone(1760,.3,.12,.02,'triangle');const a=ac();if(a&&!MUTE)drum(0,1.1)}
 };
-const sfx=n=>{if(!SIM)SFX[n]()};
+const sfx=n=>{if(!SIM&&!FAST)SFX[n]()};
 /* ===== 和風勝敗畫面：勝＝太鼓與上行旋律、櫻花；負＝尺八下行與鈴聲、落葉 ===== */
 function drum(t,v){const a=AC,o=a.createOscillator(),g=a.createGain(),s=a.currentTime+t;o.frequency.setValueAtTime(120,s);o.frequency.exponentialRampToValueAtTime(46,s+.3);g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+.6);o.connect(g);g.connect(a.destination);o.start(s);o.stop(s+.65);noise(.1,700,.7,v*.6,null,t)}
 SFX.fanfare=()=>{const a=ac();if(!a||MUTE)return;[0,.22,.44,.58,.72].forEach((t,i)=>drum(t,i<3?.75:.6));
@@ -558,11 +603,54 @@ function fly(el,from,{flip=false,delay=0,dur=380}={}){
  if(flip){c.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)',offset:.5},{transform:'scaleX(1)'}],o);ov.animate([{opacity:1},{opacity:1,offset:.5},{opacity:0,offset:.52},{opacity:0}],o)}
  a.onfinish=()=>{el.style.visibility='';w.remove()};
 }
+function slamFly(el,from,flip){
+ const big=!!(G.slam&&G.slam.big),to=el.getBoundingClientRect();
+ if(!from||!to.width)return impact(el,big);
+ const w=document.createElement('div');w.className='fly';
+ Object.assign(w.style,{left:to.left+'px',top:to.top+'px',width:to.width+'px',height:to.height+'px',transformOrigin:'50% 50%',zIndex:3});
+ const c=el.cloneNode(true);c.classList.remove('slamC','sel','hl','new','mt','off');
+ Object.assign(c.style,{width:to.width+'px',height:to.height+'px',visibility:'visible',position:'static'});
+ w.appendChild(c);let ov;if(flip){ov=document.createElement('div');ov.className='bkov';c.appendChild(ov)}
+ $('fx').appendChild(w);el.style.visibility='hidden';
+ const dx=from.left+from.width/2-(to.left+to.width/2),dy=from.top+from.height/2-(to.top+to.height/2),sx=from.width/to.width,sy=from.height/to.height;
+ const lift=big?-to.height*.55:-to.height*.3,sc=big?1.5:1.24,rot=big?-12:-7,dur=big?620:360;
+ const kf=[{transform:`translate(${dx}px,${dy}px) scale(${sx},${sy})`,offset:0,easing:'cubic-bezier(.2,.8,.3,1)'},
+  {transform:`translate(${dx*.15}px,${lift}px) scale(${sc}) rotate(${rot}deg)`,offset:big?.5:.62,easing:big?'linear':'cubic-bezier(.55,0,.95,.45)'}];
+ if(big)kf.push({transform:`translate(${dx*.1}px,${lift-8}px) scale(${sc+.06}) rotate(${rot-3}deg)`,offset:.8,easing:'cubic-bezier(.6,0,1,.4)'});
+ kf.push({transform:'none',offset:1});
+ const a=w.animate(kf,{duration:dur,fill:'both'});
+ if(flip){c.animate([{transform:'scaleX(1)'},{transform:'scaleX(0)',offset:.25},{transform:'scaleX(1)',offset:.5},{transform:'scaleX(1)'}],{duration:dur});ov.animate([{opacity:1},{opacity:1,offset:.25},{opacity:0,offset:.26},{opacity:0}],{duration:dur,fill:'both'})}
+ a.onfinish=()=>{el.style.visibility='';w.remove();impact(el,big)};
+}
+function impact(el,big){
+ if(G.slam)G.slam.hit=true;
+ sfx(big?'smash':'slap');try{navigator.vibrate&&navigator.vibrate(big?[30,40,70]:14)}catch(e){}
+ if(RM||!el.isConnected)return;
+ const r=el.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,fx=$('fx');
+ const mk=(cls,st)=>{const d=document.createElement('div');d.className=cls;Object.assign(d.style,st);fx.appendChild(d);return d};
+ const slot=el.parentElement;if(slot)slot.animate([{transform:'scale(1.09,.88)'},{transform:'scale(.96,1.04)',offset:.45},{transform:'none'}],{duration:big?380:260,easing:'ease-out'});
+ const fl=mk('imp-fl'+(big?' gold':''),{left:r.left+'px',top:r.top+'px',width:r.width+'px',height:r.height+'px'});
+ fl.animate([{opacity:.95},{opacity:0}],{duration:big?380:200,easing:'ease-out'}).onfinish=()=>fl.remove();
+ const R=r.height*(big?3:1.55);
+ for(let k=0;k<(big?2:1);k++){const g=mk('imp-ring'+(big?' gold':''),{left:cx-R/2+'px',top:cy-R/2+'px',width:R+'px',height:R+'px'});
+  g.animate([{transform:'scale(.22)',opacity:1},{transform:'scale(1)',opacity:0}],{duration:big?560:340,delay:k*110,easing:'cubic-bezier(.2,.7,.3,1)',fill:'both'}).onfinish=()=>g.remove()}
+ const n=big?16:8;
+ for(let k=0;k<n;k++){const a=360/n*k+(Math.random()-.5)*18,L=r.width*(big?.5:.32),d0=r.height*.3,d1=r.height*(big?1.5:.85)*(0.8+Math.random()*.4);
+  const sp=mk('imp-sp'+(big?' gold':''),{left:cx-1.5+'px',top:cy+'px',height:L+'px'});
+  sp.animate([{transform:`rotate(${a}deg) translateY(${d0}px) scaleY(.3)`,opacity:1},{transform:`rotate(${a}deg) translateY(${d1}px) scaleY(1)`,opacity:0}],{duration:big?520:300,easing:'cubic-bezier(.1,.8,.3,1)',fill:'both'}).onfinish=()=>sp.remove()}
+ if(big){
+  $('app').animate([{transform:'none'},{transform:'translate(-7px,5px)'},{transform:'translate(6px,-4px)'},{transform:'translate(-4px,3px)'},{transform:'translate(2px,-1px)'},{transform:'none'}],{duration:420,easing:'ease-out'});
+  const sc=mk('imp-scr',{});sc.style.setProperty('--x',cx+'px');sc.style.setProperty('--y',cy+'px');sc.animate([{opacity:.75},{opacity:0}],{duration:520,easing:'ease-out'}).onfinish=()=>sc.remove();
+  if(G.slam&&G.slam.yk){const t=mk('imp-yk',{left:cx+'px',top:r.top+'px'});t.textContent=G.slam.yk+'！';
+   t.animate([{transform:'translate(-50%,-20%) scale(2.6)',opacity:0},{transform:'translate(-50%,-90%) scale(.95)',opacity:1,offset:.18},{transform:'translate(-50%,-100%) scale(1)',opacity:1,offset:.7},{transform:'translate(-50%,-150%) scale(1)',opacity:0}],{duration:1500,easing:'ease-out',fill:'both'}).onfinish=()=>t.remove()}
+ }
+}
 function animate(prev,oppR,deckR){
  if(RM){G.dealing=false;G.fromOpp=null;return}
  if(G.dealing){G.dealing=false;return dealAnim(deckR)}
  document.querySelectorAll('#app .card[data-id]').forEach(el=>{
   const id=+el.dataset.id,p=prev.get(id);
+  if(el.classList.contains('slamC'))return slamFly(el,p||(G.fromOpp===id?oppR:null),!p&&G.fromOpp===id);
   if(p){const r=el.getBoundingClientRect();if(Math.abs(p.left-r.left)+Math.abs(p.top-r.top)>12)fly(el,p)}
   else if(el.closest('#flip'))fly(el,deckR,{flip:true,dur:420});
   else if(G.fromOpp===id)fly(el,oppR,{flip:true,dur:460});
@@ -578,7 +666,7 @@ const DEAL_MS=24*70+520;
 /* ===== 語音 ===== */
 let SPK=false;
 function say(t){
- if(SIM||MUTE||!window.speechSynthesis)return false;
+ if(SIM||FAST)return true;if(MUTE||!window.speechSynthesis)return false;
  try{const u=new SpeechSynthesisUtterance(t);u.lang='ja-JP';u.rate=1;u.pitch=1.15;
   const v=speechSynthesis.getVoices().find(v=>/^ja/i.test(v.lang));if(v)u.voice=v;
   speechSynthesis.cancel();speechSynthesis.speak(u);return true}catch(e){return false}
@@ -670,20 +758,20 @@ function yakuH(p){
 }
 function myTurn(){return G.phase==='play'&&G.turn===0&&!G.isAI[0]}
 function render(){
- if(SIM||!G)return;
+ if(SIM||FAST||!G)return;
  const prev=snap(),oppR=rectOf($('oppHand').lastElementChild),deckR=rectOf($('deckBox').firstElementChild);
  draw();animate(prev,oppR,deckR);
 }
 function draw(){
  $('rinfo').textContent=`第 ${G.round}/${G.rounds} 局`;
- $('score').textContent=`你 ${G.totals[0]} : ${G.totals[1]} ${NAME[1]}`;$('oppName').textContent=NAME[1];
+ $('score').textContent=`你 ${G.totals[0]} : ${G.totals[1]} ${NAME[1]}`;$('rinfo').textContent=(G.net?'雙人對決・':'')+`第 ${G.round}/${G.rounds} 局`;$('oppName').textContent=NAME[1];
  $('oppHand').innerHTML=G.hands[1].map(()=>'<div class="card back"></div>').join('');
  $('oppYaku').innerHTML=yakuH(1);$('myYaku').innerHTML=yakuH(0);
  $('oppCaps').innerHTML=capsH(G.caps[1]);$('myCaps').innerHTML=capsH(G.caps[0]);
  $('deckN').textContent=`牌堆 ${G.deck.length}`;
  $('flip').innerHTML=G.flip!=null?cardH(G.flip,'new'):'';
  const hm=SEL!=null?mon(SEL):G.phase==='drawChoose'?mon(G.pending):0;
- $('field').innerHTML=G.field.map(i=>cardH(i,(hm&&mon(i)===hm?'hl ':'')+(G.fresh.includes(i)?'new':''),HELP?`<span class="bd">剩${unseenM(0,mon(i))}</span>`:'')).join('');
+ $('field').innerHTML=G.field.map(i=>{const h=cardH(i,(hm&&mon(i)===hm&&!G.slam?'hl ':'')+(G.fresh.includes(i)?'new':''),HELP?`<span class="bd">剩${unseenM(0,mon(i))}</span>`:'');return G.slam&&G.slam.t===i?`<div class="slot${G.slam.big?' big':''}">${h}${cardH(G.slam.c,'slamC')}</div>`:h}).join('');
  const mt=myTurn();
  $('hand').innerHTML=G.hands[0].map(i=>cardH(i,(SEL===i?'sel ':'')+(mt&&G.field.some(f=>mon(f)===mon(i))?'mt ':'')+(mt?'':'off'))).join('');
  let pr='';
@@ -695,7 +783,9 @@ function draw(){
    if(HELP&&n===0){const u=unseenM(0,mon(SEL));pr+=`<br><small>這個月份還有 ${u} 張未現牌，可能被${NAME[1]}吃走</small>`}}
  }else if(G.phase==='deal')pr='發牌中…';
  else if(G.phase==='play'||G.phase==='busy')pr=G.turn===1?`${NAME[1]}出牌中…`:'…';
- $('prompt').innerHTML=pr;
+ if(G.net&&G.await&&G.await.p===1)pr=G.await.type==='p'?`${NAME[1]}出牌中…`:G.await.type==='c'?`${NAME[1]}正在選要吃哪一張…`:`${NAME[1]}成役了，正在考慮要不要來來…`;
+ if(G.net&&G.await)pr+=` <span id="tmr"></span>`;
+ $('prompt').innerHTML=pr;if(G.net)netTickUI();
  $('log').innerHTML=G.log.map(t=>`<div>${t}</div>`).join('');
  $('bHelp').className=HELP?'pri':'';syncBtns();
  $('helper').hidden=!HELP;
@@ -707,9 +797,9 @@ function draw(){
 }
 function syncBtns(){$('bBgm').textContent=BGM_ON?'配樂開':'配樂關';$('bBgm').className=BGM_ON?'pri':'';$('bSnd').textContent=MUTE?'音效關':'音效開';$('bSnd').className=MUTE?'':'pri';$('bLab').className=document.body.classList.contains('lab')?'pri':''}
 function modal(h,kind){$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').dataset.kind=kind||''}
-const canResume=()=>!!(G&&G.phase!=='end');
+const canResume=()=>!!(G&&G.phase!=='end'&&!G.done);
 function closeModal(){$('modal').hidden=true}
-let tT;function toast(t){if(SIM)return;const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),1300)}
+let tT;function toast(t){if(SIM||FAST)return;const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(tT);tT=setTimeout(()=>e.classList.remove('show'),1300)}
 const listH=l=>`<table>${l.map(x=>`<tr><td>${x[0]}</td><td class="n">${x[1]} 文</td></tr>`).join('')}</table>`;
 function showDecide(s){
  if(G.tut){gate('decide',()=>{});const k=TUT.cur.allow;
@@ -792,7 +882,7 @@ function rkFinal(){
  }).catch(e=>{el.innerHTML=`<p class="pill">${rkErr(e)}</p>`});
 }
 function rkDoSubmit(){
- const inp=$('rkName');if(!inp)return;const n=inp.value.trim().slice(0,12);if(!n){inp.focus();return toast('請輸入名字')}
+ const inp=$('rkName');if(!inp)return;const n=inp.value.trim().slice(0,12);if(!n){inp.focus();return toast('請輸入名字')}if(badName(n)){inp.focus();return toast('名字含有不適當的字詞，請換一個')}
  try{localStorage.setItem('hf_name',n)}catch(e){}
  const cat=rkCat(G.diff,G.rounds),btn=document.querySelector('[data-act=rksubmit]');if(btn){btn.disabled=true;btn.textContent='送出中…'}
  rkSubmit(cat,{n,s:G.totals[0],o:G.totals[1],sd:G.seed}).then(id=>rkTop(cat).then(list=>{$('rkBox').innerHTML=`<p class="pill">已登上排行榜！</p><div id="rkList"></div>`;rkShow($('rkList'),rkTitle(G.diff,G.rounds),list,id)}))
@@ -807,6 +897,7 @@ function showRank(){
  const cat=rkCat(RKV.d,RKV.r);rkTop(cat).then(list=>{if(rkCat(RKV.d,RKV.r)===cat)rkShow($('rkView'),rkTitle(RKV.d,RKV.r),list)}).catch(e=>{if($('rkView'))$('rkView').innerHTML=`<p class="pill">${rkErr(e)}</p>`});
 }
 function showFinal(){
+ if(G.net)return netFinal();
  const d=G.totals[0]-G.totals[1],kind=d>0?'win':d<0?'lose':'draw';
  const r=recAdd('rec_hf',NAME[1],kind==='win'?'w':kind==='lose'?'l':'d');
  showFinale(kind,{sub:`你 ${G.totals[0]} 文 ： ${G.totals[1]} 文 ${NAME[1]}`,
@@ -815,15 +906,23 @@ function showFinal(){
  rkFinal();
 }
 let OPT={diff:1,rounds:6};
+function showHome(){
+ if(G&&G.net&&!G.done)return modal(`<h2>雙人對決中</h2><p>對手：<b>${NAME[1]}</b>　房間：${RN[NET.rid]||'—'}</p><p class="pill">離開對戰會直接判你落敗。</p><div class="btns"><button data-act="netquit">離開對戰（判輸）</button><button class="pri" data-act="resume">返回對戰</button></div>`,'menu');
+ if(NET.rid&&!(G&&G.net&&!G.done))return netRoom();
+ NET.view=null;if(NET.used&&window.HFNet){window.HFNet.unwatch();window.HFNet.release();NET.used=false}
+ modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特花牌</h2></div></div><p>花札「こいこい」：出牌、翻牌時吃下同月份的牌，湊成「役」後選擇結算，或喊「來來」賭更高分。</p>
+ <div class="modes"><button class="mode" data-act="solo"><b>對戰鳩特</b><small>和三位電腦鳩特單挑</small></button><button class="mode" data-act="net"><b>雙人對決</b><small>線上配對・三間對戰房</small></button><button class="mode" data-act="tutorial"><b>新手教學</b><small>從零開始學會花牌</small></button></div>
+ <div class="btns">${canResume()&&!(G&&G.net)?'<button data-act="resume">返回牌局</button>':''}<button data-act="rank">排行榜</button><button data-act="rules">規則與役表</button></div>`,'menu');
+}
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
- modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特花牌</h2></div></div><p>花札「こいこい」雙人玩法，和鳩特對戰。出牌、翻牌時吃下同月份的牌，湊成「役」後可以選擇結算或喊「來來」賭更高分。</p>
+ modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特花牌</small><h2>對戰鳩特</h2></div></div><p>花札「こいこい」雙人玩法，和鳩特對戰。出牌、翻牌時吃下同月份的牌，湊成「役」後可以選擇結算或喊「來來」賭更高分。</p>
  <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}</div>
  <p class="pill">${['隨機出牌，一成役就結算。','會挑分數高、能湊役的牌吃；分數低時才喊來來。','另外會記牌、算你可能吃到的牌來防守，並評估你離成役多近才決定要不要喊來來。'][OPT.diff]}</p>
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>
  <h3>牌局編號</h3><input id="seedIn" inputmode="numeric" placeholder="留空＝隨機">
  <p class="pill">同一個編號會發出一模一樣的牌，可以讓兩組學生比分數或重播檢討。</p>
- <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns">${canResume()?'<button data-act="resume">返回牌局</button>':''}<button data-act="rank">排行榜</button><button data-act="tutorial">新手教學</button><button data-act="rules">規則與役表</button><button class="pri" data-act="start">${canResume()?'重新開始':'開始'}</button></div>`,'menu');
+ <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button data-act="home">返回</button>${canResume()&&!(G&&G.net)?'<button data-act="resume">返回牌局</button>':''}<button class="pri" data-act="start">${canResume()&&!(G&&G.net)?'重新開始':'開始'}</button></div>`,'menu');
 }
 function showRules(){
  const rows=[['五光','五張光札',10],['四光','四張光札（不含雨）',8],['雨四光','四張光札（含柳雨）',7],['三光','三張光札（不含雨）',5],['豬鹿蝶','萩豬＋紅葉鹿＋牡丹蝶',5],['花見酒','櫻幕＋菊盃',5],['月見酒','芒月＋菊盃',5],['赤短','三張赤短（松梅櫻）',5],['青短','三張青短（牡丹菊紅葉）',5],['赤短青短','赤短與青短同時成立',10],['種','種札 5 張，每多 1 張＋1','1～'],['短','短冊 5 張，每多 1 張＋1','1～'],['素','素札 10 張，每多 1 張＋1（菊盃也算素札）','1～']];
@@ -836,30 +935,179 @@ function showRules(){
  <h3>48 張牌一覽</h3><p class="pill">上排標示月份與種類；遊戲中按「標示」可以在牌上顯示。</p><div class="deck12">${deck}</div>
  <p class="pill" style="font-size:12px">牌面圖片：Louie Mantia 繪製，取自<a href="https://commons.wikimedia.org/wiki/Category:Hanafuda" style="color:var(--gold)">維基共享資源</a>，依<a href="https://creativecommons.org/licenses/by-sa/4.0/deed.zh-hant" style="color:var(--gold)">創用 CC 姓名標示－相同方式分享 4.0</a> 授權使用（已縮小尺寸）。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`);
 }
+/* ===== 名字過濾：擋掉常見的不雅字（含夾空白、符號、注音、諧音、英文變體） ===== */
+const BADW=['幹你','幹妳','幹他','幹她','幹拎','幹林','靠北','靠杯','靠背','靠夭','哭爸','操你','操妳','操他','肏','屌','雞巴','雞掰','機掰','機巴','機八','雞八','雞雞','智障','白癡','白痴','低能','腦殘','去死','死全家','婊','賤人','賤貨','妓','屄','尻','他媽','她媽','你媽','妳媽','媽的','三小','殺小','北七','王八','混蛋','廢物','畜生','畜牲','做愛','強姦','性交','陰莖','陰道','奶子','淫','色情','屁眼','肛','ㄍㄢ','ㄐㄅ','ㄎㄅ','ㄍㄋㄋ','ㄋㄇㄉ','ㄊㄇㄉ','ㄇㄉ','fuck','fuk','fck','fuq','shit','bitch','btch','cunt','dick','cock','pussy','asshole','bastard','slut','whore','nigg','fag','retard','porn','penis','vagina','sex','wtf','stfu','kys'];
+function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
+ t=t.replace(/[0@4]/g,c=>({'0':'o','@':'a','4':'a'}[c])).replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[5$]/g,'s').replace(/7/g,'t');
+ t=t.replace(/[\s​._\-~*+=#^%&\/\\,，。．、·'"`()（）\[\]{}<>《》「」『』:：;；?？]/g,'');
+ t=t.replace(/幹部|能幹|樹幹|才幹|骨幹|主幹|幹事|幹勁|幹練|苦幹|實幹|精幹|幹線|軀幹/g,'');
+ if(t.includes('幹'))return true;const u=t.replace(/(.)\1+/g,'$1');
+ return BADW.some(w=>t.includes(w)||u.includes(w))}
+const cleanName=v=>String(v||'').replace(/[<>&"'`]/g,'').slice(0,12)||'對手';
+
+/* ===== 雙人對決：hf_rooms 放房間與玩家，hf_moves 放出牌紀錄（雙方用同一個牌局編號各自推演） ===== */
+const ROOMS=[['r1','松之間'],['r2','梅之間'],['r3','櫻之間']],RN=Object.fromEntries(ROOMS);
+const TURN_MS=30000,DROP_MS=60000,NEXT_MS=15000,STALE_MS=90000;
+const NET={uid:'',name:'',rid:null,rooms:{},gid:0,seat:0,opp:null,q:[],seen:new Set(),pumping:false,deadline:0,tmo:0,tick:0,nextT:0,dropT:0,view:null,offset:0,used:false,clean:{}};
+try{NET.uid=localStorage.getItem('hf_uid')||'';if(!/^u[a-z0-9]{6,}$/.test(NET.uid)){NET.uid='u'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);localStorage.setItem('hf_uid',NET.uid)}NET.name=localStorage.getItem('hf_pname')||''}catch(e){NET.uid='u'+Math.random().toString(36).slice(2,12)}
+const nowS=()=>Date.now()+NET.offset;
+function netReady(ms=8000){return new Promise((res,rej)=>{if(window.HFNet)return res(window.HFNet);const t=setTimeout(()=>rej(new Error('offline')),ms);addEventListener('hfnet-ready',()=>{clearTimeout(t);res(window.HFNet)},{once:true})})}
+const netErr=e=>/denied|PERMISSION/i.test(String(e&&(e.code||e.message)||e))?'雙人對決尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上伺服器，請確認網路後再試。';
+const validPs=R=>Object.entries((R&&R.players)||{}).filter(([u,p])=>p&&typeof p.n==='string').sort((a,b)=>a[1].seat-b[1].seat);
+async function netEnter(){
+ closeModal();hideFinale();
+ if(!NET.name||badName(NET.name))return netNameForm();
+ NET.view='lobby';modal('<h2>雙人對決</h2><p class="pill">連線中…</p><div class="btns"><button data-act="home">返回</button></div>','lobby');
+ try{const H=await netReady();if(!NET.used){H.use();NET.used=true}
+  H.watchOffset(o=>NET.offset=o);
+  H.watchRooms((v,err)=>{if(err){if(NET.view==='lobby')modal(`<h2>雙人對決</h2><p class="pill">${netErr(err)}</p><div class="btns"><button data-act="home">返回</button></div>`,'lobby');return}NET.rooms=v||{};netOnRooms()})}
+ catch(e){modal(`<h2>雙人對決</h2><p class="pill">${netErr(e)}</p><div class="btns"><button data-act="home">返回</button></div>`,'lobby')}
+}
+function netNameForm(msg){NET.view='name';
+ modal(`<h2>雙人對決</h2><p>先幫自己取個名字（最多 8 個字），對手會在房間裡看到它。</p><div class="rk-f"><input id="pnIn" maxlength="8" autocomplete="off" value="${esc(NET.name)}" placeholder="你的名字"><button class="pri" data-act="netsetname">確定</button></div>${msg?`<p class="pill warn">${msg}</p>`:''}<div class="btns"><button data-act="home">返回</button></div>`,'name');
+ setTimeout(()=>{const i=$('pnIn');if(i)i.focus()},60)}
+function netSetName(){const v=(($('pnIn')||{}).value||'').trim();
+ if(!v)return netNameForm('名字不能空白。');if([...v].length>8)return netNameForm('名字最多 8 個字。');
+ if(/[<>&"'`]/.test(v))return netNameForm('名字不能包含 < > & " \' ` 這些符號。');
+ if(badName(v))return netNameForm('這個名字含有不適當的字詞，請換一個。');
+ NET.name=v;try{localStorage.setItem('hf_pname',v)}catch(e){}
+ if(NET.rid&&window.HFNet)window.HFNet.rename(NET.rid,NET.uid,v);
+ netEnter()}
+function netLobby(){NET.view='lobby';
+ const cards=ROOMS.map(([rid,rn])=>{const R=NET.rooms[rid]||{},ps=validPs(R),full=ps.length>=2,play=R.state==='play'&&ps.length>0;
+  const st=!ps.length?'空房':play?'對戰中':full?'已滿':'等待對手';
+  const who=ps.length?ps.map(([u,p])=>`<span class="np${p.on===false?' off':''}">${esc(cleanName(p.n))}${u===R.host?'<i>房主</i>':''}${p.on===false?'<i>離線</i>':''}</span>`).join(''):'<span class="np empty">（沒有人）</span>';
+  const can=!full&&!play;
+  return `<div class="nroom"><div class="nh"><b>${rn}</b><small class="st ${play?'play':full?'full':ps.length?'wait':'emp'}">${st}・${ps.length}/2</small></div><div class="nps">${who}</div><button class="${can?'pri':''}" data-act="netjoin" data-v="${rid}" ${can?'':'disabled'}>${can?'加入':play?'對戰中':'已滿'}</button></div>`}).join('');
+ modal(`<h2>雙人對決</h2><p>你的名字：<b>${esc(NET.name)}</b> <button class="mini" data-act="netname">修改</button></p><div class="nrooms">${cards}</div><p class="pill">每間房兩人。先進房的是房主，可以決定局數；兩人都按「準備」後，由房主開始對戰。每一步限時 30 秒，斷線超過 60 秒判定離席。</p><div class="btns"><button data-act="home">返回</button></div>`,'lobby')}
+function netCleanup(){const H=window.HFNet;if(!H)return;const t=nowS();
+ for(const [rid] of ROOMS){const R=NET.rooms[rid];if(!R)continue;const ps=R.players||{};
+  const stale=Object.keys(ps).filter(u=>u!==NET.uid&&(!ps[u]||typeof ps[u].n!=='string'||(ps[u].on===false&&t-(ps[u].seen||0)>STALE_MS)));
+  const empty=!Object.keys(ps).length;
+  if((stale.length||empty)&&!(NET.clean[rid]>Date.now())){NET.clean[rid]=Date.now()+8000;H.cleanup(rid,stale,t,STALE_MS).catch(()=>{})}}}
+function netOnRooms(){
+ netCleanup();
+ const R=NET.rid?NET.rooms[NET.rid]:null;
+ if(!NET.rid){
+  const mine=ROOMS.map(r=>r[0]).find(r=>NET.rooms[r]&&NET.rooms[r].players&&NET.rooms[r].players[NET.uid]&&typeof NET.rooms[r].players[NET.uid].n==='string');
+  if(mine&&NET.view==='lobby')return netJoin(mine);
+  if(NET.view==='lobby')netLobby();return}
+ const me=R&&R.players&&R.players[NET.uid];
+ if(!me||typeof me.n!=='string'){const inGame=G&&G.net&&!G.done;netDrop();if(inGame)return netGameOver('kicked');if(NET.view==='room'){toast('你已離開房間');netLobby()}return}
+ NET.seat=me.seat;
+ const opp=validPs(R).find(([u])=>u!==NET.uid);NET.opp=opp?opp[0]:null;
+ if(R.state==='play'&&R.gid!==NET.gid)return netStart(R);
+ if(R.state!=='play'&&G&&G.net&&!G.done&&NET.gid===R.gid&&R.res&&R.res.g===NET.gid&&R.res.why!=='end')return netGameOver(R.res.w===NET.seat?'oppgone':'kicked');
+ if(G&&G.net&&!G.done&&R.state==='play')netWatchOpp(R);
+ if(NET.view==='room')netRoom();
+}
+async function netJoin(rid){
+ try{const H=await netReady();const ok=await H.join(rid,NET.uid,NET.name);
+  if(!ok){toast('這間房目前不能加入');return netLobby()}
+  NET.rid=rid;NET.view='room';NET.gid=(NET.rooms[rid]&&NET.rooms[rid].state==='play')?-1:(NET.rooms[rid]?NET.rooms[rid].gid||0:0);H.presence(rid,NET.uid);netOnRooms();if(NET.view==='room')netRoom()}
+ catch(e){toast(netErr(e))}}
+function netRoom(){NET.view='room';const R=NET.rooms[NET.rid];if(!R)return;
+ const ps=validPs(R),me=(R.players||{})[NET.uid],host=R.host===NET.uid;
+ const seats=[0,1].map(k=>{const e=ps.find(([u,p])=>p.seat===k);if(!e)return '<div class="nseat empty">等待對手加入…</div>';const [u,p]=e;
+  return `<div class="nseat${u===NET.uid?' me':''}"><b>${esc(cleanName(p.n))}</b>${u===R.host?'<i>房主</i>':''}${u===NET.uid?'<i class="y">你</i>':''}<span class="${p.on===false?'off':p.ready?'rd':'nr'}">${p.on===false?'離線中':p.ready?'已準備':'未準備'}</span></div>`}).join('');
+ const all=ps.length===2&&ps.every(([u,p])=>p.ready&&p.on!==false);
+ modal(`<h2>${RN[NET.rid]}</h2><div class="nseats">${seats}</div><h3>局數</h3>${host?`<div class="opts">${[3,6,12].map(n=>`<button data-act="netrounds" data-v="${n}" class="${R.rounds===n?'on':''}">${n} 局</button>`).join('')}</div>`:`<p><b>${R.rounds||6} 局</b>（由房主決定）</p>`}
+ <p class="pill">${ps.length<2?'等待另一位玩家進房。':all?(host?'雙方都準備好了，按「開始對戰」！':'雙方都準備好了，等房主開始對戰。'):'兩人都按「準備」後，房主就能開始對戰。'}</p>
+ <div class="btns"><button data-act="netleave">離開房間</button><button data-act="netready" class="${me&&me.ready?'':'pri'}">${me&&me.ready?'取消準備':'準備'}</button>${host?`<button class="pri" data-act="netgo" ${all?'':'disabled'}>開始對戰</button>`:''}</div>`,'room')}
+async function netStart(R){
+ const H=await netReady();NET.gid=R.gid;NET.view='game';closeModal();hideFinale();netClearTurn();clearTimeout(NET.nextT);
+ const opp=validPs(R).find(([u])=>u!==NET.uid);
+ const list=(await H.moves(NET.rid)).filter(m=>m.g===NET.gid);
+ if(NET.gid!==R.gid)return;
+ NET.seen=new Set(list.map(m=>m.k));NET.q=list.slice();
+ FAST=true;try{newGame(1,R.rounds||6,R.seed,[false,false],null,{seat:NET.seat,opp:cleanName(opp?opp[1].n:'對手')});netPump()}finally{FAST=false}
+ H.watchMoves(NET.rid,netOnMove);
+ if(list.length)G.dealing=false;
+ if(G.done){render();return netFinal()}
+ const aw=G.await;
+ if(aw&&aw.p===0){if(aw.type==='c')G.phase='drawChoose';if(aw.type==='k')G.phase='decide'}
+ render();if(G.phase==='decide')showDecide(calc(G.caps[0]).total);
+ if(aw)netTimer(aw.type,aw.p);
+ if(list.length)toast('已回到對戰');
+ netWatchOpp(R);
+}
+function netOnMove(m){if(!G||!G.net||m.g!==NET.gid||NET.seen.has(m.k))return;NET.seen.add(m.k);if(m.s===NET.seat)return;NET.q.push(m);netPump()}
+function netAwait(type,p){const aw=G.await={type,p};if(FAST||p===1)netPump();if(!FAST&&G&&G.await===aw)netTimer(type,p)}
+function netPump(){if(NET.pumping)return;NET.pumping=true;
+ try{while(G&&G.net&&G.await&&NET.q.length){const m=NET.q[0],aw=G.await,lp=m.s===NET.seat?0:1;if(aw.p!==lp||aw.type!==m.a)break;NET.q.shift();netClearTurn();netApply(lp,m)}}
+ finally{NET.pumping=false}}
+function netApply(p,m){
+ if(m.a==='p'){if(!G.hands[p].includes(m.h))return netDesync();playCard(p,m.h,m.t>=0?m.t:null)}
+ else if(m.a==='c'){if(G.pending==null)return netDesync();chooseDraw(p,m.t)}
+ else if(m.a==='k'){if(m.v)doKoi(p);else endRound(p)}}
+function netDesync(){if(FAST)return;toast('連線資料不同步，重新載入牌局…');const R=NET.rooms[NET.rid];NET.gid=0;if(R&&R.state==='play')setTimeout(()=>netStart(R),300)}
+function netLocal(m){if(!G||!G.net||FAST)return;netClearTurn();m.g=NET.gid;m.s=NET.seat;const H=window.HFNet;if(!H)return toast('目前離線，這一步可能沒有送出');try{NET.seen.add(H.pushMove(NET.rid,m))}catch(e){toast(netErr(e))}}
+function netTimer(type,p){clearTimeout(NET.tmo);clearInterval(NET.tick);NET.deadline=Date.now()+TURN_MS;if(p===0)NET.tmo=setTimeout(netAuto,TURN_MS);NET.tick=setInterval(netTickUI,250);netTickUI()}
+function netClearTurn(){clearTimeout(NET.tmo);clearInterval(NET.tick);if(G)G.await=null;const e=$('tmr');if(e)e.textContent=''}
+function netTickUI(){const e=$('tmr');if(!e||!G||!G.await)return;const s=Math.max(0,Math.ceil((NET.deadline-Date.now())/1000));e.textContent=`⏱ ${s} 秒`;e.className=s<=10?'warn':''}
+function netAuto(){if(!G||!G.net||!G.await||G.await.p!==0||G.done)return;const t=G.await.type;toast('時間到，自動幫你出手');
+ if(t==='p'){SEL=null;const o=aiPlay(0);playCard(0,o.h,o.t)}
+ else if(t==='c'){if(G.pending!=null)chooseDraw(0,aiTarget(0,G.pending))}
+ else if(t==='k'){act('stop')}}
+function netWatchOpp(R){const o=NET.opp&&R.players&&R.players[NET.opp];
+ if(o&&o.on===false){if(!NET.dropT)NET.dropT=setInterval(netDropTick,500);netDropTick()}
+ else{clearInterval(NET.dropT);NET.dropT=0;$('netbar').hidden=true}}
+function netDropTick(){const R=NET.rooms[NET.rid],o=R&&R.players&&NET.opp&&R.players[NET.opp];
+ if(!o||o.on!==false||!G||!G.net||G.done||R.state!=='play'){clearInterval(NET.dropT);NET.dropT=0;$('netbar').hidden=true;return}
+ const left=DROP_MS-(nowS()-(o.seen||nowS()));const b=$('netbar');b.hidden=false;
+ b.textContent=`${cleanName(o.n)} 斷線了，等待重新連線… ${Math.max(0,Math.ceil(left/1000))} 秒後判定離席`;
+ if(left<=0){clearInterval(NET.dropT);NET.dropT=0;window.HFNet&&window.HFNet.claim(NET.rid,NET.gid,NET.uid,NET.opp,NET.seat).catch(()=>{})}}
+function netDrop(){const H=window.HFNet;if(H&&NET.rid)H.unpresence(NET.rid,NET.uid);if(H)H.unwatchMoves();NET.rid=null;NET.gid=0;NET.opp=null;netClearTurn();clearInterval(NET.dropT);NET.dropT=0;clearTimeout(NET.nextT);const b=$('netbar');if(b)b.hidden=true}
+function netGameOver(kind){if(!G)return;G.done=true;netClearTurn();clearTimeout(NET.nextT);clearInterval(NET.dropT);NET.dropT=0;$('netbar').hidden=true;closeModal();
+ const win=kind==='oppgone';
+ showFinale(win?'win':'lose',{sub:`你 ${G.totals[0]} 文 ： ${G.totals[1]} 文 ${NAME[1]}`,
+  line:win?`${NAME[1]}離開了對戰，這場算你獲勝。`:'你離線超過 60 秒或已離開房間，這場判定落敗。',
+  stat:`雙人對決・${RN[NET.rid]||''}`,btns:win?'<button data-act="netleave">離開房間</button><button class="pri" data-act="netroom">回到房間</button>':'<button data-act="home">主選單</button><button class="pri" data-act="net">回到大廳</button>'})}
+function netFinal(){G.done=true;netClearTurn();clearTimeout(NET.nextT);
+ const d=G.totals[0]-G.totals[1],kind=d>0?'win':d<0?'lose':'draw';
+ const w=d===0?-1:d>0?NET.seat:1-NET.seat;window.HFNet&&window.HFNet.finish(NET.rid,NET.gid,w).catch(()=>{});
+ showFinale(kind,{sub:`你 ${G.totals[0]} 文 ： ${G.totals[1]} 文 ${NAME[1]}`,
+  line:kind==='win'?`漂亮！你贏了${NAME[1]}。`:kind==='lose'?`這場${NAME[1]}技高一籌，再來一場討回來！`:'勢均力敵，再來一場分高下！',
+  stat:`雙人對決・${RN[NET.rid]||''}・${G.rounds} 局`,btns:'<button data-act="netleave">離開房間</button><button class="pri" data-act="netroom">回到房間（再戰）</button>'})}
+async function netAct(a,el){const H=window.HFNet;
+ if(a==='netname')return netNameForm();
+ if(a==='netsetname')return netSetName();
+ if(a==='netjoin')return netJoin(el.dataset.v);
+ if(!H||!NET.rid){if(a==='netleave'||a==='netroom'){hideFinale();netDrop();return netEnter()}return}
+ try{
+  if(a==='netrounds')return await H.rounds(NET.rid,NET.uid,+el.dataset.v);
+  if(a==='netready'){const me=NET.rooms[NET.rid]&&NET.rooms[NET.rid].players&&NET.rooms[NET.rid].players[NET.uid];return await H.ready(NET.rid,NET.uid,!(me&&me.ready))}
+  if(a==='netgo'){const ok=await H.start(NET.rid,NET.uid);if(!ok)toast('還不能開始：需要兩人都準備好');return}
+  if(a==='netroom'){hideFinale();if(G&&G.net)G.done=true;NET.view='room';return netRoom()}
+  if(a==='netquit'||a==='netleave'){const rid=NET.rid;closeModal();hideFinale();if(G&&G.net)G.done=true;netDrop();await H.leave(rid,NET.uid);G=null;return netEnter()}
+ }catch(e){toast(netErr(e))}}
 function act(a,el){
- if(['menu','start','tutorial','rematch','rank'].includes(a))hideFinale();
+ if(['menu','home','solo','start','tutorial','rematch','rank'].includes(a))hideFinale();
  if(a==='opt'){OPT[el.dataset.k]=+el.dataset.v;return showMenu()}
- if(a==='start'){const v=parseInt($('seedIn').value,10),man=Number.isFinite(v)&&v>0;closeModal();newGame(OPT.diff,OPT.rounds,man?v%1000000:1+Math.floor(Math.random()*999999));G.seedManual=man;return}
+ if(a==='start'){if(NET.rid)return toast('請先離開對戰房');const v=parseInt($('seedIn').value,10),man=Number.isFinite(v)&&v>0;closeModal();newGame(OPT.diff,OPT.rounds,man?v%1000000:1+Math.floor(Math.random()*999999));G.seedManual=man;return}
  if(a==='tutnext')return TUT.next();
  if(a==='tutquit'){TUT.off();G=null;return showMenu()}
- if(a==='tutorial')return startTutorial();
+ if(a==='tutorial'){if(NET.rid)return toast('請先離開對戰房');return startTutorial()}
  if(a==='skip')return STAMP.skip&&STAMP.skip();
  if(a==='rules')return showRules();
- if(a==='menu')return showMenu();
+ if(a==='menu'||a==='home')return showHome();
+ if(a==='solo')return showMenu();
+ if(a==='net')return netEnter();
+ if(a.startsWith('net'))return netAct(a,el);
  if(a==='resume')return closeModal();
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='helper'){HELP=!HELP;return G.phase==='deal'?null:render()}
  if(a==='bgm'){BGM_ON=!BGM_ON;try{localStorage.setItem('hf_bgm',BGM_ON?'1':'0')}catch(e){}BGM_ON?BGM.start():BGM.stop();return syncBtns()}
  if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('hf_mute',MUTE?'1':'0')}catch(e){}if(!MUTE)sfx('tap');return syncBtns()}
  if(a==='lab'){document.body.classList.toggle('lab');try{localStorage.setItem('hf_lab',document.body.classList.contains('lab')?'1':'0')}catch(e){}return syncBtns()}
- if(a==='next'){closeModal();return startRound()}
+ if(a==='next'){clearTimeout(NET.nextT);if(!G||G.phase!=='end')return;closeModal();return startRound()}
  if(a==='rksubmit')return rkDoSubmit();
  if(a==='rank')return showRank();
  if(a==='rkopt'){RKV[el.dataset.k]=+el.dataset.v;return showRank()}
- if(a==='final')return showFinal();
+ if(a==='final'){clearTimeout(NET.nextT);if(!G||G.done)return;return showFinal()}
  if(a==='rematch'){hideFinale();return newGame(OPT.diff,OPT.rounds,1+Math.floor(Math.random()*999999))}
- if(a==='stop'){closeModal();if(G.tut)TUT.next();return endRound(0)}
- if(a==='koi'){closeModal();const s=calc(G.caps[0]).total;G.koi[0]++;G.last[0]=s;log(`你喊「來來」！目前 ${s} 文`);toast('來來！');if(!say('こいこい'))sfx('koi');if(G.tut)TUT.next();G.turn=1;return beginTurn()}
+ if(a==='stop'){if(!G||G.phase!=='decide')return;closeModal();if(G.net)netLocal({a:'k',v:0});if(G.tut)TUT.next();return endRound(0)}
+ if(a==='koi'){if(!G||G.phase!=='decide')return;closeModal();if(G.net)netLocal({a:'k',v:1});if(G.tut)TUT.next();return doKoi(0)}
 }
 function onHand(id){
  if(!myTurn())return;
@@ -872,7 +1120,7 @@ function onField(id){
  if(G&&G.tut){const t=TUT.cur;if(!TUT.shown||t.k!=='field'||t.id!==id)return;TUT.next()}
  if(myTurn()&&SEL!=null&&mon(id)===mon(SEL))return playCard(0,SEL,id);
  if(G&&G.phase==='drawChoose'&&mon(id)===mon(G.pending)){
-  const c=G.pending;G.pending=null;G.phase='busy';capture(0,c,id,'翻出');G.flip=null;render();wait(()=>afterTurn(0),550);
+  chooseDraw(0,id);
  }
 }
 if(SIM){module.exports={newGame,calc,CARDS,art,get G(){return G}};}
@@ -890,21 +1138,70 @@ else{
   const id=+c.dataset.id;
   if(c.closest('#hand'))onHand(id);else if(c.closest('#field'))onField(id);
  });
- showMenu();
+ showHome();
 }
 }
 </script>
 <script type="module">
-/* 排行榜連線：沿用元素 JUNO 的 Firebase 即時資料庫，資料放在 hanafuda_rank/ 底下 */
+/* 排行榜與雙人對決連線：沿用元素 JUNO 的 Firebase 即時資料庫。排行榜在 hanafuda_rank/，對戰房在 hf_rooms/、出牌紀錄在 hf_moves/。
+   只在需要時連線：排行榜讀寫完就斷線，雙人對決離開大廳後也會斷線，以免佔用同時連線數。 */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, query, orderByChild, limitToLast, get, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, query, orderByChild, limitToLast, get, update, remove, onValue, onChildAdded, onDisconnect, runTransaction, serverTimestamp, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 const app=initializeApp({apiKey:"AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",authDomain:"element-uno.firebaseapp.com",databaseURL:"https://element-uno-default-rtdb.firebaseio.com",projectId:"element-uno",storageBucket:"element-uno.firebasestorage.app",messagingSenderId:"665324599764",appId:"1:665324599764:web:d151cd9014e600fcd53e41"},"hanafuda-rank");
 const db=getDatabase(app);
+let users=0,offT=0;
+const use=()=>{users++;clearTimeout(offT);goOnline(db)};
+const release=()=>{users=Math.max(0,users-1);clearTimeout(offT);if(!users)offT=setTimeout(()=>{if(!users)goOffline(db)},1500)};
+const once=async f=>{use();try{return await f()}finally{release()}};
 window.HFRank={
- async top(cat){const snap=await get(query(ref(db,"hanafuda_rank/"+cat),orderByChild("s"),limitToLast(10)));const a=[];snap.forEach(c=>{a.push({id:c.key,...c.val()})});return a.sort((x,y)=>y.s-x.s||(x.t||0)-(y.t||0))},
- async submit(cat,rec){const r=await push(ref(db,"hanafuda_rank/"+cat),{...rec,t:serverTimestamp()});return r.key}
+ top:cat=>once(async()=>{const snap=await get(query(ref(db,"hanafuda_rank/"+cat),orderByChild("s"),limitToLast(10)));const a=[];snap.forEach(c=>{a.push({id:c.key,...c.val()})});return a.sort((x,y)=>y.s-x.s||(x.t||0)-(y.t||0))}),
+ submit:(cat,rec)=>once(async()=>{const r=await push(ref(db,"hanafuda_rank/"+cat),{...rec,t:serverTimestamp()});return r.key})
 };
 dispatchEvent(new Event("hfrank-ready"));
+const subs={},R=rid=>ref(db,"hf_rooms/"+rid),PL=(rid,uid)=>ref(db,`hf_rooms/${rid}/players/${uid}`);
+const ok=p=>p&&typeof p.n==="string";
+const tx=async(r,f)=>(await runTransaction(r,f)).committed;
+window.HFNet={
+ use,release,
+ watchOffset(cb){subs.off&&subs.off();subs.off=onValue(ref(db,".info/serverTimeOffset"),s=>cb(s.val()||0))},
+ watchRooms(cb){subs.rooms&&subs.rooms();subs.rooms=onValue(ref(db,"hf_rooms"),s=>cb(s.val()),e=>cb(null,e))},
+ unwatch(){for(const k of Object.keys(subs)){try{subs[k]()}catch(e){}delete subs[k]}},
+ join:(rid,uid,n)=>tx(R(rid),cur=>{cur=cur||{};const ps=cur.players||{};for(const u of Object.keys(ps))if(!ok(ps[u]))delete ps[u];
+  if(ps[uid]){Object.assign(ps[uid],{n,on:true,seen:Date.now()});cur.players=ps;return cur}
+  const ids=Object.keys(ps);if(ids.length>=2||(cur.state==="play"&&ids.length))return;
+  ps[uid]={n,seat:ids.some(u=>ps[u].seat===0)?1:0,ready:false,on:true,seen:Date.now()};cur.players=ps;
+  if(!cur.host||!ps[cur.host])cur.host=uid;if(![3,6,12].includes(cur.rounds))cur.rounds=6;if(!ids.length||cur.state!=="play")cur.state="wait";cur.gid=cur.gid||0;return cur}),
+ presence(rid,uid){subs.conn&&subs.conn();subs.conn=onValue(ref(db,".info/connected"),s=>{if(s.val()!==true)return;
+  onDisconnect(PL(rid,uid)).update({on:false,seen:serverTimestamp()}).catch(()=>{});
+  runTransaction(PL(rid,uid),p=>ok(p)?{...p,on:true,seen:Date.now()}:undefined).catch(()=>{})})},
+ unpresence(rid,uid){if(subs.conn){subs.conn();delete subs.conn}onDisconnect(PL(rid,uid)).cancel().catch(()=>{})},
+ rename:(rid,uid,n)=>runTransaction(PL(rid,uid),p=>ok(p)?{...p,n}:undefined).catch(()=>{}),
+ ready:(rid,uid,v)=>tx(PL(rid,uid),p=>ok(p)?{...p,ready:!!v}:undefined),
+ rounds:(rid,uid,n)=>tx(R(rid),cur=>{if(!cur||cur.host!==uid||cur.state==="play"||![3,6,12].includes(n))return;cur.rounds=n;return cur}),
+ async start(rid,uid){const snap=await get(R(rid));const v=snap.val();if(!v||v.host!==uid)return false;await remove(ref(db,"hf_moves/"+rid));
+  return tx(R(rid),cur=>{if(!cur||cur.host!==uid||cur.state==="play")return;const ps=Object.values(cur.players||{}).filter(ok);if(ps.length!==2||!ps.every(p=>p.ready&&p.on!==false))return;
+   cur.state="play";cur.gid=(cur.gid||0)+1;cur.seed=1+Math.floor(Math.random()*999999);cur.res=null;return cur})},
+ async moves(rid){const snap=await get(ref(db,"hf_moves/"+rid));const a=[];snap.forEach(c=>{a.push({k:c.key,...c.val()})});return a},
+ watchMoves(rid,cb){subs.moves&&subs.moves();subs.moves=onChildAdded(ref(db,"hf_moves/"+rid),s=>cb({k:s.key,...s.val()}))},
+ unwatchMoves(){if(subs.moves){subs.moves();delete subs.moves}},
+ pushMove:(rid,m)=>push(ref(db,"hf_moves/"+rid),m).key,
+ finish:(rid,gid,w)=>tx(R(rid),cur=>{if(!cur||cur.state!=="play"||cur.gid!==gid)return;cur.state="wait";cur.res={g:gid,w,why:"end"};for(const p of Object.values(cur.players||{}))if(ok(p))p.ready=false;return cur}),
+ claim:(rid,gid,uid,opp,seat)=>tx(R(rid),cur=>{if(!cur||cur.state!=="play"||cur.gid!==gid)return;const ps=cur.players||{};if(!ps[opp]||ps[opp].on!==false)return;
+  delete ps[opp];cur.players=ps;cur.state="wait";cur.res={g:gid,w:seat,why:"drop"};cur.host=uid;for(const p of Object.values(ps))if(ok(p))p.ready=false;return cur}),
+ async leave(rid,uid){this.unpresence(rid,uid);let gone=false;
+  await tx(R(rid),cur=>{if(!cur)return cur;const ps=cur.players||{};if(!ps[uid])return cur;delete ps[uid];
+   const ids=Object.keys(ps).filter(u=>ok(ps[u]));if(!ids.length){gone=true;return null}gone=false;
+   if(cur.state==="play"){cur.state="wait";cur.res={g:cur.gid||0,w:ps[ids[0]].seat,why:"leave"}}
+   for(const u of ids)ps[u].ready=false;cur.players=ps;if(!ids.includes(cur.host))cur.host=ids[0];return cur});
+  if(gone)await remove(ref(db,"hf_moves/"+rid)).catch(()=>{})},
+ async cleanup(rid,stale,now,ms){let gone=false;
+  await tx(R(rid),cur=>{if(!cur)return cur;const ps=cur.players||{};
+   for(const u of stale){const p=ps[u];if(p&&(!ok(p)||(p.on===false&&now-(p.seen||0)>ms)))delete ps[u]}
+   const ids=Object.keys(ps).filter(u=>ok(ps[u]));if(!ids.length){gone=true;return null}gone=false;
+   cur.players=ps;if(!ids.includes(cur.host))cur.host=ids[0];if(cur.state==="play"&&ids.length<2){cur.state="wait";cur.res={g:cur.gid||0,w:ps[ids[0]].seat,why:"drop"}}return cur});
+  if(gone)await remove(ref(db,"hf_moves/"+rid)).catch(()=>{})}
+};
+dispatchEvent(new Event("hfnet-ready"));
 </script>
 </body>
 </html>
