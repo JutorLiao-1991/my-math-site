@@ -71,7 +71,7 @@
   function newPractice() {
     let q; const previous = state.question && state.question.text;
     for (let i = 0; i < 10; i++) { q = Q.generate(state.type, state.forms, Math.random, state.number); if (q.text !== previous) break; }
-    state.question = q; state.number++; render();
+    state.question = q; state.number++; state.missed = false; render();
   }
   function inputHtml(f, part, locked, rational = false) {
     const suffix = rational ? `-${part}` : '', label = rational ? `${f.label}的${partLabels[part]}` : f.label;
@@ -242,7 +242,7 @@
     }
     if (state.mode === 'exam') { move(1); return; }
     const wrong = fields.find(f => !Q.correct(state.values[f.key], f));
-    if (wrong) { activate(wrong.key); message(`「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return; }
+    if (wrong) { state.missed = true; activate(wrong.key); message(`「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return; }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
     card.querySelectorAll('input, button').forEach(el => { el.disabled = true; el.classList.remove('active'); });
     const solution = card.querySelector('.solution'); solution.hidden = false; solution.innerHTML = Q.displayText(`✓ ${s.explanation}`);
@@ -251,6 +251,7 @@
       state.done = true; $('numpad').hidden = true; $('key-hint').hidden = true; $('hint-button').hidden = true;
       $('check-answer').hidden = true; $('next-question').hidden = false; $('phase-note').textContent = '這一題完成了！';
       message('答對了！按「下一題」繼續練習。', 'success'); playSuccess(); measureDock();
+      if (window.JutorLog) JutorLog.practice(!state.missed);
     } else {
       const next = $(`step-${state.step}`); next.classList.remove('locked'); next.querySelectorAll('input, button').forEach(el => { el.disabled = false; });
       activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success');
@@ -297,6 +298,7 @@
     const correct = state.questions.filter((q, i) => q.finalFields.every(f => Q.correct(state.answers[i][f.key] || '', f))).length;
     $('result-heading').textContent = timedOut ? '時間到，已交卷' : '測驗完成'; $('final-score').textContent = `${correct * 10} 分`;
     $('result-summary').textContent = `答對${correct}／${state.questions.length}題。每題全部答案正確得10分。點開各題查看解析。`;
+    if (window.JutorLog) JutorLog.exam({ score: correct * 10, full: state.questions.length * 10, correct, count: state.questions.length, secs: Math.min(600, (Date.now() - (state.deadline - 600000)) / 1000) });
     const list = $('review-list'); list.replaceChildren();
     state.questions.forEach((q, i) => {
       const details = document.createElement('details'), summary = document.createElement('summary'), question = document.createElement('p'), solution = document.createElement('div');

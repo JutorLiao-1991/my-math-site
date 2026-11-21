@@ -79,6 +79,7 @@
             .study-card { padding: 20px 14px; }
         }
     </style>
+<script src="../../battle_log.js"></script>
 </head>
 <body>
 
@@ -204,6 +205,7 @@
 <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playSound(type) {
+        if (type === 'wrong') window._jlMiss = true;
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const now = audioCtx.currentTime;
         if (type === 'correct') {
@@ -520,7 +522,7 @@
 
         if (currentList.length === 0) return alert("此範圍尚無資料！");
         
-        currentIndex = 0; score = 0;
+        currentIndex = 0; score = 0; window._jlT = Date.now();
         document.getElementById('setup-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         loadQuestion();
@@ -543,6 +545,7 @@
 
     function loadQuestion() {
         currentWordObj = currentList[currentIndex];
+        window._jlMiss = false;
         spellingAttempts = 0;
         isSubmitted = false; 
         isSentenceMode = false;
@@ -628,6 +631,7 @@
 
             if (dist === 0 || input === correctAns) {
                 isSubmitted = true; 
+                if (window.JutorLog && quizMode !== 'exam') JutorLog.practice(!window._jlMiss, '單字');
                 playSound('correct');
                 feedback.textContent = "Perfect! 完全正確！";
                 feedback.className = "feedback text-correct";
@@ -652,6 +656,7 @@
         } else {
             if (input.toLowerCase() === correctAns.toLowerCase()) {
                 isSubmitted = true; 
+                if (window.JutorLog && quizMode !== 'exam') JutorLog.practice(!window._jlMiss, '單字');
                 playSound('correct');
                 feedback.textContent = "Bingo! 答對了！";
                 feedback.className = "feedback text-correct";
@@ -790,6 +795,7 @@
             document.getElementById('examResult').classList.remove('hidden');
             document.getElementById('practiceResult').classList.add('hidden');
             document.getElementById('finalScore').textContent = score;
+            if (window.JutorLog) JutorLog.exam({ score, full: currentList.length * 5, count: currentList.length, secs: (Date.now() - window._jlT) / 1000, label: '單字' });
         } else {
             document.getElementById('examResult').classList.add('hidden');
             document.getElementById('practiceResult').classList.remove('hidden');

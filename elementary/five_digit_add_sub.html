@@ -11,6 +11,8 @@
     @media(max-width:430px){.nav{padding:8px 10px}.nav a{padding:5px 9px;font-size:.85rem}.layout{gap:9px}.work{min-height:425px;padding:10px}.vertical{grid-template-columns:28px repeat(5,minmax(34px,48px));font-size:1.75rem}.controls{padding:12px}.choice{font-size:.9rem}.numpad button{min-height:52px}}
   </style>
   <link rel="stylesheet" href="elementary_theme.css">
+<script src="../battle_log.js"></script>
+<script src="../page_views.js" defer></script>
 </head>
 <body>
   <header class="nav"><a href="../index.html">← 回主選單</a><h1>🦔 五位數加減法（四年級）</h1></header>
@@ -58,7 +60,7 @@ function inputDigit(d){if(locked)return;playSound('move');if(phase==='carry'){wr
 function advanceColumn(){col--;prepareColumn()}
 function wrong(msg){mistakes++;playSound('wrong');if(mode==='exam')$('points').textContent=`${Math.max(0,10-mistakes)} 分`;toast(msg,'bad')}
 function toast(msg,type){const t=document.createElement('div');t.className=`toast ${type}`;t.textContent=msg;$('work').appendChild(t);setTimeout(()=>t.remove(),1100)}
-function completeQuestion(){locked=true;playSound('correct');if(mode==='exam')totalScore+=Math.max(0,10-mistakes);toast('直式完成！','ok');setTimeout(()=>{qIndex++;if(mode==='exam'&&qIndex>=EXAM_QUESTIONS)finishExam();else{if(mode==='practice')questions=[makeProblem()];loadQuestion()}},700)}
-function finishExam(){if($('end').classList.contains('hidden')===false)return;clearInterval(timerId);locked=true;$('finalScore').textContent=`${totalScore} 分`;$('endText').textContent=`完成 ${qIndex} 題；每次輸錯已扣 1 分。`;$('end').classList.remove('hidden')}
+function completeQuestion(){locked=true;playSound('correct');if(window.JutorLog&&mode!=='exam')JutorLog.practice(!mistakes);if(mode==='exam')totalScore+=Math.max(0,10-mistakes);toast('直式完成！','ok');setTimeout(()=>{qIndex++;if(mode==='exam'&&qIndex>=EXAM_QUESTIONS)finishExam();else{if(mode==='practice')questions=[makeProblem()];loadQuestion()}},700)}
+function finishExam(){if($('end').classList.contains('hidden')===false)return;clearInterval(timerId);locked=true;if(window.JutorLog)JutorLog.exam({score:totalScore,full:EXAM_QUESTIONS*10,count:EXAM_QUESTIONS,secs:EXAM_SECONDS-timeLeft});$('finalScore').textContent=`${totalScore} 分`;$('endText').textContent=`完成 ${qIndex} 題；每次輸錯已扣 1 分。`;$('end').classList.remove('hidden')}
 </script>
 </body></html>

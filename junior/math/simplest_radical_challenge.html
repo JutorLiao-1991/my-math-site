@@ -287,6 +287,8 @@
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
+<script src="../../battle_log.js"></script>
+<script src="../../page_views.js" defer></script>
 </head>
 <body>
 
@@ -602,7 +604,7 @@
         document.getElementById('sp-container').style.display = 'flex';
         document.getElementById('sp-end-overlay').style.display = 'none';
 
-        spScore = 0; spStreak = 0; spCurrentQIndex = 0;
+        spScore = 0; spStreak = 0; spCurrentQIndex = 0; window._jlC = 0; window._jlT = Date.now();
         document.getElementById('sp-score-display').innerText = spScore.toFixed(1);
         document.getElementById('sp-streak-num').innerText = spStreak;
         document.getElementById('sp-streak-box').classList.remove('active');
@@ -717,6 +719,7 @@
         const fbMsg = document.getElementById('sp-feedback-msg');
 
         if (selectedAnswer === correctAnswer) {
+            window._jlC = (window._jlC || 0) + 1;
             playSound('correct');
             btnObj.classList.add('correct');
 
@@ -757,6 +760,7 @@
     }
 
     function spShowGameOver() {
+        if (window.JutorLog) JutorLog.exam({ score: Math.round(spScore * 10) / 10, full: SP_TOTAL_Q * 5, correct: window._jlC || 0, count: SP_TOTAL_Q, secs: (Date.now() - (window._jlT || Date.now())) / 1000, label: '單人挑戰' });
         spIsProcessing = true;
         lockAnswers('.sp-opt-btn');
         if (spTimerFrame) cancelAnimationFrame(spTimerFrame);

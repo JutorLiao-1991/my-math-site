@@ -440,6 +440,8 @@
       .key { min-height: 50px; font-size: 1.2rem; }
     }
   </style>
+<script src="../battle_log.js"></script>
+<script src="../page_views.js" defer></script>
 </head>
 <body>
   <div class="app">
@@ -613,6 +615,7 @@
       state.round = 0;
       state.score = 0;
       state.questionScore = POINTS_PER_EXAM_QUESTION;
+      state.logT = Date.now();
       updateScoreboard();
       $('intro-overlay').classList.add('hidden');
       $('finish-overlay').classList.add('hidden');
@@ -850,6 +853,7 @@
         setFeedback(`你的判斷正確，全部找齊了！本題獲得 ${state.questionScore} 分，準備前往下一個鵲巢。`, 'good');
       } else {
         const bonus = Math.max(0, 5 - state.mistakesThisRound);
+        if (window.JutorLog) JutorLog.practice(!state.mistakesThisRound);
         state.score += bonus;
         updateScoreboard();
         setFeedback(`共 ${state.pairs.length} 種排列。本題加上 ${bonus} 分完整獎勵，準備前往下一個鵲巢。`, 'good');
@@ -869,6 +873,7 @@
     }
 
     function finishGame() {
+      if (window.JutorLog && state.mode === 'exam') JutorLog.exam({ score: state.score, full: EXAM_ROUNDS * POINTS_PER_EXAM_QUESTION, count: EXAM_ROUNDS, secs: (Date.now() - state.logT) / 1000 });
       const scoreDetail = state.mode === 'exam' ? `滿分 ${EXAM_ROUNDS * POINTS_PER_EXAM_QUESTION} 分。` : '';
       $('finish-text').textContent = `你完成了 ${state.totalRounds} 個鵲巢，共得到 ${state.score} 分。${scoreDetail}每一組完整排列，都是這個數的一組因數配對！`;
       $('finish-overlay').classList.remove('hidden');
