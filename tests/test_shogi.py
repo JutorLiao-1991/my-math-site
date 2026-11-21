@@ -103,13 +103,13 @@ if(cnt.open<8||cnt.mid<4||cnt.end<5)throw new Error('too few '+JSON.stringify(cn
 console.log('ok');""")
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertIn("ok", out.stdout)
-        self.assertIn('data-act="studies">戰術學習</button>', PAGE)
+        self.assertIn('data-act="studies"><b>戰術學習</b>', PAGE)
 
     def test_lessons_cover_basics(self):
         for title in ("步兵", "香車", "桂馬", "銀將", "金將", "角行", "飛車", "玉將與王手", "吃子與打入", "升變", "禁手：二步", "將死對方"):
             self.assertIn(f"t:'{title}'", PAGE)
-        self.assertIn('data-act="lessons">新手教學</button>', PAGE)
-        self.assertIn('data-act="tsumes">詰將棋</button>', PAGE)
+        self.assertIn('data-act="lessons"><b>新手教學</b>', PAGE)
+        self.assertIn('data-act="tsumes"><b>詰將棋</b>', PAGE)
 
 
     def test_opening_book_lines_are_legal(self):
@@ -122,7 +122,7 @@ console.log('ok');""")
         self.assertIn("ok", out.stdout)
 
     def test_handicap_pvp_save_and_hint_present(self):
-        for key in ("讓香", "讓角", "讓飛", "讓飛香", "讓二枚", "雙人對戰", "每步自動翻轉", "sg_save", "繼續上次的對局", "data-act=\"tip\"", "勝率 ≈ 1 ÷ (1 + e"):
+        for key in ("讓香", "讓角", "讓飛", "讓飛香", "讓二枚", "data-act=\"pvp\"><b>雙人對戰</b>", "body.pvp #oppWho", "flip:false", "sg_save", "繼續上次的對局", "data-act=\"tip\"", "勝率 ≈ 1 ÷ (1 + e"):
             self.assertIn(key, PAGE)
 
 

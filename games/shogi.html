@@ -45,6 +45,17 @@ main{display:flex;flex-direction:column;min-height:0}
 .hp b{position:absolute;right:-5px;bottom:-4px;background:var(--red);color:#fff;border-radius:8px;font-size:11px;line-height:16px;padding:0 5px}
 .hp.sel{background:#7ec8ff66}
 .wide{width:100%;margin:4px 0 6px}
+#prompt2{display:none}
+body.pvp #prompt2{display:block;transform:rotate(180deg);text-align:center;min-height:20px;margin-bottom:4px}
+body.pvp #oppWho{transform:rotate(180deg)}
+.handrow.turn .who b{color:var(--gold)}
+body.pvp .handrow.turn{box-shadow:0 0 0 2px #e0b43c88;border-radius:10px}
+#modal.flip .box{transform:rotate(180deg)}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0 6px}
+.modes .mode{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:14px 16px;min-height:66px;border-radius:12px;background:linear-gradient(135deg,#4a3324,#2f231c);border:1px solid #6b5140;text-align:left}
+.modes .mode b{font-size:18px;letter-spacing:.1em;color:var(--gold)}.modes .mode small{color:var(--mut);font-size:12.5px;line-height:1.35}
+.modes .mode.big{grid-column:1/3;background:linear-gradient(135deg,#7a2a1f,#3c1712);border-color:#a8483a}
+.modes .mode.big b{font-size:20px}
 #evb{display:flex;align-items:center;gap:8px;width:calc(var(--sq)*var(--n) + 22px);font-size:12px;cursor:pointer}
 #evb b{font-size:12px}.evt{flex:1;height:10px;border-radius:5px;background:#5a1a14;overflow:hidden;box-shadow:inset 0 0 0 1px #0007}
 #evf{display:block;height:100%;width:50%;background:linear-gradient(90deg,#e0b43c,#f6dc86);transition:width .6s ease}
@@ -152,10 +163,11 @@ body.hint .hints,.showhint .hints{display:block}
  </header>
  <main>
   <section id="stage">
-   <div class="handrow"><span class="who" id="oppWho"></span><div class="hand" id="h1"></div></div>
+   <div id="prompt2"></div>
+   <div class="handrow" id="row1"><span class="who" id="oppWho"></span><div class="hand" id="h1"></div></div>
    <div id="evb" data-act="evinfo" hidden><b id="evL">你</b><div class="evt"><i id="evf"></i></div><span id="evP">50%</span><span class="pill" id="evR"></span></div>
    <div id="bw"><div id="colL"></div><div></div><div id="board"></div><div id="rowL"></div></div>
-   <div class="handrow" style="margin-top:12px"><span class="who"><b id="meName">你</b><span id="meSide"></span></span><div class="hand" id="h0"></div></div>
+   <div class="handrow" id="row0" style="margin-top:12px"><span class="who"><b id="meName">你</b><span id="meSide"></span></span><div class="hand" id="h0"></div></div>
   </section>
   <section id="panel"><div id="study" hidden></div><div id="prompt"></div><div id="kifu"></div></section>
  </main>
@@ -490,7 +502,7 @@ const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
 const HP={0:[50,15],1:[78,25],2:[87,58],3:[84,87],4:[50,89],5:[16,87],6:[13,58],7:[22,25],8:[34,17],9:[66,17]};
 const ANG=[0,45,90,135,0,45,90,135];
 const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
-let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:2,side:'sente',hc:'none',flip:1},worker=null,HINT=false;
+let G=null,SEL=null,NAME='青年鳩特',OPT={W:9,diff:2,side:'sente',hc:'none',mode:'solo',view:'solo'},worker=null,HINT=false;
 try{HINT=localStorage.getItem('sg_hint')==='1'}catch(e){}
 try{worker=new Worker(URL.createObjectURL(new Blob([document.getElementById('eng').textContent+';onmessage=e=>{const r=ENGINE.think(e.data.p,e.data.o);r.id=e.data.id;postMessage(r)};'],{type:'text/javascript'})))}catch(e){worker=null}
 const WQ=new Map();let WID=0;if(worker)worker.onmessage=e=>{const f=WQ.get(e.data.id);if(f){WQ.delete(e.data.id);f(e.data)}};
@@ -512,11 +524,11 @@ function pieceH(v,pid,upright){const o=v>0?1:-1,ty=v*o,ch=ty===8?(o===1?'玉':'�
  return `<div class="pc${g?' g':''}${ty>=9?' pr':''}"${pid?` data-pid="${pid}"`:''} style="--s:${SC[ty]}"><div class="k"><span class="ch">${ch}</span>${hintsH(ty)}</div></div>`}
 /* ===== 對局 ===== */
 function newGame(){
- const W=OPT.W,pvp=OPT.diff==='pvp';let hc=pvp?'none':OPT.hc;if(!HC[W][hc])hc='none';
+ const W=OPT.W,pvp=OPT.mode==='pvp';let hc=pvp?'none':OPT.hc;if(!HC[W][hc])hc='none';
  const me=pvp||hc!=='none'?1:OPT.side==='rand'?(Math.random()<.5?1:-1):OPT.side==='gote'?-1:1,P=ENG.newPos(W);
  if(hc!=='none'){for(const [x,y] of HC[W][hc])P.b[y*W+x]=0;P.side=-1}
  TUT.stop();hideFinale();
- G={mode:'game',W,pos:P,me,view:me,diff:pvp?3:OPT.diff,pvp,flip:!!OPT.flip,hc,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),mvs:[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ G={mode:'game',W,pos:P,me,view:me,diff:pvp?3:OPT.diff,pvp,flip:false,hc,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),mvs:[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
  let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
  NAME=nameOf();SEL=null;G.legal=ENG.legal(P);G.reps.set(ENG.key(P),1);
  closeModal();layout();render();BGM.start();saveGame();afterTurnStart();
@@ -546,7 +558,7 @@ function saveGame(){if(!G||G.mode!=='game')return;try{if(G.over)return localStor
 function savedInfo(){try{return JSON.parse(localStorage.getItem('sg_save')||'null')}catch(e){return null}}
 function resumeSaved(){const d=savedInfo();if(!d)return;TUT.stop();hideFinale();
  const P={W:d.W,b:Int8Array.from(d.b),h:[Int8Array.from(d.h[0]),Int8Array.from(d.h[1])],side:d.side};
- G={mode:'game',W:d.W,pos:P,me:d.me,view:d.view,diff:d.diff,pvp:d.pvp,flip:d.flip,hc:d.hc||'none',ids:Int32Array.from(d.ids),hid:d.hid,kifu:d.kifu,last:d.last,lastTo:d.lastTo,hist:[],reps:new Map(d.reps),mvs:d.mvs||[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ G={mode:'game',W:d.W,pos:P,me:d.me,view:d.pvp?1:d.view,diff:d.diff,pvp:d.pvp,flip:false,hc:d.hc||'none',ids:Int32Array.from(d.ids),hid:d.hid,kifu:d.kifu,last:d.last,lastTo:d.lastTo,hist:[],reps:new Map(d.reps),mvs:d.mvs||[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
  NAME=nameOf();SEL=null;G.legal=ENG.legal(P);closeModal();layout();render();BGM.start();afterTurnStart()}
 function canPromote(m){return G.legal.includes(m|ENG.PR)&&!(m&ENG.PR)&&!(m>>15)}
 function play(m){
@@ -613,18 +625,20 @@ function draw(){
    s+=`<div class="hp${mine&&SEL==='h'+ty?' sel':''}"${mine?` data-ht="${ty}"`:''}>${pieceH(side*ty,ids[ids.length-1],who===0)}${n>1?`<b>${n}</b>`:''}</div>`}
   if(who===1&&G.mode==='tsume')s='<span class="pill">盤上和你的持駒以外，其餘棋子全部</span>';
   $(who===0?'h0':'h1').innerHTML=s||'<span class="pill">（無持駒）</span>'}
+ document.body.classList.toggle('pvp',!!G.pvp);$('row0').classList.toggle('turn',G.mode==='game'&&!G.over&&P.side===VW());$('row1').classList.toggle('turn',G.mode==='game'&&!G.over&&P.side!==VW());
+ if(G.pvp){const chk=ENG.inCheck(P);$('prompt2').innerHTML=G.over?'對局結束':P.side===-1?(chk?'<b style="color:#ff7565">後手被王手了！</b>先解除王手':'<b style="color:#ffe28a">後手</b>：輪到你'):'先手思考中…'}
  $('oppWho').innerHTML=G.pvp?`<b>${SN(-VW())}</b>`:`<b>${NAME}</b>${G.mode==='game'?(G.me===1?'後手':'先手')+(G.hc!=='none'?'・'+HCN[G.hc]:''):''}`;$('meName').textContent=G.pvp?SN(VW()):'你';$('meSide').textContent=G.pvp?'':G.mode==='tsume'?'攻方':G.me===1?'先手':'後手';
  $('study').hidden=G.mode!=='study';if(G.mode==='study')$('study').innerHTML=studyHTML();
  $('rinfo').textContent=G.mode==='study'?'戰術學習':G.mode==='lesson'?`新手教學 ${G.li+1}/${LESSONS.length}`:G.mode==='tsume'?`${G.tn} 手詰 第 ${G.ti+1} 題`:G.W===9?'本將棋':'五五將棋';
  $('bResign').hidden=G.mode!=='game';$('bTip').hidden=G.mode==='lesson';drawEval();
  const myTurn=P.side===ctl()&&!G.over;
- $('prompt').innerHTML=G.mode==='study'?'':G.mode==='tsume'&&!G.over?(G.thinking||P.side!==1?'玉方應對中…':`輪到你：每一步都要王手，<b>${G.rem} 手內</b>將死`):G.mode==='lesson'?'':G.over?'對局結束':G.tipTxt?`<b style="color:#ffe28a">${G.tipTxt}</b>`:G.pvp&&!ENG.inCheck(P)?`${SN(P.side)}的回合：點自己的棋子或持駒`:G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
+ $('prompt').innerHTML=G.mode==='study'?'':G.mode==='tsume'&&!G.over?(G.thinking||P.side!==1?'玉方應對中…':`輪到你：每一步都要王手，<b>${G.rem} 手內</b>將死`):G.mode==='lesson'?'':G.over?'對局結束':G.tipTxt?`<b style="color:#ffe28a">${G.tipTxt}</b>`:G.pvp?(P.side===1?(ENG.inCheck(P)?'<b style="color:#ff7565">先手被王手了！</b>先解除王手':'<b style="color:#ffe28a">先手</b>：輪到你'):'後手思考中…'):G.thinking?`${NAME}思考中…`:myTurn?(ENG.inCheck(P)?'<b style="color:#ff7565">被王手了！</b>先解除王手':SEL===null?'輪到你：點自己的棋子或持駒':'點藍點的位置走棋，紅框代表可以吃子'):'…';
  $('kifu').innerHTML=G.kifu.map((t,i)=>`<span>${i+1} ${t}</span>`).join('');$('kifu').scrollTop=1e5;
  $('bUndo').disabled=!G.hist.length||G.thinking||G.over;$('bUndo').hidden=G.mode==='study';$('bTip').hidden=G.mode==='lesson'||G.mode==='study';
  syncBtns();
 }
 function syncBtns(){$('bBgm').textContent=BGM_ON?'配樂開':'配樂關';$('bBgm').className=BGM_ON?'pri':'';$('bSnd').textContent=MUTE?'音效關':'音效開';$('bSnd').className=MUTE?'':'pri';$('bHint').className=HINT?'pri':'';document.body.classList.toggle('hint',HINT)}
-function modal(h,kind){$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').dataset.kind=kind||''}
+function modal(h,kind){$('modal').classList.remove('flip');$('mbox').innerHTML=h;$('modal').hidden=false;$('modal').dataset.kind=kind||''}
 const canResume=()=>!!(G&&!G.over);
 function closeModal(){$('modal').hidden=true}
 /* ===== 新手教學（分關卡）與詰將棋 ===== */
@@ -828,7 +842,7 @@ function tryMove(cands){
  G.hist.push(snapshot());
  if(pro&&non){const f=non&127,v=G.pos.b[f],o=v>0?1:-1,ty=v*o;
   G.pendingPromo=[pro,non];
-  return modal(`<h2>要升變嗎？</h2><p>棋子走進敵陣（對方那一側${G.W===9?'三':'一'}排）時可以選擇翻面升變。</p><div class="promo"><button class="red" data-act="promo1">${pieceH(o*ENG.PROMO[ty],0,true)}升變</button><button data-act="promo0">${pieceH(o*ty,0,true)}不升變</button></div>`)}
+  modal(`<h2>要升變嗎？</h2><p>棋子走進敵陣（對方那一側${G.W===9?'三':'一'}排）時可以選擇翻面升變。</p><div class="promo"><button class="red" data-act="promo1">${pieceH(o*ENG.PROMO[ty],0,true)}升變</button><button data-act="promo0">${pieceH(o*ty,0,true)}不升變</button></div>`);if(G.pvp&&G.pos.side===-1)$('modal').classList.add('flip');return}
  play(cands[0]);
 }
 function onSq(sq){
@@ -848,19 +862,31 @@ function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==ctl())return;if(G.mo
 function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;const s=G.hist.pop();
  Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps,rem:s.rem,view:s.view,goal:G.mode==='lesson'?G.goal:null,tipTxt:null,tip:null});G.kifu.length=s.kn;if(G.mvs)G.mvs.length=s.mvn;G.legal=ENG.legal(G.pos);SEL=null;render();saveGame();if(G.mode==='game')requestEval()}
 function showMenu(){
- const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
- const pvp=OPT.diff==='pvp',hcs=Object.keys(HC[OPT.W]),sv=savedInfo();if(!HC[OPT.W][OPT.hc])OPT.hc='none';
+ const sv=savedInfo();
+ const back=canResume()?`<button data-act="resume">返回${G.mode==='lesson'?'教學':G.mode==='tsume'?'題目':G.mode==='study'?'學習':'對局'}</button>`:'';
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特將棋</h2></div></div>
- <p>日本將棋，和五位鳩特對戰，或兩個人用同一台裝置對下。吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
+ <p>日本將棋：吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
  ${sv&&!canResume()?`<button class="pri wide" data-act="resumesave">繼續上次的對局（${sv.pvp?'雙人對戰':DIFFN[sv.diff]}・${sv.W===9?'本將棋':'五五將棋'}・已下 ${sv.kifu.length} 手）</button>`:''}
+ <div class="modes"><button class="mode big" data-act="solo"><b>對戰鳩特</b><small>和五位電腦鳩特對下，可以讓子</small></button><button class="mode" data-act="pvp"><b>雙人對戰</b><small>同一台裝置，面對面對下</small></button><button class="mode" data-act="lessons"><b>新手教學</b><small>13 課，從棋子走法學起</small></button><button class="mode" data-act="tsumes"><b>詰將棋</b><small>一手詰、三手詰各 50 題</small></button><button class="mode" data-act="studies"><b>戰術學習</b><small>開局戰法、手筋、寄せ</small></button></div>
+ <div class="btns">${back}<button data-act="rules">規則與走法</button></div>`,'menu')}
+function showPvp(){OPT.view='pvp';
+ const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
+ modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特將棋</small><h2>雙人對戰</h2></div></div>
+ <p>兩個人面對面，各坐在手機或平板的一端：下方是先手、上方是後手。棋盤不會翻轉，上方的提示文字會轉向後手。</p>
  <h3>棋盤</h3><div class="opts">${o('W',9,'本將棋 9×9')}${o('W',5,'五五將棋 5×5')}</div>
  <p class="pill">${OPT.W===9?'正式的將棋，每人 20 枚棋子。':'縮小版，每人 6 枚棋子，一局很快，適合入門。'}</p>
- <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}${o('diff','pvp','雙人對戰')}</div>
+ <div class="btns"><button data-act="menu">返回</button>${canResume()&&G.mode==='game'&&G.pvp?'<button data-act="resume">返回對局</button>':''}<button class="pri" data-act="start">${canResume()&&G.mode==='game'&&G.pvp?'重新開局':'開始對戰'}</button></div>`,'menu')}
+function showSolo(){OPT.view='solo';
+ const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
+ const pvp=false,hcs=Object.keys(HC[OPT.W]);if(!HC[OPT.W][OPT.hc])OPT.hc='none';if(OPT.diff==='pvp')OPT.diff=2;
+ modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特將棋</small><h2>對戰鳩特</h2></div></div>
+ <h3>棋盤</h3><div class="opts">${o('W',9,'本將棋 9×9')}${o('W',5,'五五將棋 5×5')}</div>
+ <p class="pill">${OPT.W===9?'正式的將棋，每人 20 枚棋子。':'縮小版，每人 6 枚棋子，一局很快，適合入門。'}</p>
+ <h3>對手</h3><div class="opts">${DIFFN.map((n,i)=>o('diff',i,n)).join('')}</div>
  <p class="pill">${pvp?'兩個人輪流在同一台裝置上下棋。':['只看一步，常常亂走，適合第一次下棋。','只看一步，但會算吃子交換，不太會白白送子。','會先算兩步，再看吃子交換划不划算。','會往前算好幾步，認真下才贏得了。','會戰術也懂定跡：開局照常見棋譜走，之後記住算過的局面、追著王手多算幾步、先找三手內的將死，也懂得保護自己的王。每步最多想 4.5 秒。'][OPT.diff]}</p>
- ${pvp?`<h3>棋盤方向</h3><div class="opts">${o('flip',1,'每步自動翻轉')}${o('flip',0,'固定先手在下')}</div>`
- :`<h3>讓子</h3><div class="opts">${o('hc','none','不讓')}${hcs.map(k=>o('hc',k,HCN[k])).join('')}</div><p class="pill">${OPT.hc==='none'?'雙方棋子一樣多。':'鳩特拿掉棋子並且先下，你固定坐在下方。適合挑戰比自己強的鳩特。'}</p>
+ ${`<h3>讓子</h3><div class="opts">${o('hc','none','不讓')}${hcs.map(k=>o('hc',k,HCN[k])).join('')}</div><p class="pill">${OPT.hc==='none'?'雙方棋子一樣多。':'鳩特拿掉棋子並且先下，你固定坐在下方。適合挑戰比自己強的鳩特。'}</p>
  ${OPT.hc==='none'?`<h3>先後手</h3><div class="opts">${o('side','sente','我先下')}${o('side','gote','我後下')}${o('side','rand','隨機')}</div>`:''}`}
- <div class="btns">${canResume()?`<button data-act="resume">返回${G.mode==='lesson'?'教學':G.mode==='tsume'?'題目':G.mode==='study'?'學習':'對局'}</button>`:''}<button data-act="lessons">新手教學</button><button data-act="tsumes">詰將棋</button><button data-act="studies">戰術學習</button><button data-act="rules">規則與走法</button><button class="pri" data-act="start">${canResume()&&G.mode==='game'?'重新開局':'開始對局'}</button></div>`,'menu')}
+ <div class="btns"><button data-act="menu">返回</button>${canResume()&&G.mode==='game'&&!G.pvp?'<button data-act="resume">返回對局</button>':''}<button class="pri" data-act="start">${canResume()&&G.mode==='game'&&!G.pvp?'重新開局':'開始對局'}</button></div>`,'menu')}
 function showRules(){
  const row=(ty,t)=>`<div class="showhint">${pieceH(ty,0,true)}</div><div><b>${t[0]}</b><br><small>${t[1]}</small></div>`;
  modal(`<h2>規則與走法</h2>
@@ -873,10 +899,13 @@ function showRules(){
  <h3>千日手</h3><p>同一個局面出現四次，本將棋判和局，五五將棋判先手輸。</p>
  <div class="btns"><button class="pri" data-act="close">知道了</button></div>`)}
 function act(a,el){
- if(['menu','start','again','easier','lessons','tsumes','studies','study'].includes(a))hideFinale();
- if(a==='easier'){OPT.diff=Math.max(0,G.diff-1);OPT.W=G.W;return newGame()}
- if(a==='opt'){const v=el.dataset.v;OPT[el.dataset.k]=isNaN(+v)?v:+v;return showMenu()}
- if(a==='start'||a==='again')return newGame();
+ if(['menu','start','again','easier','lessons','tsumes','studies','study','solo','pvp'].includes(a))hideFinale();
+ if(a==='easier'){OPT.diff=Math.max(0,G.diff-1);OPT.W=G.W;OPT.mode='solo';return newGame()}
+ if(a==='opt'){const v=el.dataset.v;OPT[el.dataset.k]=isNaN(+v)?v:+v;return OPT.view==='pvp'?showPvp():showSolo()}
+ if(a==='solo')return showSolo();
+ if(a==='pvp')return showPvp();
+ if(a==='start'){OPT.mode=OPT.view==='pvp'?'pvp':'solo';return newGame()}
+ if(a==='again'){if(G&&G.mode==='game')OPT.mode=G.pvp?'pvp':'solo';return newGame()}
  if(a==='menu')return showMenu();
  if(a==='resume')return closeModal();
  if(a==='rules')return showRules();
