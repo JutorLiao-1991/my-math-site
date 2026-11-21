@@ -314,6 +314,8 @@
             .btn { width: 100%; justify-content: center; }
         }
     </style>
+<script src="../../battle_log.js"></script>
+<script src="../../page_views.js" defer></script>
 </head>
 <body>
 
@@ -668,6 +670,7 @@
             const streakDisplay = document.getElementById('streakCount');
             const allBtns = document.querySelectorAll('.opt-btn');
             allBtns.forEach(b => b.disabled = true);
+            if (window.JutorLog) JutorLog.practice(isCorrect, currentMode === 'symbolToName' ? '英翻中' : '中翻英');
 
             if (isCorrect) {
                 currentStreak++; // 答對加一

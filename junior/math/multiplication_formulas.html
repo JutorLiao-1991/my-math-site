@@ -422,6 +422,8 @@
             *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition-duration: 0.01ms !important; }
         }
     </style>
+<script src="../../battle_log.js"></script>
+<script src="../../page_views.js" defer></script>
 </head>
 <body>
     <header class="nav-bar">
@@ -910,6 +912,7 @@
         function renderQuestion() {
             const question = currentQuestion();
             if (!question) return finishSession(false);
+            state.logW = state.wrongInputs;
             state.rowIndex = 0;
             state.currentQuestionPoints = POINTS_PER_QUESTION;
             state.activeInput = null;
@@ -1088,6 +1091,7 @@
                 setFeedback(`本題完成，獲得 ${state.currentQuestionPoints} 分。`, "good");
             } else {
                 state.practiceCompleted++;
+                if (window.JutorLog) JutorLog.practice(state.wrongInputs === state.logW);
                 setFeedback("整題完成！準備下一題。", "good");
             }
             updateStats();
@@ -1168,6 +1172,7 @@
                 document.getElementById("end-icon").textContent = timedOut ? "⏰" : "🏁";
                 document.getElementById("end-title").textContent = timedOut ? "時間到！" : "考試完成！";
                 document.getElementById("final-score").textContent = `${state.earnedScore} 分`;
+                if (window.JutorLog) JutorLog.exam({ score: state.earnedScore, full: EXAM_QUESTION_COUNT * POINTS_PER_QUESTION, count: EXAM_QUESTION_COUNT, secs: Math.min(EXAM_SECONDS, EXAM_SECONDS - (state.deadline - Date.now()) / 1000) });
                 document.getElementById("final-details").innerHTML = `完成 ${Math.min(completed, EXAM_QUESTION_COUNT)} / ${EXAM_QUESTION_COUNT} 題<br>錯誤空格共 ${state.wrongInputs} 次；未完成題目不計分。`;
             } else {
                 document.getElementById("end-icon").textContent = "🌟";

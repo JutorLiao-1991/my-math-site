@@ -173,6 +173,7 @@ function currentQuestion() { return state.questions[state.questionIndex]; }
 function renderQuestion() {
     const question = currentQuestion();
     if (!question) return finishSession(false);
+    state.logW = state.wrongInputs;
     state.rowIndex = 0;
     state.questionComplete = false;
     document.getElementById("check-btn").textContent = "檢查本列";
@@ -364,6 +365,7 @@ function completeQuestion() {
     document.getElementById("check-btn").textContent = "下一題";
 
     state.practiceCompleted++;
+    if (window.JutorLog) JutorLog.practice(state.wrongInputs === state.logW);
     stageProgress[question.kind]++;
     setFeedback('整題完成！看完解析後，按「下一題」繼續。', 'good');
     updateStats();
@@ -441,6 +443,7 @@ function finishSession(timedOut) {
         document.getElementById('end-icon').textContent=report.timedOut?'⏰':'🏁';
         document.getElementById('end-title').textContent=report.timedOut?'時間到，已自動交卷':'考試完成！';
         document.getElementById('final-score').textContent=`${report.score} 分`;
+        if (window.JutorLog) JutorLog.exam({ score: report.score, full: 100, correct: report.correct, count: 10, secs: Math.min(600, 600 - (state.exam.deadline - Date.now()) / 1000) });
         const details=document.getElementById('final-details');details.replaceChildren();
         const summary=document.createElement('p');summary.textContent=`答對 ${report.correct} / 10 題；已填 ${report.answered} 題。每題 10 分，未作答或未化到最簡不計分。`;details.appendChild(summary);
         report.results.forEach((result,i)=>{

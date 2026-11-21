@@ -242,6 +242,7 @@
 
 </style>
 
+<script src="../../battle_log.js"></script>
 </head>
 <body>
 
@@ -843,6 +844,7 @@
         const expBox = document.getElementById('pr-explanation-box');
 
         if (userChoice === correctAns) {
+            if (window.JutorLog) JutorLog.practice(!document.querySelector('[id^="pr-btn-"].wrong'), (currentTopicData && (currentTopicData.title || currentTopicData.name)) || '');
             playSound('correct'); btnObj.classList.add('correct');
             expBox.innerHTML = `<span style="color:#2E7D32;">⭕ 答對了！</span><br>${currentQ.exp}`;
             expBox.style.display = 'block';
@@ -942,6 +944,7 @@
         if (spExamFinished) return;
         spExamFinished = true;
         if (spTimerFrame) cancelAnimationFrame(spTimerFrame);
+        if (window.JutorLog) JutorLog.exam({ score: spScore, full: SP_TOTAL_Q * 10, correct: spScore / 10, count: SP_TOTAL_Q, secs: Math.min(SP_EXAM_SECONDS, SP_EXAM_SECONDS - (spExamDeadline - Date.now()) / 1000), label: (currentTopicData && (currentTopicData.title || currentTopicData.name)) || '' });
         const overlay = document.getElementById('sp-end-overlay'), comment = document.getElementById('sp-final-comment');
         document.getElementById('sp-end-title').innerText = timedOut ? "時間到！" : "考試完成！";
         document.getElementById('sp-final-score').innerText = spScore;

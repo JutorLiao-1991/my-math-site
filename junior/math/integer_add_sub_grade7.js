@@ -103,6 +103,7 @@
       updateStats(); return;
     }
     locked = true; updateKeys(); playSound(true); updateStats();
+    if (window.JutorLog && session.config.mode !== 'exam') JutorLog.practice(result.kind === 'correct' && !(session.current && session.current.errors), session.config.mode === 'challenge' ? '闖關' : '');
     feedback(result.kind === 'corrected' ? '訂正完成！下一道新題繼續。' : '答對了！', 'success');
     transition = setTimeout(() => { if (session.ended) showResults(); else { session.next(); loadQuestion(); } }, 450);
   }
@@ -110,6 +111,7 @@
   function showResults() {
     clearSchedules(); locked = true; updateKeys();
     const s = session.summary(), exam = s.mode === 'exam', challenge = s.mode === 'challenge';
+    if (exam && window.JutorLog && !session.logged) { session.logged = true; JutorLog.exam({ score: s.score, full: Q.EXAM_COUNT * 10, correct: s.firstCorrect, count: Q.EXAM_COUNT, secs: s.elapsedMs / 1000 }); }
     document.body.classList.remove('playing'); document.body.classList.add('results-view'); $('workspace').hidden = true; $('keypad-panel').hidden = true;
     $('controls-panel').hidden = true; $('results').hidden = false;
     $('result-heading').textContent = exam ? (s.reason === 'timeout' ? '時間到，考試結束' : '考試完成') : challenge ? (s.reason === 'complete' ? '闖關成功！' : '本次挑戰結束') : '練習完成';

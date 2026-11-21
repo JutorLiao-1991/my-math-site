@@ -121,6 +121,8 @@
         }
     </style>
     <link rel="stylesheet" href="elementary_theme.css">
+<script src="../battle_log.js"></script>
+<script src="../page_views.js" defer></script>
 </head>
 <body>
 
@@ -244,7 +246,7 @@
             if (state.timerInterval) clearInterval(state.timerInterval);
 
             state.mode = mode; state.difficulty = diff;
-            state.qIndex = 0; state.score = 0; state.timer = 300;
+            state.qIndex = 0; state.score = 0; state.logT = Date.now(); state.logged = false; state.timer = 300;
 
             // UI 狀態切換
             document.querySelectorAll('.menu-btn').forEach(btn => btn.classList.remove('active'));
@@ -610,6 +612,7 @@
         }
 
         function endGame() {
+            if (window.JutorLog && !state.logged) { state.logged = true; const b = document.querySelector('.menu-btn.active'); JutorLog.exam({ score: state.score, full: 100, count: 10, secs: (Date.now() - state.logT) / 1000, label: b ? b.innerText.replace(/\s+/g, ' ').trim() : '' }); }
             clearInterval(state.timerInterval);
             document.getElementById('workspace').classList.add('hidden');
             document.getElementById('end-screen').classList.remove('hidden');

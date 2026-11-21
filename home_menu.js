@@ -11,7 +11,7 @@
   const lessons = typeof lessonData === 'undefined' ? [] : lessonData;
   lessons.forEach(lesson => {
     const a = document.createElement('a'); a.href = lesson.url; a.className = 'card'; a.dataset.category = lesson.category;
-    const main = `<div class="tags"><span class="tag ${lesson.tagClass}">${lesson.tagName}</span></div><h3 class="card-title">${lesson.title}</h3><p class="card-desc">${lesson.desc}</p><div class="card-footer">開始互動 <span class="arrow">→</span></div>`;
+    const main = `<div class="tags"><span class="tag ${lesson.tagClass}">${lesson.tagName}</span></div><h3 class="card-title">${lesson.title}</h3><p class="card-desc">${lesson.desc}</p><div class="card-footer">開始互動 <span class="arrow">→</span><span class="views" data-views-key="${window.JutorViews ? JutorViews.keyOf(lesson.url) : ''}" hidden></span></div>`;
     a.innerHTML = lesson.thumb ? `<div class="card-body has-thumb"><div class="card-main">${main}</div><img class="card-thumb" src="${lesson.thumb}" alt="${lesson.title}示意圖" loading="lazy" width="104" height="104"></div>` : `<div class="card-body">${main}</div>`;
     $('card-container').append(a);
   });
@@ -48,4 +48,16 @@
     }
   } catch (_) { /* Start at all when saved state is unavailable. */ }
   apply();
+  /* 瀏覽次數：讀一次全部頁面的計數，填在各卡片右下角 */
+  if (window.JutorViews) JutorViews.all().then(counts => {
+    if (!counts) return;
+    const eye = '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>';
+    document.querySelectorAll('[data-views-key]').forEach(el => {
+      const n = Number(counts[el.dataset.viewsKey]) || 0;
+      el.innerHTML = `${eye}${n.toLocaleString('zh-TW')}`; el.title = `瀏覽 ${n.toLocaleString('zh-TW')} 次（同一台裝置一天算一次）`;
+      el.setAttribute('aria-label', el.title); el.hidden = false;
+    });
+    const home = Number(counts.index) || 0, total = $('site-views');
+    if (total && home) { total.textContent = `首頁累計 ${home.toLocaleString('zh-TW')} 人次造訪`; total.hidden = false; }
+  });
 })();

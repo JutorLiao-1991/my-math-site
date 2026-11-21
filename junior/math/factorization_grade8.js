@@ -154,7 +154,7 @@ function showPlayUI() {
 }
 function renderPractice() {
     const q = state.question;
-    state.rowIndex = 0; state.questionComplete = false; state.hintLevel = 0; state.hintsUsed = 0; state.activeInput = null;
+    state.rowIndex = 0; state.questionComplete = false; state.hintLevel = 0; state.hintsUsed = 0; state.activeInput = null; state.logMiss = false;
     $("check-btn").textContent = "檢查本列";
     $("topic-badge").textContent = `${q.topicTitle}・${q.variantTitle}`;
     $("practice-formula").innerHTML = `<small>本題適用</small>${q.reference}`;
@@ -333,6 +333,7 @@ function completeQuestion() {
     show("solution-box", true);
     $("check-btn").textContent = "下一題";
     state.practiceCompleted++; stageProgress[q.kind]++;
+    if (window.JutorLog) JutorLog.practice(!state.logMiss && !state.hintsUsed);
     setFeedback(state.hintsUsed ? `整題完成（用了 ${state.hintsUsed} 次提示）。看完過程後按「下一題」。` : "整題完成，沒有用提示！按「下一題」繼續。", "good");
     updateStats();
     const i = F.TOPICS.findIndex(t => t.id === state.topic);
@@ -492,6 +493,7 @@ function finishSession() {
         $("end-icon").textContent = rep.timedOut ? "⏰" : "🏁";
         $("end-title").textContent = rep.timedOut ? "時間到，已自動交卷" : "考試完成！";
         $("final-score").textContent = `${rep.score} 分`;
+        if (window.JutorLog) JutorLog.exam({ score: rep.score, full: EXAM_QUESTION_COUNT * POINTS_PER_QUESTION, correct: rep.correct, count: EXAM_QUESTION_COUNT, secs: Math.min(600, 600 - (state.exam.deadline - Date.now()) / 1000) });
         const p = document.createElement("p"); p.textContent = `答對 ${rep.correct} / ${EXAM_QUESTION_COUNT} 題；已填 ${rep.answered} 題。每題 ${POINTS_PER_QUESTION} 分，分解不完全不計分。`; details.appendChild(p);
         rep.results.forEach((r, i) => addResult(`第 ${i + 1} 題｜${r.kind === "correct" ? "✓ 答對" : r.message}`, r.question.prompt, [
             [null, null, `你的答案：${r.raw || "未作答"}`],
@@ -503,6 +505,7 @@ function finishSession() {
         $("end-icon").textContent = j.correct >= 8 ? "🏅" : "🔍";
         $("end-title").textContent = "判型快答結束";
         $("final-score").textContent = `${j.correct} / ${JUDGE_COUNT}`;
+        if (window.JutorLog) JutorLog.exam({ score: j.correct, full: JUDGE_COUNT, correct: j.correct, count: JUDGE_COUNT, label: "判型快答" });
         const p = document.createElement("p"); p.textContent = "點開每一題可以看原因與第一步。"; details.appendChild(p);
         j.log.forEach((e, i) => addResult(`第 ${i + 1} 題｜${e.ok ? "✓" : "✗ 應該用 " + e.q.moves.map(id => F.MOVES.find(m => m.id === id).label).join("、")}`, e.q.prompt, [
             ["result-solution", e.q.reason + "<br>第一步：" + e.q.rows[0].solved + "<br>答：" + e.q.answerHTML]
@@ -667,6 +670,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer
 /* ---------------- 音效 ---------------- */
 let audioContext = null;
 function playSound(type) {
+    if (type === "wrong") state.logMiss = true;
     try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === "suspended") audioContext.resume();
