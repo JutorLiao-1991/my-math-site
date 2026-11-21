@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="鳩特踩地雷示意圖">
+  <defs>
+    <linearGradient id="fr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#666b4e"/><stop offset="1" stop-color="#383c29"/></linearGradient>
+    <linearGradient id="pl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#848e50"/><stop offset=".55" stop-color="#5b6533"/><stop offset="1" stop-color="#4a5327"/></linearGradient>
+    <symbol id="h" viewBox="0 0 24 24"><rect width="24" height="24" fill="url(#pl)"/><path d="M0 0h24v1H1v23H0z" fill="#a9b277"/><path d="M24 24H0v-1h23V0h1z" fill="#283012"/><g fill="#283012"><circle cx="4" cy="4" r="1.1"/><circle cx="20" cy="4" r="1.1"/><circle cx="4" cy="20" r="1.1"/><circle cx="20" cy="20" r="1.1"/></g></symbol>
+    <symbol id="s" viewBox="0 0 24 24"><rect width="24" height="24" fill="#d4c193"/><rect x=".25" y=".25" width="23.5" height="23.5" fill="none" stroke="#9c8656" stroke-width=".5"/></symbol>
+  </defs>
+  <rect width="120" height="120" rx="18" fill="url(#fr)"/>
+  <rect x="10" y="10" width="100" height="100" rx="3" fill="#23271a"/>
+  <g transform="translate(12 12)">
+    <use href="#s" x="0" y="0" width="24" height="24"/><use href="#s" x="24" y="0" width="24" height="24"/><use href="#h" x="48" y="0" width="24" height="24"/><use href="#h" x="72" y="0" width="24" height="24"/>
+    <use href="#s" x="0" y="24" width="24" height="24"/><use href="#s" x="24" y="24" width="24" height="24"/><use href="#h" x="48" y="24" width="24" height="24"/><use href="#h" x="72" y="24" width="24" height="24"/>
+    <use href="#s" x="0" y="48" width="24" height="24"/><use href="#s" x="24" y="48" width="24" height="24"/><use href="#s" x="48" y="48" width="24" height="24"/><use href="#h" x="72" y="48" width="24" height="24"/>
+    <use href="#s" x="0" y="72" width="24" height="24"/><use href="#s" x="24" y="72" width="24" height="24"/><use href="#s" x="48" y="72" width="24" height="24"/><rect x="72" y="72" width="24" height="24" fill="#c43a24"/>
+    <g font-family="Bahnschrift,'DIN Condensed','Arial Narrow',Impact,sans-serif" font-weight="900" font-size="17" text-anchor="middle">
+      <text x="36" y="18" fill="#3b6a23">2</text>
+      <text x="36" y="42" fill="#3b6a23">2</text>
+      <text x="36" y="66" fill="#2b5b8e">1</text>
+      <text x="60" y="66" fill="#3b6a23">2</text>
+      <text x="60" y="90" fill="#2b5b8e">1</text>
+    </g>
+    <!-- 旗子 -->
+    <g transform="translate(48 0)"><rect x="10.6" y="4" width="2" height="16" rx=".8" fill="#2a2a20"/><path d="M12.6 4.4 21 8.2 12.6 12z" fill="#d8452f" stroke="#7a1d10" stroke-width=".8"/><rect x="7" y="18.6" width="9.5" height="2.6" rx="1" fill="#3b3b2c"/></g>
+    <g transform="translate(48 24)"><rect x="10.6" y="4" width="2" height="16" rx=".8" fill="#2a2a20"/><path d="M12.6 4.4 21 8.2 12.6 12z" fill="#d8452f" stroke="#7a1d10" stroke-width=".8"/><rect x="7" y="18.6" width="9.5" height="2.6" rx="1" fill="#3b3b2c"/></g>
+    <!-- 地雷 -->
+    <g transform="translate(84 84)"><circle r="8.5" fill="#3a3f28" stroke="#15170e" stroke-width="1.2"/><circle r="5.6" fill="#556037" stroke="#15170e"/><circle r="2.6" fill="#272b1b"/><g fill="#15170e"><circle cy="-7" r=".9"/><circle cy="7" r=".9"/><circle cx="-7" r=".9"/><circle cx="7" r=".9"/></g></g>
+  </g>
+</svg>

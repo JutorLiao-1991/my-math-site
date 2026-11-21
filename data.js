@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年11月20日"
+    lastUpdated: "2026年11月21日"
 };
 
 // --- 課程資料區 ---
@@ -30,9 +30,10 @@ const lessonData = [
         desc: "整合單字自習、單字測驗與基礎文法練習，依年級學期與教材範圍開始挑戰。"
     },
     {
-        title: "花牌來來",
+        title: "鳩特花牌",
         category: "games",
         url: "games/hanafuda_koikoi.html",
+        thumb: "games/thumbs/hanafuda.svg",
         tagClass: "game",
         tagName: "益智遊戲",
         desc: "和電腦對戰日本花札「こいこい」：三種難度、機率小幫手、可重現的牌局編號，附和風配樂與日語唸役。"
@@ -41,6 +42,7 @@ const lessonData = [
         title: "鳩特將棋",
         category: "games",
         url: "games/shogi.html",
+        thumb: "games/thumbs/shogi.svg",
         tagClass: "game",
         tagName: "益智遊戲",
         desc: "和五位鳩特（嬰兒到大師）下日本將棋：本將棋 9×9 與入門的五五將棋 5×5，附 13 課新手教學、一手詰與三手詰題庫、走法提示與悔棋。"
@@ -49,6 +51,7 @@ const lessonData = [
         title: "鳩特踩地雷",
         category: "games",
         url: "games/minesweeper.html",
+        thumb: "games/thumbs/minesweeper.svg",
         tagClass: "game",
         tagName: "益智遊戲",
         desc: "作戰地圖風的踩地雷：新兵、士官、特戰三種難度，每一盤都保證只靠推理就能解開；附四課新手教學（1-1、1-2-1 定式）與全站共用的榮譽榜。"

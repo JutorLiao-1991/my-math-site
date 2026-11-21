@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>花牌來來</title>
+<title>鳩特花牌</title>
 <style>
 /* VOICE: 日式牌桌，沉穩、清楚、手機一手可玩
    IDEA: 漆器牌桌上攤開的一副花札
@@ -206,7 +206,7 @@ td.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 <body>
 <div id="app">
  <header>
-  <a class="home" href="../index.html" aria-label="回教材首頁">←</a><b>花牌來來</b><span class="pill" id="rinfo"></span><span class="sp"></span>
+  <a class="home" href="../index.html" aria-label="回教材首頁">←</a><b>鳩特花牌</b><span class="pill" id="rinfo"></span><span class="sp"></span>
   <span id="score"></span>
   <button id="bBgm" data-act="bgm">配樂</button><button id="bSnd" data-act="snd">音效</button><button id="bLab" data-act="lab">標示</button><button id="bHelp" data-act="helper">機率</button><button data-act="rules">役表</button><button data-act="menu">選單</button>
  </header>
@@ -588,7 +588,7 @@ function say(t){
 const TUT_DEAL={F:[24,36,20,44,45,32,28,1],P:[26,22,34,4,5,9,13,17],A:[0,3,7,11,14,15,18,19],D:[38,43,47,2,30]};
 const TUT_AI=[{h:0,t:1},{h:3,t:null}];
 const STEPS=[
-{k:'next',t:'歡迎來到花牌來來！',x:'花牌（花札）是日本的傳統紙牌。這場教學會帶你從發牌一路打到贏牌，大約 3 分鐘。'},
+{k:'next',t:'歡迎來到鳩特花牌！',x:'花牌（花札）是日本的傳統紙牌。這場教學會帶你從發牌一路打到贏牌，大約 3 分鐘。'},
 {k:'next',t:'12 個月份',x:()=>`48 張牌分成 12 個月份，每月 4 張，靠花草圖案分辨。例如這 4 張都是 7 月的「萩」：<div class="tcards">${[24,25,26,27].map(i=>cardH(i)).join('')}</div>教學中牌上會標出月份，正式對局可以用「標示」按鈕開關。`},
 {k:'next',t:'遊戲目標',x:'吃下同月份的牌，再用吃到的牌湊成特定組合，叫做「役」。先湊成役並結算的人就能得分，分數單位是「文」。'},
 {k:'next',sel:'#hand',t:'你的手牌',x:'這 8 張是你的手牌，只有你看得到。'},
@@ -817,7 +817,7 @@ function showFinal(){
 let OPT={diff:1,rounds:6};
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
- modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>花牌來來</h2></div></div><p>花札「こいこい」雙人玩法，和鳩特對戰。出牌、翻牌時吃下同月份的牌，湊成「役」後可以選擇結算或喊「來來」賭更高分。</p>
+ modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特花牌</h2></div></div><p>花札「こいこい」雙人玩法，和鳩特對戰。出牌、翻牌時吃下同月份的牌，湊成「役」後可以選擇結算或喊「來來」賭更高分。</p>
  <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}</div>
  <p class="pill">${['隨機出牌，一成役就結算。','會挑分數高、能湊役的牌吃；分數低時才喊來來。','另外會記牌、算你可能吃到的牌來防守，並評估你離成役多近才決定要不要喊來來。'][OPT.diff]}</p>
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="鳩特花牌示意圖">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1418"/><stop offset="1" stop-color="#1c0b0e"/></linearGradient>
+    <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity=".55"/></filter>
+  </defs>
+  <rect width="120" height="120" rx="18" fill="url(#bg)"/>
+  <!-- 左：牌背 -->
+  <g transform="rotate(-16 40 66)" filter="url(#sh)">
+    <rect x="22" y="36" width="38" height="58" rx="4" fill="#111"/>
+    <rect x="25" y="39" width="32" height="52" rx="2.5" fill="#b3202b"/>
+    <path d="M41 50l4.5 8-4.5 8-4.5-8z" fill="#e8c46a" opacity=".85"/>
+    <circle cx="41" cy="76" r="5" fill="none" stroke="#e8c46a" stroke-width="1.6" opacity=".8"/>
+  </g>
+  <!-- 右：梅與赤短 -->
+  <g transform="rotate(15 82 66)" filter="url(#sh)">
+    <rect x="62" y="36" width="38" height="58" rx="4" fill="#111"/>
+    <rect x="65" y="39" width="32" height="52" rx="2.5" fill="#d93a2e"/>
+    <path d="M70 88c6-10 10-22 24-34" stroke="#2a1a12" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <g fill="#fbe7ea" stroke="#b3202b" stroke-width=".8"><circle cx="78" cy="70" r="3.4"/><circle cx="88" cy="58" r="3.4"/><circle cx="73" cy="80" r="2.8"/></g>
+    <rect x="80" y="64" width="7" height="22" rx="1" fill="#b3202b" stroke="#fff" stroke-width="1" transform="rotate(-12 83 75)"/>
+  </g>
+  <!-- 中：芒に月 -->
+  <g filter="url(#sh)">
+    <rect x="41" y="24" width="38" height="60" rx="4" fill="#111"/>
+    <rect x="44" y="27" width="32" height="54" rx="2.5" fill="#c8102e"/>
+    <circle cx="60" cy="46" r="11" fill="#fff6e0"/>
+    <path d="M44 81V63c6-6 12-4 16-1 5-5 11-6 16 0v19z" fill="#151515"/>
+    <path d="M48 66l3-9M55 64l2-10M64 63l1-9M70 64l3-8" stroke="#f3eccf" stroke-width="1.1" opacity=".7"/>
+  </g>
+  <text x="60" y="110" text-anchor="middle" font-family="'Hiragino Mincho ProN','Noto Serif TC',serif" font-size="11" font-weight="900" fill="#e8c46a" letter-spacing="3">こいこい</text>
+</svg>
