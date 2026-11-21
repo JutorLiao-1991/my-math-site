@@ -35,6 +35,17 @@ class MinesweeperTest(unittest.TestCase):
         block = data[data.index('url: "games/minesweeper.html"') - 200:]
         self.assertIn('category: "games"', block[:400])
 
+    def test_game_cards_have_thumbnails(self):
+        data = (ROOT / "data.js").read_text(encoding="utf-8")
+        for url, thumb in [("games/hanafuda_koikoi.html", "hanafuda"), ("games/shogi.html", "shogi"), ("games/minesweeper.html", "minesweeper")]:
+            card = re.search(r'\{[^{}]*url: "' + re.escape(url) + r'"[^{}]*\}', data).group(0)
+            self.assertIn(f'thumb: "games/thumbs/{thumb}.svg"', card)
+            svg = (ROOT / "games" / "thumbs" / f"{thumb}.svg").read_text(encoding="utf-8")
+            self.assertTrue(svg.lstrip().startswith("<svg"))
+        self.assertIn('title: "鳩特花牌"', data)
+        self.assertNotIn("花牌來來", data)
+        self.assertIn("card-thumb", (ROOT / "home_menu.js").read_text(encoding="utf-8"))
+
     def test_generated_boards_need_no_guessing(self):
         out = run_node(r"""
 const R=[];

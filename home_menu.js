@@ -11,7 +11,8 @@
   const lessons = typeof lessonData === 'undefined' ? [] : lessonData;
   lessons.forEach(lesson => {
     const a = document.createElement('a'); a.href = lesson.url; a.className = 'card'; a.dataset.category = lesson.category;
-    a.innerHTML = `<div class="card-body"><div class="tags"><span class="tag ${lesson.tagClass}">${lesson.tagName}</span></div><h3 class="card-title">${lesson.title}</h3><p class="card-desc">${lesson.desc}</p><div class="card-footer">開始互動 <span class="arrow">→</span></div></div>`;
+    const main = `<div class="tags"><span class="tag ${lesson.tagClass}">${lesson.tagName}</span></div><h3 class="card-title">${lesson.title}</h3><p class="card-desc">${lesson.desc}</p><div class="card-footer">開始互動 <span class="arrow">→</span></div>`;
+    a.innerHTML = lesson.thumb ? `<div class="card-body has-thumb"><div class="card-main">${main}</div><img class="card-thumb" src="${lesson.thumb}" alt="${lesson.title}示意圖" loading="lazy" width="104" height="104"></div>` : `<div class="card-body">${main}</div>`;
     $('card-container').append(a);
   });
   function apply() {
