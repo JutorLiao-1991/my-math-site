@@ -120,6 +120,15 @@ body.hint .hints,.showhint .hints{display:block}
 @media (prefers-reduced-motion:reduce){#fin .rays,#fin .big,#fin .fall,#fin .fseal{animation:none}#fin .fall{display:none}}
 #toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font:800 28px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;padding:14px 26px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;letter-spacing:.15em}
 #toast.show{opacity:1}
+#escban{position:fixed;z-index:58;pointer-events:none;display:flex;align-items:center;justify-content:center;opacity:0}
+#escban span{font:900 min(11vw,46px)/1 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;color:#fff6dc;letter-spacing:.2em;padding:16px 30px 16px 38px;background:linear-gradient(90deg,#0000,#140f0cf0 14%,#140f0cf0 86%,#0000);text-shadow:0 0 18px #ffd54a,0 3px 0 #7a1a12;white-space:nowrap}
+#escban.go{animation:escb 1.3s cubic-bezier(.2,.9,.3,1) both}
+@keyframes escb{0%{opacity:0;transform:translateX(-45%) skewX(-14deg)}20%{opacity:1;transform:none}76%{opacity:1;transform:none}100%{opacity:0;transform:translateX(45%) skewX(14deg)}}
+.escring{position:fixed;z-index:57;pointer-events:none;border:3px solid #ffd54a;border-radius:50%;box-shadow:0 0 12px #ffd54a99;animation:escr .75s ease-out forwards}
+@keyframes escr{from{opacity:.95;transform:scale(.35)}to{opacity:0;transform:scale(2)}}
+.escdust{position:fixed;z-index:57;pointer-events:none;width:13px;height:13px;margin:-6.5px;border-radius:50%;background:#efe3c8;animation:escd .65s ease-out forwards}
+@keyframes escd{from{opacity:.85;transform:none}to{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+@media (prefers-reduced-motion:reduce){#escban.go{animation:none;opacity:1}}
 @media (orientation:landscape) and (min-width:700px){
  main{flex-direction:row}
  #stage{flex:1;justify-content:center}
@@ -147,6 +156,7 @@ body.hint .hints,.showhint .hints{display:block}
 </div>
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <div id="toast"></div>
+<div id="escban"><span>逃出生天</span></div>
 <div id="tut" hidden><div id="tutDim"></div><div id="tutSpot"></div><div id="tutArrow"></div><div id="tutBox"></div></div>
 <script type="text/plain" id="eng">var ENGINE=(function(){
 /* 棋子代碼：正數＝先手、負數＝後手；1歩 2香 3桂 4銀 5金 6角 7飛 8玉；升變後 9と 10成香 11成桂 12成銀 14馬 15龍 */
@@ -700,10 +710,31 @@ function tsumeAfter(m,s,chk){
  if(s===1){
   if(!chk)return retry('詰將棋每一步都要王手！');
   if(!G.legal.length){G.over=true;render();return tsumeDone()}
-  if(!ENG.defMated(P,G.rem-1))return retry('這步會被逃掉，再想想');
+  if(!ENG.defMated(P,G.rem-1))return escape();
   G.rem-=1;G.thinking=true;render();const g=G;
   setTimeout(()=>{if(G!==g)return;G.thinking=false;play(ENG.defReply(P,G.rem-1))},650);
- }else{G.rem-=1;render()}
+ }else{if(G.esc)return escFx(m);G.rem-=1;render()}
+}
+/* 詰將棋走錯：玉方逃出生天 → 停 1 秒 → 回到上一步 */
+SFX.escape=()=>{noise(.34,900,.6,.9);noise(.24,2600,.8,.45,null,.08);[660,520,390].forEach((f,i)=>tone(f,.12,.16,.14+i*.09,'triangle'))};
+function escMove(P,n){const ms=ENG.legal(P),esc=[];
+ for(const m of ms){const c=ENG.doMove(P,m);let mt=false;for(let j=1;j<=n;j+=2)if(ENG.mateIn(P,j)){mt=true;break}ENG.undoMove(P,m,c);if(!mt)esc.push(m)}
+ const L=esc.length?esc:ms,isK=m=>!(m>>15)&&Math.abs(P.b[m&127])===8;
+ return L.find(isK)||L.find(m=>!(m>>15)&&P.b[(m>>7)&127])||L.find(m=>!(m>>15))||L[0]}
+function escape(){const g=G;G.thinking=true;G.esc=true;render();
+ setTimeout(()=>{if(G!==g)return;const m=escMove(G.pos,G.rem-2);if(!m){G.esc=false;G.thinking=false;return retry('這步會被逃掉，再想想')}play(m)},450)}
+function escFx(m){const g=G,to=(m>>7)&127,fr=m>>15?-1:m&127;sfx('escape');setTimeout(()=>say('にげられた'),250);
+ const rc=sq=>{const e=document.querySelector(`#board .sq[data-sq="${sq}"]`);return e&&e.getBoundingClientRect()};
+ setTimeout(()=>{if(G!==g)return;
+  const r=rc(to),pc=document.querySelector(`#board .sq[data-sq="${to}"] .pc`);
+  if(!RM&&pc)pc.animate([{transform:'none',filter:'drop-shadow(0 0 0 #ffd54a)'},{transform:'translateY(-16%) scale(1.12)',filter:'drop-shadow(0 0 14px #ffd54a)',offset:.4},{transform:'none',filter:'drop-shadow(0 0 7px #ffd54a)'}],{duration:750,easing:'ease-out',fill:'forwards'});
+  if(!RM&&r){const d=r.width*1.1,e=document.createElement('i');e.className='escring';Object.assign(e.style,{left:r.left+r.width/2-d/2+'px',top:r.top+r.height/2-d/2+'px',width:d+'px',height:d+'px'});document.body.appendChild(e);setTimeout(()=>e.remove(),800)}
+  const f=fr>=0&&rc(fr);if(!RM&&f)for(let i=0;i<7;i++){const e=document.createElement('i'),a=i/7*Math.PI*2;e.className='escdust';
+   Object.assign(e.style,{left:f.left+f.width/2+'px',top:f.top+f.height/2+'px'});e.style.setProperty('--dx',Math.cos(a)*f.width*.7+'px');e.style.setProperty('--dy',Math.sin(a)*f.height*.7+'px');document.body.appendChild(e);setTimeout(()=>e.remove(),700)}
+  const b=$('escban'),bd=$('board').getBoundingClientRect();Object.assign(b.style,{left:bd.left+'px',top:bd.top+'px',width:bd.width+'px',height:bd.height+'px'});
+  b.classList.remove('go');void b.offsetWidth;b.classList.add('go');
+ },300);
+ setTimeout(()=>{if(G!==g)return;$('escban').classList.remove('go');G.esc=false;G.thinking=false;undo();toast('再想想看')},300+1300+1000);
 }
 function tsumeDone(){
  const n=G.tn,i=G.ti,L=TSUME[n],last=i>=L.length-1;saveProg('sg_tsu',n+'-'+i);sfx('win');setTimeout(()=>say('つみ'),200);
