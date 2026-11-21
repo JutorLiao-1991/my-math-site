@@ -28,17 +28,14 @@ test('generated shaded figures reproduce the worksheet answers', () => {
   const targets = [
     ['三邊長是 6、8、10 公分', 0, '', 54.5],                       // 鳩-11
     ['對角線長 20 公分', 1, '', 114],                  // 鳩-12
-    ['大圓的半徑是 5 公分', 2, '1 公分', 25.12],         // 鳩-13
-    ['邊長是 12 公分，裡面', 3, '', 102.96],            // 鳩-14
-    ['邊長 18 公尺的正方形牆壁，牆上排了 9 個', 4, '', 254.34], // 鳩-15
-    ['長是 18 公分、寬是 12 公分', 4, '', 169.56],       // 鳩-16
-    ['半徑 15 公分的大扇形挖掉一個半徑 8 公分、圓心角 90°', 5, '15°', 185.26], // 鳩-30
-    ['邊長是 14 公分的正方形和一個扇形', 6, '', 42.14],    // 鳩-32
-    ['半徑 12 公分的四分之一圓', 7, '', 41.04],          // 鳩-33
-    ['正方形的邊長是 4 公分', 8, '', 9.12],             // 鳩-34
+    /* 最終答案限定整數或一位小數，講義上兩位小數的版本（鳩-13～16、30、32～34、36、37）改成相同圖形的其他數字 */
+    ['邊長是 10 公分，裡面', 3, '', 71.5],               // 100－78.5＋50
+    ['長是 30 公分、寬是 20 公分', 4, '', 471],          // 6 個半徑 5 的圓
+    ['邊長是 10 公分的正方形和一個扇形', 6, '', 21.5],    // 100－78.5
+    ['半徑 10 公分的四分之一圓', 7, '', 28.5],           // 78.5－50
+    ['正方形的邊長是 10 公分', 8, '', 57],              // (78.5－50)×2
     ['半徑都是 5 公分', 9, '', 57],                    // 鳩-35
-    ['半徑 2 公分的四分之一圓', 10, '', 12.56],          // 鳩-36
-    ['正方形的邊長是 5 公分', 8, '', 14.25],            // 鳩-37
+    ['半徑 10 公分的四分之一圓（扇形）', 10, '', 314],
     ['邊長 20 公分的正三角形', 11, '', 157]             // 鳩-38
   ];
   for (const [needle, template, extra, expected] of targets) {
@@ -55,11 +52,11 @@ test('generated shaded figures reproduce the worksheet answers', () => {
 test('arc length and composite perimeter reproduce textbook answers', () => {
   const targets = [
     ['perimeter', 0, '每段虛線都是 5 公分', 31.4],          // 課本範例 2
-    ['perimeter', 1, '正方形的邊長是 4 公分', 12.56],
-    ['perimeter', 2, '邊長是 14 公分的正方形', 49.98],      // 21.98＋28
+    ['perimeter', 1, '正方形的邊長是 10 公分', 31.4],
+    ['perimeter', 2, '邊長是 10 公分的正方形', 35.7],       // 15.7＋20
     ['perimeter', 3, '邊長 20 公分的正三角形', 91.4],        // 31.4＋60
     ['perimeter', 4, '長方形的長是 100 公尺，半圓的直徑是 40 公尺', 325.6],
-    ['perimeter', 5, '邊長 4 公分的正方形四邊', 25.12],
+    ['perimeter', 5, '邊長 10 公分的正方形四邊', 62.8],
     ['arc', 3, '直徑 10 公分的半圓形', 25.7]
   ];
   for (const [type, variant, needle, expected] of targets) {
@@ -80,19 +77,29 @@ test('every step question is consistent: formula value = answer, one correct opt
     if (type === 'perimeter') { seenPerimeter.add(s.template); assert.ok(q.textHtml.includes('<svg'), q.text); }
     assert.ok(!/\d\/\d/.test(q.text), q.text);
     assert.ok(q.text && !/undefined|NaN|Infinity/.test(q.text + q.explanation + q.textHtml), q.text);
-    assert.equal(q.steps.length, 3);
+    const keyCount = s.keys.length;
+    assert.equal(q.steps.length, keyCount + 2);
+    /* 最終答案：整數或一位小數（倍數題可以是分數） */
+    if (!s.answer.rational) assert.ok(Number.isInteger(s.answer.v.n * 10 / s.answer.v.d), `${q.text} → ${s.answer.v.n}/${s.answer.v.d}`);
+    /* 有圓心角的扇形題：先約分成最簡分數，算式也用最簡分數 */
+    for (const [i, k] of s.keys.entries()) if (k.simplest) {
+      const f = q.steps[i].fields[0], p = f.expected;
+      assert.ok(Q.correct(`${p.n}/${p.d}`, f)); assert.ok(!Q.correct(`${p.n * 2}/${p.d * 2}`, f), q.text); assert.ok(!Q.correct(String(p.n / p.d), f) || p.d === 1);
+    }
+    /* 圓周長、弧長不考「直徑算半徑」 */
+    if (type === 'arc' || (type === 'area' && /周長大約/.test(q.text) && /直徑是/.test(q.text))) assert.ok(!s.keys.some(k => k.label === '半徑'), q.text);
     assert.equal(s.options.length, 4);
     assert.equal(new Set(s.options.map(o => o.text)).size, 4);
     assert.equal(new Set(s.options.map(o => `${o.v.n}/${o.v.d}`)).size, 4, q.text);
     assert.deepEqual(evaluate(s.options[0].text), s.answer.v);
-    const formula = q.steps[1].fields[0];
+    const formula = q.steps[keyCount].fields[0];
     assert.equal(formula.optionLabels[formula.expected].slice(2), s.options[0].text);
     assert.ok(s.answer.v.n > 0);
     for (const f of q.steps.flatMap(st => st.fields)) {
       assert.ok(Q.correct(raw(f), f), `${q.text} ${f.label}`);
       if (f.type === 'decision') assert.ok(!Q.correct('9', f));
     }
-    assert.deepEqual(q.finalFields, q.steps[2].fields);
+    assert.deepEqual(q.finalFields, q.steps[keyCount + 1].fields);
   }
   assert.equal(seenShaded.size, Q.SHADED_COUNT);
   assert.equal(seenPerimeter.size, Q.PERIMETER_COUNT);

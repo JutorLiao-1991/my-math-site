@@ -41,6 +41,8 @@
   /* 算式裡的數：分數一律寫成 a/b（不寫帶分數），算式才能計算 */
   const num = a => a.d === 1 ? String(a.n) : terminatingDigits(a) <= 3 ? decimalText(a) : `${a.n}/${a.d}`;
   const nice = (a, allowFraction) => a.n > 0 && (terminatingDigits(a) <= 3 || (allowFraction && a.d <= 12));
+  /* 顯示給學生看的數值：一般最多一位小數；倍數題可以是分數 */
+  const okValue = (v, s) => (s && s.answer && s.answer.rational ? nice(v, true) : v.n > 0 && terminatingDigits(v) <= 1);
   const N = x => typeof x === 'object' ? x : F(Math.round(x * 1000), 1000);
 
   /* ---------- 算式計算（× ÷ ＋ － 括號，由左到右） ---------- */
@@ -109,12 +111,15 @@
       if (s.options.length === 4) break;
     }
     if (s.options.length < 4) return null;
-    if (!nice(s.answer.v, s.allowFraction)) return null;
-    if (s.key.v && !nice(s.key.v, true)) return null;
+    /* 最終答案：整數或小數點後一位（倍數題可以是分數） */
+    if (s.answer.rational ? !nice(s.answer.v, true) : !(s.answer.v.n > 0 && terminatingDigits(s.answer.v) <= 1)) return null;
+    s.keys = s.keys || (s.key ? [s.key] : []);
+    /* 中間步驟的數也不要兩位以上小數（分數形式的倍數可以） */
+    if (s.keys.some(k => !k.simplest && (!nice(k.v, true) || (terminatingDigits(k.v) > 1 && terminatingDigits(k.v) !== Infinity)))) return null;
     return s;
   }
   function retry(build, t) {
-    for (let i = 0; i < 80; i++) { const b = build(t); const s = b && finishScenario(b, t); if (s) return s; }
+    for (let i = 0; i < 6000; i++) { const b = build(t); const s = b && finishScenario(b, t); if (s) return s; }
     throw new Error('Could not build a question');
   }
 
@@ -124,7 +129,7 @@
     return retry(() => {
       const kind = variant % 6;
       const halves = t.rnd(0, 3) === 0;
-      const r = halves ? F(t.rnd(0, 6) * 2 + 1, 2) : F(t.rnd(2, 20));
+      const r = halves ? F(t.rnd(0, 14) * 2 + 1, 2) : F(t.rnd(2, 30));
       const d = mul(r, F(2)), C = mul(d, PI), R = num(r), D = num(d);
       const s = { kind: 'area', allowFraction: false };
       const big = t.rnd(0, 1) === 1, u = big ? '公尺' : '公分';
@@ -154,13 +159,12 @@
         s.answer = { label: '面積（平方公尺）', unit: '平方公尺' };
         s.formulas = [`${R}×${R}×3.14`, `${D}×${D}×3.14`, `${R}×3.14`, `${num(L)}÷3.14×${num(L)}÷3.14`, `${R}×${R}×3.14×${laps}`];
       } else {
-        s.text = t.pick([`一個圓形花圃的直徑是 ${D} 公尺，花圃的周長是多少公尺？`, `一個圓形時鐘的直徑是 ${D} 公分，鐘面的周長是多少公分？`]);
+        s.text = t.pick([`一個圓形花圃的直徑是 ${D} 公尺，花圃的周長大約是多少公尺？`, `一個圓形時鐘的直徑是 ${D} 公分，鐘面的周長大約是多少公分？`]);
         const unit = s.text.includes('公尺') ? '公尺' : '公分';
-        s.key.unit = unit;
-        s.key.why = `半徑＝直徑÷2＝${D}÷2＝${R}。`;
+        s.key = null; s.keys = [];
         s.answer = { label: `周長（${unit}）`, unit };
-        s.formulas = [`${R}×2×3.14`, `${R}×3.14`, `${R}×${R}×3.14`, `${D}×${D}×3.14`, `${D}×2×3.14`];
-        s.rule = '圓周長＝直徑×3.14＝半徑×2×3.14';
+        s.formulas = [`${D}×3.14`, `${D}×2×3.14`, `${R}×${R}×3.14`, `${D}×${D}×3.14`, `${D}÷2×3.14`];
+        s.rule = '圓周長＝直徑×3.14';
       }
       s.rule = s.rule || '圓面積＝半徑×半徑×3.14';
       s.ruleHint = AREA_RULE;
@@ -207,43 +211,57 @@
   }
 
   /* ---------- ③ 扇形面積 ---------- */
-  const SECTOR_RULE = '扇形面積＝半徑×半徑×3.14×圓心角/360';
+  const SECTOR_RULE = '扇形面積＝半徑×半徑×3.14×（扇形是全圓的幾分之幾）';
+  /* 圓心角能約成漂亮分數的角度 */
+  const ANGLES = [18, 20, 24, 30, 36, 40, 45, 50, 60, 72, 75, 80, 90, 100, 108, 120, 135, 144, 150, 160, 180, 200, 210, 216, 225, 240, 250, 270, 288, 300, 315];
+  const frac = angle => F(angle, 360);
+  const ft = p => `${p.n}/${p.d}`;
+  /* 約分步驟：圓心角/360 約成最簡分數 */
+  function partKey(angle, o = {}) {
+    const p = frac(angle), P = ft(p);
+    return { title: '約分：是全圓的幾分之幾', label: o.label || '扇形是全圓的幾分之幾', v: p, unit: '', simplest: true,
+      why: `${o.pre || ''}${angle}/360 約分後是 ${P}，${o.who || '這個扇形'}是全圓的 ${P}。`, hint: '把「圓心角/360」的分子、分母同除以最大公因數，約成最簡分數。' };
+  }
   function sectorScenario(t, variant) {
     return retry(() => {
       const kind = variant % 5, s = { kind: 'sector', allowFraction: false };
-      const r = F(t.rnd(2, 15)), R = num(r), d = mul(r, F(2)), D = num(d);
+      const r = F(t.rnd(2, 30)), R = num(r), d = mul(r, F(2)), D = num(d);
       s.answer = { label: '扇形面積（平方公分）', unit: '平方公分' };
       s.rule = SECTOR_RULE; s.ruleHint = SECTOR_RULE;
+      const radiusKey = { title: '求半徑', label: '半徑', v: r, unit: '公分', why: `半徑＝直徑÷2＝${D}÷2＝${R}。`, hint: '算扇形面積要用半徑：半徑＝直徑÷2。' };
       if (kind === 0) {
-        const angle = t.pick([30, 36, 40, 45, 60, 72, 80, 90, 108, 120, 135, 144, 150, 210, 240, 270, 288]);
-        s.text = `一個圓心角是 ${angle}°，直徑是 ${D} 公分的扇形，這個扇形的面積大約是多少平方公分？`;
-        s.key = { title: '求半徑', label: '半徑', v: r, unit: '公分', why: `半徑＝直徑÷2＝${D}÷2＝${R}。`, hint: '半徑＝直徑÷2。' };
-        s.formulas = [`${R}×${R}×3.14×${angle}/360`, `${D}×${D}×3.14×${angle}/360`, `${R}×${R}×3.14×${360 - angle}/360`, `${R}×2×3.14×${angle}/360`, `${R}×${R}×3.14`];
+        const angle = t.pick(ANGLES), P = ft(frac(angle)), C = ft(sub(F(1), frac(angle)));
+        const useD = t.rnd(0, 1) === 1;
+        s.text = useD ? `一個圓心角是 ${angle}°，直徑是 ${D} 公分的扇形，這個扇形的面積大約是多少平方公分？` : `一個圓心角是 ${angle}°，半徑是 ${R} 公分的扇形，這個扇形的面積大約是多少平方公分？`;
+        s.keys = useD ? [radiusKey, partKey(angle)] : [partKey(angle)];
+        s.formulas = [`${R}×${R}×3.14×${P}`, `${D}×${D}×3.14×${P}`, `${R}×${R}×3.14×${C}`, `${R}×2×3.14×${P}`, `${R}×${R}×3.14`];
       } else if (kind === 1) {
-        const n = t.pick([3, 4, 5, 6, 8, 10, 12]), big = F(t.rnd(10, 30) * 2);
-        const BR = num(div(big, F(2))), BD = num(big);
+        const n = t.pick([3, 4, 5, 6, 8, 10, 12]), big = F(t.rnd(5, 30) * 2);
+        const br = div(big, F(2)), BR = num(br), BD = num(big);
         s.text = `媽媽烤了一個直徑是 ${BD} 公分的圓形披薩，並將披薩平均切成 ${n} 片，每一片披薩的面積大約是多少平方公分？`;
-        s.key = { title: '求半徑', label: '半徑', v: div(big, F(2)), unit: '公分', why: `半徑＝直徑÷2＝${BD}÷2＝${BR}。`, hint: '半徑＝直徑÷2。' };
-        s.formulas = [`${BR}×${BR}×3.14÷${n}`, `${BD}×${BD}×3.14÷${n}`, `${BR}×${BR}×3.14×${n}`, `${BD}×3.14÷${n}`, `${BR}×${BR}×3.14`];
-        s.rule = `平均切成 ${n} 片，每片是圓面積÷${n}`;
+        s.keys = [{ title: '求半徑', label: '半徑', v: br, unit: '公分', why: `半徑＝直徑÷2＝${BD}÷2＝${BR}。`, hint: '算面積要用半徑：半徑＝直徑÷2。' },
+          { title: '每一片是全圓的幾分之幾', label: '每一片是全圓的幾分之幾', v: F(1, n), unit: '', simplest: true, why: `平均切成 ${n} 片，每一片是全圓的 1/${n}。`, hint: '平均分成幾片，每片就是幾分之一。' }];
+        s.formulas = [`${BR}×${BR}×3.14×1/${n}`, `${BD}×${BD}×3.14×1/${n}`, `${BR}×${BR}×3.14×${n}`, `${BD}×3.14×1/${n}`, `${BR}×${BR}×3.14`];
+        s.rule = `每一片＝圓面積×1/${n}`;
       } else if (kind === 2) {
-        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), m2 = m1 + t.pick([5, 10, 12, 15, 20]), mins = m2 - m1, angle = mins * 6;
+        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), m2 = m1 + t.pick([5, 10, 12, 15, 20]), mins = m2 - m1, angle = mins * 6, P = ft(frac(angle));
         const pad = m => String(m).padStart(2, '0');
         s.text = `教室裡的時鐘，分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h} 時 ${pad(m2)} 分，分針掃過的扇形面積大約是多少平方公分？`;
-        s.key = { title: '求圓心角', label: '分針轉過的角度（度）', v: F(angle), unit: '度', why: `分針 60 分鐘轉 360°，1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${angle}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' };
-        s.formulas = [`${R}×${R}×3.14×${angle}/360`, `${R}×${R}×3.14×${mins}/360`, `${R}×2×3.14×${angle}/360`, `${R}×${R}×3.14`, `${D}×${D}×3.14×${angle}/360`];
+        s.keys = [{ title: '求圓心角', label: '分針轉過的角度（度）', v: F(angle), unit: '度', why: `分針 60 分鐘轉 360°，1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${angle}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' }, partKey(angle, { who: '掃過的扇形' })];
+        s.formulas = [`${R}×${R}×3.14×${P}`, `${R}×${R}×3.14×${mins}/360`, `${R}×2×3.14×${P}`, `${R}×${R}×3.14`, `${D}×${D}×3.14×${P}`];
       } else if (kind === 3) {
-        const eaten = t.pick([30, 40, 45, 60, 72, 90, 120, 135, 150, 180, 240]), rest = 360 - eaten;
+        const eaten = t.pick([30, 40, 45, 60, 72, 90, 120, 135, 144, 150, 180, 240]), rest = 360 - eaten, P = ft(frac(rest)), E = ft(frac(eaten));
         s.text = `一個圓形的海鮮煎餅，半徑是 ${R} 公分。爸爸和小宇共吃掉一個圓心角是 ${eaten}° 的扇形，剩下的扇形面積大約是多少平方公分？`;
-        s.key = { title: '求圓心角', label: '剩下扇形的圓心角（度）', v: F(rest), unit: '度', why: `一整圈是 360°，剩下 360－${eaten}＝${rest}°。`, hint: '一整個圓的圓心角是 360°。' };
-        s.formulas = [`${R}×${R}×3.14×${rest}/360`, `${R}×${R}×3.14×${eaten}/360`, `${R}×2×3.14×${rest}/360`, `${D}×${D}×3.14×${rest}/360`, `${R}×${R}×3.14`];
+        s.keys = [{ title: '求圓心角', label: '剩下扇形的圓心角（度）', v: F(rest), unit: '度', why: `一整圈是 360°，剩下 360－${eaten}＝${rest}°。`, hint: '一整個圓的圓心角是 360°。' }, partKey(rest, { who: '剩下的扇形' })];
+        s.formulas = [`${R}×${R}×3.14×${P}`, `${R}×${R}×3.14×${E}`, `${R}×2×3.14×${P}`, `${D}×${D}×3.14×${P}`, `${R}×${R}×3.14`];
       } else {
-        const a1 = t.pick([96, 100, 120, 135, 150, 160, 180]), a2 = t.pick([30, 36, 40, 45, 56, 60, 72, 80]), diff = a1 - a2;
+        const a1 = t.pick([100, 120, 135, 150, 160, 180, 200, 210, 240]), a2 = t.pick([30, 36, 40, 45, 60, 72, 80, 90]), diff = a1 - a2, P = ft(frac(diff)), Q = ft(frac(a1 + a2));
+        if (diff <= 0) return null;
         s.text = `一個直徑是 ${D} 公分的圓，圓內有兩個圓心角分別是 ${a1}° 和 ${a2}° 的扇形，這兩個扇形的面積相差大約多少平方公分？`;
-        s.key = { title: '求半徑', label: '半徑', v: r, unit: '公分', why: `半徑＝直徑÷2＝${D}÷2＝${R}。（兩個扇形的圓心角相差 ${a1}－${a2}＝${diff}°）`, hint: '半徑＝直徑÷2。' };
+        s.keys = [radiusKey, partKey(diff, { pre: `兩個扇形的圓心角相差 ${a1}－${a2}＝${diff}°，`, who: '相差的部分', label: '相差的部分是全圓的幾分之幾' })];
         s.answer.label = '面積相差（平方公分）';
-        s.formulas = [`${R}×${R}×3.14×${diff}/360`, `${D}×${D}×3.14×${diff}/360`, `${R}×${R}×3.14×${a1 + a2}/360`, `${R}×2×3.14×${diff}/360`];
-        s.rule = '兩個扇形半徑相同，面積相差＝半徑×半徑×3.14×(圓心角的差)/360';
+        s.formulas = [`${R}×${R}×3.14×${P}`, `${D}×${D}×3.14×${P}`, `${R}×${R}×3.14×${Q}`, `${R}×2×3.14×${P}`];
+        s.rule = '兩個扇形半徑相同，面積相差＝半徑×半徑×3.14×（相差的部分是全圓的幾分之幾）';
       }
       return s;
     }, t);
@@ -252,28 +270,29 @@
   /* ---------- ④ 由圓面積求扇形（或反推圓面積） ---------- */
   function sectorWholeScenario(t, variant) {
     return retry(() => {
-      const kind = variant % 3, s = { kind: 'sectorWhole', allowFraction: true };
-      const angle = kind === 2 ? t.pick([40, 50, 60, 80, 100, 140, 160, 200, 240, 280, 300]) : t.pick([36, 45, 60, 72, 90, 108, 120, 135, 144, 150, 180, 216, 240, 270, 288]);
-      const part = F(angle, 360), P = `${part.n}/${part.d}`;
-      s.key = { title: '求占全圓的幾分之幾', label: '扇形占全圓的幾分之幾', v: part, unit: '', why: `圓心角 ${angle}°，占全圓的 ${angle}/360＝${P}。`, hint: '扇形占全圓的「圓心角/360」。' };
-      s.ruleHint = '扇形面積＝圓面積×圓心角/360；反過來，圓面積＝扇形面積÷(圓心角/360)。';
+      const kind = variant % 3, s = { kind: 'sectorWhole', allowFraction: false };
+      const angle = kind === 2 ? t.pick([40, 50, 60, 80, 100, 120, 150, 160, 200, 240, 300]) : t.pick([36, 45, 60, 72, 90, 108, 120, 135, 144, 150, 180, 216, 240, 270, 288]);
+      const part = frac(angle), P = ft(part), C = ft(sub(F(1), part));
+      s.key = partKey(angle);
+      s.ruleHint = '扇形面積＝圓面積×（扇形是全圓的幾分之幾）；反過來，圓面積＝扇形面積÷（幾分之幾），也就是乘以它的倒數。';
       if (kind === 1) {
         const whole = F(t.pick([20, 30, 40, 45, 60, 75, 90, 100, 120, 135, 150, 180, 200, 240, 300]));
         const S = mul(whole, part);
-        if (terminatingDigits(S) > 3) return null;
+        if (terminatingDigits(S) > 1) return null;
+        const inv = part.n === 1 ? `${part.d}` : `${part.d}/${part.n}`;
         s.text = `一個圓心角是 ${angle}° 的扇形，面積是 ${num(S)} 平方公分，完整的圓面積是多少平方公分？`;
         s.answer = { label: '圓面積（平方公分）', unit: '平方公分' };
-        s.formulas = [`${num(S)}×360/${angle}`, `${num(S)}×${angle}/360`, `${num(S)}×${360 - angle}/360`, `${num(S)}÷3.14`, `${num(S)}×${angle}`];
-        s.rule = '扇形面積＝圓面積×圓心角/360，反過來，圓面積＝扇形面積×360/圓心角';
-        s.allowFraction = false;
+        s.formulas = [`${num(S)}×${inv}`, `${num(S)}×${P}`, `${num(S)}×${C}`, `${num(S)}÷3.14`, `${num(S)}×${angle}`];
+        s.rule = `扇形是全圓的 ${P}，圓面積＝扇形面積÷${P}＝扇形面積×${inv}`;
       } else {
         const A = t.rnd(0, 1) ? mul(PI, F(t.pick([100, 150, 200, 250, 300, 400, 500, 600]))) : F(t.pick([120, 180, 240, 360, 480, 600, 720, 900]));
         s.text = kind === 0 ? `奶奶有一個圓形花圃，面積是 ${num(A)} 平方公尺，她想劃分出一個圓心角是 ${angle}° 的扇形種玫瑰花，種玫瑰花的扇形面積大約是多少平方公尺？` :
           `一個圓的面積是 ${num(A)} 平方公分，圓內灰色扇形的圓心角是 ${angle}°，灰色扇形的面積是多少平方公分？`;
         const unit = kind === 0 ? '平方公尺' : '平方公分';
         s.answer = { label: `扇形面積（${unit}）`, unit };
-        s.formulas = [`${num(A)}×${angle}/360`, `${num(A)}×${360 - angle}/360`, `${num(A)}×3.14×${angle}/360`, `${num(A)}×360/${angle}`, `${num(A)}÷${angle}`];
-        s.rule = '扇形面積＝圓面積×圓心角/360';
+        s.formulas = [`${num(A)}×${P}`, `${num(A)}×${C}`, `${num(A)}×3.14×${P}`, `${num(A)}÷${P.split('/')[1]}`, `${num(A)}÷${angle}`];
+        if (part.n === 1) s.formulas.splice(3, 1);
+        s.rule = `扇形面積＝圓面積×${P}`;
       }
       return s;
     }, t);
@@ -353,9 +372,10 @@
         label((cx + pl[0]) / 2 - 12, (cy + pl[1]) / 2 + 6, big, 'end') + label((cx + plw[0]) / 2 + 2, (cy + plw[1]) / 2 - 4, small, 'end') +
         label(cx, cy - 16, `${alpha}°`) + label(...pt(cx, cy, 70, 90 + alpha / 2 + beta / 2), `${beta}°`) + label(...pt(cx, cy, 70, 90 - alpha / 2 - beta / 2), `${beta}°`) + label(cx, 198, '單位：公分');
       return { text: `下面的扇子由一個半徑 ${big} 公分的大扇形挖掉一個半徑 ${small} 公分、圓心角 ${alpha}° 的小扇形，兩旁的角各是 ${beta}°。灰色部分的面積大約是多少平方公分？`, fig: svg(body, 280, 205),
-        key: { title: '求圓心角', label: '大扇形的圓心角（度）', v: F(theta), why: `大扇形的圓心角＝${beta}＋${alpha}＋${beta}＝${theta}°。`, hint: '把三個角加起來。' },
-        formulas: [`${big}×${big}×3.14×${theta}/360－${small}×${small}×3.14×${alpha}/360`, `${big}×${big}×3.14×${alpha}/360－${small}×${small}×3.14×${alpha}/360`, `${big}×${big}×3.14×${theta}/360－${small}×${small}×3.14×${theta}/360`, `${big}×${big}×3.14×${theta}/360＋${small}×${small}×3.14×${alpha}/360`],
-        rule: '灰色＝大扇形－小扇形，兩個扇形的圓心角不一樣' };
+        keys: [{ title: '求圓心角', label: '大扇形的圓心角（度）', v: F(theta), why: `大扇形的圓心角＝${beta}＋${alpha}＋${beta}＝${theta}°。`, hint: '把三個角加起來。' },
+          partKey(theta, { who: '大扇形', label: '大扇形是全圓的幾分之幾' })],
+        formulas: [`${big}×${big}×3.14×${ft(frac(theta))}－${small}×${small}×3.14×${ft(frac(alpha))}`, `${big}×${big}×3.14×${ft(frac(alpha))}－${small}×${small}×3.14×${ft(frac(alpha))}`, `${big}×${big}×3.14×${ft(frac(theta))}－${small}×${small}×3.14×${ft(frac(theta))}`, `${big}×${big}×3.14×${ft(frac(theta))}＋${small}×${small}×3.14×${ft(frac(alpha))}`],
+        rule: `灰色＝大扇形－小扇形；大扇形是全圓的 ${ft(frac(theta))}，小扇形是全圓的 ${ft(frac(alpha))}` };
     },
     /* 6 正方形－四分之一圓 */
     t => {
@@ -411,8 +431,9 @@
     t => {
       const side = t.pick([4, 6, 8, 10, 12, 16, 20, 24, 30]), r = side / 2;
       return { text: `下圖是邊長 ${side} 公分的正三角形，以三個頂點為圓心、邊長的一半為半徑，各畫一個扇形。灰色部分的面積大約是多少平方公分？`, fig: figTriangleSectors(side),
-        key: { title: '求圓心角', label: '三個扇形的圓心角合起來（度）', v: F(180), why: '正三角形每個角都是 60°，三個扇形合起來是 60×3＝180°，也就是半個圓。', hint: '正三角形的三個角都是 60°。' },
-        formulas: [`${num(F(r))}×${num(F(r))}×3.14×180/360`, `${side}×${side}×3.14×180/360`, `${num(F(r))}×${num(F(r))}×3.14×60/360`, `${num(F(r))}×${num(F(r))}×3.14×3`],
+        keys: [{ title: '求圓心角', label: '三個扇形的圓心角合起來（度）', v: F(180), why: '正三角形每個角都是 60°，三個扇形合起來是 60×3＝180°。', hint: '正三角形的三個角都是 60°。' },
+          partKey(180, { who: '三個扇形合起來', label: '三個扇形合起來是全圓的幾分之幾' })],
+        formulas: [`${num(F(r))}×${num(F(r))}×3.14×1/2`, `${side}×${side}×3.14×1/2`, `${num(F(r))}×${num(F(r))}×3.14×1/6`, `${num(F(r))}×${num(F(r))}×3.14×3`],
         rule: '3 個 60° 的扇形＝半個圓' };
     }
   ];
@@ -421,55 +442,57 @@
     return retry(() => {
       const s = SHADED[which](t), unit = s.unit || '公分';
       Object.assign(s, { kind: 'shaded', template: which, allowFraction: false, ruleHint: '先把灰色部分拆成會算的圖形（圓、扇形、正方形、三角形），再用加減求面積。' });
-      s.key.unit = s.key.unit || (s.key.label.includes('度') ? '度' : s.key.label.includes('幾個') ? '個' : s.key.label.includes('面積') ? `平方${unit}` : unit);
+      (s.keys || [s.key]).forEach(k => { if (k.unit === undefined) k.unit = k.label.includes('度') ? '度' : k.label.includes('幾個') ? '個' : k.label.includes('面積') ? `平方${unit}` : unit; });
       s.answer = { label: `面積（平方${unit}）`, unit: `平方${unit}` };
       return s;
     }, t);
   }
 
   /* ---------- ⑥ 弧長與扇形周長 ---------- */
-  const ARC_RULE = '弧長＝直徑×3.14×圓心角/360；扇形周長＝弧長＋半徑×2';
+  const ARC_RULE = '弧長＝直徑×3.14×（扇形是全圓的幾分之幾）；扇形周長＝弧長＋半徑×2';
   function arcScenario(t, variant) {
     return retry(() => {
       const kind = variant % 5, s = { kind: 'arc', allowFraction: false, ruleHint: ARC_RULE };
-      const r = F(t.rnd(2, 15)), R = num(r), d = mul(r, F(2)), D = num(d);
-      const angle = t.pick([30, 36, 40, 45, 60, 72, 90, 120, 135, 144, 150, 180, 210, 240, 270]);
-      const arc = evaluate(`${D}×3.14×${angle}/360`), A = num(arc);
+      const r = F(t.rnd(2, 30)), R = num(r), d = mul(r, F(2)), D = num(d);
+      const angle = t.pick(ANGLES), part = frac(angle), P = ft(part), C = ft(sub(F(1), part));
       s.answer = { label: '長度（公分）', unit: '公分' };
       if (kind === 0) {
+        /* 給直徑：直接直徑×3.14，不考「直徑算半徑」 */
         s.text = `一個圓心角是 ${angle}°、直徑是 ${D} 公分的扇形，這個扇形的弧長大約是多少公分？`;
-        s.key = { title: '求半徑', label: '半徑', v: r, unit: '公分', why: `半徑＝直徑÷2＝${D}÷2＝${R}。`, hint: '半徑＝直徑÷2。' };
+        s.keys = [partKey(angle)];
         s.answer.label = '弧長（公分）';
-        s.formulas = [`${R}×2×3.14×${angle}/360`, `${R}×${R}×3.14×${angle}/360`, `${R}×3.14×${angle}/360`, `${R}×2×3.14×${angle}/360＋${R}×2`, `${D}×2×3.14×${angle}/360`];
-        s.rule = '弧長＝半徑×2×3.14×圓心角/360';
+        s.formulas = [`${D}×3.14×${P}`, `${D}×${D}×3.14×${P}`, `${D}×3.14×${C}`, `${D}×3.14×${P}＋${D}`, `${D}×2×3.14×${P}`];
+        s.rule = '弧長＝直徑×3.14×' + P;
       } else if (kind === 1) {
+        const arc = evaluate(`${D}×3.14×${P}`), A = num(arc);
         s.text = `一個半徑 ${R} 公分、圓心角 ${angle}° 的扇形，這個扇形的周長大約是多少公分？`;
-        s.key = { title: '求弧長', label: '弧長', v: arc, unit: '公分', why: `弧長＝${D}×3.14×${angle}/360＝${A}。`, hint: '弧長＝直徑×3.14×圓心角/360。' };
+        s.keys = [partKey(angle), { title: '求弧長', label: '弧長', v: arc, unit: '公分', why: `直徑是 ${R}×2＝${D}，弧長＝${D}×3.14×${P}＝${A}。`, hint: '弧長＝直徑×3.14×（扇形是全圓的幾分之幾）。' }];
         s.answer.label = '扇形周長（公分）';
         s.formulas = [`${A}＋${R}×2`, `${A}`, `${A}＋${R}`, `${A}＋${D}×2`];
         s.rule = '扇形周長＝弧長＋2 條半徑';
       } else if (kind === 2) {
-        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), mins = t.pick([5, 10, 15, 20]), m2 = m1 + mins, a2 = mins * 6, pad = m => String(m).padStart(2, '0');
+        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), mins = t.pick([5, 10, 15, 20, 25, 30]), m2 = m1 + mins, a2 = mins * 6, Q = ft(frac(a2)), pad = m => String(m).padStart(2, '0');
         s.text = `時鐘的分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h} 時 ${pad(m2)} 分，分針的尖端走了大約多少公分？`;
-        s.key = { title: '求圓心角', label: '分針轉過的角度（度）', v: F(a2), unit: '度', why: `分針 1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${a2}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' };
+        s.keys = [{ title: '求圓心角', label: '分針轉過的角度（度）', v: F(a2), unit: '度', why: `分針 1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${a2}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' }, partKey(a2, { who: '尖端走的弧' , label: '尖端走的弧是圓周的幾分之幾' })];
         s.answer.label = '尖端走的距離（公分）';
-        s.formulas = [`${R}×2×3.14×${a2}/360`, `${R}×${R}×3.14×${a2}/360`, `${R}×2×3.14×${mins}/360`, `${R}×2×3.14×${a2}/360＋${R}×2`];
-        s.rule = '尖端走的路線是一段弧，弧長＝半徑×2×3.14×圓心角/360';
+        s.formulas = [`${R}×2×3.14×${Q}`, `${R}×${R}×3.14×${Q}`, `${R}×3.14×${Q}`, `${R}×2×3.14×${Q}＋${R}×2`];
+        s.rule = `尖端走的路線是一段弧：分針長是半徑，直徑＝${R}×2，弧長＝${R}×2×3.14×${Q}`;
       } else if (kind === 3) {
         const half = evaluate(`${D}×3.14÷2`), H = num(half);
         s.text = `一個直徑 ${D} 公分的半圓形，周長大約是多少公分？`;
-        s.key = { title: '求弧長', label: '半圓的弧長', v: half, unit: '公分', why: `半圓的弧長＝${D}×3.14÷2＝${H}。`, hint: '半圓的弧是圓周長的一半。' };
+        s.key = { title: '求弧長', label: '半圓的弧長', v: half, unit: '公分', why: `半圓的弧長＝${D}×3.14÷2＝${H}。`, hint: '半圓的弧是圓周長的一半：直徑×3.14÷2。' };
         s.answer.label = '半圓周長（公分）';
         s.formulas = [`${H}＋${D}`, `${H}`, `${H}＋${R}`, `${D}×3.14＋${D}`];
         s.rule = '半圓周長＝半圓的弧長＋直徑';
       } else {
-        const C = mul(d, PI), L = mul(C, F(angle, 360));
-        if (terminatingDigits(L) > 3) return null;
+        const Cc = mul(d, PI), L = mul(Cc, part);
+        if (terminatingDigits(L) > 1) return null;
         s.text = `一個圓心角 ${angle}° 的扇形，弧長是 ${num(L)} 公分，這個扇形的半徑是多少公分？`;
-        s.key = { title: '求整個圓的周長', label: '整個圓的周長', v: C, unit: '公分', why: `弧長占整個圓周的 ${angle}/360，圓周長＝${num(L)}×360/${angle}＝${num(C)}。`, hint: '弧長＝圓周長×圓心角/360，反過來乘 360/圓心角。' };
+        s.keys = [partKey(angle, { who: '這段弧', label: '這段弧是整個圓周的幾分之幾' }),
+          { title: '求整個圓的周長', label: '整個圓的周長', v: Cc, unit: '公分', why: `弧長是圓周長的 ${P}，圓周長＝${num(L)}÷${P}＝${num(Cc)}。`, hint: '弧長＝圓周長×幾分之幾，反過來除以幾分之幾（乘以倒數）。' }];
         s.answer.label = '半徑（公分）';
-        s.formulas = [`${num(C)}÷3.14÷2`, `${num(C)}÷3.14`, `${num(C)}÷2`, `${num(C)}×3.14÷2`];
-        s.rule = '圓周長＝半徑×2×3.14，所以半徑＝圓周長÷3.14÷2';
+        s.formulas = [`${num(Cc)}÷3.14÷2`, `${num(Cc)}÷3.14`, `${num(Cc)}÷2`, `${num(Cc)}×3.14÷2`];
+        s.rule = '圓周長＝直徑×3.14，直徑＝圓周長÷3.14，半徑＝直徑÷2';
       }
       return s;
     }, t);
@@ -585,8 +608,11 @@
 
   function stepQuestion(type, t, variant) {
     const s = scenario(type, t, variant), q = newQuestion(type, t);
-    const keyField = valueField(q, s.key.label, s.key.v, s.key.unit, s.key.v.d !== 1);
-    q.step(s.key.title, [keyField], s.key.why, s.key.hint);
+    s.keys.forEach(k => {
+      const kf = k.simplest ? q.field(k.label, k.v, 'rational', { unit: '', requirement: '約分成最簡分數', defaultForm: 'fraction', formats: ['fraction'], simplest: true })
+        : valueField(q, k.label, k.v, k.unit, k.v.d !== 1);
+      q.step(k.title, [kf], k.why, k.hint);
+    });
     const formulaField = choiceField(q, '正確算式', s.options.map(o => o.text), 0);
     q.step('選出正確算式', [formulaField], `${s.rule}。列式為 ${s.options[0].text}。`, s.ruleHint);
     const answerField = valueField(q, s.answer.label, s.answer.v, s.answer.unit, s.answer.rational);
@@ -627,7 +653,7 @@
       truth = t.rnd(0, 1) === 1;
       let shown = right.text, value = right.v;
       if (!truth) {
-        const wrong = s.options.slice(1).filter(o => o.v.n > 0 && nice(o.v, true));
+        const wrong = s.options.slice(1).filter(o => o.v.n > 0 && okValue(o.v, s));
         const w = t.pick(wrong.length ? wrong : s.options.slice(1));
         if (t.rnd(0, 2) === 0 && w.v.n > 0) value = w.v; else { shown = w.text; value = w.v; }
         if (value.n <= 0) { shown = right.text; value = add(right.v, F(1)); }
@@ -698,11 +724,12 @@
     } else {
       s = computedScenario(t, kind === 5 ? ['area', 'sector', 'shaded', 'arc'] : ['ratio', 'sectorWhole', 'shaded', 'perimeter']);
       const unit = unitText(s.answer.unit), values = [];
-      s.options.forEach(o => { if (o.v.n > 0 && nice(o.v, true) && !values.some(v => eq(v, o.v))) values.push(o.v); });
-      for (let bump = 2; values.length < 4; bump++) {
+      s.options.forEach(o => { if (o.v.n > 0 && okValue(o.v, s) && !values.some(v => eq(v, o.v))) values.push(o.v); });
+      for (let bump = 2; values.length < 4 && bump < 400; bump++) {
         const v = bump % 2 ? mul(values[0], F(bump)) : div(values[0], F(bump));
-        if (nice(v, true) && !values.some(x => eq(x, v))) values.push(v);
+        if (okValue(v, s) && !values.some(x => eq(x, v))) values.push(v);
       }
+      for (let k = 1; values.length < 4; k++) { const v = add(values[0], F(k * 3)); if (!values.some(x => eq(x, v))) values.push(v); }
       text = s.text; fig = s.fig || '';
       options = values.slice(0, 4).map(v => `${show(v)}${unit}`); correct = 0;
       explanation = `${s.rule}，${calcText(s.options[0].text, s.options[0].v, s.answer.unit)}。`;
@@ -737,7 +764,11 @@
   const format = a => typeof a === 'object' && a ? show(a) : String(a);
   const api = { ...RQ, categories, PRACTICE_TYPES, EXAM_TYPES, SHADED_COUNT, PERIMETER_COUNT, defaultType: 'area', generate, buildExam, format,
     F, add, sub, mul, div, eq, show, evaluate, scenario: (type, rng, variant) => scenario(type, tools(rng), variant) };
-  api.correct = RQ.correct;
+  /* 約分題：必須填最簡分數 */
+  api.correct = (raw, f) => {
+    if (f && f.simplest) { const m = String(raw == null ? '' : raw).trim().match(/^(\d+)\/(\d+)$/); if (!m || gcd(+m[1], +m[2]) !== 1) return false; }
+    return RQ.correct(raw, f);
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else { api.settings = () => null; root.PaperQuestions = api; }
 })(typeof window !== 'undefined' ? window : globalThis);
