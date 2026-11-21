@@ -242,7 +242,11 @@
     }
     if (state.mode === 'exam') { move(1); return; }
     const wrong = fields.find(f => !Q.correct(state.values[f.key], f));
-    if (wrong) { state.missed = true; activate(wrong.key); message(`「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return; }
+    if (wrong) {
+      state.missed = true; activate(wrong.key);
+      const unreduced = wrong.simplest && Q.correct(state.values[wrong.key], Object.assign({}, wrong, { simplest: false }));
+      message(unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return;
+    }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
     card.querySelectorAll('input, button').forEach(el => { el.disabled = true; el.classList.remove('active'); });
     const solution = card.querySelector('.solution'); solution.hidden = false; solution.innerHTML = Q.displayText(`✓ ${s.explanation}`);

@@ -20,7 +20,7 @@
 <header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">⭕ 圓形與扇形（六年級）</h1><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></header>
 <main class="main-wrapper">
   <section class="panel" id="work-panel" aria-label="作答區">
-    <div class="welcome" id="welcome"><h2>先找半徑，再選公式</h2><p>圓周長＝直徑×3.14<br>圓面積＝半徑×半徑×3.14<br>扇形面積＝半徑×半徑×3.14×圓心角/360<br>弧長＝直徑×3.14×圓心角/360</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
+    <div class="welcome" id="welcome"><h2>先找半徑，再選公式</h2><p>圓周長＝直徑×3.14<br>圓面積＝半徑×半徑×3.14<br>扇形是全圓的幾分之幾＝圓心角/360（約成最簡分數）<br>扇形面積＝半徑×半徑×3.14×幾分之幾<br>弧長＝直徑×3.14×幾分之幾</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
     <div class="session-bar" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div id="exam-overview" hidden>
       <div class="exam-jump" id="exam-jump" aria-label="測驗題號"></div>
       <div class="exam-tools"><button type="button" class="secondary-btn review-toggle" id="mark-review" aria-pressed="false">標記待檢查</button><span class="exam-status" id="answer-status" aria-live="polite"></span></div>
@@ -41,7 +41,7 @@
 </footer>
 <dialog class="mode-dialog" id="mode-dialog" aria-labelledby="mode-dialog-title">
   <div class="dialog-heading"><h2 id="mode-dialog-title">選擇模式與題型</h2><button type="button" class="secondary-btn" id="close-modes">返回作答</button></div>
-  <h3 class="controls-title">分步練習（求半徑 → 選算式 → 算答案）</h3>
+  <h3 class="controls-title">分步練習（找半徑或約分 → 選算式 → 算答案）</h3>
   <div class="menu-grid"><button type="button" class="menu-btn" data-type="area" aria-pressed="false">① 圓的周長與面積</button><button type="button" class="menu-btn" data-type="ratio" aria-pressed="false">② 倍率問題</button><button type="button" class="menu-btn" data-type="sector" aria-pressed="false">③ 扇形面積</button><button type="button" class="menu-btn" data-type="sectorWhole" aria-pressed="false">④ 由圓面積求扇形</button><button type="button" class="menu-btn" data-type="shaded" aria-pressed="false">⑤ 陰影面積（附圖）</button><button type="button" class="menu-btn" data-type="arc" aria-pressed="false">⑥ 弧長與扇形周長</button><button type="button" class="menu-btn" data-type="perimeter" aria-pressed="false">⑦ 複合圖形周長（附圖）</button><button type="button" class="menu-btn" data-type="judge" aria-pressed="false">⑧ 是非判斷</button><button type="button" class="menu-btn" data-type="choice" aria-pressed="false">⑨ 選擇題</button><button type="button" class="menu-btn wide" data-type="mixed" aria-pressed="false">綜合練習</button></div>
   <h3 class="controls-title">測驗模式</h3>
   <button type="button" class="menu-btn" id="start-exam">綜合測驗（10 題）</button>
