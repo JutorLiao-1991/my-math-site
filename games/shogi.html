@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鳩特將棋</title>
+<link rel="stylesheet" href="rank_medals.css">
 <style>
 /* VOICE: 安靜的將棋道場，木頭棋盤、清楚好點
    IDEA: 榧木棋盤與五角棋子，盤面淡淡壓著鳩特鳩紋
@@ -152,6 +153,13 @@ body.hint .hints,.showhint .hints{display:block}
  #kifu{flex-direction:column;flex-wrap:nowrap}
 }
 @media (prefers-reduced-motion:reduce){.sealrow img{animation:none}}
+.rkl{list-style:none;margin:6px 0;padding:0;display:flex;flex-direction:column;gap:5px}
+.rkl li{display:grid;grid-template-columns:2em minmax(0,1fr) auto;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;border:1px solid #0003;font-size:15px;font-weight:800;line-height:1.2}
+.rkl li .no{font-size:16px;font-weight:900;text-align:center}.rkl li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rkl li .tm{text-align:right;font-weight:900;white-space:nowrap}.rkl li .tm small{display:block;font-size:11px;font-weight:600;opacity:.8}
+.rkl li.me{outline:3px solid #ff7565;outline-offset:1px}
+.rkf{display:flex;gap:8px;margin:8px 0}.rkf input{flex:1;min-width:0;font-size:16px;font-weight:700;padding:10px 12px;border-radius:8px;border:2px solid var(--gold);background:#1b140e;color:inherit}
+.rkm{text-align:center;margin:4px 0}
 </style>
 <script src="../page_views.js" defer></script>
 </head>
@@ -528,7 +536,7 @@ function newGame(){
  const me=pvp||hc!=='none'?1:OPT.side==='rand'?(Math.random()<.5?1:-1):OPT.side==='gote'?-1:1,P=ENG.newPos(W);
  if(hc!=='none'){for(const [x,y] of HC[W][hc])P.b[y*W+x]=0;P.side=-1}
  TUT.stop();hideFinale();
- G={mode:'game',W,pos:P,me,view:me,diff:pvp?3:OPT.diff,pvp,flip:false,hc,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),mvs:[],over:false,thinking:false,koi:[0,0],tok:Math.random()};
+ G={mode:'game',W,pos:P,me,view:me,diff:pvp?3:OPT.diff,pvp,flip:false,hc,ids:new Int32Array(W*W),hid:[0,1].map(()=>Array.from({length:9},()=>[])),kifu:[],last:null,lastTo:-1,hist:[],reps:new Map(),mvs:[],over:false,thinking:false,koi:[0,0],tok:Math.random(),t0:Date.now(),undid:false,hinted:false};
  let id=1;for(let i=0;i<W*W;i++)if(P.b[i])G.ids[i]=id++;
  NAME=nameOf();SEL=null;G.legal=ENG.legal(P);G.reps.set(ENG.key(P),1);
  closeModal();layout();render();BGM.start();saveGame();afterTurnStart();
@@ -548,7 +556,7 @@ function reasonOf(m){const P=G.pos,to=(m>>7)&127,dt=m>>15,c=P.b[to],r=[],was=ENG
  if(c)r.push(`吃掉對方的${KN[Math.abs(c)]||'王'}`);if(dt)r.push(`把持駒的${KN[dt]}打入`);if(m&ENG.PR)r.push('升變');
  const q=ENG.clone(P);ENG.doMove(q,m);if(!ENG.legal(q).length)r.unshift('直接將死！');else if(ENG.inCheck(q))r.push('王手');if(was)r.push('解除王手');
  if(!r.length)r.push('穩住陣形、等待時機');return r.join('、')}
-function hintGame(){if(!G||G.mode!=='game'||G.over||G.thinking||G.pos.side!==ctl())return;const key=ENG.key(G.pos);
+function hintGame(){if(!G||G.mode!=='game'||G.over||G.thinking||G.pos.side!==ctl())return;G.hinted=true;const key=ENG.key(G.pos);
  const show=m=>{if(!m||!G||ENG.key(G.pos)!==key)return;SEL=(m>>15)?'h'+(m>>15):(m&127);G.goal=(m>>7)&127;G.tipTxt=`建議 ${moveText(m)}：${reasonOf(m)}`;render()};
  if(G.tip&&G.tip.key===key)return show(G.tip.m);
  G.tipTxt='大師鳩特幫你想一下…';render();askEngine(G.pos,{diff:4,time:1500}).then(r=>show(r.m))}
@@ -592,10 +600,12 @@ function end(winner,why){
  const loser=G.pvp?SN(-winner):(winner===G.me?NAME:'你');
  const line=(winner===0?'同一個局面出現四次，按規則判為和局。':why==='千日手'?'同一個局面出現四次，五五將棋的千日手規定先手輸。':why==='投了'?`${loser}認輸了。`:`${loser}的玉將被將死了。`)+`共 ${n} 手。`;
  if(winner)setTimeout(()=>say(why==='投了'&&!G.pvp&&winner===G.me?'まいりました':`まで、${n}手で、${winner===1?'せんて':'ごて'}の勝ち`),300);
+const rkOK=!G.pvp&&G.mode==='game'&&G.hc==='none'&&G.me===1&&winner===G.me&&!G.undid&&!G.hinted&&!!G.t0;
+ G.rkRec=rkOK?{W:G.W,d:G.diff,m:n,sec:Math.min(99999,Math.round((Date.now()-G.t0)/1000))}:null;
  const who=NAME+(G.hc!=='none'?`（${HCN[G.hc]}）`:'');
  const r=G.pvp?null:recAdd('rec_sg_'+G.W,who,kind==='win'?'w':kind==='lose'?'l':'d');
  const g=G;setTimeout(()=>{if(G!==g)return;showFinale(kind,{sub:winner===0?'和局':G.pvp?`${SN(winner)}獲勝！`:kind==='win'?'你贏了！':`${NAME}贏了`,line,stat:r?recLine(who,r)+`（${G.W===9?'本將棋':'五五將棋'}）`:'',
-  btns:`<button data-act="menu">選單</button>${!G.pvp&&kind==='lose'&&G.diff>0?`<button data-act="easier">換${DIFFN[G.diff-1]}</button>`:''}<button class="pri" data-act="again">再下一局</button>`})},900);
+  btns:`<button data-act="menu">選單</button>${G.rkRec?'<button class="red" data-act="rkenter">登上榮譽榜</button>':''}${!G.pvp&&kind==='lose'&&G.diff>0?`<button data-act="easier">換${DIFFN[G.diff-1]}</button>`:''}<button class="pri" data-act="again">再下一局</button>`})},900);
 }
 /* ===== 畫面 ===== */
 function layout(){
@@ -859,8 +869,46 @@ function onSq(sq){
  SEL=null;render();
 }
 function onHand(ty){if(!G||G.over||G.thinking||G.pos.side!==ctl())return;if(G.mode==='study'&&!G.swait)return;if(G.mode==='lesson'&&TUT.cur.task?.drop!==ty)return;SEL=SEL==='h'+ty?null:'h'+ty;sfx('tap');render()}
-function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;const s=G.hist.pop();
+function undo(){if(!G||!G.hist.length||G.thinking||G.over)return;if(G.mode==='game')G.undid=true;const s=G.hist.pop();
  Object.assign(G,{pos:s.pos,ids:s.ids,hid:s.hid,last:s.last,lastTo:s.lastTo,reps:s.reps,rem:s.rem,view:s.view,goal:G.mode==='lesson'?G.goal:null,tipTxt:null,tip:null});G.kifu.length=s.kn;if(G.mvs)G.mvs.length=s.mvn;G.legal=ENG.legal(G.pos);SEL=null;render();saveGame();if(G.mode==='game')requestEval()}
+/* ===== 最少手數榜（Firebase，所有人共用）：只收「不讓子、先手、不悔棋、不用提示」的勝局 ===== */
+function rkReady(ms=6000){return new Promise((res,rej)=>{if(window.SGRank)return res(window.SGRank);const tm=setTimeout(()=>rej(new Error('timeout')),ms);addEventListener('sgrank-ready',()=>{clearTimeout(tm);res(window.SGRank)},{once:true})})}
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const rkKey=(W,d)=>W+'_'+d,rkScore=(m,sec)=>m*100000+Math.min(sec,99999);
+const rkTop=(W,d)=>rkReady().then(r=>r.top(rkKey(W,d)));
+const rkErr=e=>/denied|PERMISSION/i.test(String(e&&(e.code||e.message||e)))?'榮譽榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上榮譽榜，請確認網路後再試。';
+function rkRows(list,hi){if(!list.length)return '<p class="pill rkm">這一組還沒有人上榜，搶第一吧！</p>';
+ return '<ol class="rkl">'+list.map((x,i)=>`<li class="medal m${i<3?i+1:i<5?4:5}${x.id===hi?' me':''}"><span class="no">${i+1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${Math.floor(x.s/100000)} 手<small>${x.s%100000} 秒</small></span></li>`).join('')+'</ol>'}
+const RKV={W:9,d:2};
+function showRank(){
+ const o=(k,v,txt)=>`<button data-act="rkopt" data-k="${k}" data-v="${v}" class="${RKV[k]===v?'on':''}">${txt}</button>`;
+ modal(`<h2>最少手數榜</h2><p class="pill">打贏電腦所用的手數越少越前面，手數相同比用時。只收「不讓子、你先手、沒悔棋、沒用提示」的勝局，每組取前十名。</p>
+ <div class="opts">${o('W',9,'本將棋')}${o('W',5,'五五將棋')}</div><div class="opts">${DIFFN.map((n,i)=>o('d',i,n)).join('')}</div>
+ <div id="rkView"><p class="pill rkm">讀取中…</p></div><div class="btns"><button class="pri" data-act="menu">返回</button></div>`,'menu');
+ const W=RKV.W,d=RKV.d;rkTop(W,d).then(l=>{if(RKV.W===W&&RKV.d===d&&$('rkView'))$('rkView').innerHTML=rkRows(l)}).catch(e=>{if($('rkView'))$('rkView').innerHTML=`<p class="pill rkm">${rkErr(e)}</p>`})}
+function rkEnter(){const g=G,R=g&&g.rkRec;if(!R)return;
+ const head=`<h2>登上榮譽榜</h2><p class="rkm"><b>${R.W===9?'本將棋':'五五將棋'}・${DIFFN[R.d]}</b><br>${R.m} 手・${R.sec} 秒</p>`;
+ const s=rkScore(R.m,R.sec);
+ modal(head+'<p class="pill rkm">讀取榮譽榜中…</p>','menu');
+ rkTop(R.W,R.d).then(list=>{if(G!==g)return;const ok=list.length<10||s<list[list.length-1].s;
+  modal(`${head}${ok?`<p class="rkm">你擠進前十名了！留下名字：</p><div class="rkf"><input id="rkName" maxlength="12" placeholder="名字（最多 12 字）" value="${esc(LS.get('sg_name',''))}"><button class="pri" data-act="rksubmit">登上榮譽榜</button></div>`:'<p class="rkm">這次沒有進前十名，再挑戰一次吧！</p>'}<div id="rkList">${rkRows(list)}</div><div class="btns"><button data-act="again" class="pri">再下一局</button><button data-act="menu">選單</button></div>`,'menu');
+ }).catch(e=>{modal(`${head}<p class="pill rkm">${rkErr(e)}</p><div class="btns"><button data-act="menu">選單</button></div>`,'menu')})}
+function rkDoSubmit(){const inp=$('rkName'),R=G&&G.rkRec;if(!inp||!R)return;const n=inp.value.trim().slice(0,12);
+ if(!n){inp.focus();return toast('請先輸入名字')}
+ if(badName(n)){inp.focus();return toast('名字含有不適當的字詞，請換一個')}
+ LS.set('sg_name',n);const b=document.querySelector('[data-act=rksubmit]');if(b)b.disabled=true;const g=G;
+ rkReady().then(r=>r.submit(rkKey(R.W,R.d),{n,s:rkScore(R.m,R.sec)})).then(id=>rkTop(R.W,R.d).then(list=>{g.rkRec=null;const f=document.querySelector('.rkf');if(f)f.remove();$('rkList').innerHTML=rkRows(list,id);sfx('win');toast('已經登上榮譽榜！')}))
+ .catch(e=>{if(b)b.disabled=false;toast(rkErr(e))})}
+
+/* 名字過濾：擋掉常見的不雅字 */
+const BADW=['幹你','幹妳','幹他','幹她','幹拎','幹林','靠北','靠杯','靠背','靠夭','哭爸','操你','操妳','操他','肏','屌','雞巴','雞掰','機掰','機巴','機八','雞八','雞雞','智障','白癡','白痴','低能','腦殘','去死','死全家','婊','賤人','賤貨','妓','屄','尻','他媽','她媽','你媽','妳媽','媽的','三小','殺小','北七','王八','混蛋','廢物','畜生','畜牲','做愛','強姦','性交','陰莖','陰道','奶子','淫','色情','屁眼','肛','ㄍㄢ','ㄐㄅ','ㄎㄅ','ㄍㄋㄋ','ㄋㄇㄉ','ㄊㄇㄉ','ㄇㄉ','fuck','fuk','fck','fuq','shit','bitch','btch','cunt','dick','cock','pussy','asshole','bastard','slut','whore','nigg','fag','retard','porn','penis','vagina','sex','wtf','stfu','kys'];
+function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
+ t=t.replace(/[0@4]/g,c=>({'0':'o','@':'a','4':'a'}[c])).replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[5$]/g,'s').replace(/7/g,'t');
+ t=t.replace(/[\s​._\-~*+=#^%&\/\\,，。．、·'"`()（）\[\]{}<>《》「」『』:：;；?？]/g,'');
+ t=t.replace(/幹部|能幹|樹幹|才幹|骨幹|主幹|幹事|幹勁|幹練|苦幹|實幹|精幹|幹線|軀幹/g,'');
+ if(t.includes('幹'))return true;const u=t.replace(/(.)\1+/g,'$1');
+ return BADW.some(w=>t.includes(w)||u.includes(w))}
 function showMenu(){
  const sv=savedInfo();
  const back=canResume()?`<button data-act="resume">返回${G.mode==='lesson'?'教學':G.mode==='tsume'?'題目':G.mode==='study'?'學習':'對局'}</button>`:'';
@@ -868,7 +916,7 @@ function showMenu(){
  <p>日本將棋：吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
  ${sv&&!canResume()?`<button class="pri wide" data-act="resumesave">繼續上次的對局（${sv.pvp?'雙人對戰':DIFFN[sv.diff]}・${sv.W===9?'本將棋':'五五將棋'}・已下 ${sv.kifu.length} 手）</button>`:''}
  <div class="modes"><button class="mode big" data-act="solo"><b>對戰鳩特</b><small>和五位電腦鳩特對下，可以讓子</small></button><button class="mode" data-act="pvp"><b>雙人對戰</b><small>同一台裝置，面對面對下</small></button><button class="mode" data-act="lessons"><b>新手教學</b><small>13 課，從棋子走法學起</small></button><button class="mode" data-act="tsumes"><b>詰將棋</b><small>一手詰、三手詰各 50 題</small></button><button class="mode" data-act="studies"><b>戰術學習</b><small>開局戰法、手筋、寄せ</small></button></div>
- <div class="btns">${back}<button data-act="rules">規則與走法</button></div>`,'menu')}
+ <div class="btns">${back}<button data-act="rank">最少手數榜</button><button data-act="rules">規則與走法</button></div>`,'menu')}
 function showPvp(){OPT.view='pvp';
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特將棋</small><h2>雙人對戰</h2></div></div>
@@ -909,6 +957,10 @@ function act(a,el){
  if(a==='menu')return showMenu();
  if(a==='resume')return closeModal();
  if(a==='rules')return showRules();
+ if(a==='rank')return showRank();
+ if(a==='rkopt'){RKV[el.dataset.k]=+el.dataset.v;return showRank()}
+ if(a==='rkenter'){hideFinale();return rkEnter()}
+ if(a==='rksubmit')return rkDoSubmit();
  if(a==='close'){closeModal();if(!G)showMenu();return}
  if(a==='promo1'||a==='promo0'){closeModal();const pp=G.pendingPromo;G.pendingPromo=null;return play(pp[a==='promo1'?0:1])}
  if(a==='undo')return undo();
@@ -946,6 +998,19 @@ document.addEventListener('click',e=>{
 });
 showMenu();
 }
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, query, orderByChild, limitToFirst, get, serverTimestamp, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+const app=initializeApp({apiKey:"AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug",authDomain:"element-uno.firebaseapp.com",databaseURL:"https://element-uno-default-rtdb.firebaseio.com",projectId:"element-uno",storageBucket:"element-uno.firebasestorage.app",messagingSenderId:"665324599764",appId:"1:665324599764:web:d151cd9014e600fcd53e41"},"sg-rank");
+const db=getDatabase(app);
+/* 讀寫完就斷線，避免佔用同時連線數 */
+let users=0,offT=0;const once=async f=>{users++;clearTimeout(offT);goOnline(db);try{return await f()}finally{users--;clearTimeout(offT);if(!users)offT=setTimeout(()=>{if(!users)goOffline(db)},1500)}};
+window.SGRank={
+ async top(k){return once(async()=>{const snap=await get(query(ref(db,"sg_rank/"+k),orderByChild("s"),limitToFirst(10)));const out=[];snap.forEach(c=>{const v=c.val();if(v&&typeof v.s==="number")out.push({id:c.key,n:String(v.n||"").slice(0,12),s:v.s,t:v.t||0})});return out.sort((a,b)=>a.s-b.s||a.t-b.t)})},
+ async submit(k,rec){return once(async()=>{const r=await push(ref(db,"sg_rank/"+k),{n:rec.n,s:rec.s,t:serverTimestamp()});return r.key})}
+};
+dispatchEvent(new Event("sgrank-ready"));
 </script>
 </body>
 </html>
