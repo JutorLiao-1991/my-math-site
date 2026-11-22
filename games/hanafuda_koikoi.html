@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鳩特花牌</title>
+<link rel="stylesheet" href="rank_medals.css">
 <style>
 /* VOICE: 日式牌桌，沉穩、清楚、手機一手可玩
    IDEA: 漆器牌桌上攤開的一副花札
@@ -200,17 +201,16 @@ button.mini{min-height:28px;padding:2px 10px;font-size:13px}
 .rk-sc{margin:4px 6px 10px}
 .rk-sc .sc-paper{min-height:0;padding:6px 12px 10px}
 .rk-sc .sc-label{font-size:17px}
-.rk-row{position:relative;display:grid;grid-template-columns:1.8em minmax(0,1fr) auto;align-items:baseline;gap:8px;padding:8px 2px;border-bottom:1px dashed #d9ccae;font:700 18px/1.3 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;opacity:0}
-.rk-row:last-child{border-bottom:0}
+.rk-row{position:relative;display:grid;grid-template-columns:1.8em minmax(0,1fr) auto;align-items:center;gap:8px;margin:5px 0;padding:8px 12px;border-radius:9px;border:1px solid #0003;font:700 18px/1.3 "Hiragino Mincho ProN","Yu Mincho","Noto Serif TC",serif;opacity:0}
 .rk-sc.open .rk-row{animation:rkin .4s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--d,0ms)*.55 + var(--i)*70ms)}
-.rk-no{text-align:center;color:#5a4a35}
-.rk-row.top .rk-no{color:#b8332a;font-size:21px}
+.rk-no{text-align:center}
+.rk-row.top .rk-no{font-size:21px}
 .rk-row:first-child{font-size:20px}
 .rk-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rk-pt{white-space:nowrap;text-align:right}
-.rk-pt small{display:block;font:400 11px/1.2 -apple-system,"PingFang TC",sans-serif;color:#8a7a62}
-.rk-row.me{background:linear-gradient(90deg,#0000,#e0b43c38 15%,#e0b43c38 85%,#0000)}
-.rk-row.me .rk-nm{color:#9a2a1e;text-decoration:underline 2px #b8332a88;text-underline-offset:4px}
+.rk-pt small{display:block;font:400 11px/1.2 -apple-system,"PingFang TC",sans-serif;opacity:.8}
+.rk-row.me{outline:3px solid #b8332a;outline-offset:1px}
+.rk-row.me .rk-nm{text-decoration:underline 2px;text-underline-offset:4px}
 .rk-seal{position:absolute;right:4.8em;top:50%;height:52px;margin-top:-26px;opacity:0;mix-blend-mode:multiply;pointer-events:none}
 .rk-seal.show{opacity:.85;animation:scseal .5s cubic-bezier(.2,1.5,.4,1) both}
 .rk-sc .sc-row.note{padding:16px 4px}
@@ -857,7 +857,7 @@ async function rkSubmit(cat,rec){const H=await rkReady();return rkTimeout(H.subm
 function rkErr(e){return /denied|PERMISSION/i.test(String(e&&e.message||e))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。'}
 const KNUM=['一','二','三','四','五','六','七','八','九','十'];
 function rkScroll(title,list,hi){
- const rows=!list?'':list.length?list.map((x,i)=>`<div class="rk-row${x.id===hi?' me':''}${i<3?' top':''}" style="--i:${i}"><b class="rk-no">${KNUM[i]||i+1}</b><span class="rk-nm">${esc(x.n)}</span><span class="rk-pt">${x.s} 文<small>對手 ${x.o} 文</small></span>${x.id===hi?`<img class="rk-seal" src="${BRAND.seal}" alt="">`:''}</div>`).join('')
+ const rows=!list?'':list.length?list.map((x,i)=>`<div class="rk-row medal m${Math.min(i+1,4)}${x.id===hi?' me':''}${i<3?' top':''}" style="--i:${i}"><b class="rk-no">${KNUM[i]||i+1}</b><span class="rk-nm">${esc(x.n)}</span><span class="rk-pt">${x.s} 文<small>對手 ${x.o} 文</small></span>${x.id===hi?`<img class="rk-seal" src="${BRAND.seal}" alt="">`:''}</div>`).join('')
   :'<div class="sc-row note">還沒有人上榜，<br>搶第一吧！</div>';
  return `<div class="sc rk-sc"><div class="sc-head"><span class="sc-label">${title}</span></div><div class="sc-body"><div class="sc-paper">${rows}</div></div><div class="sc-roll"></div></div>`}
 function rkShow(host,title,list,hi){

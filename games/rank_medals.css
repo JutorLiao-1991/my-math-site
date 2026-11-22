@@ -1,0 +1,8 @@
+/* 鳩特遊戲排行榜統一牌面：金／銀／銅／鐵
+   用法：排行榜每一列加上 class="medal m1"（第1名）、m2、m3，第4名以後一律 m4（鐵牌）。
+   所有文字與牌面底色的對比都在 4.5:1 以上。各遊戲只需另外處理自己的版面。 */
+.medal{background:var(--mb);color:var(--mt);text-shadow:var(--ms)}
+.medal.m1{--mb:linear-gradient(165deg,#fff1b8,#e6b93f 45%,#f7dc7e 62%,#b98a1c);--mt:#3a2700;--ms:0 1px 0 #fff8}
+.medal.m2{--mb:linear-gradient(165deg,#fcfdfe,#c4cad0 45%,#eceff1 62%,#8f979e);--mt:#1f2428;--ms:0 1px 0 #fffc}
+.medal.m3{--mb:linear-gradient(165deg,#f8d9bd,#c47f4b 45%,#e8b38b 62%,#85502a);--mt:#2e1505;--ms:0 1px 0 #fff6}
+.medal.m4{--mb:linear-gradient(180deg,#575e66,#3c4147);--mt:#f1f3f5;--ms:0 1px 0 #0009;box-shadow:inset 0 1px 0 #ffffff26}

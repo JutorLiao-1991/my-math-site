@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鳩特踩地雷</title>
+<link rel="stylesheet" href="rank_medals.css">
 <style>
 :root{--cream:#efe6c8;--ink:#1d2114;--alert:#d8452f;--lime:#c9e05a;--cs:32px;--W:9;
  --num:"Bahnschrift","DIN Condensed","DIN Alternate","Arial Narrow","Roboto Condensed",Impact,sans-serif;
@@ -112,16 +113,14 @@ header h1 small{font-size:12px;font-weight:700;opacity:.7;letter-spacing:.05em;m
 .rules li{margin:4px 0;line-height:1.55}
 /* 軍牌排行榜 */
 .tags{margin:6px 0}
-.tag{position:relative;display:grid;grid-template-columns:2.1em minmax(0,1fr) auto;align-items:center;gap:8px;margin:7px 2px;padding:9px 14px 9px 32px;border-radius:16px 9px 9px 16px;background:linear-gradient(170deg,#eef1f3,#aeb5bc 42%,#dfe3e6 58%,#8f979e);color:#2a2f33;font:800 16px/1.2 var(--zh);box-shadow:inset 0 1px 0 #fff,inset 0 -2px 3px #0005,0 2px 5px #0008;text-shadow:0 1px 0 #ffffffb0;opacity:0;animation:tagin .4s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i)*70ms)}
+.tag{position:relative;display:grid;grid-template-columns:2.1em minmax(0,1fr) auto;align-items:center;gap:8px;margin:7px 2px;padding:9px 14px 9px 32px;border-radius:16px 9px 9px 16px;font:800 16px/1.2 var(--zh);box-shadow:inset 0 1px 0 #fff8,inset 0 -2px 3px #0005,0 2px 5px #0008;opacity:0;animation:tagin .4s cubic-bezier(.2,1.3,.4,1) both;animation-delay:calc(var(--i)*70ms)}
 .tag::before{content:'';position:absolute;left:11px;top:50%;width:11px;height:11px;margin-top:-5.5px;border-radius:50%;background:#23271a;box-shadow:inset 0 1px 2px #000,0 1px 0 #fff8}
-.tag.g1{background:linear-gradient(170deg,#fff2bf,#caa244 42%,#f1d98a 58%,#9c7420)}
-.tag.g3{background:linear-gradient(170deg,#f3d1b4,#b07446 42%,#e0ab82 58%,#7c4a25)}
 .tag .no{font:900 18px/1 var(--num);letter-spacing:.04em}
 .tag .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tag .tm{font:900 18px/1 var(--num);white-space:nowrap}
 .tag .tm small{font:700 11px var(--zh);margin-left:2px}
 .tag.me{outline:3px solid var(--lime);outline-offset:1px}
-.tag.me .nm::after{content:'新';margin-left:6px;padding:1px 4px;border-radius:4px;background:#5b6b2a;color:#f3f7d8;font-size:11px;text-shadow:none;vertical-align:2px}
+.tag.me .nm::after{content:'新';margin-left:6px;padding:1px 4px;border-radius:4px;background:#2f3a12;color:#f3f7d8;font-size:11px;text-shadow:none;vertical-align:2px}
 @keyframes tagin{from{opacity:0;transform:translateX(-18px) rotate(-2deg)}to{opacity:1;transform:none}}
 .rk{width:min(100%,440px);text-align:left}
 .rk .pill,.pill{display:inline-block;margin:4px 0;padding:4px 10px;border-radius:999px;background:#ffffff14;font-size:13px}
@@ -440,7 +439,7 @@ const rkTop=lv=>rkReady().then(r=>r.top(lv));
 const rkSubmit=(lv,o)=>rkReady().then(r=>r.submit(lv,o));
 const rkErr=e=>/denied|PERMISSION/i.test(String(e&&(e.code||e.message||e)))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。';
 function rkTags(list,hi){if(!list.length)return '<p class="pill">這個難度還沒有人上榜，搶第一吧！</p>';
- return '<div class="tags">'+list.map((x,i)=>`<div class="tag${i<3?' g'+(i+1):''}${x.id===hi?' me':''}" style="--i:${i}"><span class="no">${String(i+1).padStart(2,'0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${(x.s/1000).toFixed(2)}<small>秒</small></span></div>`).join('')+'</div>'}
+ return '<div class="tags">'+list.map((x,i)=>`<div class="tag medal m${Math.min(i+1,4)}${x.id===hi?' me':''}" style="--i:${i}"><span class="no">${String(i+1).padStart(2,'0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${(x.s/1000).toFixed(2)}<small>秒</small></span></div>`).join('')+'</div>'}
 function rkClink(n){for(let k=0;k<Math.min(n,10);k++)setTimeout(()=>sfx('clink'),k*70+120)}
 function rkFinal(){const el=$('rkBox'),g=G,lv=g.lv;if(!el)return;el.innerHTML='<p class="pill">讀取排行榜中…</p>';
  rkTop(lv).then(list=>{if(G!==g)return;const s=Math.round(g.ms),ok=list.length<10||s<list[list.length-1].s;

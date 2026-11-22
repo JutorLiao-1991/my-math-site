@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>鳩特數獨</title>
+<link rel="stylesheet" href="rank_medals.css">
 <style>
 :root{--paper:#f4ecda;--paper2:#ebe0c7;--ink:#211c18;--ink2:#4a4038;--indigo:#2c4f86;--indigo-soft:#dbe4f2;--ver:#c23b2a;--ver-soft:#f6d9d2;--gold:#b08a3e;--cs:44px;
  --serif:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;--zh:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;--num:"Avenir Next","Segoe UI","Roboto",var(--zh)}
@@ -125,12 +126,11 @@ body.note .k::before{content:'筆';position:absolute;left:5px;top:3px;font:900 1
 .tabs4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.tabs4 .btn{padding:9px 4px}
 @media (max-width:480px){.tabs4{grid-template-columns:1fr 1fr}}
 .rk{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:5px}
-.rk li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:10px;background:#fffaf0;border:1px solid #cdbd9c;font-size:14px}
-.rk li .n{width:26px;font:900 15px var(--num);color:var(--ink2)}
+.rk li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:10px;border:1px solid #0003;font-size:14px}
+.rk li .n{width:26px;font:900 15px var(--num)}
 .rk li .nm{flex:1;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rk li .tm{font:800 15px var(--num)}
-.rk li.g1{border-color:var(--gold);background:#fbf1d6}.rk li.g1 .n{color:var(--gold)}
-.rk li.me{border-color:var(--ver);box-shadow:0 0 0 2px #c23b2a44}
+.rk li.me{outline:3px solid var(--ver);outline-offset:1px}
 .rkf{display:flex;gap:8px;margin:8px 0}
 .rkf input{flex:1;min-width:0;font:700 16px var(--zh);padding:9px 11px;border:1.5px solid var(--ink);border-radius:10px;background:#fffaf0}
 .pillnote{display:block;text-align:center;color:var(--ink2);font-size:13px;margin:8px 0}
@@ -554,7 +554,7 @@ async function rkSubmit(lv, day, n, s) {
 const rkErr = e => (/PERMISSION/.test(String(e && e.message)) ? '榮譽榜尚未開通（需要在 Firebase 加入權限規則）。' : '目前連不上榮譽榜，請確認網路後再試。');
 function rkList(list, hi) {
   if (!list.length) return '<p class="pillnote">還沒有人上榜，搶第一吧！</p>';
-  return `<ol class="rk">${list.map((x, i) => `<li class="${i === 0 ? 'g1' : ''}${x.id === hi ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtSec(x.s)} 秒</span></li>`).join('')}</ol>`;
+  return `<ol class="rk">${list.map((x, i) => `<li class="medal m${Math.min(i + 1, 4)}${x.id === hi ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtSec(x.s)} 秒</span></li>`).join('')}</ol>`;
 }
 function rankFinal(total) {
   const g = G, lv = g.lv, day = g.daily, title = `${LV[lv].n}${day ? '・今日挑戰' : ''}榮譽榜`;
