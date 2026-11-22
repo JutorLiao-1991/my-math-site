@@ -439,7 +439,7 @@ const rkTop=lv=>rkReady().then(r=>r.top(lv));
 const rkSubmit=(lv,o)=>rkReady().then(r=>r.submit(lv,o));
 const rkErr=e=>/denied|PERMISSION/i.test(String(e&&(e.code||e.message||e)))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。';
 function rkTags(list,hi){if(!list.length)return '<p class="pill">這個難度還沒有人上榜，搶第一吧！</p>';
- return '<div class="tags">'+list.map((x,i)=>`<div class="tag medal m${Math.min(i+1,4)}${x.id===hi?' me':''}" style="--i:${i}"><span class="no">${String(i+1).padStart(2,'0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${(x.s/1000).toFixed(2)}<small>秒</small></span></div>`).join('')+'</div>'}
+ return '<div class="tags">'+list.map((x,i)=>`<div class="tag medal m${i<3?i+1:i<5?4:5}${x.id===hi?' me':''}" style="--i:${i}"><span class="no">${String(i+1).padStart(2,'0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${(x.s/1000).toFixed(2)}<small>秒</small></span></div>`).join('')+'</div>'}
 function rkClink(n){for(let k=0;k<Math.min(n,10);k++)setTimeout(()=>sfx('clink'),k*70+120)}
 function rkFinal(){const el=$('rkBox'),g=G,lv=g.lv;if(!el)return;el.innerHTML='<p class="pill">讀取排行榜中…</p>';
  rkTop(lv).then(list=>{if(G!==g)return;const s=Math.round(g.ms),ok=list.length<10||s<list[list.length-1].s;

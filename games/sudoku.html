@@ -554,7 +554,7 @@ async function rkSubmit(lv, day, n, s) {
 const rkErr = e => (/PERMISSION/.test(String(e && e.message)) ? '榮譽榜尚未開通（需要在 Firebase 加入權限規則）。' : '目前連不上榮譽榜，請確認網路後再試。');
 function rkList(list, hi) {
   if (!list.length) return '<p class="pillnote">還沒有人上榜，搶第一吧！</p>';
-  return `<ol class="rk">${list.map((x, i) => `<li class="medal m${Math.min(i + 1, 4)}${x.id === hi ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtSec(x.s)} 秒</span></li>`).join('')}</ol>`;
+  return `<ol class="rk">${list.map((x, i) => `<li class="medal m${i < 3 ? i + 1 : i < 5 ? 4 : 5}${x.id === hi ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtSec(x.s)} 秒</span></li>`).join('')}</ol>`;
 }
 function rankFinal(total) {
   const g = G, lv = g.lv, day = g.daily, title = `${LV[lv].n}${day ? '・今日挑戰' : ''}榮譽榜`;
