@@ -36,7 +36,7 @@ const lessonData = [
         thumb: "games/thumbs/hanafuda.svg",
         tagClass: "game",
         tagName: "益智遊戲",
-        desc: "和電腦對戰日本花札「こいこい」：三種難度、機率小幫手、可重現的牌局編號，附和風配樂與日語唸役。"
+        desc: "和電腦對戰日本花札「こいこい」：四種難度（最強的大師鳩特會模擬推演）、機率小幫手、可重現的牌局編號，附和風配樂與日語唸役。"
     },
     {
         title: "鳩特將棋",

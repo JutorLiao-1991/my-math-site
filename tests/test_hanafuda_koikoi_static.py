@@ -22,7 +22,7 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         self.assertEqual(PAGE.split("const IMG=")[1].split("];")[0].count("data:image/webp;base64,"), 48)
         for key in ("gold", "paper", "seal"):
             self.assertIn(f'"{key}":"data:image/webp;base64,', PAGE)
-        for name in ("幼年鳩特", "青年鳩特", "成年鳩特"):
+        for name in ("幼年鳩特", "青年鳩特", "成年鳩特", "大師鳩特"):
             self.assertIn(name, PAGE)
         self.assertIn("Louie Mantia", PAGE)
         self.assertIn("creativecommons.org/licenses/by-sa/4.0", PAGE)
@@ -51,6 +51,10 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
             "const all=[...G.hands[0],...G.hands[1],...G.field,...G.deck,...G.caps[0],...G.caps[1]];"
             "if(all.length!==48||new Set(all).size!==48)throw new Error('card leak');"
             "if(G.hist.length!==6)throw new Error('rounds');}"
+            "for(let g=1;g<=3;g++){E.newGame(3,3,g,[true,true],[3,g%3]);const G=E.G;"
+            "const all=[...G.hands[0],...G.hands[1],...G.field,...G.deck,...G.caps[0],...G.caps[1]];"
+            "if(all.length!==48||new Set(all).size!==48)throw new Error('master card leak');"
+            "if(G.hist.length!==3)throw new Error('master rounds');}"
             "const id=n=>E.CARDS.find(c=>c.nm===n).id;"
             "if(E.calc([id('松上鶴'),id('櫻幕'),id('芒月')]).total!==5)throw new Error('三光');"
             "if(E.calc([id('菊盃'),id('芒月')]).total!==5)throw new Error('月見酒');"
@@ -60,6 +64,10 @@ class HanafudaKoikoiStaticTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertIn("ok", out.stdout)
 
+
+    def test_master_level(self):
+        for s in ("大師鳩特", "function mcPlay", "function mcKoi", "D(p)===3?mcPlay(p)", "seenBy(p)", "和四位電腦鳩特單挑"):
+            self.assertIn(s, PAGE, s)
 
     def test_home_has_three_modes(self):
         for s in ('data-act="solo"><b>對戰鳩特</b>', 'data-act="net"><b>雙人對決</b>', 'data-act="tutorial"><b>新手教學</b>'):
