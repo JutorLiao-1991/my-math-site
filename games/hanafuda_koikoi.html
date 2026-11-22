@@ -290,7 +290,7 @@ const LIGHTS=CARDS.filter(c=>c.k==='light').map(c=>c.id);
 const RAIN=ID('rain'),CUP=ID('cup'),CURTAIN=ID('curtain'),MOON=ID('moon');
 const ISC=[ID('boar'),ID('deer'),ID('butterfly')],AKA=byT('aka'),AO=byT('ao');
 const KD={light:'光',seed:'種',ribbon:'短',plain:'素'};
-const DIFFN=['幼年鳩特','青年鳩特','成年鳩特'];
+const DIFFN=['幼年鳩特','青年鳩特','成年鳩特','大師鳩特'];
 const NAME=['你','電腦'];
 const nm=i=>CARDS[i].nm, mon=i=>CARDS[i].m;
 
@@ -327,9 +327,9 @@ function gain(caps,ids){
 }
 function seenBy(p){return new Set([...G.hands[p],...G.field,...G.caps[0],...G.caps[1]])}
 function unseenM(p,m){const s=seenBy(p);return CARDS.filter(c=>c.m===m&&!s.has(c.id)).length}
-function options(p,cards){
+function options(p,cards,field=G.field){
  const o=[];
- for(const h of cards){const ms=G.field.filter(f=>mon(f)===mon(h));
+ for(const h of cards){const ms=field.filter(f=>mon(f)===mon(h));
   if(!ms.length)o.push({h,t:null,take:[],left:[]});
   else if(ms.length===2)ms.forEach((m,j)=>o.push({h,t:m,take:[h,m],left:[ms[1-j]]}));
   else o.push({h,t:ms[0],take:[h,...ms],left:[]});}
@@ -337,7 +337,7 @@ function options(p,cards){
 }
 function evalOpt(p,op){
  const o=1-p;let s=op.take.length?gain(G.caps[p],op.take):-val(op.h)*.6-3;
- if(D(p)===2){
+ if(D(p)>=2){
   s+=.5*gain(G.caps[o],op.take.filter(i=>i!==op.h));
   if(!op.take.length){
    const u=unseenM(p,mon(op.h)),mine=G.hands[p].some(i=>i!==op.h&&mon(i)===mon(op.h));
@@ -353,7 +353,7 @@ function best(p,ops){
  if(D(p)===0){const c=ops.filter(o=>o.take.length);return c.length&&Math.random()<.5?pick(c):pick(ops)}
  let b=ops[0],bs=-1e9;for(const o of ops){const s=evalOpt(p,o);if(s>bs){bs=s;b=o}}return b;
 }
-const aiPlay=p=>best(p,options(p,G.hands[p]));
+const aiPlay=p=>D(p)===3?mcPlay(p):best(p,options(p,G.hands[p]));
 const aiTarget=(p,c)=>best(p,options(p,[c])).t;
 function threat(o,p){
  const c=G.caps[o],mine=G.caps[p],has=i=>c.includes(i);
@@ -366,8 +366,56 @@ function aiKoi(p,s){
  const o=1-p,n=G.hands[p].length;
  if(D(p)===0)return false;
  if(D(p)===1)return s<=4&&n>=4;
+ if(D(p)===3)return mcKoi(p,s);
  return G.koi[o]===0&&s<6&&n>=3&&!threat(o,p);
 }
+/* ===== 大師鳩特：蒙地卡羅模擬。只用「看得到的資訊」：自己的手牌、場上、雙方已吃的牌；
+   看不到的牌（對手手牌＋牌堆）隨機分配很多次，把整局試打到底，挑平均得分最高的打法（不偷看對手手牌） ===== */
+const MC_MS=300,MC_SIM=60,MC_K=5,MC_L=2;
+function mcPool(p){const s=seenBy(p);return CARDS.map(c=>c.id).filter(i=>!s.has(i))}
+function mcShuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function mcState(p,oh,dk){const o=1-p,H=[];H[p]=G.hands[p].slice();H[o]=oh.slice();
+ return{field:G.field.slice(),hands:H,deck:dk.slice(),caps:[G.caps[0].slice(),G.caps[1].slice()],koi:G.koi.slice(),last:G.last.slice(),me:p,done:false,res:0}}
+function mcCap(S,p,c,t){const ms=S.field.filter(f=>mon(f)===mon(c));
+ if(!ms.length){S.field.push(c);return}
+ const take=ms.length===2?[t!=null&&ms.includes(t)?t:ms[0]]:ms;
+ S.field=S.field.filter(f=>!take.includes(f));S.caps[p].push(c,...take)}
+function mcScore(S,p,op){const o=1-p;let s=op.take.length?gain(S.caps[p],op.take):-val(op.h)*.6-3;
+ s+=.5*gain(S.caps[o],op.take.filter(i=>i!==op.h));for(const l of op.left)s-=.4*gain(S.caps[o],[l]);return s+Math.random()*.01}
+function mcSettle(S,w){const b=calc(S.caps[w]).total;let m=b>=7?2:1;if(S.koi[1-w]>0)m*=2;S.res=(w===S.me?1:-1)*b*m;S.done=true}
+function mcKoiPol(S,p,s){return S.koi[1-p]===0&&s<6&&S.hands[p].length>=3}
+function mcFlip(S,p){
+ const c=S.deck.shift();
+ if(c!==undefined){const ms=S.field.filter(f=>mon(f)===mon(c));let t=null;
+  if(ms.length===2){let bs=-1e9;for(const m of ms){const g=gain(S.caps[p],[c,m])-.4*gain(S.caps[1-p],[ms.find(x=>x!==m)])+Math.random()*.01;if(g>bs){bs=g;t=m}}}
+  mcCap(S,p,c,t)}
+ const s=calc(S.caps[p]).total;
+ if(s>S.last[p]){
+  if(!S.hands[p].length)return mcSettle(S,p);
+  if(mcKoiPol(S,p,s)){S.koi[p]++;S.last[p]=s}else mcSettle(S,p)}
+}
+function mcRun(S,p){
+ while(!S.done){
+  if(!S.hands[p].length){S.res=0;S.done=true;break}
+  const ops=options(p,S.hands[p],S.field);let b=ops[0],bs=-1e9;for(const o of ops){const s=mcScore(S,p,o);if(s>bs){bs=s;b=o}}
+  S.hands[p]=S.hands[p].filter(x=>x!==b.h);mcCap(S,p,b.h,b.t);mcFlip(S,p);p=1-p}
+}
+function mcLoop(p,ms,f){const t0=performance.now();let n=0;while(n<12||(SIM?n<MC_SIM:performance.now()-t0<ms)){const w=mcShuffle(mcPool(p)),no=G.hands[1-p].length;f(w.slice(0,no),w.slice(no));n++}return n}
+function mcPlay(p){
+ const all=options(p,G.hands[p]);if(all.length===1)return all[0];
+ /* 先用經驗法則挑出最有希望的幾種打法，再把力氣花在它們身上；最後把經驗分數也算進去，降低模擬的雜訊 */
+ const pri=all.map(op=>evalOpt(p,op)/25),idx=all.map((_,i)=>i).sort((a,b)=>pri[b]-pri[a]).slice(0,MC_K),ops=idx.map(i=>all[i]),pr=idx.map(i=>pri[i]);
+ const tot=ops.map(()=>0);
+ const n=mcLoop(p,MC_MS,(oh,dk)=>ops.forEach((op,i)=>{const S=mcState(p,oh,dk);S.hands[p]=S.hands[p].filter(x=>x!==op.h);mcCap(S,p,op.h,op.t);mcFlip(S,p);if(!S.done)mcRun(S,1-p);tot[i]+=S.res}));
+ let bi=0,bv=-1e9;tot.forEach((v,i)=>{const s=v/n+MC_L*pr[i];if(s>bv){bv=s;bi=i}});return ops[bi];
+}
+function mcKoi(p,s){
+ const o=1-p;if(!G.hands[p].length)return false;
+ const stop=s*(s>=7?2:1)*(G.koi[o]>0?2:1);let tot=0;
+ const n=mcLoop(p,MC_MS*.7,(oh,dk)=>{const S=mcState(p,oh,dk);S.koi[p]++;S.last[p]=s;mcRun(S,o);tot+=S.res});
+ return tot/n>stop+.3;
+}
+
 
 /* ===== 遊戲流程 ===== */
 let G=null,SEL=null,HELP=false,FAST=false;
@@ -912,14 +960,14 @@ function showHome(){
  if(NET.rid&&!(G&&G.net&&!G.done))return netRoom();
  NET.view=null;if(NET.used&&window.HFNet){window.HFNet.unwatch();window.HFNet.release();NET.used=false}
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特花牌</h2></div></div><p>花札「こいこい」：出牌、翻牌時吃下同月份的牌，湊成「役」後選擇結算，或喊「來來」賭更高分。</p>
- <div class="modes"><button class="mode" data-act="solo"><b>對戰鳩特</b><small>和三位電腦鳩特單挑</small></button><button class="mode" data-act="net"><b>雙人對決</b><small>線上配對・三間對戰房</small></button><button class="mode" data-act="tutorial"><b>新手教學</b><small>從零開始學會花牌</small></button></div>
+ <div class="modes"><button class="mode" data-act="solo"><b>對戰鳩特</b><small>和四位電腦鳩特單挑</small></button><button class="mode" data-act="net"><b>雙人對決</b><small>線上配對・三間對戰房</small></button><button class="mode" data-act="tutorial"><b>新手教學</b><small>從零開始學會花牌</small></button></div>
  <div class="btns">${canResume()&&!(G&&G.net)?'<button data-act="resume">返回牌局</button>':''}<button data-act="rank">排行榜</button><button data-act="rules">規則與役表</button></div>`,'menu');
 }
 function showMenu(){
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特花牌</small><h2>對戰鳩特</h2></div></div><p>花札「こいこい」雙人玩法，和鳩特對戰。出牌、翻牌時吃下同月份的牌，湊成「役」後可以選擇結算或喊「來來」賭更高分。</p>
- <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}</div>
- <p class="pill">${['隨機出牌，一成役就結算。','會挑分數高、能湊役的牌吃；分數低時才喊來來。','另外會記牌、算你可能吃到的牌來防守，並評估你離成役多近才決定要不要喊來來。'][OPT.diff]}</p>
+ <h3>對手</h3><div class="opts">${o('diff',0,'幼年鳩特')}${o('diff',1,'青年鳩特')}${o('diff',2,'成年鳩特')}${o('diff',3,'大師鳩特')}</div>
+ <p class="pill">${['隨機出牌，一成役就結算。','會挑分數高、能湊役的牌吃；分數低時才喊來來。','另外會記牌、算你可能吃到的牌來防守，並評估你離成役多近才決定要不要喊來來。','只看得到的牌（不偷看你的手牌），把沒看到的牌隨機分配幾百次、各自打到整局結束，挑平均得分最高的出牌；要不要喊來來也是這樣算出來的。思考時會稍微停一下。'][OPT.diff]}</p>
  <h3>局數</h3><div class="opts">${o('rounds',3,'3 局')}${o('rounds',6,'6 局')}${o('rounds',12,'12 局')}</div>
  <h3>牌局編號</h3><input id="seedIn" inputmode="numeric" placeholder="留空＝隨機">
  <p class="pill">同一個編號會發出一模一樣的牌，可以讓兩組學生比分數或重播檢討。</p>
