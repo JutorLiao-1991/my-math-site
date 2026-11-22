@@ -106,7 +106,7 @@ class SudokuBankTests(unittest.TestCase):
 class SudokuPageTests(unittest.TestCase):
     def test_page_wiring_and_listing(self):
         for needle in ['src="sudoku_engine.js"', 'src="sudoku_bank.js"', "page_views.js", 'id="board"', 'id="pad"', 'data-act="hint"',
-                       "幼年鳩特", "青年鳩特", "成年鳩特", "鳩特大師", "function badName", "sdk_daily", "sdk_rank"]:
+                       "幼年鳩特", "青年鳩特", "成年鳩特", "大師鳩特", "function badName", "sdk_daily", "sdk_rank"]:
             self.assertIn(needle, HTML)
         data = (ROOT / "data.js").read_text(encoding="utf-8")
         self.assertIn('url: "games/sudoku.html"', data)
