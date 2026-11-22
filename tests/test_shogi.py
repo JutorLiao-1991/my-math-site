@@ -128,3 +128,12 @@ console.log('ok');""")
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ShogiRankTest(unittest.TestCase):
+    def test_min_moves_leaderboard(self):
+        for s in ['rank_medals.css', 'data-act="rank">最少手數榜', 'sg_rank/', 'window.SGRank',
+                  'function badName', 'G.undid', 'G.hinted', 'rkRec', "G.hc==='none'&&G.me===1",
+                  'medal m${i<3?i+1:i<5?4:5}']:
+            self.assertIn(s, PAGE, s)
+        self.assertTrue((ROOT / "games/rank_medals.css").exists())
