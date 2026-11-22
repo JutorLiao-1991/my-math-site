@@ -857,7 +857,7 @@ async function rkSubmit(cat,rec){const H=await rkReady();return rkTimeout(H.subm
 function rkErr(e){return /denied|PERMISSION/i.test(String(e&&e.message||e))?'排行榜尚未開通（需要在 Firebase 加入權限規則）。':'目前連不上排行榜，請確認網路後再試。'}
 const KNUM=['一','二','三','四','五','六','七','八','九','十'];
 function rkScroll(title,list,hi){
- const rows=!list?'':list.length?list.map((x,i)=>`<div class="rk-row medal m${Math.min(i+1,4)}${x.id===hi?' me':''}${i<3?' top':''}" style="--i:${i}"><b class="rk-no">${KNUM[i]||i+1}</b><span class="rk-nm">${esc(x.n)}</span><span class="rk-pt">${x.s} 文<small>對手 ${x.o} 文</small></span>${x.id===hi?`<img class="rk-seal" src="${BRAND.seal}" alt="">`:''}</div>`).join('')
+ const rows=!list?'':list.length?list.map((x,i)=>`<div class="rk-row medal m${i<3?i+1:i<5?4:5}${x.id===hi?' me':''}${i<3?' top':''}" style="--i:${i}"><b class="rk-no">${KNUM[i]||i+1}</b><span class="rk-nm">${esc(x.n)}</span><span class="rk-pt">${x.s} 文<small>對手 ${x.o} 文</small></span>${x.id===hi?`<img class="rk-seal" src="${BRAND.seal}" alt="">`:''}</div>`).join('')
   :'<div class="sc-row note">還沒有人上榜，<br>搶第一吧！</div>';
  return `<div class="sc rk-sc"><div class="sc-head"><span class="sc-label">${title}</span></div><div class="sc-body"><div class="sc-paper">${rows}</div></div><div class="sc-roll"></div></div>`}
 function rkShow(host,title,list,hi){
