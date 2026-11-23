@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict');
+const X=require('../games/xiangqi_engine.js'),D=require('../games/xiangqi_lessons.js'),B=require('../games/xiangqi_puzzles.js');
+const pos=(a,side=1)=>D.position(a,side),sq=(x,y)=>9*y+x,has=(p,f,t)=>X.legal(p).includes(X.move(sq(...f),sq(...t)));
+let tests=0;function test(name,fn){fn();tests++;console.log('ok '+name)}
+test('opening legal-move tree',()=>{const p=X.start();assert.deepEqual([1,2,3].map(d=>X.perft(p,d)),[44,1920,79666]);assert.equal(X.key(p),X.key(X.start()))});
+test('horse leg and elephant eye',()=>{let p=pos([[1,4,9],[-1,3,0],[4,4,6],[7,5,6]]);assert.equal(has(p,[4,6],[6,5]),false);assert.equal(has(p,[4,6],[5,4]),true);
+  p=pos([[1,4,9],[-1,3,0],[3,2,9],[7,3,8]]);assert.equal(has(p,[2,9],[4,7]),false);assert.equal(has(p,[2,9],[0,7]),true);
+  p=pos([[1,4,9],[-1,3,0],[3,2,5]]);assert.equal(has(p,[2,5],[4,3]),false)});
+test('cannon requires exactly one screen to capture',()=>{const pieces=[[1,4,9],[-1,3,0],[6,0,7],[-5,0,1]];let p=pos(pieces);assert.equal(has(p,[0,7],[0,1]),false);assert.equal(has(p,[0,7],[0,2]),true);
+  p=pos([...pieces,[7,0,4]]);assert.equal(has(p,[0,7],[0,1]),true);assert.equal(has(p,[0,7],[0,3]),false);
+  p=pos([...pieces,[7,0,4],[-7,0,3]]);assert.equal(has(p,[0,7],[0,1]),false)});
+test('palaces, river and pawn directions',()=>{let p=pos([[1,3,9],[-1,4,0],[2,4,8],[7,0,6],[7,2,4]]);assert.equal(has(p,[3,9],[2,9]),false);assert.equal(has(p,[4,8],[3,7]),true);assert.equal(has(p,[4,8],[5,9]),true);assert.equal(has(p,[0,6],[1,6]),false);assert.equal(has(p,[0,6],[0,7]),false);assert.equal(has(p,[2,4],[3,4]),true);assert.equal(has(p,[2,4],[2,5]),false);
+  p=pos([[1,4,9],[-1,3,0],[-7,2,5]],-1);assert.equal(has(p,[2,5],[1,5]),true);assert.equal(has(p,[2,5],[2,6]),true);assert.equal(has(p,[2,5],[2,4]),false)});
+test('flying generals and mandatory check response',()=>{let p=pos([[1,4,9],[-1,4,0],[5,4,5]]);assert.equal(has(p,[4,5],[5,5]),false);assert.equal(has(p,[4,5],[4,1]),true);
+  p=pos([[1,4,9],[-1,3,0],[-5,4,3],[5,0,8]]);assert.equal(X.inCheck(p),true);assert.equal(has(p,[0,8],[0,7]),false);assert.equal(has(p,[0,8],[4,8]),true)});
+test('stalemate loses and dead material draws',()=>{const p=pos([[1,3,9],[-1,4,0],[5,3,2],[5,5,2],[7,4,2]],-1);assert.equal(X.inCheck(p),false);assert.equal(X.legal(p).length,0);assert.deepEqual(X.status(p),{over:true,winner:1,reason:'困斃（無合法走法）'});
+  const q=pos([[1,4,9],[-1,5,0]]);assert.equal(X.status(q).winner,0)});
+test('repetition checks, neutral repetition and quiet draw',()=>{const p=X.start(),k=X.key(p),hist=[{key:k},{key:'a',mover:1,check:true},{key:k,mover:-1,check:false},{key:'b',mover:1,check:true},{key:k,mover:-1,check:false}];assert.equal(X.status(p,hist).winner,-1);hist[1].check=false;assert.equal(X.status(p,hist).winner,0);p.quiet=120;assert.equal(X.status(p).winner,0)});
+test('all 100 puzzles have unique first moves and exact depth',()=>{const seen=new Set();for(const n of [1,3]){assert.equal(B[n].length,50);for(const q of B[n]){const p={b:Int8Array.from(q.b),side:1,quiet:0};assert.equal(X.inCheck(p,1),false);assert.equal(X.inCheck(p,-1),false);assert.equal(seen.has(X.key(p)),false);seen.add(X.key(p));assert.deepEqual(X.mateMoves(p,n),[q.solution]);if(n===3)assert.equal(X.mateMoves(p,1).length,0);
+      const u=X.make(p,q.solution);assert.equal(X.inCheck(p),true);const replies=X.legal(p);if(n===1)assert.equal(replies.length,0);else{assert.ok(replies.length>0);for(const m of replies){const z=X.make(p,m),finish=X.mateMoves(p,1);assert.ok(finish.length>0);X.unmake(p,m,z)}}X.unmake(p,q.solution,u)}}});
+test('lessons and opening lines legal',()=>{assert.equal(D.lessons.length,13);assert.equal(D.openings.length,8);for(const l of D.lessons)if(!l.free){assert.ok(X.legal(l.pos).includes(l.move),l.title);assert.equal(X.names(l.pos.b[X.from(l.move)]).length,1)}for(const o of D.openings){const p=X.start();assert.equal(o.moves.length,o.texts.length);for(const m of o.moves){assert.ok(X.legal(p).includes(m),o.title);X.make(p,m)}}});
+test('make/unmake and color rotation preserve rules',()=>{let p=X.start();for(let i=0;i<100;i++){const ms=X.legal(p);if(!ms.length)break;const before=X.key(p),q={b:Int8Array.from(Array.from(p.b).reverse().map(v=>-v)),side:-p.side,quiet:p.quiet};assert.equal(ms.length,X.legal(q).length);const m=ms[(i*17+3)%ms.length],u=X.make(p,m);X.unmake(p,m,u);assert.equal(X.key(p),before);X.make(p,m)}});
+test('all five AI levels return legal moves without mutating input',()=>{const p=X.start(),k=X.key(p);for(let level=0;level<5;level++){const r=X.think(p,{level,time:80});assert.ok(X.legal(p).includes(r.m));assert.equal(X.key(p),k)}const book=D.openings[0].moves[0];assert.equal(X.think(p,{level:4,book:[book]}).m,book)});
+test('AI sees a forced one-move mate',()=>{const q=B[1].find(q=>q.b[X.from(q.solution)]===5),p={b:Int8Array.from(q.b),side:1,quiet:0},r=X.think(p,{level:4,time:250});assert.equal(r.m,q.solution);assert.ok(r.score>X.MATE-100)});
+console.log(tests+' Xiangqi checks passed');
