@@ -1,6 +1,6 @@
 // --- 網站設定區 ---
 const siteConfig = {
-    lastUpdated: "2026年11月21日"
+    lastUpdated: "2026年11月23日"
 };
 
 // --- 課程資料區 ---
@@ -46,6 +46,15 @@ const lessonData = [
         tagClass: "game",
         tagName: "益智遊戲",
         desc: "和五位鳩特（嬰兒到大師）下日本將棋：本將棋 9×9 與入門的五五將棋 5×5，附 13 課新手教學、一手詰與三手詰各 50 題、戰術學習（開局戰法、中盤手筋、終盤寄せ）、走法提示與悔棋。"
+    },
+    {
+        title: "鳩特象棋",
+        category: "games",
+        url: "games/xiangqi.html",
+        thumb: "games/thumbs/xiangqi.svg",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "和五位鳩特（嬰兒到大師）下象棋：標準九路十線、同機雙人對戰、13 課新手教學、一手殺與三手殺各 50 題、戰術學習、走法與提示、悔棋續玩，以及最少手數榮譽榜。"
     },
     {
         title: "鳩特踩地雷",
