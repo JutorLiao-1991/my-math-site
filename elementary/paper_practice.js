@@ -335,6 +335,7 @@
     try {
       const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
       if (!audio) audio = new Audio(); audio.resume().catch(() => {});
+      if (window.JutorDing) { window.JutorDing(audio); return; } /* 全站統一的「叮咚！」 */
       [523.25, 659.25, 783.99].forEach((frequency, i) => {
         const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1;
         tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination);
