@@ -14,6 +14,8 @@
   </style>
 <script src="../battle_log.js"></script>
 <script src="../scratchpad.js" defer></script>
+<script src="../stem_pin.js" defer></script>
+<script src="../correct_ding.js"></script>
 <script src="../page_views.js" defer></script>
 </head>
 <body data-level="basic">
@@ -50,7 +52,7 @@ function gcd(a,b){a=Math.abs(a);b=Math.abs(b);while(b){[a,b]=[b,a%b]}return a}
 function lcm(a,b){return a/gcd(a,b)*b}
 function lcmAll(values){return values.reduce((a,b)=>lcm(a,b),1)}
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
-function playSound(type){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;window._audio=window._audio||new C();const c=window._audio;if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.connect(g);g.connect(c.destination);if(type==='move'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(200,n+.05);g.gain.setValueAtTime(.18,n);g.gain.exponentialRampToValueAtTime(.01,n+.05);o.start(n);o.stop(n+.05)}else if(type==='correct'){o.type='sine';o.frequency.setValueAtTime(659.25,n);o.frequency.setValueAtTime(784,n+.16);g.gain.setValueAtTime(.2,n);g.gain.exponentialRampToValueAtTime(.01,n+.55);o.start(n);o.stop(n+.55)}else{o.type='sawtooth';o.frequency.setValueAtTime(280,n);o.frequency.exponentialRampToValueAtTime(140,n+.25);g.gain.setValueAtTime(.12,n);g.gain.exponentialRampToValueAtTime(.01,n+.25);o.start(n);o.stop(n+.25)}}
+function playSound(type){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;window._audio=window._audio||new C();const c=window._audio;if(c.state==='suspended')c.resume();if(type==='correct'&&window.JutorDing){window.JutorDing(c);return}const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.connect(g);g.connect(c.destination);if(type==='move'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(200,n+.05);g.gain.setValueAtTime(.18,n);g.gain.exponentialRampToValueAtTime(.01,n+.05);o.start(n);o.stop(n+.05)}else if(type==='correct'){o.type='sine';o.frequency.setValueAtTime(659.25,n);o.frequency.setValueAtTime(784,n+.16);g.gain.setValueAtTime(.2,n);g.gain.exponentialRampToValueAtTime(.01,n+.55);o.start(n);o.stop(n+.55)}else{o.type='sawtooth';o.frequency.setValueAtTime(280,n);o.frequency.exponentialRampToValueAtTime(140,n+.25);g.gain.setValueAtTime(.12,n);g.gain.exponentialRampToValueAtTime(.01,n+.25);o.start(n);o.stop(n+.25)}}
 function toggleLevel(){if(running)return;level=level==='basic'?'advanced':'basic';document.body.dataset.level=level;$('levelToggle').setAttribute('aria-checked',String(level==='advanced'));$('startBtn').textContent=mode==='exam'?'開始 10 分鐘測驗':'開始練習'}
 function selectKind(v){if(running)return;kind=v;document.querySelectorAll('[data-kind]').forEach(b=>b.classList.toggle('active',b.dataset.kind===v))}
 function selectCount(v){if(running)return;termCount=v;document.querySelectorAll('[data-count]').forEach(b=>b.classList.toggle('active',Number(b.dataset.count)===v))}

@@ -497,6 +497,7 @@ function playSound(type) {
     try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === "suspended") audioContext.resume();
+        if (type === "correct" && window.JutorDing) { window.JutorDing(audioContext); return; } // 全站統一的「叮咚！」
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
         oscillator.connect(gain); gain.connect(audioContext.destination);

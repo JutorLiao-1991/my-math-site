@@ -155,7 +155,7 @@
     const el = activeElement(); if (!el) return;
     if (document.body.classList.contains('split')) { (el.closest('.field-box') || el).scrollIntoView({ block: 'nearest', inline: 'nearest' }); return; }
     const rect = el.getBoundingClientRect(), dockTop = $('keyboard-dock').getBoundingClientRect().top;
-    const headerBottom = document.querySelector('.nav-bar').getBoundingClientRect().bottom;
+    const headerBottom = Math.max(document.querySelector('.nav-bar').getBoundingClientRect().bottom, window.JutorStem ? window.JutorStem.bottom() : 0);
     if (rect.bottom > dockTop - 10) window.scrollBy(0, rect.bottom - dockTop + 20);
     else if (rect.top < Math.max(0, headerBottom) + 10) window.scrollBy(0, rect.top - Math.max(0, headerBottom) - 20);
   }
@@ -335,6 +335,7 @@
     try {
       const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
       if (!audio) audio = new Audio(); audio.resume().catch(() => {});
+      if (window.JutorDing) { window.JutorDing(audio); return; } /* 全站統一的「叮咚！」 */
       [523.25, 659.25, 783.99].forEach((frequency, i) => {
         const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1;
         tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination);
