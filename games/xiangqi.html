@@ -3,59 +3,99 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#201913">
+  <meta name="theme-color" content="#17110d">
   <meta name="description" content="鳩特象棋：五級電腦、同機雙人對戰、13 課新手教學、一手殺與三手殺各 50 題，以及逐步戰術學習。">
   <title>鳩特象棋</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=LXGW+WenKai+TC:wght@400;700&display=swap">
   <link rel="stylesheet" href="rank_medals.css">
   <link rel="stylesheet" href="xiangqi.css">
   <script src="../page_views.js" defer></script>
   <script src="xiangqi_engine.js" defer></script>
   <script src="xiangqi_puzzles.js" defer></script>
   <script src="xiangqi_lessons.js" defer></script>
+  <script src="xiangqi_audio.js" defer></script>
   <script src="xiangqi.js" defer></script>
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11.2 12 4l8.5 7.2M6 9.6V20h4.4v-5.6h3.2V20H18V9.6"/></symbol>
+      <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.2h3.6L12.5 5v14l-4.9-4.2H4z"/><path d="M15.8 9a4.3 4.3 0 0 1 0 6M18.4 6.4a8 8 0 0 1 0 11.2"/></symbol>
+      <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.2h3.6L12.5 5v14l-4.9-4.2H4z"/><path d="m16 9.5 5 5m0-5-5 5"/></symbol>
+      <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17.5V5.8l10-2.3v11.7"/><circle cx="6.5" cy="17.5" r="2.6"/><circle cx="16.5" cy="15.2" r="2.6"/></symbol>
+      <symbol id="i-music-off" viewBox="0 0 24 24"><path d="M9 17.5V5.8l10-2.3v11.7"/><circle cx="6.5" cy="17.5" r="2.6"/><circle cx="16.5" cy="15.2" r="2.6"/><path d="M3.5 3.5l17 17"/></symbol>
+      <symbol id="i-guide" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.4"/><path d="M12 2.8v4.4M12 16.8v4.4M2.8 12h4.4M16.8 12h4.4M10.2 4.6 12 2.8l1.8 1.8M10.2 19.4l1.8 1.8 1.8-1.8M4.6 10.2 2.8 12l1.8 1.8M19.4 10.2l1.8 1.8-1.8 1.8"/></symbol>
+      <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4.5 7h15M4.5 12h15M4.5 17h15"/></symbol>
+      <symbol id="i-hint" viewBox="0 0 24 24"><path d="M9.2 18.2h5.6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.7.6 1 1.3 1 2.1v.3h5.2v-.3c0-.8.3-1.5 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+      <symbol id="i-undo" viewBox="0 0 24 24"><path d="M8.5 13.5 4 9l4.5-4.5"/><path d="M4 9h10a5.5 5.5 0 0 1 0 11h-3"/></symbol>
+      <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5.5 21V3.8M5.5 4.2h11.8l-2.4 4.4 2.4 4.4H5.5"/></symbol>
+      <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2"/><path d="M15.5 8.5V5.5a1.5 1.5 0 0 0-1.5-1.5H5.5A1.5 1.5 0 0 0 4 5.5V14a1.5 1.5 0 0 0 1.5 1.5h3"/></symbol>
+      <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7.5 4h9v5a4.5 4.5 0 0 1-9 0zM7.5 6H4.5v1.5A3 3 0 0 0 7.6 10.5M16.5 6h3v1.5a3 3 0 0 1-3.1 3M12 13.5V17M8.5 20.5h7M9.5 17h5v3.5h-5z"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.5C10.3 5 7.8 4.4 4 4.5v14c3.8-.1 6.3.5 8 2 1.7-1.5 4.2-2.1 8-2v-14c-3.8-.1-6.3.5-8 2zM12 6.5v14"/></symbol>
+      <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+    </defs>
+  </svg>
   <div id="app">
     <header>
-      <a class="home" href="../index.html" aria-label="回教材首頁">首頁</a>
-      <b>鳩特象棋</b><span class="subtitle" id="modeLabel">楚河漢界・方寸之爭</span><span class="spacer"></span>
-      <button id="sound" data-act="sound" aria-pressed="true">音效開</button>
-      <button id="music" data-act="music" aria-pressed="false">配樂關</button>
-      <button id="guides" data-act="guides" aria-pressed="false">走法關</button>
-      <button id="menu" data-act="menu">選單</button>
+      <a class="home icon-btn" href="../index.html" aria-label="回教材首頁"><svg class="ic"><use href="#i-home"/></svg><span class="lbl">首頁</span></a>
+      <div class="title"><span class="title-seal" aria-hidden="true">鳩<br>特</span><b>鳩特象棋</b><span class="subtitle" id="modeLabel">楚河漢界・方寸之爭</span></div>
+      <span class="spacer"></span>
+      <button id="sound" class="icon-btn" data-act="sound" aria-pressed="true" aria-label="音效"><svg class="ic"><use href="#i-sound"/></svg><span class="lbl">音效</span></button>
+      <button id="music" class="icon-btn" data-act="music" aria-pressed="false" aria-label="配樂"><svg class="ic"><use href="#i-music-off"/></svg><span class="lbl">配樂</span></button>
+      <button id="guides" class="icon-btn" data-act="guides" aria-pressed="false" aria-label="走法提示"><svg class="ic"><use href="#i-guide"/></svg><span class="lbl">走法</span></button>
+      <button id="menu" class="icon-btn menu-btn" data-act="menu" aria-label="選單"><svg class="ic"><use href="#i-menu"/></svg><span class="lbl">選單</span></button>
     </header>
     <main>
       <section id="stage" aria-label="象棋棋盤">
-        <div class="player" id="opponent"><span class="player-mark black">將</span><div><b id="opponentName">青年鳩特</b><small id="opponentSide">黑方</small></div><div class="taken" id="takenTop" aria-label="上方被吃的棋子"></div><span class="turn-mark" id="topTurn"></span></div>
+        <div class="player" id="opponent"><span class="player-mark black">將</span><div class="who"><b id="opponentName">青年鳩特</b><small id="opponentSide">黑方</small></div><div class="taken" id="takenTop" aria-label="上方被吃的棋子"></div><span class="turn-mark" id="topTurn"></span></div>
         <div id="boardWrap">
+          <div id="filesTop" class="files" aria-hidden="true"></div>
           <div id="board" role="group" aria-label="九路十線象棋盤">
-            <svg id="boardArt" viewBox="0 0 900 1000" aria-hidden="true">
-              <defs><pattern id="grain" width="26" height="1000" patternUnits="userSpaceOnUse"><path d="M4 0 Q-8 240 8 510T2 1000 M21 0Q34 420 21 1000" fill="none" stroke="#80501a" stroke-opacity=".07" stroke-width="2"/></pattern></defs>
-              <rect width="900" height="1000" fill="url(#grain)"/>
-              <g fill="none" stroke="#62421d" stroke-width="2.3">
-                <path d="M50 50H850V950H50Z M50 150H850 M50 250H850 M50 350H850 M50 450H850 M50 550H850 M50 650H850 M50 750H850 M50 850H850"/>
-                <path d="M150 50V450M250 50V450M350 50V450M450 50V450M550 50V450M650 50V450M750 50V450 M150 550V950M250 550V950M350 550V950M450 550V950M550 550V950M650 550V950M750 550V950 M350 50L550 250M550 50L350 250 M350 750L550 950M550 750L350 950"/>
-                <rect x="35" y="35" width="830" height="930" stroke-width="4"/>
+            <svg id="boardArt" viewBox="0 0 900 1000" preserveAspectRatio="none" aria-hidden="true">
+              <defs>
+                <linearGradient id="woodBase" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0cf92"/><stop offset=".45" stop-color="#e6bb72"/><stop offset=".75" stop-color="#dcac62"/><stop offset="1" stop-color="#e9c27f"/></linearGradient>
+                <radialGradient id="woodLight" cx=".38" cy=".3" r=".8"><stop offset="0" stop-color="#fff6dc" stop-opacity=".42"/><stop offset=".55" stop-color="#fff6dc" stop-opacity=".06"/><stop offset="1" stop-color="#4a2a0d" stop-opacity=".22"/></radialGradient>
+                <filter id="grain" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".055 .0035" numOctaves="4" seed="11"/><feColorMatrix type="matrix" values="0 0 0 0 .45  0 0 0 0 .24  0 0 0 0 .05  0 0 0 .75 -.33"/></filter>
+                <filter id="grain2" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="turbulence" baseFrequency=".012 .0018" numOctaves="2" seed="3"/><feColorMatrix type="matrix" values="0 0 0 0 .62  0 0 0 0 .34  0 0 0 0 .08  0 0 0 .7 -.3"/></filter>
+                <filter id="engrave" x="-5%" y="-5%" width="110%" height="110%"><feOffset dy="1.6" in="SourceAlpha" result="o"/><feFlood flood-color="#fff3d6" flood-opacity=".55"/><feComposite in2="o" operator="in" result="hl"/><feMerge><feMergeNode in="hl"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <rect width="900" height="1000" fill="url(#woodBase)"/>
+              <rect width="900" height="1000" filter="url(#grain2)"/>
+              <rect width="900" height="1000" filter="url(#grain)"/>
+              <rect width="900" height="1000" fill="url(#woodLight)"/>
+              <g filter="url(#engrave)">
+                <g fill="none" stroke="#5b3615" stroke-opacity=".88" stroke-width="2.4" stroke-linecap="square">
+                  <path d="M50 150H850M50 250H850M50 350H850M50 450H850M50 550H850M50 650H850M50 750H850M50 850H850"/>
+                  <path d="M150 50V450M250 50V450M350 50V450M450 50V450M550 50V450M650 50V450M750 50V450M150 550V950M250 550V950M350 550V950M450 550V950M550 550V950M650 550V950M750 550V950M350 50L550 250M550 50L350 250M350 750L550 950M550 750L350 950"/>
+                  <rect x="50" y="50" width="800" height="900" stroke-width="3.2"/>
+                  <rect x="34" y="34" width="832" height="932" stroke-width="6"/>
+                </g>
+                <g class="river" fill="#6a3f17" fill-opacity=".8" font-size="60" text-anchor="middle" dominant-baseline="central"><text x="250" y="502" letter-spacing="34">楚河</text><text x="650" y="502" letter-spacing="34">漢界</text></g>
+                <g id="stars" stroke="#5b3615" stroke-opacity=".88" stroke-width="2.2" fill="none"></g>
               </g>
-              <g fill="#775127" font-family="Noto Serif TC,PMingLiU,serif" font-size="43" text-anchor="middle" letter-spacing="20"><text x="264" y="516">楚河</text><text x="664" y="516">漢界</text></g>
-              <g id="stars" stroke="#775127" stroke-width="2" fill="none"></g>
             </svg>
             <div id="points"></div><div id="effects" aria-hidden="true"></div>
           </div>
-          <div id="files" aria-hidden="true"></div>
+          <div id="files" class="files" aria-hidden="true"></div>
         </div>
-        <div class="player" id="self"><span class="player-mark red">帥</span><div><b id="selfName">你</b><small id="selfSide">紅方・先手</small></div><div class="taken" id="takenBottom" aria-label="下方被吃的棋子"></div><span class="turn-mark" id="bottomTurn"></span></div>
-        <button id="evaluation" data-act="evalinfo" aria-label="形勢估計說明"><span>紅方</span><span class="evaltrack"><i id="evalFill"></i></span><b id="evalText">均勢</b><span>黑方</span></button>
+        <div class="player" id="self"><span class="player-mark red">帥</span><div class="who"><b id="selfName">你</b><small id="selfSide">紅方・先手</small></div><div class="taken" id="takenBottom" aria-label="下方被吃的棋子"></div><span class="turn-mark" id="bottomTurn"></span></div>
+        <button id="evaluation" data-act="evalinfo" aria-label="形勢估計說明"><span class="ev-red">紅</span><span class="evaltrack"><i id="evalFill"></i><em aria-hidden="true"></em></span><span class="ev-black">黑</span><b id="evalText">均勢</b></button>
       </section>
       <aside id="panel">
         <div class="panel-top"><span class="eyebrow" id="modeTag">對戰鳩特</span><span id="clock">00:00</span></div>
         <div id="status" role="status" aria-live="polite">紅方先行</div>
         <section id="study" hidden aria-label="教學與挑戰"></section>
         <div id="tipBox" hidden></div>
-        <div class="game-tools"><button data-act="hint" id="hintBtn">提示一手</button><button data-act="undo" id="undoBtn">悔棋</button><button data-act="resign" id="resignBtn">認輸</button></div>
-        <div class="record-head"><b>棋譜</b><button data-act="export" id="exportBtn">複製棋譜</button></div>
+        <div class="game-tools">
+          <button data-act="hint" id="hintBtn"><svg class="ic"><use href="#i-hint"/></svg><span>提示</span></button>
+          <button data-act="undo" id="undoBtn"><svg class="ic"><use href="#i-undo"/></svg><span>悔棋</span></button>
+          <button data-act="resign" id="resignBtn"><svg class="ic"><use href="#i-flag"/></svg><span>認輸</span></button>
+        </div>
+        <div class="record-head"><b>棋譜</b><button data-act="export" id="exportBtn"><svg class="ic"><use href="#i-copy"/></svg>複製</button></div>
         <ol id="kifu" aria-label="棋譜紀錄"></ol>
-        <div class="panel-foot"><span id="battleRecord">每一手，都是下一步的伏筆。</span><span class="seal-small" aria-hidden="true">鳩特</span></div>
+        <div class="panel-foot"><span id="battleRecord">每一手，都是下一步的伏筆。</span><span class="seal-small" aria-hidden="true">鳩特<br>數理</span></div>
       </aside>
     </main>
   </div>
