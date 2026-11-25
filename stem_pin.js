@@ -1,7 +1,7 @@
 /* 鳩特老師的互動教學網站・題幹懸停
  * 分步作答頁引入：<script src="../stem_pin.js" defer></script>（可用 data-stem="#選擇器" 指定題幹）
- * 平板、電腦上，往下作答時題幹會停在作答區最上方，不會被推到看不見的地方；
- * 題幹太長時限制高度、可在題幹內自己捲動。手機（窄或矮的畫面）維持原樣。
+ * 往下作答時題幹會停在作答區最上方，不會被推到看不見的地方；題幹太長時限制高度、可在題幹內自己捲動。
+ * 手機（窄或矮的畫面）停住時會縮小成精簡版，少占一點作答空間；捲回題目處就恢復原本大小。
  */
 (function () {
   'use strict';
@@ -9,17 +9,21 @@
   const doc = document;
   const me = doc.currentScript;
   const CANDIDATES = ['#question-text', '#question-prompt', '#problem'];
-  const MQ = window.matchMedia('(min-width: 700px) and (min-height: 560px)');
-  const MAX_RATIO = 0.4; /* 題幹最多占可視作答區的 40% */
+  const PHONE = window.matchMedia('(max-width: 699px), (max-height: 559px)');
+  const MAX_RATIO = 0.4;   /* 平板、電腦：題幹最多占可視作答區的 40% */
+  const PHONE_RATIO = 0.3; /* 手機：縮小後最多占 30% */
+  const PHONE_ZOOM = 0.8;  /* 手機停住時的縮小比例 */
   const GAP = 8;        /* 題幹離作答區上緣的距離 */
 
   /* 題幹外面包一層方角、與作答紙同色的底，捲上來的步驟就不會從題目卡的圓角或兩側透出來 */
   const css = `
-.stem-pin-wrap{position:sticky;top:var(--stem-top,0px);z-index:30;align-self:stretch;display:flex;flex-direction:column;align-items:var(--stem-align,stretch);margin-inline:-8px;padding-inline:8px;background:var(--stem-bg,#fff);box-shadow:0 0 0 8px var(--stem-bg,#fff);max-height:var(--stem-max,none);overflow-y:auto;overscroll-behavior:contain;transition:box-shadow .2s}
+.stem-pin-wrap{position:sticky;top:var(--stem-top,0px);z-index:30;align-self:stretch;display:flex;flex-direction:column;align-items:var(--stem-align,stretch);margin-inline:-8px;padding-inline:8px;background:var(--stem-bg,#fff);box-shadow:0 0 0 8px var(--stem-bg,#fff);max-height:var(--stem-max,none);overflow-y:auto;transition:box-shadow .2s}
 .stem-pin-wrap.is-stuck{box-shadow:0 0 0 8px var(--stem-bg,#fff),0 16px 14px -12px rgba(15,23,42,.28)}
 .stem-pin-wrap > *{flex:none;max-width:100%}
 .stem-pin-wrap > .question{display:flow-root}
 .stem-pin-wrap .q-figure{float:right;width:min(240px,40%)!important;margin:2px 0 6px 16px}
+.stem-pin-wrap.is-phone .q-figure{width:min(200px,42%)!important;margin:2px 0 4px 10px}
+.stem-pin-wrap.is-compact > *{zoom:var(--stem-zoom,.72)}
 .stem-clip{overflow:clip!important}
 @media print{.stem-pin-wrap{position:static;max-height:none;box-shadow:none;overflow:visible}}`;
 
@@ -70,9 +74,11 @@
     const pad = isWin(scroller) ? 0 : (parseFloat(getComputedStyle(scroller).paddingTop) || 0);
     const vis = isWin(scroller) ? headerBottom() + GAP : GAP;
     wrap.style.setProperty('--stem-top', (vis - pad) + 'px');
-    wrap.style.setProperty('--stem-max', Math.round(viewHeight() * MAX_RATIO) + 'px');
-    /* 用 scrollIntoView 把新步驟帶進畫面時，不要停在題幹後面 */
-    (isWin(scroller) ? doc.documentElement : scroller).style.scrollPaddingTop = Math.round(vis + wrap.offsetHeight + 16) + 'px';
+    const phone = PHONE.matches;
+    wrap.classList.toggle('is-phone', phone);
+    wrap.style.setProperty('--stem-zoom', PHONE_ZOOM);
+    wrap.style.setProperty('--stem-max', Math.round(viewHeight() * (phone ? PHONE_RATIO : MAX_RATIO)) + 'px');
+    wrap.dataset.vis = vis;
     checkStuck();
   }
   /* 附圖原本排在題目文字後面；懸停時把它移到最前面並靠右浮動，文字繞在左邊，題幹就不會太高 */
@@ -83,7 +89,19 @@
   }
   function checkStuck() {
     if (!on) return;
-    wrap.classList.toggle('is-stuck', wrap.offsetHeight > 0 && sentinel.getBoundingClientRect().top < wrap.getBoundingClientRect().top - 1);
+    const stuck = wrap.offsetHeight > 0 && sentinel.getBoundingClientRect().top < wrap.getBoundingClientRect().top - 1;
+    wrap.classList.toggle('is-stuck', stuck);
+    compact(stuck && PHONE.matches);
+    /* 用 scrollIntoView 把新步驟帶進畫面時，不要停在題幹後面 */
+    (isWin(scroller) ? doc.documentElement : scroller).style.scrollPaddingTop = Math.round(+wrap.dataset.vis + wrap.offsetHeight + 16) + 'px';
+  }
+  /* 手機縮小：縮掉的高度用下方留白補回去，底下的步驟就不會跳動，捲回去也不會來回閃 */
+  function compact(want) {
+    if (!want) { if (wrap.classList.contains('is-compact')) { wrap.classList.remove('is-compact'); wrap.style.marginBottom = ''; } return; }
+    wrap.classList.remove('is-compact'); wrap.style.marginBottom = '';
+    const full = wrap.offsetHeight;
+    wrap.classList.add('is-compact');
+    wrap.style.marginBottom = Math.max(0, full - wrap.offsetHeight) + 'px';
   }
   const onScroll = () => { if (!raf) raf = requestAnimationFrame(() => { raf = 0; checkStuck(); }); };
 
@@ -117,16 +135,16 @@
     target().removeEventListener('scroll', onScroll);
     (isWin(scroller) ? doc.documentElement : scroller).style.scrollPaddingTop = '';
     clipped.forEach(el => el.classList.remove('stem-clip')); clipped = [];
-    wrap.classList.remove('is-stuck');
+    compact(false); wrap.classList.remove('is-stuck', 'is-phone');
     wrap.before(stem); wrap.remove(); sentinel.remove();
   }
-  function sync() { disable(); if (MQ.matches) enable(); }
+  function sync() { disable(); enable(); }
 
   function init() {
     stem = findStem(); if (!stem) return;
     const st = doc.createElement('style'); st.textContent = css; doc.head.appendChild(st);
     sync();
-    if (MQ.addEventListener) MQ.addEventListener('change', sync); else if (MQ.addListener) MQ.addListener(sync);
+    if (PHONE.addEventListener) PHONE.addEventListener('change', sync); else if (PHONE.addListener) PHONE.addListener(sync);
     let rt = 0;
     window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { if (on) sync(); }, 150); });
     if (window.ResizeObserver) new ResizeObserver(() => measure()).observe(stem);
