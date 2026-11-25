@@ -172,7 +172,7 @@
   function music(on){
     musicOn=!!on;if(!init())return;
     const t=ctx.currentTime;musicBus.gain.cancelScheduledValues(t);musicBus.gain.setValueAtTime(musicBus.gain.value,t);
-    if(musicOn){unlock();musicBus.gain.linearRampToValueAtTime(.6,t+.8);
+    if(musicOn){unlock();musicBus.gain.linearRampToValueAtTime(.45,t+.8);
       if(!timer){flute=makeFlute(musicBus);score=[];evIdx=0;schedBeat=0;loopNo=0;bpm=targetBpm=tense?TENSE_BPM:BASE_BPM;schedTime=t+.2;timer=setInterval(schedule,70);schedule()}}
     else{musicBus.gain.linearRampToValueAtTime(0,t+.5);clearInterval(timer);timer=0;const old=musicBus,f=flute;flute=null;
       setTimeout(()=>{if(f)f.stop(ctx.currentTime);if(!musicOn&&old===musicBus){old.disconnect();newMusicBus()}},650)}}
