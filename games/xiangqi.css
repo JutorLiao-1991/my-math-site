@@ -288,3 +288,18 @@ main{display:flex;min-height:0;flex:1}
 #study .study-text b{color:#f3d18a}#study .study-text .you{color:#ffe28a}#study .study-text .ok{color:#9fd99a}#study .study-text .done{color:#ffe28a;font-weight:700}
 #study .study-next{font-size:13.5px;color:var(--mut);margin:4px 0 0}
 #study .study-actions{justify-content:flex-end}#study .study-actions button{flex:0 1 auto;min-width:76px}
+/* 手機直向：完成後的「下一題／下一課」浮動列，不用往下滑 */
+#nextBar{display:none}
+@media(max-width:760px),(orientation:portrait){
+  #nextBar:not([hidden]){display:flex;align-items:center;gap:10px;position:fixed;z-index:25;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(520px,calc(100% - 20px));
+    padding:10px 10px 10px 16px;border-radius:16px;border:1px solid #8c6c44;background:linear-gradient(160deg,#3a2a1bf5,#22170ff5);backdrop-filter:blur(8px);box-shadow:0 12px 34px #000c,inset 0 1px 0 #ffffff14;
+    animation:barUp .35s cubic-bezier(.2,1.3,.4,1) both}
+  #nextBar b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;font:700 18px/1.3 var(--kai);color:var(--gold2);letter-spacing:.06em;white-space:nowrap}
+  #nextBar .nb-btns{display:flex;gap:8px}
+  #nextBar button{min-height:48px;padding:8px 16px;font-size:15px}
+  #nextBar .pri{min-width:104px}
+  body.has-next #app{padding-bottom:calc(84px + env(safe-area-inset-bottom))}}
+@keyframes barUp{from{opacity:0;transform:translate(-50%,30px)}to{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:400px){#nextBar button{padding:8px 12px}#nextBar .pri{min-width:88px}#nextBar b{font-size:16px}}
+#nextBar .nb-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+#nextBar .nb-txt small{font-size:13px;line-height:1.35;color:#e8d4b0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
