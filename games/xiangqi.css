@@ -303,3 +303,12 @@ main{display:flex;min-height:0;flex:1}
 @media(max-width:400px){#nextBar button{padding:8px 12px}#nextBar .pri{min-width:88px}#nextBar b{font-size:16px}}
 #nextBar .nb-txt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 #nextBar .nb-txt small{font-size:13px;line-height:1.35;color:#e8d4b0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* 殺局挑戰：四種步數分段收合 */
+.pz-sec{border:1px solid var(--line2);border-radius:12px;background:#00000026;margin:10px 0;padding:0 12px}
+.pz-sec summary{display:flex;align-items:center;gap:10px;min-height:52px;cursor:pointer;list-style:none;font:700 18px/1.3 var(--kai);color:var(--gold2);letter-spacing:.06em}
+.pz-sec summary::-webkit-details-marker{display:none}
+.pz-sec summary:before{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;rotate:-45deg;transition:rotate .2s;margin-right:4px}
+.pz-sec[open] summary:before{rotate:45deg}
+.pz-sec summary b{flex:1}.pz-sec summary span{font:600 14px/1 -apple-system,sans-serif;color:var(--mut);letter-spacing:0}
+.pz-sec .progress-line{margin:0 0 10px}.pz-sec .tgrid{padding-bottom:12px}
+.credit{font-size:12.5px!important}
