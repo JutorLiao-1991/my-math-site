@@ -69,16 +69,18 @@ console.log('ok');
 
 
     def test_tsume_puzzles_have_unique_answers(self):
-        data = re.search(r"const TSUME=(\{1:.*?\]\,3:.*?\]\});", PAGE, re.S).group(1)
-        out = run_node("const TSUME=" + data + r""";
+        src = re.search(r"^const TSUME_SRC=.*?;$", PAGE, re.S | re.M).group(0)
+        dec = re.search(r"^function tsumeDecode\(str\)\{.*?return\{b,h,m:\+mv\}\}$", PAGE, re.S | re.M).group(0)
+        out = run_node(src + "\n" + dec + r""";
+const TSUME={};for(const n in TSUME_SRC)TSUME[n]=TSUME_SRC[n].map(tsumeDecode);
 const E=ENGINE,TOT={1:18,2:4,3:4,4:4,5:4,6:2,7:2};
-for(const n of [1,3]){if(TSUME[n].length<50)throw new Error('too few '+n);
+for(const n of [1,3,5,7]){if(TSUME[n].length!==100)throw new Error('count '+n);
  TSUME[n].forEach((q,i)=>{const p={W:9,b:new Int8Array(81),h:[new Int8Array(9),new Int8Array(9)],side:1};
   for(const [s,v] of q.b)p.b[s]=v;for(const [t,c] of q.h)p.h[0][t]=c;const used={};
   p.b.forEach(v=>{if(v&&Math.abs(v)!==8){const t=E.BASE[Math.abs(v)]||Math.abs(v);used[t]=(used[t]||0)+1}});
   for(let t=1;t<=7;t++)p.h[1][t]=TOT[t]-(used[t]||0)-p.h[0][t];
   const ms=E.mateMoves(p,n);if(ms.length!==1||ms[0]!==q.m)throw new Error(n+'-'+i+' answers '+ms.length);
-  if(n===3&&E.mateIn(p,1))throw new Error(n+'-'+i+' has mate in 1');})}
+  if(n>1&&E.mateIn(p,n-2))throw new Error(n+'-'+i+' has shorter mate');})}
 console.log('ok');""")
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertIn("ok", out.stdout)
