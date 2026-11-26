@@ -494,10 +494,10 @@ function setFeedback(message, type) {
 
 let audioContext = null;
 function playSound(type) {
+    if ((type === "correct" || type === "wrong") && window.JutorSound) { window.JutorSound.play(type); return; } // 全站統一答對／答錯音效
     try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === "suspended") audioContext.resume();
-        if (type === "correct" && window.JutorDing) { window.JutorDing(audioContext); return; } // 全站統一的「叮咚！」
         const oscillator = audioContext.createOscillator();
         const gain = audioContext.createGain();
         oscillator.connect(gain); gain.connect(audioContext.destination);

@@ -116,14 +116,16 @@
     $('mode-label').textContent = exam ? '綜合測驗' : '分步練習'; $('category-label').textContent = exam ? '' : q.category;
     $('question-text').innerHTML = q.textHtml;
     $('question-number').textContent = exam ? `題號：${state.index + 1} / ${state.questions.length}` : `練習第 ${state.number} 題`;
-    const steps = exam ? (q.type === 'value' ? [
+    const steps = exam ? (q.examSteps ? q.examSteps : q.type === 'value' ? [
       { title: '填入比', fields: q.finalFields.slice(0, 2), pattern: `{${q.finalFields[0].key}}：{${q.finalFields[1].key}}` },
       { title: '填入比值', fields: [q.finalFields[2]], pattern: `{${q.finalFields[2].key}}` }
     ] : [{ title: '填入答案', fields: q.finalFields, pattern: q.finalFields.map(f => `{${f.key}}`).join('　') }]) : q.steps;
     $('steps').innerHTML = steps.map((s, i) => {
       const sharedNote = s.fields.length === 2 && s.fields[0].requirement && s.fields.every(f => f.requirement === s.fields[0].requirement) ? s.fields[0].requirement : '';
       let pattern;
-      if (s.fields.length === 1 && s.fields[0].type === 'rational') {
+      /* 題庫可自訂這一步的版面（例如除法直式），格子仍由這裡產生 */
+      if (s.layout && Q.layoutStep) pattern = Q.layoutStep(s, f => fieldHtml(f, !exam && i > 0, false), exam);
+      else if (s.fields.length === 1 && s.fields[0].type === 'rational') {
         const f = s.fields[0], [before, after] = s.pattern.split(`{${f.key}}`);
         state.equations[f.key] = { before, after };
         pattern = fieldHtml(f, !exam && i > 0);
@@ -245,7 +247,10 @@
     if (wrong) {
       state.missed = true; activate(wrong.key);
       const unreduced = wrong.simplest && Q.correct(state.values[wrong.key], Object.assign({}, wrong, { simplest: false }));
-      message(unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return;
+      playWrong();
+      /* 題庫可針對常見錯誤給專屬提示（例如餘數比除數大） */
+      const custom = wrong.feedback ? wrong.feedback(state.values[wrong.key], state.values) : '';
+      message(custom || (unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`), 'error'); return;
     }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
     card.querySelectorAll('input, button').forEach(el => { el.disabled = true; el.classList.remove('active'); });
@@ -258,7 +263,7 @@
       if (window.JutorLog) JutorLog.practice(!state.missed);
     } else {
       const next = $(`step-${state.step}`); next.classList.remove('locked'); next.querySelectorAll('input, button').forEach(el => { el.disabled = false; });
-      activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success');
+      activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success'); playSuccess();
     }
   }
   function move(delta, target) {
@@ -330,19 +335,9 @@
     $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
     if (!seconds) finish(true);
   }
-  let audio;
-  function playSuccess() {
-    try {
-      const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
-      if (!audio) audio = new Audio(); audio.resume().catch(() => {});
-      if (window.JutorDing) { window.JutorDing(audio); return; } /* 全站統一的「叮咚！」 */
-      [523.25, 659.25, 783.99].forEach((frequency, i) => {
-        const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1;
-        tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination);
-        gain.gain.setValueAtTime(.1, t); gain.gain.exponentialRampToValueAtTime(.001, t + .2); tone.start(t); tone.stop(t + .2);
-      });
-    } catch (_) { /* Optional audio. */ }
-  }
+  /* 分步練習：每一步答對、答錯都有音效（全站統一，取自質數大挑戰）；整題完成也播答對音效 */
+  function playWrong() { if (window.JutorSound) window.JutorSound.wrong(); }
+  function playSuccess() { if (window.JutorSound) window.JutorSound.correct(); }
   document.querySelectorAll('[data-open-modes]').forEach(el => el.addEventListener('click', openModes));
   $('close-modes').addEventListener('click', closeModes);
   document.querySelectorAll('[data-type]').forEach(el => el.addEventListener('click', () => start('practice', el.dataset.type)));

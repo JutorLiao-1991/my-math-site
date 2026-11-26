@@ -14,6 +14,7 @@
 <script src="../battle_log.js"></script>
 <script src="../scratchpad.js" defer></script>
 <script src="../page_views.js" defer></script>
+<script src="../answer_sounds.js"></script>
 </head>
 <body>
   <header class="nav"><a href="../index.html">← 回主選單</a><h1>🦔 五位數加減法（四年級）</h1></header>
@@ -39,7 +40,7 @@ const EXAM_SECONDS=10*60, EXAM_QUESTIONS=10;
 let mode='practice',topic='mixed',questions=[],qIndex=0,question=null,working=[],carryMarks=[],carry=0,col=4,phase='digit',borrowed=false,mistakes=0,totalScore=0,timeLeft=EXAM_SECONDS,timerId=null,locked=false;
 const $=id=>document.getElementById(id);
 for(let i=1;i<=9;i++)$('numpad').insertAdjacentHTML('beforeend',`<button onclick="inputDigit(${i})">${i}</button>`);$('numpad').insertAdjacentHTML('beforeend','<button onclick="inputDigit(0)">0</button>');
-function playSound(type){const C=window.AudioContext||window.webkitAudioContext;if(!C)return;window._audio=window._audio||new C();const c=window._audio;if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.connect(g);g.connect(c.destination);if(type==='move'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(200,n+.05);g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(.2,n+.01);g.gain.exponentialRampToValueAtTime(.01,n+.05);o.start(n);o.stop(n+.05)}else if(type==='correct'){o.type='sine';o.frequency.setValueAtTime(659.25,n);o.frequency.setValueAtTime(523.25,n+.3);g.gain.setValueAtTime(.25,n);g.gain.exponentialRampToValueAtTime(.01,n+.8);o.start(n);o.stop(n+.8)}else{o.type='sawtooth';o.frequency.setValueAtTime(300,n);o.frequency.exponentialRampToValueAtTime(150,n+.3);g.gain.setValueAtTime(.13,n);g.gain.exponentialRampToValueAtTime(.01,n+.3);o.start(n);o.stop(n+.3)}}
+function playSound(type){if((type==="correct"||type==="wrong")&&window.JutorSound){window.JutorSound.play(type);return}const C=window.AudioContext||window.webkitAudioContext;if(!C)return;window._audio=window._audio||new C();const c=window._audio;if(c.state==='suspended')c.resume();const o=c.createOscillator(),g=c.createGain(),n=c.currentTime;o.connect(g);g.connect(c.destination);if(type==='move'){o.type='triangle';o.frequency.setValueAtTime(600,n);o.frequency.exponentialRampToValueAtTime(200,n+.05);g.gain.setValueAtTime(0,n);g.gain.linearRampToValueAtTime(.2,n+.01);g.gain.exponentialRampToValueAtTime(.01,n+.05);o.start(n);o.stop(n+.05)}else if(type==='correct'){o.type='sine';o.frequency.setValueAtTime(659.25,n);o.frequency.setValueAtTime(523.25,n+.3);g.gain.setValueAtTime(.25,n);g.gain.exponentialRampToValueAtTime(.01,n+.8);o.start(n);o.stop(n+.8)}else{o.type='sawtooth';o.frequency.setValueAtTime(300,n);o.frequency.exponentialRampToValueAtTime(150,n+.3);g.gain.setValueAtTime(.13,n);g.gain.exponentialRampToValueAtTime(.01,n+.3);o.start(n);o.stop(n+.3)}}
 function selectMode(v){mode=v;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===v));$('startBtn').textContent=v==='exam'?'開始 10 分鐘測驗':'開始練習'}
 function selectTopic(v){topic=v;document.querySelectorAll('[data-topic]').forEach(b=>b.classList.toggle('active',b.dataset.topic===v))}
 function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}

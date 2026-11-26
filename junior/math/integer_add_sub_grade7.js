@@ -80,6 +80,7 @@
   });
   function playSound(correct) {
     if (!soundOn) return;
+    if (window.JutorSound) { window.JutorSound.play(correct ? 'correct' : 'wrong'); return; } // 全站統一答對／答錯音效
     try {
       if (!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
       if (audio.state === 'suspended') audio.resume().catch(() => {});

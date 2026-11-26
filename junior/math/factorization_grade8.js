@@ -671,6 +671,7 @@ window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer
 let audioContext = null;
 function playSound(type) {
     if (type === "wrong") state.logMiss = true;
+    if ((type === "correct" || type === "wrong") && window.JutorSound) { window.JutorSound.play(type); return; } // 全站統一答對／答錯音效
     try {
         if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
         if (audioContext.state === "suspended") audioContext.resume();
