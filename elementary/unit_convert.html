@@ -126,6 +126,7 @@
 <script src="../battle_log.js"></script>
 <script src="../scratchpad.js" defer></script>
 <script src="../page_views.js" defer></script>
+<script src="../answer_sounds.js"></script>
 </head>
 <body>
 
@@ -199,6 +200,7 @@
         // === Web Audio API 音效生成器 ===
         let audioCtx = null;
         function playSound(type) {
+    if ((type === "correct" || type === "wrong") && window.JutorSound) { window.JutorSound.play(type); return; } // 全站統一答對／答錯音效
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
 

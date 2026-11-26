@@ -331,27 +331,9 @@
     $('timer').textContent = `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
     if (!seconds) finish(true);
   }
-  let audio;
-  /* 分步練習：每一步答錯「噗」一聲；答對（每一步和整題完成）「叮咚！」 */
-  function playWrong() {
-    try {
-      const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio || !window.JutorDing) return;
-      if (!audio) audio = new Audio(); audio.resume().catch(() => {});
-      window.JutorDing.wrong(audio);
-    } catch (_) { /* Optional audio. */ }
-  }
-  function playSuccess() {
-    try {
-      const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
-      if (!audio) audio = new Audio(); audio.resume().catch(() => {});
-      if (window.JutorDing) { window.JutorDing(audio); return; } /* 全站統一的「叮咚！」 */
-      [523.25, 659.25, 783.99].forEach((frequency, i) => {
-        const tone = audio.createOscillator(), gain = audio.createGain(), t = audio.currentTime + i * .1;
-        tone.frequency.value = frequency; tone.connect(gain); gain.connect(audio.destination);
-        gain.gain.setValueAtTime(.1, t); gain.gain.exponentialRampToValueAtTime(.001, t + .2); tone.start(t); tone.stop(t + .2);
-      });
-    } catch (_) { /* Optional audio. */ }
-  }
+  /* 分步練習：每一步答對、答錯都有音效（全站統一，取自質數大挑戰）；整題完成也播答對音效 */
+  function playWrong() { if (window.JutorSound) window.JutorSound.wrong(); }
+  function playSuccess() { if (window.JutorSound) window.JutorSound.correct(); }
   document.querySelectorAll('[data-open-modes]').forEach(el => el.addEventListener('click', openModes));
   $('close-modes').addEventListener('click', closeModes);
   document.querySelectorAll('[data-type]').forEach(el => el.addEventListener('click', () => start('practice', el.dataset.type)));

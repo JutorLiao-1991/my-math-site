@@ -443,6 +443,7 @@
 <script src="../battle_log.js"></script>
 <script src="../scratchpad.js" defer></script>
 <script src="../page_views.js" defer></script>
+<script src="../answer_sounds.js"></script>
 </head>
 <body>
   <div class="app">
@@ -882,6 +883,7 @@
 
     let audioContext;
     function playTone(correct) {
+      if (window.JutorSound) { window.JutorSound.play(correct ? 'correct' : 'wrong'); return; } // 全站統一答對／答錯音效
       try {
         audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioContext.createOscillator();
