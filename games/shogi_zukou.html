@@ -63,6 +63,10 @@ main{display:flex;flex-direction:column;min-height:0}
 .ctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
 .ctl button{min-width:44px}
 #bar{width:100%;accent-color:var(--gold);height:28px}
+#nt{background:#00000033;border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:4px}
+#nt b{color:var(--gold);font-size:15px}#nt p{margin:0;font-size:14px;line-height:1.6}#nt .pz{font-size:12px;color:#ffe28a}
+.nl{display:grid;gap:6px;margin:8px 0}.nl button{display:flex;gap:10px;text-align:left;min-height:42px;align-items:center}.nl span{color:var(--gold);font-weight:700;min-width:3.4em}.nl .on{background:#5a4430}
+.chk1{display:inline-flex;align-items:center;gap:4px;font-size:13px;color:var(--mut)}.chk1 input{width:18px;height:18px;accent-color:var(--gold)}
 #cur{text-align:center;font-size:15px;min-height:22px}
 #cur b{color:var(--gold)}
 #cur .chk{color:#ff7565;font-weight:700;margin-left:6px}
@@ -76,7 +80,8 @@ body.shake #board{animation:shake .3s}
 .note{font-size:13px;color:var(--mut);text-align:center;line-height:1.5}
 @media (orientation:landscape) and (min-width:700px){
  main{flex-direction:row}#stage{flex:1;justify-content:center}
- #panel{flex:0 0 min(340px,34%);border-top:0;border-left:1px solid var(--line);overflow:auto}
+ #panel{flex:0 0 min(340px,34%);border-top:0;border-left:1px solid var(--line)}
+#panel{overflow:auto}
 }
 </style>
 <script src="../page_views.js" defer></script>
@@ -95,11 +100,12 @@ body.shake #board{animation:shake .3s}
   </section>
   <section id="panel">
    <div id="cur"></div>
+   <div id="nt" hidden></div>
    <input id="bar" type="range" min="0" max="611" value="0" aria-label="手數">
    <div class="ctl" id="wctl">
     <button data-act="first" aria-label="回到開頭">⏮</button><button data-act="m10" aria-label="倒退十手">−10</button><button data-act="prev" aria-label="上一手">◀</button><button class="pri" data-act="auto" id="bAuto">▶ 自動播放</button><button data-act="next" aria-label="下一手">▶</button><button data-act="p10" aria-label="前進十手">+10</button><button data-act="last" aria-label="跳到結尾">⏭</button>
    </div>
-   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><button class="red" data-act="solve" id="bSolve">自己解題</button></div>
+   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><label class="chk1"><input type="checkbox" id="pz" checked>講解時暫停</label><button data-act="nav">重點導覽</button><button class="red" data-act="solve" id="bSolve">自己解題</button></div>
    <div class="ctl" id="sctl"><button data-act="hint">提示</button><button data-act="undo">悔棋</button><button data-act="exit">回到觀看</button></div>
    <div class="note" id="note"></div>
    <div id="kifu"></div>
@@ -291,6 +297,7 @@ return{usi,bookMove,BOOK_SRC,mateIn,mateMoves,defMated,defReply,newPos,clone,gen
 })();
 </script>
 <script src="zukou_data.js"></script>
+<script src="zukou_notes.js"></script>
 <script>
 const ENG=new Function(document.getElementById('eng').textContent+';return ENGINE;')();
 const $=id=>document.getElementById(id);
@@ -298,7 +305,8 @@ const CH={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'�
 const NM={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',8:'玉',9:'と',10:'成香',11:'成桂',12:'成銀',14:'馬',15:'龍'};
 const SC={1:.8,2:.84,3:.86,4:.9,5:.9,6:.95,7:.95,8:1,9:.8,10:.84,11:.86,12:.9,14:.95,15:.95};
 const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
-const D=ZUKOU[0],LEN=D.m.length;
+const D=ZUKOU[0],LEN=D.m.length,NOTES=(window.ZUKOU_NOTES&&window.ZUKOU_NOTES[D.no])||[];
+let PAUSE=true,pausedAt=-1;try{PAUSE=localStorage.getItem('zk_pause')!=='0'}catch(e){}
 /* 先把整首 611 手的每個局面算好，之後按手數取用。 */
 function mkPos(d){const p=ENG.newPos(9);p.b.fill(0);for(const [i,v] of d.b)p.b[i]=v;p.h[0].fill(0);p.h[1].fill(0);for(let t=1;t<=7;t++){p.h[0][t]=d.hs[t]||0;p.h[1][t]=d.hg[t]||0}p.side=1;return p}
 const STATES=[mkPos(D)];for(const m of D.m){const q=ENG.clone(STATES[STATES.length-1]);ENG.doMove(q,m);STATES.push(q)}
@@ -333,14 +341,18 @@ function draw(){const P=STATES[step],last=step?D.m[step-1]:null,chk=step>0&&ENG.
   $(hi===0?'h0':'h1').innerHTML=s||'<span class="pill">（無）</span>'}
  $('cur').innerHTML=step===0?`<b>0</b> / ${LEN}　開始局面`:`<b>${step}</b> / ${LEN}　${note(step-1)}${chk&&P.side===-1?'<span class="chk">王手</span>':''}`;
  $('bar').value=step;$('bar').disabled=mode==='solve';
+ const nn=mode==='watch'?NOTES.filter(n=>n.at<=step).pop():null;$('nt').hidden=!nn;
+ if(nn)$('nt').innerHTML=`<b>${nn.t}</b><p>${nn.x}</p>${pausedAt===step&&!auto?'<span class="pz">已暫停・按「自動播放」繼續</span>':''}`;
+ $('pz').checked=PAUSE;
  const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${note(from+k)}</span>`).join('');
  $('note').textContent=mode==='solve'?(step%2===0?'輪到你：每一步都要王手':'玉方應對中…'):(best?`解題最遠紀錄：第 ${best} 手`:'');
  document.body.classList.toggle('solve',mode==='solve');$('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放';
  if(mode==='watch')try{localStorage.setItem('zk100_step',step)}catch(e){}
 }
-function go(n,snd){const old=step;step=Math.max(0,Math.min(LEN,n));SEL=null;HLS=null;if(snd&&step>old)sfx('slap');draw()}
+function go(n,snd){pausedAt=-1;const old=step;step=Math.max(0,Math.min(LEN,n));SEL=null;HLS=null;if(snd&&step>old)sfx('slap');draw()}
 function stopAuto(){if(auto){clearInterval(auto);auto=null}}
-function startAuto(){stopAuto();if(step>=LEN)step=0;const iv=+$('spd').value;auto=setInterval(()=>{if(step>=LEN){stopAuto();draw();return}go(step+1,iv>=250)},iv);draw()}
+function navList(){const cur=NOTES.filter(n=>n.at<=step).pop();modal(`<h2>重點導覽</h2><div class="nl">${NOTES.map(n=>`<button data-act="jump" data-at="${n.at}"${n===cur?' class="on"':''}><span>第 ${n.at} 手</span>${n.t}</button>`).join('')}</div><div class="btns"><button data-act="close">關閉</button></div>`)}
+function startAuto(){stopAuto();if(step>=LEN)step=0;const iv=+$('spd').value;auto=setInterval(()=>{if(step>=LEN){stopAuto();draw();return}go(step+1,iv>=250);if(PAUSE&&NOTES.some(n=>n.at===step)){pausedAt=step;stopAuto();draw()}},iv);draw()}
 /* 自己解題：攻方（先手）每走一步，只要和作者的原手順相同，玉方就照原譜回應。 */
 function enterSolve(){stopAuto();mode='solve';if(step%2===1)step--;SEL=null;HLS=null;draw();toast('自己解題：你是攻方')}
 function exitSolve(){mode='watch';SEL=null;HLS=null;draw()}
@@ -362,6 +374,7 @@ $('board').addEventListener('click',e=>{if(mode!=='solve'||busy||step%2||step>=L
 for(const id of ['h0'])$(id).addEventListener('click',e=>{if(mode!=='solve'||busy||step%2)return;const el=e.target.closest('.hp[data-ht]');if(!el)return;const k='h'+el.dataset.ht;SEL=SEL===k?null:k;draw()});
 $('bar').addEventListener('input',e=>{stopAuto();go(+e.target.value)});
 $('spd').addEventListener('change',()=>{if(auto)startAuto()});
+$('pz').addEventListener('change',e=>{PAUSE=e.target.checked;try{localStorage.setItem('zk_pause',PAUSE?'1':'0')}catch(_){}});
 document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
  if(a==='first'){stopAuto();go(0)}else if(a==='last'){stopAuto();go(LEN)}else if(a==='prev'){stopAuto();go(step-1)}else if(a==='next'){stopAuto();go(step+1,true)}
  else if(a==='m10'){stopAuto();go(step-10)}else if(a==='p10'){stopAuto();go(step+10)}
@@ -371,7 +384,8 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
  else if(a==='pm'){const m=window._pm[+el.dataset.i];closeModal();commit(m)}
  else if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('zk_mute',MUTE?'1':'0')}catch(_){}draw()}
  else if(a==='close')closeModal();
- else if(a==='info')modal(`<h2>將棋圖巧　第 100 番「寿」</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">這題的完整性標示為「余詰」，也就是另有其他解法；本站以作者原手順為準。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
+ else if(a==='nav')navList();else if(a==='jump'){closeModal();stopAuto();go(+el.dataset.at)}
+ else if(a==='info')modal(`<h2>將棋圖巧　第 100 番「寿」</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">這題的完整性標示為「余詰」，也就是另有其他解法；本站以作者原手順為準。</p><p class="note">棋譜資料來源：詰將棋博物館（k-oohasi 先生）；關鍵步驟講解為鳩特數理自行撰寫。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
 addEventListener('resize',layout);layout();draw();
 </script>
 </body>
