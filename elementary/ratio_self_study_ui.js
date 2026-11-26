@@ -218,6 +218,7 @@
       } else {
         feedback = S.assess(check(), entries().map(E.value));
         if (feedback.status === 'success') p.passed[p.checkpoint] = true;
+        if (window.JutorDing) { if (feedback.status === 'success') window.JutorDing(); else window.JutorDing.wrong(); } /* 小檢核答對叮咚、答錯噗 */
       }
     } else if (state.lesson < S.lessons.length - 1) { state.lesson++; activeField = 0; activePart = 'number'; }
     else { window.PaperPractice.startPractice('mixed'); return; }

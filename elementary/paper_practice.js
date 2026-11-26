@@ -245,6 +245,7 @@
     if (wrong) {
       state.missed = true; activate(wrong.key);
       const unreduced = wrong.simplest && Q.correct(state.values[wrong.key], Object.assign({}, wrong, { simplest: false }));
+      playWrong();
       message(unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return;
     }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
@@ -258,7 +259,7 @@
       if (window.JutorLog) JutorLog.practice(!state.missed);
     } else {
       const next = $(`step-${state.step}`); next.classList.remove('locked'); next.querySelectorAll('input, button').forEach(el => { el.disabled = false; });
-      activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success');
+      activate(availableFields()[0].key); message('這一步正確，繼續完成下一步。', 'success'); playSuccess();
     }
   }
   function move(delta, target) {
@@ -331,6 +332,14 @@
     if (!seconds) finish(true);
   }
   let audio;
+  /* 分步練習：每一步答錯「噗」一聲；答對（每一步和整題完成）「叮咚！」 */
+  function playWrong() {
+    try {
+      const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio || !window.JutorDing) return;
+      if (!audio) audio = new Audio(); audio.resume().catch(() => {});
+      window.JutorDing.wrong(audio);
+    } catch (_) { /* Optional audio. */ }
+  }
   function playSuccess() {
     try {
       const Audio = window.AudioContext || window.webkitAudioContext; if (!Audio) return;
