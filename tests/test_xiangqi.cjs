@@ -30,3 +30,4 @@ test('block lessons: horse-leg stops a check, elephant-eye stops a capture',()=>
   assert.equal(caps(el.pos).length,1,'elephant threatens capture');
   const r=X.clone(el.pos);X.make(r,el.move);assert.equal(caps(r).length,0,'eye blocked');
 });
+test('lessons have unique stable ids (progress is keyed by id, not order)',()=>{const ids=D.lessons.map(l=>l.id);assert.ok(ids.every(Boolean));assert.equal(new Set(ids).size,ids.length);assert.equal(ids.at(-1),'free')});
