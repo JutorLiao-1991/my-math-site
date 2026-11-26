@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>將棋圖巧</title>
+<style>
+:root{color-scheme:dark;--bg:#1d1714;--line:#4a3a30;--ink:#f3ece0;--mut:#bfae9c;--gold:#e0b43c;--red:#c8372d;--sq:40px;--n:9}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;height:100%}
+body{font:15px/1.45 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+#app{display:grid;grid-template-rows:auto minmax(0,1fr);height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+header{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header b{font-size:17px;letter-spacing:.05em}
+header a.home{color:var(--ink);text-decoration:none;font-size:20px;min-width:32px;min-height:36px;display:inline-flex;align-items:center;justify-content:center}
+.sp{flex:1}.pill{font-size:13px;color:var(--mut)}
+button{font:inherit;font-size:14px;border:0;border-radius:8px;min-height:36px;padding:6px 11px;background:#3a2e27;color:var(--ink);cursor:pointer}
+button:focus-visible{outline:2px solid var(--gold)}
+button.pri{background:var(--gold);color:#241a10;font-weight:700}
+button.red{background:var(--red);color:#fff;font-weight:700}
+button:disabled{opacity:.4}
+main{display:flex;flex-direction:column;min-height:0}
+#stage{display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 8px;background:radial-gradient(ellipse at 50% 45%,#3a2b22,#2a201b 70%)}
+#panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:6px 10px 10px;border-top:1px solid var(--line)}
+.handrow{display:flex;align-items:center;gap:8px;width:calc(var(--sq)*var(--n) + 22px);min-height:calc(var(--sq)*.9)}
+.who{font-size:13px;color:var(--mut);flex:none;width:4.6em}
+.who b{display:block;color:var(--ink);font-size:14px}
+.hand{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.hp{position:relative;border-radius:6px;padding:2px;display:flex;cursor:pointer}
+.hp .pc{--s:.86!important}
+.hp b{position:absolute;right:-5px;bottom:-4px;background:var(--red);color:#fff;border-radius:8px;font-size:11px;line-height:16px;padding:0 5px}
+.hp.sel{background:#7ec8ff66}
+.handrow.turn .who b{color:var(--gold)}
+#modal.flip .box{transform:rotate(180deg)}
+#bw{display:grid;grid-template-columns:auto auto;gap:2px}
+#colL{display:flex;font-size:11px;color:var(--mut)}#colL span{width:var(--sq);text-align:center}
+#rowL{display:flex;flex-direction:column;font-size:11px;color:var(--mut)}#rowL span{height:var(--sq);display:flex;align-items:center;padding-left:3px}
+#board{position:relative;display:grid;grid-template-columns:repeat(var(--n),var(--sq));background:repeating-linear-gradient(92deg,#0000 0 9px,#9a6a2a10 9px 11px),linear-gradient(135deg,#eccd92,#d8ab62);border:2px solid #3a2410;box-shadow:0 6px 18px #0008;isolation:isolate}
+#board::after{content:"鳩特數理";position:absolute;right:4px;bottom:-17px;font:700 11px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;letter-spacing:.4em;color:#f3ece0;opacity:.3}
+.sq{width:var(--sq);height:var(--sq);border-right:1px solid #4a2e1280;border-bottom:1px solid #4a2e1280;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer}
+.sq.lm{background:#ffcf5c4d}.sq.sel{background:#7ec8ff66}
+.sq.tg::after{content:"";position:absolute;width:26%;height:26%;border-radius:50%;background:#2a6fd6b3;pointer-events:none}
+.sq.tc{box-shadow:inset 0 0 0 3px #e0402cd0}
+.star{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#3a2410;pointer-events:none}
+.pc{--s:1;position:relative;width:calc(var(--sq)*.84*var(--s));height:calc(var(--sq)*.93*var(--s));transform-origin:0 0;filter:drop-shadow(0 1.5px 1px #0008);pointer-events:none}
+.pc .k{position:absolute;inset:0;clip-path:polygon(50% 0,84% 14%,100% 100%,0 100%,16% 14%);background:linear-gradient(170deg,#f9e5b9,#ddb06a);display:flex;align-items:center;justify-content:center;padding-top:16%;font:700 calc(var(--sq)*.52*var(--s))/1 "Yu Mincho","Hiragino Mincho ProN","Noto Serif JP","Noto Serif TC","PMingLiU",serif;color:#1c140a}
+.pc.g .k{transform:rotate(180deg)}
+.pc.pr .k{color:#c21f17}
+.k>.ch{position:relative;z-index:1}
+#modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
+.box{background:#2b221c;border:1px solid var(--line);border-radius:14px;padding:16px;max-width:560px;width:100%;max-height:88dvh;overflow:auto}
+.box h2{margin:0 0 8px;font-size:22px}.box h3{margin:14px 0 6px;font-size:16px;color:var(--gold)}.box p{margin:6px 0}
+.opts{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}.opts button.on{background:var(--gold);color:#241a10;font-weight:700}
+.btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
+.promo{display:flex;gap:14px;justify-content:center;margin:12px 0}
+.promo button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 18px;min-width:96px}
+.promo .pc{--sq:58px}
+.sq.goal{box-shadow:inset 0 0 0 3px #ffd23f}
+.sq.goal::before{content:"★";position:absolute;color:#e0402c;font-size:calc(var(--sq)*.5);opacity:.8;pointer-events:none}
+#toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font:800 28px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;padding:14px 26px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;letter-spacing:.15em}
+#toast.show{opacity:1}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
+.ctl button{min-width:44px}
+#bar{width:100%;accent-color:var(--gold);height:28px}
+#cur{text-align:center;font-size:15px;min-height:22px}
+#cur b{color:var(--gold)}
+#cur .chk{color:#ff7565;font-weight:700;margin-left:6px}
+#sctl{display:none}body.solve #sctl{display:flex}body.solve #wctl{display:none}
+.sel1{font:inherit;font-size:14px;min-height:36px;border-radius:8px;border:0;background:#3a2e27;color:var(--ink);padding:0 8px}
+.sq.hl{box-shadow:inset 0 0 0 3px #ffd23f;animation:blink .5s 3}
+@keyframes blink{50%{box-shadow:inset 0 0 0 3px #ffd23f00}}
+body.shake #board{animation:shake .3s}
+@keyframes shake{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
+#kifu{font-size:13px}
+.note{font-size:13px;color:var(--mut);text-align:center;line-height:1.5}
+@media (orientation:landscape) and (min-width:700px){
+ main{flex-direction:row}#stage{flex:1;justify-content:center}
+ #panel{flex:0 0 min(340px,34%);border-top:0;border-left:1px solid var(--line);overflow:auto}
+}
+</style>
+<script src="../page_views.js" defer></script>
+</head>
+<body>
+<div id="app">
+ <header>
+  <a class="home" href="../index.html" aria-label="回教材首頁">←</a><b>將棋圖巧</b><span class="pill" id="rinfo">第 100 番「寿」</span><span class="sp"></span>
+  <button id="bSnd" data-act="snd">音效</button><button data-act="info">說明</button>
+ </header>
+ <main>
+  <section id="stage">
+   <div class="handrow" id="row1"><span class="who"><b>玉方</b>後手</span><div class="hand" id="h1"></div></div>
+   <div id="bw"><div id="colL"></div><div></div><div id="board"></div><div id="rowL"></div></div>
+   <div class="handrow" id="row0" style="margin-top:12px"><span class="who"><b>攻方</b>先手</span><div class="hand" id="h0"></div></div>
+  </section>
+  <section id="panel">
+   <div id="cur"></div>
+   <input id="bar" type="range" min="0" max="611" value="0" aria-label="手數">
+   <div class="ctl" id="wctl">
+    <button data-act="first" aria-label="回到開頭">⏮</button><button data-act="m10" aria-label="倒退十手">−10</button><button data-act="prev" aria-label="上一手">◀</button><button class="pri" data-act="auto" id="bAuto">▶ 自動播放</button><button data-act="next" aria-label="下一手">▶</button><button data-act="p10" aria-label="前進十手">+10</button><button data-act="last" aria-label="跳到結尾">⏭</button>
+   </div>
+   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><button class="red" data-act="solve" id="bSolve">自己解題</button></div>
+   <div class="ctl" id="sctl"><button data-act="hint">提示</button><button data-act="undo">悔棋</button><button data-act="exit">回到觀看</button></div>
+   <div class="note" id="note"></div>
+   <div id="kifu"></div>
+  </section>
+ </main>
+</div>
+<div id="modal" hidden><div class="box" id="mbox"></div></div>
+<div id="toast"></div>
+<script type="text/plain" id="eng">var ENGINE=(function(){
+/* 棋子代碼：正數＝先手、負數＝後手；1歩 2香 3桂 4銀 5金 6角 7飛 8玉；升變後 9と 10成香 11成桂 12成銀 14馬 15龍 */
+const D=[[0,-1],[1,-1],[1,0],[1,1],[0,1],[-1,1],[-1,0],[-1,-1],[-1,-2],[1,-2],[-1,2],[1,2]];
+const FL=[4,5,6,7,0,1,2,3,10,11,8,9];          // 先手方向 → 後手方向
+const OPP=[4,5,6,7,0,1,2,3,11,10,9,8];         // 反方向
+const GOLD=[0,1,7,2,6,4];
+const STEP={1:[0],2:[],3:[8,9],4:[0,1,7,3,5],5:GOLD,6:[],7:[],8:[0,1,2,3,4,5,6,7],9:GOLD,10:GOLD,11:GOLD,12:GOLD,14:[0,2,4,6],15:[1,3,5,7]};
+const SLIDE={2:[0],6:[1,3,5,7],7:[0,2,4,6],14:[1,3,5,7],15:[0,2,4,6]};
+const VAL=[0,1,3,4,5,6,8,10,1000,7,6,6,6,0,10,12];
+const PROMO={1:9,2:10,3:11,4:12,6:14,7:15},BASE={9:1,10:2,11:3,12:4,14:6,15:7};
+const INF=1e7,PR=16384;
+const HS=[],HL=[];
+for(let t=0;t<16;t++){HS[t]=new Array(12).fill(false);HL[t]=new Array(12).fill(false);(STEP[t]||[]).forEach(d=>HS[t][d]=true);(SLIDE[t]||[]).forEach(d=>HL[t][d]=true)}
+const NB={};
+function nbt(W){if(NB[W])return NB[W];const N=W*W,t=new Int16Array(N*12);
+ for(let s=0;s<N;s++){const x=s%W,y=(s/W)|0;for(let d=0;d<12;d++){const nx=x+D[d][0],ny=y+D[d][1];t[s*12+d]=(nx<0||ny<0||nx>=W||ny>=W)?-1:ny*W+nx}}
+ return NB[W]=t}
+function newPos(W){const b=new Int8Array(W*W),put=(x,y,v)=>{b[y*W+x]=v};
+ if(W===9){const bk=[2,3,4,5,8,5,4,3,2];for(let x=0;x<9;x++){put(x,8,bk[x]);put(x,0,-bk[x]);put(x,6,1);put(x,2,-1)}put(1,7,6);put(7,7,7);put(1,1,-7);put(7,1,-6)}
+ else{const bk=[8,5,4,6,7];for(let x=0;x<5;x++){put(x,4,bk[x]);put(4-x,0,-bk[x])}put(0,3,1);put(4,1,-1)}
+ return{W,b,h:[new Int8Array(9),new Int8Array(9)],side:1}}
+function clone(p){return{W:p.W,b:Int8Array.from(p.b),h:[Int8Array.from(p.h[0]),Int8Array.from(p.h[1])],side:p.side}}
+const zoneN=W=>W===9?3:1;
+function addMv(p,out,f,to,ty){const W=p.W,s=p.side,Z=zoneN(W),yf=(f/W)|0,yt=(to/W)|0;
+ const inZ=y=>s===1?y<Z:y>=W-Z,r=s===1?yt:W-1-yt;
+ if(PROMO[ty]&&(inZ(yf)||inZ(yt))){out.push(f|(to<<7)|PR);if(((ty===1||ty===2)&&r===0)||(ty===3&&r<=1))return}
+ out.push(f|(to<<7))}
+function gen(p,out,noDrop){const W=p.W,N=W*W,b=p.b,s=p.side,t=nbt(W);out.length=0;
+ for(let sq=0;sq<N;sq++){const v=b[sq];if(v*s<=0)continue;const ty=v*s;
+  const st=STEP[ty];for(let i=0;i<st.length;i++){const d=s===1?st[i]:FL[st[i]],to=t[sq*12+d];if(to<0||b[to]*s>0)continue;addMv(p,out,sq,to,ty)}
+  const sl=SLIDE[ty];if(sl)for(let i=0;i<sl.length;i++){const d=s===1?sl[i]:FL[sl[i]];let to=t[sq*12+d];while(to>=0){const c=b[to];if(c*s>0)break;addMv(p,out,sq,to,ty);if(c)break;to=t[to*12+d]}}}
+ if(noDrop)return out;
+ const h=p.h[s===1?0:1];
+ for(let ty=1;ty<=7;ty++){if(!h[ty])continue;
+  for(let sq=0;sq<N;sq++){if(b[sq])continue;const y=(sq/W)|0,r=s===1?y:W-1-y;
+   if((ty===1||ty===2)&&r===0)continue;if(ty===3&&r<=1)continue;
+   if(ty===1){const x=sq%W;let nf=false;for(let yy=0;yy<W;yy++)if(b[yy*W+x]===s){nf=true;break}if(nf)continue}
+   out.push((ty<<15)|(sq<<7))}}
+ return out}
+function doMove(p,m){const s=p.side,b=p.b,to=(m>>7)&127,dt=m>>15,hi=s===1?0:1;let cap=0;
+ if(dt){b[to]=dt*s;p.h[hi][dt]--}
+ else{const f=m&127;let v=b[f];cap=b[to];if(cap){const ct=cap<0?-cap:cap;p.h[hi][BASE[ct]||ct]++}if(m&PR)v=PROMO[v*s]*s;b[to]=v;b[f]=0}
+ p.side=-s;return cap}
+function undoMove(p,m,cap){p.side=-p.side;const s=p.side,b=p.b,to=(m>>7)&127,dt=m>>15,hi=s===1?0:1;
+ if(dt){b[to]=0;p.h[hi][dt]++;return}
+ const f=m&127;let v=b[to];if(m&PR)v=BASE[v*s]*s;b[f]=v;b[to]=cap;if(cap){const ct=cap<0?-cap:cap;p.h[hi][BASE[ct]||ct]--}}
+function kingSq(p,s){const b=p.b,k=8*s;for(let i=0;i<b.length;i++)if(b[i]===k)return i;return -1}
+function attacked(p,sq,a){const b=p.b,t=nbt(p.W);
+ for(let d=0;d<12;d++){const src=t[sq*12+OPP[d]];if(src<0)continue;const v=b[src];if(v*a<=0)continue;const rel=a===1?d:FL[d];if(HS[v*a][rel])return true}
+ for(let d=0;d<8;d++){const o=OPP[d];let c=t[sq*12+o];while(c>=0){const v=b[c];if(v){if(v*a>0&&HL[v*a][a===1?d:FL[d]])return true;break}c=t[c*12+o]}}
+ return false}
+function inCheck(p){const k=kingSq(p,p.side);return k>=0&&attacked(p,k,-p.side)}
+function legal(p,skipU){const ps=[],out=[],s=p.side;gen(p,ps);
+ for(const m of ps){const cap=doMove(p,m);const ks=kingSq(p,s);let ok=ks<0||!attacked(p,ks,-s);
+  if(ok&&!skipU&&(m>>15)===1){const ok2=kingSq(p,-s);if(ok2>=0&&attacked(p,ok2,s)&&legal(p,true).length===0)ok=false}
+  undoMove(p,m,cap);if(ok)out.push(m)}
+ return out}
+function perft(p,d){const ms=legal(p);if(d<=1)return ms.length;let n=0;for(const m of ms){const c=doMove(p,m);n+=perft(p,d-1);undoMove(p,m,c)}return n}
+function key(p){return p.side+'|'+p.b.join(',')+'|'+p.h[0].join('')+'|'+p.h[1].join('')}
+/* ---------- 電腦思考 ---------- */
+function evalPos(p){const b=p.b,W=p.W,N=b.length;let sc=0;const k1=kingSq(p,1),k2=kingSq(p,-1),t=nbt(W);
+ for(let i=0;i<N;i++){const v=b[i];if(!v)continue;const s=v>0?1:-1,ty=v*s;if(ty===8)continue;let val=VAL[ty]*100;
+  if(ty===1){const y=(i/W)|0;val+=(s===1?W-1-y:y)*3}
+  const ek=s===1?k2:k1;if(ek>=0&&ty!==1){const dx=Math.abs(i%W-ek%W),dy=Math.abs(((i/W)|0)-((ek/W)|0));if(dx<=2&&dy<=2)val+=18}
+  sc+=s*val}
+ for(const [k,s] of [[k1,1],[k2,-1]]){if(k<0)continue;for(let d=0;d<8;d++){const n=t[k*12+d];if(n>=0&&b[n]*s>0&&b[n]*s!==1)sc+=s*14}}
+ for(let ty=1;ty<=7;ty++)sc+=(p.h[0][ty]-p.h[1][ty])*VAL[ty]*112;
+ return sc*p.side}
+function order(p,ms){const b=p.b;const k=ms.map(m=>{const to=(m>>7)&127,c=b[to];let sc=0;if(c)sc+=VAL[c<0?-c:c]*20-((m>>15)?0:VAL[Math.abs(b[m&127])]);if(m&PR)sc+=8;if(m>>15)sc-=1;return sc});
+ const idx=ms.map((_,i)=>i).sort((a,c)=>k[c]-k[a]),cp=ms.slice();for(let i=0;i<idx.length;i++)ms[i]=cp[idx[i]]}
+function qs(p,alpha,beta,qd,ctx,ply){const st=evalPos(p);if(st>=beta)return st;if(st>alpha)alpha=st;if(qd>=4)return st;
+ const ms=[];gen(p,ms,true);const b=p.b,caps=[];
+ for(const m of ms){const c=b[(m>>7)&127];if(c){if(c===-8*p.side)return INF-ply;caps.push(m)}}
+ order(p,caps);let best=st;
+ for(const m of caps){const cap=doMove(p,m);const v=-qs(p,-beta,-alpha,qd+1,ctx,ply+1);undoMove(p,m,cap);if(v>best){best=v;if(v>alpha){alpha=v;if(alpha>=beta)break}}}
+ return best}
+function search(p,depth,alpha,beta,ply,ctx){
+ if((++ctx.nodes&1023)===0&&Date.now()>ctx.dl)ctx.stop=true;if(ctx.stop)return 0;
+ const ms=[];gen(p,ms);const b=p.b,ek=-8*p.side;
+ for(let i=0;i<ms.length;i++)if(b[(ms[i]>>7)&127]===ek)return INF-ply;
+ if(depth<=0)return qs(p,alpha,beta,0,ctx,ply);
+ order(p,ms);let best=-INF;
+ for(const m of ms){const cap=doMove(p,m);const v=-search(p,depth-1,-beta,-alpha,ply+1,ctx);undoMove(p,m,cap);if(ctx.stop)return 0;
+  if(v>best){best=v;if(v>alpha){alpha=v;if(alpha>=beta)break}}}
+ return best}
+/* ---------- 大師鳩特：置換表、殺手走法、王手延伸、王的安全度 ---------- */
+const TB=1<<20,TMASK=TB-1,TK=new Int32Array(TB),TD=new Int8Array(TB),TS=new Int32Array(TB),TF=new Int8Array(TB),TM=new Int32Array(TB);
+let zs=0x2545F491;const zr=()=>{zs^=zs<<13;zs^=zs>>>17;zs^=zs<<5;return zs|0};
+const ZB=[];for(let i=0;i<81;i++){ZB[i]=[];for(let v=0;v<32;v++)ZB[i][v]=zr()}
+const ZH=[[],[]];for(let hi=0;hi<2;hi++)for(let t=0;t<9;t++){ZH[hi][t]=[];for(let c=0;c<20;c++)ZH[hi][t][c]=zr()}
+const ZSIDE=zr();
+function zHash(p){let h=p.side===1?0:ZSIDE;for(let i=0;i<p.b.length;i++)if(p.b[i])h^=ZB[i][p.b[i]+16];for(let hi=0;hi<2;hi++)for(let t=1;t<=7;t++)h^=ZH[hi][t][p.h[hi][t]];return h}
+function zNext(p,m,h){const s=p.side,b=p.b,to=(m>>7)&127,dt=m>>15,hi=s===1?0:1,hh=p.h[hi];h^=ZSIDE;
+ if(dt){h^=ZB[to][dt*s+16]^ZH[hi][dt][hh[dt]]^ZH[hi][dt][hh[dt]-1];return h}
+ const f=m&127,v=b[f],c=b[to];let nv=v;if(m&PR)nv=PROMO[v*s]*s;
+ h^=ZB[f][v+16]^ZB[to][nv+16];if(c){h^=ZB[to][c+16];const ct=BASE[c<0?-c:c]||(c<0?-c:c);if(ct<8)h^=ZH[hi][ct][hh[ct]]^ZH[hi][ct][hh[ct]+1]}
+ return h}
+function evalM(p){let sc=evalPos(p)*p.side;const b=p.b,W=p.W,t=nbt(W);
+ for(const s of [1,-1]){const k=kingSq(p,s);if(k<0)continue;const kx=k%W,ky=(k/W)|0;let att=0,def=0,esc=0;
+  for(let i=0;i<b.length;i++){const v=b[i];if(!v)continue;const dx=Math.abs(i%W-kx),dy=Math.abs(((i/W)|0)-ky);if(dx>2||dy>2)continue;const ty=v<0?-v:v;if(ty===8)continue;if(v*s>0)def+=(ty===5||ty===4||ty>=9&&ty<=12)?1:0;else att+=VAL[ty]}
+  for(let d=0;d<8;d++){const n=t[k*12+d];if(n>=0&&b[n]*s<=0&&!attacked(p,n,-s))esc++}
+  const hand=p.h[s===1?1:0];let ha=0;for(let ty=1;ty<=7;ty++)ha+=hand[ty]*VAL[ty];
+  let ks=def*22-att*9-ha*(def<2?6:3)+esc*8;
+  if(W===9){const home=s===1?ky>=7:ky<=1,side=kx<=2||kx>=6;if(home&&side)ks+=40;if(kx>=3&&kx<=5&&def<2)ks-=30}
+  sc+=s*ks}
+ return sc*p.side}
+function qsM(p,alpha,beta,qd,ctx,ply){const st=evalM(p);if(st>=beta)return st;if(st>alpha)alpha=st;if(qd>=6)return st;
+ const ms=[];gen(p,ms,true);const b=p.b,caps=[];
+ for(const m of ms){const c=b[(m>>7)&127];if(c){if(c===-8*p.side)return INF-ply;caps.push(m)}}
+ order(p,caps);let best=st;
+ for(const m of caps){const cap=doMove(p,m);const v=-qsM(p,-beta,-alpha,qd+1,ctx,ply+1);undoMove(p,m,cap);if(v>best){best=v;if(v>alpha){alpha=v;if(alpha>=beta)break}}}
+ return best}
+function orderM(p,ms,ttm,ply,ctx){const b=p.b,K=ctx.killers[ply]||[0,0],H=ctx.hist;
+ const k=ms.map(m=>{if(m===ttm)return 1e9;const to=(m>>7)&127,c=b[to];let sc=0;
+  if(c)sc=1e6+VAL[c<0?-c:c]*20-((m>>15)?0:VAL[Math.abs(b[m&127])]);else if(m===K[0])sc=9e5;else if(m===K[1])sc=8e5;else sc=(H.get(m)||0);
+  if(m&PR)sc+=5e5;return sc});
+ const idx=ms.map((_,i)=>i).sort((a,c)=>k[c]-k[a]),cp=ms.slice();for(let i=0;i<idx.length;i++)ms[i]=cp[idx[i]]}
+function searchM(p,depth,alpha,beta,ply,ctx,h){
+ if((++ctx.nodes&1023)===0&&Date.now()>ctx.dl)ctx.stop=true;if(ctx.stop)return 0;
+ const ms=[];gen(p,ms);const b=p.b,ek=-8*p.side;
+ for(let i=0;i<ms.length;i++)if(b[(ms[i]>>7)&127]===ek)return INF-ply;
+ if(depth<=0)return qsM(p,alpha,beta,0,ctx,ply);
+ const ix=h&TMASK;let ttm=0;
+ if(TK[ix]===h){ttm=TM[ix];if(TD[ix]>=depth){const v=TS[ix],fl=TF[ix];if(fl===0||(fl===1&&v>=beta)||(fl===2&&v<=alpha))return v}}
+ orderM(p,ms,ttm,ply,ctx);let best=-INF,bm=0;const a0=alpha;
+ for(const m of ms){const h2=zNext(p,m,h),to=(m>>7)&127,quiet=!b[to];const cap=doMove(p,m);
+  let ext=0;if(ctx.ext<ctx.extMax&&inCheck(p)){ext=1;ctx.ext++}
+  const v=-searchM(p,depth-1+ext,-beta,-alpha,ply+1,ctx,h2);if(ext)ctx.ext--;undoMove(p,m,cap);if(ctx.stop)return 0;
+  if(v>best){best=v;bm=m;if(v>alpha){alpha=v;if(alpha>=beta){if(quiet){const K=ctx.killers[ply]||(ctx.killers[ply]=[0,0]);if(K[0]!==m){K[1]=K[0];K[0]=m}ctx.hist.set(m,(ctx.hist.get(m)||0)+depth*depth)}break}}}}
+ TK[ix]=h;TD[ix]=depth;TS[ix]=best;TF[ix]=best<=a0?2:best>=beta?1:0;TM[ix]=bm;
+ return best}
+/* ---------- 大師鳩特的開局定跡（本將棋） ---------- */
+const BOOK_SRC=[
+ '7g7f 3c3d 2g2f 8c8d 2f2e 8d8e 6i7h 4a3b 2e2d 2c2d 2h2d 8e8f 8g8f 8b8f 2d3d',
+ '7g7f 8c8d 7i6h 3c3d 6g6f 7a6b 5g5f 5c5d 3i4h 3a4b 4i5h 4a3b 6i7h 5a4a 5i6i 6a5b 6h7g',
+ '7g7f 3c3d 6g6f 8c8d 2h6h 8d8e 8h7g 7a6b 5i4h 5a4b 4h3h 4b3b 3h2h 6a5b 3i3h',
+ '7g7f 3c3d 2g2f 4c4d 2f2e 2b3c 5i6h 8b4b 6h7h 5a6b 3i4h 6b7b',
+ '7g7f 8c8d 2h6h 3c3d 5i4h 5a4b 4h3h 4b3b 3h2h 7a6b 3i3h',
+ '2g2f 3c3d 7g7f 4c4d 3i4h 8b4b 5i6h 5a6b 6h7h 6b7b',
+ '2g2f 8c8d 7g7f 8d8e 8h7g 3c3d 7i8h 4a3b 6i7h 7a7b'
+];
+function usi(W,t){const fx=c=>W-(+c),ry=c=>c.charCodeAt(0)-97;
+ if(t[1]==='*'){const ty={P:1,L:2,N:3,S:4,G:5,B:6,R:7}[t[0]];return (ty<<15)|((ry(t[3])*W+fx(t[2]))<<7)}
+ return (ry(t[1])*W+fx(t[0]))|((ry(t[3])*W+fx(t[2]))<<7)|(t[4]==='+'?PR:0)}
+let BOOK=null;
+function bookMove(p,hist){if(p.W!==9||!hist)return 0;if(!BOOK)BOOK=BOOK_SRC.map(l=>l.split(' ').map(x=>usi(9,x)));
+ const c=[];for(const L of BOOK){if(L.length<=hist.length)continue;let ok=true;for(let i=0;i<hist.length;i++)if(L[i]!==hist[i]){ok=false;break}if(ok)c.push(L[hist.length])}
+ const lg=legal(p),cc=c.filter(m=>lg.includes(m));return cc.length?cc[Math.random()*cc.length|0]:0}
+function thinkMaster(p,root,opt){
+ if(opt.book&&opt.hist){const bm=bookMove(p,opt.hist);if(bm)return{m:bm,s:0,book:true}}
+ const ctx={nodes:0,dl:Date.now()+(opt.time||(p.W===9?4500:3200)),stop:false,killers:[],hist:new Map(),ext:0,extMax:3};
+ const m1=mateMoves(p,1);if(m1.length)return{m:m1[0],s:INF};
+ if(p.W===5||root.length<120){const m3=mateIn(p,3);if(m3)return{m:m3,s:INF-3}}
+ const h0=zHash(p),sc=new Map();let best=root[0],bestS=-INF;
+ for(let depth=1;depth<=10;depth++){let a=-INF,bm=0,bs=-INF;
+  root.sort((x,y)=>(sc.has(y)?sc.get(y):-INF)-(sc.has(x)?sc.get(x):-INF));
+  for(const m of root){const h2=zNext(p,m,h0),cap=doMove(p,m);const v=-searchM(p,depth-1,-INF,-a,1,ctx,h2);undoMove(p,m,cap);if(ctx.stop)break;sc.set(m,v);if(v>bs){bs=v;bm=m}if(v>a)a=v}
+  if(ctx.stop&&depth>1)break;if(bm){best=bm;bestS=bs}if(Math.abs(bs)>INF/2||Date.now()>ctx.dl-200)break}
+ return{m:best,s:bestS,nodes:ctx.nodes}}
+function think(po,opt){const p=clone(po),root=legal(p);if(!root.length)return{m:0,s:-INF};
+ if(opt.diff===4)return thinkMaster(p,root,opt);
+ const d=opt.diff,W=p.W,LV=[[1,150,180,.2],[1,250,70,.04],[2,700,30,0],[W===9?4:6,2200,0,0]][d]||[2,700,30,0];
+ const maxD=LV[0],tl=opt.time||LV[1],noise=LV[2];
+ if(LV[3]&&Math.random()<LV[3])return{m:root[Math.random()*root.length|0],s:0};
+ const ctx={nodes:0,dl:Date.now()+tl,stop:false},sc=new Map();let best=root[0],bestS=-INF;
+ for(let depth=1;depth<=maxD;depth++){let a=-INF,bm=0,bs=-INF;
+  root.sort((x,y)=>(sc.has(y)?sc.get(y):-INF)-(sc.has(x)?sc.get(x):-INF));
+  for(const m of root){const cap=doMove(p,m);let v=-search(p,depth-1,-INF,-a,1,ctx);undoMove(p,m,cap);if(ctx.stop)break;
+   if(noise)v+=(Math.random()*2-1)*noise;sc.set(m,v);if(v>bs){bs=v;bm=m}if(v>a)a=v}
+  if(ctx.stop&&depth>1)break;if(bm){best=bm;bestS=bs}if(Math.abs(bs)>INF/2)break}
+ return{m:best,s:bestS,nodes:ctx.nodes}}
+/* ---------- 詰將棋：攻方每步都要王手 ---------- */
+function defMated(p,n){const ms=legal(p);if(!ms.length)return true;if(n<=0)return false;for(const m of ms){const c=doMove(p,m);const r=mateIn(p,n-1);undoMove(p,m,c);if(!r)return false}return true}
+function mateIn(p,n){if(n<=0)return 0;for(const m of legal(p)){const c=doMove(p,m);const ok=inCheck(p)&&defMated(p,n-1);undoMove(p,m,c);if(ok)return m}return 0}
+function mateMoves(p,n){const out=[];for(const m of legal(p)){const c=doMove(p,m);if(inCheck(p)&&defMated(p,n-1))out.push(m);undoMove(p,m,c)}return out}
+function defReply(p,n){const ms=legal(p);let best=[],bl=-1;
+ for(const m of ms){const c=doMove(p,m);let len=99;for(let j=1;j<=n;j+=2)if(mateIn(p,j)){len=j;break}undoMove(p,m,c);
+  const sc=len*2+((m>>15)?0:1);if(sc>bl){bl=sc;best=[m]}else if(sc===bl)best.push(m)}
+ return best.length?best[Math.random()*best.length|0]:0}
+return{usi,bookMove,BOOK_SRC,mateIn,mateMoves,defMated,defReply,newPos,clone,gen,legal,doMove,undoMove,attacked,inCheck,kingSq,perft,key,think,evalPos,STEP,SLIDE,PROMO,BASE,INF,PR}
+})();
+</script>
+<script src="zukou_data.js"></script>
+<script>
+const ENG=new Function(document.getElementById('eng').textContent+';return ENGINE;')();
+const $=id=>document.getElementById(id);
+const CH={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'杏',11:'圭',12:'全',14:'馬',15:'龍'};
+const NM={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',8:'玉',9:'と',10:'成香',11:'成桂',12:'成銀',14:'馬',15:'龍'};
+const SC={1:.8,2:.84,3:.86,4:.9,5:.9,6:.95,7:.95,8:1,9:.8,10:.84,11:.86,12:.9,14:.95,15:.95};
+const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
+const D=ZUKOU[0],LEN=D.m.length;
+/* 先把整首 611 手的每個局面算好，之後按手數取用。 */
+function mkPos(d){const p=ENG.newPos(9);p.b.fill(0);for(const [i,v] of d.b)p.b[i]=v;p.h[0].fill(0);p.h[1].fill(0);for(let t=1;t<=7;t++){p.h[0][t]=d.hs[t]||0;p.h[1][t]=d.hg[t]||0}p.side=1;return p}
+const STATES=[mkPos(D)];for(const m of D.m){const q=ENG.clone(STATES[STATES.length-1]);ENG.doMove(q,m);STATES.push(q)}
+function note(i){const m=D.m[i],P=STATES[i],to=(m>>7)&127,dt=m>>15,f=m&127,s=P.side===1?'▲':'△';
+ const pt=i>0?(D.m[i-1]>>7)&127:-1,sq=to===pt?'同':ZEN[8-to%9]+KJ[(to/9)|0];
+ if(dt)return s+sq+NM[dt]+'打';
+ return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
+let step=0,mode='watch',SEL=null,auto=null,busy=false,best=0,MUTE=false;
+try{MUTE=localStorage.getItem('zk_mute')==='1';step=Math.min(LEN,Math.max(0,+localStorage.getItem('zk100_step')||0));best=+localStorage.getItem('zk100_best')||0}catch(e){}
+/* 音效 */
+let AC=null;function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
+function tone(fr,dur,gain,t0=0,type='sine'){const a=ac();if(!a||MUTE)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.value=fr;g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05)}
+function noise(dur,freq,gain){const a=ac();if(!a||MUTE)return;const n=Math.floor(a.sampleRate*dur),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*(1-i/n)**4;const s=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();s.buffer=b;f.type='bandpass';f.frequency.value=freq;f.Q.value=.8;g.gain.value=gain;s.connect(f);f.connect(g);g.connect(a.destination);s.start()}
+const SFX={slap(){noise(.08,2400,1.5);tone(120,.09,.5,0,'triangle')},ok(){tone(880,.18,.18);tone(1175,.3,.16,.09)},bad(){tone(180,.25,.25,0,'sawtooth')},win(){[523,659,784,1047].forEach((f,k)=>tone(f,.45,.2,k*.11))}};
+const sfx=n=>SFX[n]();
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1300)}
+function modal(h){$('mbox').innerHTML=h;$('modal').hidden=false}
+function closeModal(){$('modal').hidden=true}
+function pieceH(v,up){const o=v>0?1:-1,ty=v*o,ch=ty===8?(o===1?'玉':'王'):CH[ty];
+ return `<div class="pc${up===false||(up===undefined&&o===-1)?' g':''}${ty>=9?' pr':''}" style="--s:${SC[ty]}"><div class="k"><span class="ch">${ch}</span></div></div>`}
+function layout(){const land=matchMedia('(orientation:landscape) and (min-width:700px)').matches,hdr=document.querySelector('header').offsetHeight;
+ const aw=(land?innerWidth*.62:innerWidth)-40,ah=innerHeight-hdr-(land?56:250);
+ const sq=Math.max(24,Math.min(aw/9,ah/11.1,66));const r=document.documentElement.style;r.setProperty('--sq',sq.toFixed(1)+'px');r.setProperty('--n',9)}
+function targets(){const t=new Set();if(SEL===null||mode!=='solve')return t;const P=STATES[step];for(const m of ENG.legal(P)){if(typeof SEL==='string'){if((m>>15)===+SEL.slice(1))t.add((m>>7)&127)}else if(!(m>>15)&&(m&127)===SEL)t.add((m>>7)&127)}return t}
+let HLS=null;
+function draw(){const P=STATES[step],last=step?D.m[step-1]:null,chk=step>0&&ENG.inCheck(P),ks=chk?ENG.kingSq(P,P.side):-1,tg=targets();let h='';
+ for(let sq=0;sq<81;sq++){const v=P.b[sq];let c='sq';if(last&&(((last>>7)&127)===sq||((last>>15)===0&&(last&127)===sq)))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';if(sq===ks)c+=' tc';if(HLS&&HLS.includes(sq))c+=' hl';h+=`<div class="${c}" data-sq="${sq}">${v?pieceH(v):''}</div>`}
+ for(const [x,y] of [[3,3],[3,6],[6,3],[6,6]])h+=`<i class="star" style="left:calc(var(--sq)*${x});top:calc(var(--sq)*${y})"></i>`;
+ $('board').innerHTML=h;
+ $('colL').innerHTML=Array.from({length:9},(_,x)=>`<span>${9-x}</span>`).join('');$('rowL').innerHTML=Array.from({length:9},(_,y)=>`<span>${KJ[y]}</span>`).join('');
+ for(const hi of [0,1]){let s='';for(const ty of [7,6,5,4,3,2,1]){const n=P.h[hi][ty];if(!n)continue;const sel=hi===0&&SEL==='h'+ty;s+=`<div class="hp${sel?' sel':''}"${hi===0&&mode==='solve'?` data-ht="${ty}"`:''}>${pieceH(hi===0?ty:-ty,hi===0)}${n>1?`<b>${n}</b>`:''}</div>`}
+  $(hi===0?'h0':'h1').innerHTML=s||'<span class="pill">（無）</span>'}
+ $('cur').innerHTML=step===0?`<b>0</b> / ${LEN}　開始局面`:`<b>${step}</b> / ${LEN}　${note(step-1)}${chk&&P.side===-1?'<span class="chk">王手</span>':''}`;
+ $('bar').value=step;$('bar').disabled=mode==='solve';
+ const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${note(from+k)}</span>`).join('');
+ $('note').textContent=mode==='solve'?(step%2===0?'輪到你：每一步都要王手':'玉方應對中…'):(best?`解題最遠紀錄：第 ${best} 手`:'');
+ document.body.classList.toggle('solve',mode==='solve');$('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放';
+ if(mode==='watch')try{localStorage.setItem('zk100_step',step)}catch(e){}
+}
+function go(n,snd){const old=step;step=Math.max(0,Math.min(LEN,n));SEL=null;HLS=null;if(snd&&step>old)sfx('slap');draw()}
+function stopAuto(){if(auto){clearInterval(auto);auto=null}}
+function startAuto(){stopAuto();if(step>=LEN)step=0;const iv=+$('spd').value;auto=setInterval(()=>{if(step>=LEN){stopAuto();draw();return}go(step+1,iv>=250)},iv);draw()}
+/* 自己解題：攻方（先手）每走一步，只要和作者的原手順相同，玉方就照原譜回應。 */
+function enterSolve(){stopAuto();mode='solve';if(step%2===1)step--;SEL=null;HLS=null;draw();toast('自己解題：你是攻方')}
+function exitSolve(){mode='watch';SEL=null;HLS=null;draw()}
+function commit(m){if(busy)return;const exp=D.m[step];
+ if(m===exp){busy=true;SEL=null;step++;sfx('slap');draw();best=Math.max(best,step);try{localStorage.setItem('zk100_best',best)}catch(e){}
+  if(step>=LEN){busy=false;return win()}
+  setTimeout(()=>{step++;sfx('slap');draw();busy=false;if(step>=LEN)win()},520)}
+ else{const q=ENG.clone(STATES[step]);ENG.doMove(q,m);toast(ENG.inCheck(q)?'不是作者的原手順，再想想':'每一步都要王手！');sfx('bad');SEL=null;document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),320);draw()}}
+function win(){sfx('win');modal(`<h2>詰み！</h2><p>第 100 番「寿」全 ${LEN} 手，你完成了。</p><p class="note">伊藤看壽 1755 年獻給幕府的《將棋圖巧》最終一題，長度在江戶時代的詰將棋裡堪稱空前。</p><div class="btns"><button data-act="exit">回到觀看</button><button class="pri" data-act="again">再解一次</button></div>`)}
+function tryMove(from,to){const P=STATES[step],c=ENG.legal(P).filter(m=>((m>>7)&127)===to&&(typeof from==='string'?(m>>15)===+from.slice(1):!(m>>15)&&(m&127)===from));
+ if(!c.length){SEL=null;draw();return}
+ if(c.length>1){const a=c.find(m=>m&16384),b=c.find(m=>!(m&16384));window._pm=[a,b];const ty=Math.abs(P.b[from]);
+  modal(`<h2>要升變嗎？</h2><div class="promo"><button data-act="pm" data-i="0">${pieceH(P.b[from]>0?({1:9,2:10,3:11,4:12,6:14,7:15})[ty]:0)}<span>升變</span></button><button data-act="pm" data-i="1">${pieceH(P.b[from])}<span>不升變</span></button></div>`);return}
+ commit(c[0])}
+function hint(){if(mode!=='solve'||step%2||busy)return;const m=D.m[step];HLS=(m>>15)?[(m>>7)&127]:[m&127,(m>>7)&127];draw();setTimeout(()=>{HLS=null;draw()},1800)}
+$('board').addEventListener('click',e=>{if(mode!=='solve'||busy||step%2||step>=LEN)return;const el=e.target.closest('.sq');if(!el)return;const sq=+el.dataset.sq,P=STATES[step],v=P.b[sq];
+ if(SEL!==null&&targets().has(sq)){const f=SEL;return tryMove(f,sq)}
+ if(v>0){SEL=SEL===sq?null:sq}else SEL=null;draw()});
+for(const id of ['h0'])$(id).addEventListener('click',e=>{if(mode!=='solve'||busy||step%2)return;const el=e.target.closest('.hp[data-ht]');if(!el)return;const k='h'+el.dataset.ht;SEL=SEL===k?null:k;draw()});
+$('bar').addEventListener('input',e=>{stopAuto();go(+e.target.value)});
+$('spd').addEventListener('change',()=>{if(auto)startAuto()});
+document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if(!el)return;const a=el.dataset.act;
+ if(a==='first'){stopAuto();go(0)}else if(a==='last'){stopAuto();go(LEN)}else if(a==='prev'){stopAuto();go(step-1)}else if(a==='next'){stopAuto();go(step+1,true)}
+ else if(a==='m10'){stopAuto();go(step-10)}else if(a==='p10'){stopAuto();go(step+10)}
+ else if(a==='auto'){auto?(stopAuto(),draw()):startAuto()}
+ else if(a==='solve'){closeModal();enterSolve()}else if(a==='exit'){closeModal();exitSolve()}else if(a==='again'){closeModal();step=0;mode='solve';SEL=null;draw()}
+ else if(a==='hint')hint();else if(a==='undo'){if(busy)return;step=Math.max(0,step%2?step-1:step-2);SEL=null;draw()}
+ else if(a==='pm'){const m=window._pm[+el.dataset.i];closeModal();commit(m)}
+ else if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('zk_mute',MUTE?'1':'0')}catch(_){}draw()}
+ else if(a==='close')closeModal();
+ else if(a==='info')modal(`<h2>將棋圖巧　第 100 番「寿」</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">這題的完整性標示為「余詰」，也就是另有其他解法；本站以作者原手順為準。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
+addEventListener('resize',layout);layout();draw();
+</script>
+</body>
+</html>

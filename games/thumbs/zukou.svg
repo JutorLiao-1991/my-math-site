@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="將棋圖巧示意圖">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9c47e"/><stop offset="1" stop-color="#cf9f55"/></linearGradient>
+    <linearGradient id="pc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbe8bf"/><stop offset="1" stop-color="#e2bd78"/></linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="1.6" stdDeviation="1.4" flood-opacity=".45"/></filter>
+  </defs>
+  <rect width="120" height="120" rx="18" fill="url(#wood)"/>
+  <g stroke="#5a3d17" stroke-width="1.2" opacity=".55"><path d="M10 10v100M37 10v100M64 10v100M91 10v100M10 10h100M10 37h100M10 64h100M10 91h100"/></g>
+  <g filter="url(#sh)"><path d="M60 14 87 27 93 100H27L33 27z" fill="url(#pc)" stroke="#6b4a1f" stroke-width="2" stroke-linejoin="round"/></g>
+  <text x="60" y="78" text-anchor="middle" font-family="'Hiragino Mincho ProN','Yu Mincho','Noto Serif TC',serif" font-weight="900" font-size="46" fill="#c21f17">寿</text>
+  <text x="60" y="110" text-anchor="middle" font-family="'Hiragino Mincho ProN','Yu Mincho','Noto Serif TC',serif" font-weight="900" font-size="11" letter-spacing="2" fill="#3a2410">611手詰</text>
+</svg>

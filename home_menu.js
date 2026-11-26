@@ -42,7 +42,7 @@
   document.querySelectorAll('.filter-btn').forEach(button => button.addEventListener('click', () => { selected = { category: button.dataset.category, grade: 'all' }; apply(); }));
   try {
     const saved = JSON.parse(sessionStorage.getItem('jutor-lesson-filter'));
-    if (saved && ['all', 'language', 'games', ...Object.keys(menus)].includes(saved.category)) {
+    if (saved && ['all', 'language', 'games', 'zukou', ...Object.keys(menus)].includes(saved.category)) {
       selected.category = saved.category;
       if (saved.grade === 'all' || (menus[saved.category] && menus[saved.category].groups.some(g => g.key === saved.grade))) selected.grade = saved.grade;
     }
