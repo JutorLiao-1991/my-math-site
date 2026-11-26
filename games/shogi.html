@@ -932,7 +932,7 @@ function showMenu(){
  modal(`<div class="brand"><img src="${BRAND.paper}" alt="鳩特數理"><div><small>鳩特數理</small><h2>鳩特將棋</h2></div></div>
  <p>日本將棋：吃掉的棋子會變成自己的「持駒」，可以再打到盤上。把對方的玉將死就贏了。</p>
  ${sv&&!canResume()?`<button class="pri wide" data-act="resumesave">繼續上次的對局（${sv.pvp?'雙人對戰':DIFFN[sv.diff]}・${sv.W===9?'本將棋':'五五將棋'}・已下 ${sv.kifu.length} 手）</button>`:''}
- <div class="modes"><button class="mode big" data-act="solo"><b>對戰鳩特</b><small>和五位電腦鳩特對下，可以讓子</small></button><button class="mode" data-act="pvp"><b>雙人對戰</b><small>同一台裝置，面對面對下</small></button><button class="mode" data-act="lessons"><b>新手教學</b><small>13 課，從棋子走法學起</small></button><button class="mode" data-act="tsumes"><b>詰將棋</b><small>實戰一、三、五、七手詰各 100 題</small></button><button class="mode" data-act="studies"><b>戰術學習</b><small>開局戰法、手筋、寄せ</small></button></div>
+ <div class="modes"><button class="mode big" data-act="solo"><b>對戰鳩特</b><small>和五位電腦鳩特對下，可以讓子</small></button><button class="mode" data-act="pvp"><b>雙人對戰</b><small>同一台裝置，面對面對下</small></button><button class="mode" data-act="lessons"><b>新手教學</b><small>13 課，從棋子走法學起</small></button><button class="mode" data-act="tsumes"><b>詰將棋</b><small>實戰一、三、五、七手詰各 100 題</small></button><button class="mode" data-act="studies"><b>戰術學習</b><small>開局戰法、手筋、寄せ</small></button><button class="mode" data-act="zukou" style="grid-column:1/3"><b>將棋圖巧</b><small>伊藤看壽的古典名作：第 100 番「寿」連續王手 611 手，附講解</small></button></div>
  <div class="btns">${back}<button data-act="rank">最少手數榜</button><button data-act="rules">規則與走法</button></div>`,'menu')}
 function showPvp(){OPT.view='pvp';
  const o=(k,v,t)=>`<button data-act="opt" data-k="${k}" data-v="${v}" class="${OPT[k]===v?'on':''}">${t}</button>`;
@@ -988,6 +988,7 @@ function act(a,el){
  if(a==='sprev')return studyPrev();
  if(a==='shint')return studyHint();
  if(a==='lesson')return startLesson(+el.dataset.i);
+ if(a==='zukou'){location.href='shogi_zukou.html';return}
  if(a==='tsumes')return showTsumes();
  if(a==='tsume')return startTsume(+el.dataset.n,+el.dataset.i);
  if(a==='tutnext')return TUT.next();
