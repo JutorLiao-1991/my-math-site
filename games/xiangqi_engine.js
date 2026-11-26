@@ -1,5 +1,5 @@
 /* 鳩特象棋：規則、可解釋局面、限時搜尋。正數紅方、負數黑方。
-   1 帥將、2 仕士、3 相象、4 馬、5 車、6 炮砲、7 兵卒。
+   1 帥將、2 仕士、3 相象、4 傌馬、5 俥車、6 炮包、7 兵卒。
    Rules reference: World Xiangqi Federation, A Short Introduction to Xiangqi.
    https://www.wxf-xiangqi.org/images/xiangqi-intro/xiangqi-introduction-for-wxf.pdf */
 (function (root) {
@@ -55,7 +55,7 @@
   function legal(p){const s=p.side,out=[];if(king(p,s)<0||king(p,-s)<0)return out;
     for(const m of pseudo(p)){if(Math.abs(p.b[to(m)])===K)continue;const u=make(p,m),ok=!inCheck(p,s);unmake(p,m,u);if(ok)out.push(m)}return out}
   function perft(p,d){if(d===0)return 1;let n=0;for(const m of legal(p)){const u=make(p,m);n+=perft(p,d-1);unmake(p,m,u)}return n}
-  const names=v=>(v>0?['','帥','仕','相','馬','車','炮','兵']:['','將','士','象','馬','車','砲','卒'])[Math.abs(v)]||'';
+  const names=v=>(v>0?['','帥','仕','相','傌','俥','炮','兵']:['','將','士','象','馬','車','包','卒'])[Math.abs(v)]||'';
   function notation(p,m){const f=from(m),t=to(m),s=p.side,x=f%9,y=f/9|0,xx=t%9,yy=t/9|0;
     const digit=n=>s===1?'〇一二三四五六七八九'[n]:String(n),file=x=>s===1?9-x:x+1;
     let n=names(p.b[f])+digit(file(x));const same=[];for(let i=0;i<90;i++)if(p.b[i]===p.b[f]&&i%9===x)same.push(i);
