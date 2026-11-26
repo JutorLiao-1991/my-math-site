@@ -23,6 +23,7 @@
     lesson('吃子與勝負','用紅俥吃掉同一路的黑馬。吃掉的棋子會退出對局，不能再放回棋盤。',[...kings,[5,0,5],[-4,0,2]],[0,5],[0,2],'象棋沒有打入。將死、困斃都算輸；殺局挑戰會讓你實際練習收網。'),
     {title:'實戰練習',desc:'用完整棋盤挑戰嬰兒鳩特。可以看走法、用提示、悔棋；打完這局就完成課程。',free:true}
   ];
+  const LESSON_IDS=["board", "rook", "horse", "horse-leg", "elephant", "elephant-eye", "advisor", "king", "cannon-move", "cannon-capture", "pawn", "pawn-river", "kings-face", "check", "capture", "free"];lessons.forEach((l,i)=>{l.id=LESSON_IDS[i]});
   const opening=(title,desc,moves,texts)=>({title,desc,section:'open',moves:moves.split(' ').map(uci),texts});
   const openings=[
     opening('中炮對屏風馬','紅方先架中炮，黑方用雙馬保護中路。','h2e2 h9g7 h0g2 b9c7 i0h0 i9h9 h0h6 g6g5',[
