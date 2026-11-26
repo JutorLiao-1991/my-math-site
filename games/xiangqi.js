@@ -1,7 +1,7 @@
 /* 鳩特象棋：與將棋相同的模式、操作與榮譽榜規格；棋盤固定，不隨回合翻轉。 */
 (function(){
   'use strict';
-  const X=window.Xiangqi,D=window.XiangqiLessons,BANK=window.XiangqiPuzzles,TAC=window.XiangqiTactics||{cats:{},list:[]},STUDY=[...(window.XiangqiStudies||[]),...TAC.list],$=id=>document.getElementById(id);
+  const X=window.Xiangqi,D=window.XiangqiLessons,BANK=window.XiangqiPuzzles,TAC=window.XiangqiTactics||{cats:{},list:[]},MAT=window.XiangqiMates||{cats:{},list:[]},STUDY=[...(window.XiangqiStudies||[]),...TAC.list,...MAT.list],$=id=>document.getElementById(id);
   const LEVELS=['嬰兒鳩特','幼年鳩特','青年鳩特','成年鳩特','大師鳩特'];
   const LEVEL_INFO=['先看眼前的吃子，偶爾會漏看，適合第一次下棋。','會比較吃子得失，開始留意對手的回應。','會往前推算幾步，留意車馬炮的配合。','認真計算攻防與交換，不輕易白送棋子。','會參考開局棋譜，記住算過的局面，深入推算攻防。每步最多思考約 4.5 秒。'];
   const LS={get(k,d){try{const s=localStorage.getItem(k);return s==null?d:JSON.parse(s)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}},del(k){try{localStorage.removeItem(k)}catch(e){}}};
@@ -125,7 +125,7 @@
   function setup(pvp=false){setupPvp=pvp;modal(`<h2 id="modalTitle">${pvp?'雙人對戰':'對戰鳩特'}</h2><p class="note">標準象棋，九路十線。紅先黑後，吃掉的棋子不能放回棋盤。</p>${pvp?'<h3>棋子朝向</h3>'+opt('face',[[true,'面對面'],[false,'並肩看']])+'<p class="note">盤面固定；面對面時黑方棋子朝向對面。</p>':'<h3>對手</h3><div class="level-grid">'+LEVELS.map((n,i)=>`<button data-act="option" data-k="level" data-v="${i}" aria-pressed="${OPT.level===i}"><span class="lv">${'嬰幼青成師'[i]}</span>${n}<span class="stars" aria-hidden="true">${'★'.repeat(i+1)}</span></button>`).join('')+'</div>'+`<p class="note">${LEVEL_INFO[OPT.level]}</p><h3>你執哪一方</h3>`+opt('side',[[1,'紅方・先手'],[-1,'黑方・後手'],[0,'隨機']])+'<h3>電腦讓子</h3>'+opt('hc',[['none','不讓'],['horse','讓一馬'],['rook','讓一車'],['two','讓雙車']])+'<p class="note">讓子只移除電腦的棋子。新手可以從讓一車開始。</p>'}<div class="actions"><button data-act="menu">返回</button><button class="pri" data-act="start">開始對局</button></div>`)}
   function showRules(){modal(`<h2 id="modalTitle">玩法與規則</h2><ul class="rules"><li>紅方先行，雙方輪流走一步。點棋子，再點目的地；綠點是合法落點，紅圈是可以吃的子。</li><li><b>俥／車</b>走直線；<b>傌／馬</b>走日，注意蹩馬腿；<b>相／象</b>走田，不能塞象眼或過河。</li><li><b>仕／士</b>斜走一格，<b>帥／將</b>直走一格，都不能出九宮。將帥不能在沒有棋子阻隔的同一路照面。</li><li><b>炮／包</b>不吃子時走直線；吃子必須恰好隔一顆炮架。<b>兵／卒</b>向前一格，過河後可橫走，永遠不能後退。</li><li>被將軍必須先解將。<b>將死、困斃（沒有合法走法）都算輸。</b></li><li>本遊戲採休閒對局重複規則：第三次同局面時，單方面持續將軍者判負；其他重複局面判和。複雜長捉、將捉循環等賽事裁決不在本版自動判定範圍。</li><li>連續六十回合未吃子或挺兵，或雙方只剩將帥與仕相，判和。</li><li>殺局的「三手」是你走、黑方應對、你再走，且每一步都必須將軍。走錯會演示黑方的逃脫，再自動退回。</li><li>形勢條是局面分數估計，並非實際勝率。電腦在瀏覽器內運算。</li><li>最少手數榜按雙方合計步數排名，同手數比用時。只收不讓子、紅方先手、未悔棋、未用提示的電腦對局勝局。</li><li class="credit">配樂使用 FluidR3_GM 音色庫的笛子、筝、弦樂取樣（<a href="https://creativecommons.org/licenses/by/3.0/us/" target="_blank" rel="noopener">CC BY 3.0</a>），旋律只用宮商角徵羽五聲音階。</li></ul><p class="note">走子與勝負依 <a href="https://www.wxf-xiangqi.org/images/xiangqi-intro/xiangqi-introduction-for-wxf.pdf" target="_blank" rel="noopener">世界象棋聯合會入門規則</a>。對局、教學進度會記在這台裝置。</p><div class="actions"><button class="pri" data-act="menu">回選單</button></div>`)}
   /* ===== 戰術學習（比照將棋：逐步講解、遇到「換你走」自己下） ===== */
-  const SECN={open:'開局戰法',mid:'中盤戰術',end:'殘局殺法'},SECD={open:'開局跟著棋譜一步一步走，紅方的關鍵手換你走。',mid:'先看三個經典範例，再挑戰引擎挖出的中盤戰術題：白吃無根子、以小換大、將軍得子、連環吃子等。',end:'經典殺法，找出將死對方的那一手。'};
+  const SECN={open:'開局戰法',mid:'中盤戰術',end:'殘局殺法'},SECD={open:'開局跟著棋譜一步一步走，紅方的關鍵手換你走。',mid:'先看三個經典範例，再挑戰引擎挖出的中盤戰術題：白吃無根子、以小換大、將軍得子、連環吃子等。',end:'先看經典範例，再用大師實戰殺局，依最後將死的形狀分類練習：重炮、馬後炮、雙車錯、臥槽馬、白臉將、悶宮、雙將、兵殺。'};
   const CN='一二三四五六七八九';
   const ucci=u=>X.move((9-Number(u[1]))*9+u.charCodeAt(0)-97,(9-Number(u[3]))*9+u.charCodeAt(2)-97);
   const stSteps=S=>S.steps||S.line.split(' ').map((u,i)=>({u,y:i%2===0?1:0,s:S.s[i]}));
@@ -136,8 +136,8 @@
   function showStudies(){const p=progs('studies');
     const btn=(S,i,idx)=>`<button class="${p[S.id]?'done':''}" data-act="study" data-i="${i}"><span class="index">${p[S.id]?'✓':idx}</span><b>${S.t}</b><small>${p[S.id]?'已完成':S.sec==='open'?stSteps(S).length+' 手':'練習題'}</small></button>`;
     const sec=k=>{const plain=STUDY.map((S,i)=>S.sec!==k||S.cat?'':btn(S,i,CN[STUDY.filter((x,j)=>j<=i&&x.sec===k&&!x.cat).length-1]||'')).join('');
-      let groups='';if(k==='mid')for(const c of Object.keys(TAC.cats)){const ids=STUDY.map((S,i)=>S.cat===c?i:-1).filter(i=>i>=0);if(!ids.length)continue;const done=ids.filter(i=>p[STUDY[i].id]).length;
-        groups+=`<details class="pz-sec"><summary><b>${TAC.cats[c]}</b><span>${done} / ${ids.length}</span></summary><div class="slist">${ids.map((i,n)=>btn(STUDY[i],i,n+1)).join('')}</div></details>`}
+      let groups='';const SRC=k==='mid'?TAC:k==='end'?MAT:null;if(SRC)for(const c of Object.keys(SRC.cats)){const ids=STUDY.map((S,i)=>S.cat===c?i:-1).filter(i=>i>=0);if(!ids.length)continue;const done=ids.filter(i=>p[STUDY[i].id]).length;
+        groups+=`<details class="pz-sec"><summary><b>${SRC.cats[c]}</b><span>${done} / ${ids.length}</span></summary><div class="slist">${ids.map((i,n)=>btn(STUDY[i],i,n+1)).join('')}</div></details>`}
       return `<h3>${SECN[k]}</h3><p class="note">${SECD[k]}</p><div class="slist">${plain}</div>${groups}`};
     modal(`<h2 id="modalTitle">戰術學習</h2><p class="note">按「開始」或「下一步」看示範，遇到「輪到你」就自己下下看；提示會標出要動的棋子。</p>${sec('open')}${sec('mid')}${sec('end')}<div class="actions"><button data-act="menu">返回</button></div>`)}
   function startStudy(i){const S=STUDY[i];if(!S)return showStudies();saveGame();state(stPos(S),'study',{si:i,step:0,swait:false,sdone:false,stxt:S.d});hideModal();render()}

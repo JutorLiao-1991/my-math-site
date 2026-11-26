@@ -35,7 +35,7 @@ class XiangqiTests(unittest.TestCase):
         data = (ROOT / "data.js").read_text()
         self.assertIn('url: "games/xiangqi.html"', data)
         self.assertIn('thumb: "games/thumbs/xiangqi.svg"', data)
-        for name in ["xiangqi.js", "xiangqi.css", "xiangqi_engine.js", "xiangqi_puzzles.js", "xiangqi_lessons.js", "xiangqi_studies.js", "xiangqi_tactics.js", "xiangqi_audio.js"]:
+        for name in ["xiangqi.js", "xiangqi.css", "xiangqi_engine.js", "xiangqi_puzzles.js", "xiangqi_lessons.js", "xiangqi_studies.js", "xiangqi_tactics.js", "xiangqi_mates.js", "xiangqi_audio.js"]:
             self.assertIn(name, page)
             self.assertTrue((ROOT / "games" / name).is_file())
         self.assertIn('href="../index.html"', page)
