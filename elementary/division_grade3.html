@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>鳩特數理｜除法（三年級）</title>
+  <link rel="stylesheet" href="elementary_theme.css">
+  <link rel="stylesheet" href="paper_practice.css">
+  <link rel="stylesheet" href="paper_split_layout.css">
+  <style>
+    /* 除法直式：除數在左、被除數上方一條橫線，商、乘出來的數、餘數都靠右對齊被除數的個位 */
+    .vdiv { display: inline-grid; grid-template-columns: auto auto; column-gap: 2px; row-gap: 6px; align-items: end; margin: 4px 8px 4px 0; font-size: 1.75rem; font-weight: 700; line-height: 1.1; color: #1e293b; font-variant-numeric: tabular-nums; }
+    .vd-side { text-align: right; padding-right: 2px; }
+    .vd-divisor { display: inline-flex; align-items: flex-end; justify-content: flex-end; gap: 0; padding-bottom: 4px; }
+    .vd-paren { display: inline-block; font-weight: 400; font-size: 2.3rem; line-height: .9; transform: scaleX(.7); margin-left: 2px; color: #334155; }
+    .vd-cell { justify-self: stretch; display: flex; justify-content: flex-end; min-width: 3.2ch; min-height: 1.1em; letter-spacing: .12em; }
+    .vd-a { border-top: 3px solid #334155; padding: 6px 4px 4px 10px; }
+    .vd-p { border-bottom: 3px solid #334155; padding-bottom: 6px; }
+    .vd-r, .vd-q, .vd-p { padding-right: 4px; }
+    .vd-empty { min-height: 48px; }
+    .vdiv .field-box { margin: 0; gap: 0; }
+    .vdiv .field-label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .vdiv .answer-input { width: 76px; height: 48px; font-size: 1.45rem; text-align: right; padding: 6px 10px; }
+    .vd-q .answer-input, .vd-r .answer-input { width: 60px; }
+    .numpad .num-btn.wide { grid-column: span 2; }
+  </style>
+  <script src="ratio_questions_grade6.js" defer></script>
+  <script src="ratio_input_grade6.js" defer></script>
+  <script src="paper_exam_status.js" defer></script>
+  <script src="division_questions_grade3.js" defer></script>
+  <script src="paper_practice.js" defer></script>
+<script src="../battle_log.js"></script>
+<script src="../scratchpad.js" defer></script>
+<script src="../stem_pin.js" defer></script>
+<script src="../answer_sounds.js"></script>
+<script src="../page_views.js" defer></script>
+</head>
+<body class="split">
+<header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">➗ 除法（三年級）</h1><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></header>
+<main class="main-wrapper">
+  <section class="panel" id="work-panel" aria-label="作答區">
+    <div class="welcome" id="welcome"><h2>被除數 ÷ 除數 ＝ 商 … 餘數</h2><p>「每幾個一份，可以分成幾份」和「平分成幾份，每份有多少」都用除法。<br>找商：想九九乘法，除數的幾倍最接近被除數又不超過它。<br>餘數一定要比除數小。<br>驗算：除數×商＋餘數＝被除數。</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
+    <div class="session-bar" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div id="exam-overview" hidden>
+      <div class="exam-jump" id="exam-jump" aria-label="測驗題號"></div>
+      <div class="exam-tools"><button type="button" class="secondary-btn review-toggle" id="mark-review" aria-pressed="false">標記待檢查</button><span class="exam-status" id="answer-status" aria-live="polite"></span></div>
+      <div class="exam-legend" aria-label="題號顏色說明"><span><i class="legend-dot"></i>白色：未作答</span><span><i class="legend-dot partial"></i>淡黃色：部分作答</span><span><i class="legend-dot answered"></i>淡綠色：已填完</span><span><i class="legend-dot flagged"></i>紫色：待檢查</span></div>
+      <p class="exam-summary" id="exam-summary"></p>
+    </div></div>
+    <div id="workspace" hidden><div class="meta"><span id="mode-label"></span><span id="category-label"></span></div><p class="question" id="question-text"></p><div id="steps"></div><button type="button" class="secondary-btn" id="hint-button" aria-expanded="false" aria-controls="hint">看提示</button><p class="hint" id="hint" hidden></p></div>
+    <section id="results" hidden aria-label="測驗結果"><h2 id="result-heading">測驗完成</h2><div class="score-display" id="final-score"></div><p id="result-summary"></p><button type="button" class="secondary-btn" id="retry-exam">再測一次</button><div class="review" id="review-list"></div></section>
+    <div class="watermark">Presented by Jutor</div>
+  </section>
+</main>
+<footer class="keyboard-dock" id="keyboard-dock" hidden aria-label="固定作答鍵盤">
+  <div class="dock-inner">
+    <div class="dock-heading"><div class="phase-note" id="phase-note" aria-live="polite"></div><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></div>
+    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除目前格子的一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="next">下一格</button><button type="button" class="num-btn wide" data-key="0">0</button><button type="button" class="num-btn" data-key="fraction" hidden>分數</button><button type="button" class="num-btn" data-key="." hidden>.</button><button type="button" class="num-btn" data-key="space" hidden>帶分數</button></div>
+    <div class="dock-actions"><p class="feedback" id="feedback" aria-live="polite"></p><p class="key-hint" id="key-hint" hidden>點選格子，便可直接填寫或修改。</p><button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button><div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div></div>
+  </div>
+</footer>
+<dialog class="mode-dialog" id="mode-dialog" aria-labelledby="mode-dialog-title">
+  <div class="dialog-heading"><h2 id="mode-dialog-title">選擇模式與題型</h2><button type="button" class="secondary-btn" id="close-modes">返回作答</button></div>
+  <h3 class="controls-title">分步練習（6-1～6-5）</h3>
+  <div class="menu-grid"><button type="button" class="menu-btn" data-type="meaning" aria-pressed="false">① 認識除法</button><button type="button" class="menu-btn" data-type="remainder" aria-pressed="false">② 餘數應用題</button><button type="button" class="menu-btn" data-type="calc" aria-pressed="false">③ 有餘數的除法</button><button type="button" class="menu-btn" data-type="vertical" aria-pressed="false">④ 直式除法</button><button type="button" class="menu-btn" data-type="verticalWord" aria-pressed="false">⑤ 直式應用題</button><button type="button" class="menu-btn" data-type="zeroOne" aria-pressed="false">⑥ 0 和 1 的除法</button><button type="button" class="menu-btn" data-type="parity" aria-pressed="false">⑦ 偶數和奇數</button><button type="button" class="menu-btn" data-type="judge" aria-pressed="false">⑧ 是非判斷</button><button type="button" class="menu-btn" data-type="choice" aria-pressed="false">⑨ 選擇題</button><button type="button" class="menu-btn wide" data-type="mixed" aria-pressed="false">綜合練習</button></div>
+  <h3 class="controls-title">測驗模式</h3>
+  <button type="button" class="menu-btn" id="start-exam">綜合測驗（10 題）</button>
+  <p class="exam-description">認識除法、餘數應用題、有餘數的除法、直式除法、直式應用題、0 和 1 的除法、偶數和奇數、是非各 1 題，選擇 2 題。每題 10 分，限時 10 分鐘，交卷後查看解析。</p>
+  <p id="mode-error" role="status"></p>
+</dialog>
+</body>
+</html>

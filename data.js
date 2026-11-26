@@ -84,6 +84,15 @@ const lessonData = [
         desc: "從分組練習到單人快問快答與雙人搶答，熟練二年級九九乘法表。"
     },
     {
+        title: "除法（三年級）",
+        category: "elementary",
+        grades: [3],
+        url: "elementary/division_grade3.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "依南一三上第六單元逐節練習：認識除法、餘數、商為一位數的直式除法、0 和 1 的除法、偶數和奇數；分步作答，含是非、選擇與十題綜合測驗。"
+    },
+    {
         title: "五位數加減法（四年級）",
         category: "elementary",
         grades: [4],

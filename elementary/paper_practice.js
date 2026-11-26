@@ -116,14 +116,16 @@
     $('mode-label').textContent = exam ? '綜合測驗' : '分步練習'; $('category-label').textContent = exam ? '' : q.category;
     $('question-text').innerHTML = q.textHtml;
     $('question-number').textContent = exam ? `題號：${state.index + 1} / ${state.questions.length}` : `練習第 ${state.number} 題`;
-    const steps = exam ? (q.type === 'value' ? [
+    const steps = exam ? (q.examSteps ? q.examSteps : q.type === 'value' ? [
       { title: '填入比', fields: q.finalFields.slice(0, 2), pattern: `{${q.finalFields[0].key}}：{${q.finalFields[1].key}}` },
       { title: '填入比值', fields: [q.finalFields[2]], pattern: `{${q.finalFields[2].key}}` }
     ] : [{ title: '填入答案', fields: q.finalFields, pattern: q.finalFields.map(f => `{${f.key}}`).join('　') }]) : q.steps;
     $('steps').innerHTML = steps.map((s, i) => {
       const sharedNote = s.fields.length === 2 && s.fields[0].requirement && s.fields.every(f => f.requirement === s.fields[0].requirement) ? s.fields[0].requirement : '';
       let pattern;
-      if (s.fields.length === 1 && s.fields[0].type === 'rational') {
+      /* 題庫可自訂這一步的版面（例如除法直式），格子仍由這裡產生 */
+      if (s.layout && Q.layoutStep) pattern = Q.layoutStep(s, f => fieldHtml(f, !exam && i > 0, false), exam);
+      else if (s.fields.length === 1 && s.fields[0].type === 'rational') {
         const f = s.fields[0], [before, after] = s.pattern.split(`{${f.key}}`);
         state.equations[f.key] = { before, after };
         pattern = fieldHtml(f, !exam && i > 0);
@@ -246,7 +248,9 @@
       state.missed = true; activate(wrong.key);
       const unreduced = wrong.simplest && Q.correct(state.values[wrong.key], Object.assign({}, wrong, { simplest: false }));
       playWrong();
-      message(unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`, 'error'); return;
+      /* 題庫可針對常見錯誤給專屬提示（例如餘數比除數大） */
+      const custom = wrong.feedback ? wrong.feedback(state.values[wrong.key], state.values) : '';
+      message(custom || (unreduced ? `數值對了，但「${wrong.label}」還要約分成最簡分數。` : `「${wrong.label}」再想一想。可按「看提示」查看這一步的方向。`), 'error'); return;
     }
     const s = state.question.steps[state.step], card = $(`step-${state.step}`);
     card.querySelectorAll('input, button').forEach(el => { el.disabled = true; el.classList.remove('active'); });
