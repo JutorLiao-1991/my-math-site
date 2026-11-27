@@ -15,6 +15,21 @@ class GomokuTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("14 Gomoku checks passed", result.stdout)
 
+    def test_tutorial_lessons_are_solvable(self):
+        result = subprocess.run(
+            ["node", "tests/test_gomoku_lessons.cjs"], cwd=ROOT,
+            capture_output=True, text=True, timeout=120,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("10 Gomoku lesson checks passed", result.stdout)
+
+    def test_tutorial_wired_into_page(self):
+        page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
+        self.assertIn("gomoku_lessons.js", page)
+        self.assertTrue((ROOT / "games/gomoku_lessons.js").is_file())
+        for token in ["新手教學", 'data-act="lessons"', "lessonStart", "lessonTap", "jutor-gomoku-lessons-v1"]:
+            self.assertIn(token, page)
+
     def test_game_assets_and_home_link(self):
         page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
         data = (ROOT / "data.js").read_text(encoding="utf-8")
