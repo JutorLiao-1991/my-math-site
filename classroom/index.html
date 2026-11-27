@@ -56,6 +56,8 @@
     <h1>📋 教室監控</h1>
     <div class="nav-tools">
       <input type="date" id="day" aria-label="查看日期">
+      <button type="button" id="new-session" title="畫面只顯示從現在開始的作答，之前的紀錄仍保留">🔔 新的一節課</button>
+      <button type="button" id="all-day" hidden>顯示全天</button>
       <span class="pill" id="conn">未連線</span>
       <button type="button" id="toggle-setup">設定</button>
     </div>
@@ -106,6 +108,12 @@
     const validRoom = r => /^[A-Za-z0-9]{20,40}$/.test(r || '');
 
     let room = null, devices = {}, log = {}, streams = [], drawQueued = false;
+    /* 新的一節課：只顯示某個時間之後的作答（紀錄本身不刪），隔天自動回到全天 */
+    const SESSION_KEY = 'jutor-classroom-session';
+    function sessionStart() {
+      try { const v = JSON.parse(localStorage.getItem(SESSION_KEY)); if (v && v.day === $('day').value && typeof v.t === 'number') return v.t; } catch (_) { /* 沒設定 */ }
+      return 0;
+    }
 
     /* 教室代碼：網址 #room=… 優先（從別台裝置開連結），存起來後把網址清乾淨 */
     function loadRoom() {
@@ -178,7 +186,8 @@
 
     /* ---------- 畫面 ---------- */
     function eventsOf(id) {
-      return Object.values(log[id] || {}).filter(e => e && typeof e.t === 'number').sort((a, b) => a.t - b.t);
+      const from = sessionStart();
+      return Object.values(log[id] || {}).filter(e => e && typeof e.t === 'number' && e.t >= from).sort((a, b) => a.t - b.t);
     }
     function describe(e) {
       if (e.m === 's') return { mark: e.ok ? '✓' : '✗', cls: e.ok ? 'ok' : 'bad', text: e.s || (e.ok ? '答對一步' : '答錯一步'), sub: [e.n, e.q].filter(Boolean).join('｜') };
@@ -205,12 +214,14 @@
           <div class="stat"><b>${done.length ? `${first}／${done.length}` : '—'}</b><span>一次就對／題數</span></div>
           <div class="stat"><b>${lastExam ? `${lastExam.s}` : '—'}</b><span>最近測驗</span></div>
         </div>
-        ${feed ? `<ul class="feed">${feed}</ul>` : '<p class="empty">這一天還沒有作答紀錄。</p>'}</article>`;
+        ${feed ? `<ul class="feed">${feed}</ul>` : `<p class="empty">${sessionStart() ? '這一節課' : '這一天'}還沒有作答紀錄。</p>`}</article>`;
     }
     function draw() {
       if (!room) return;
       const isToday = $('day').value === today();
-      $('board-title').textContent = isToday ? '各台 iPad（今天）' : `各台 iPad（${$('day').value}）`;
+      const from = sessionStart();
+      $('board-title').textContent = (isToday ? '各台 iPad（今天' : `各台 iPad（${$('day').value}`) + (from ? `，${hhmm(from)} 起的這一節課）` : '）');
+      $('all-day').hidden = !from;
       const ids = [...new Set([...Object.keys(devices || {}), ...Object.keys(log || {})])]
         .sort((a, b) => String((devices[a] || {}).name || '~').localeCompare(String((devices[b] || {}).name || '~'), 'zh-Hant'));
       $('devices').innerHTML = ids.length ? ids.map(id => deviceCard(id, devices[id], eventsOf(id), isToday)).join('')
@@ -268,6 +279,13 @@
         return Promise.all(old.map(d => fetch(`${CLOUD}/${room}/log/${d}.json`, { method: 'DELETE' }))).then(() => { $('setup-msg').textContent = `已刪除 ${old.length} 天的舊紀錄。`; });
       }).catch(() => { $('setup-msg').textContent = '刪除失敗，請稍後再試。'; });
     });
+    $('new-session').addEventListener('click', () => {
+      if (!confirm('開始新的一節課？畫面會清空，只顯示從現在開始的作答。之前的紀錄仍會保留，按「顯示全天」就能看回來。')) return;
+      $('day').value = today();
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ day: today(), t: Date.now() }));
+      watch();
+    });
+    $('all-day').addEventListener('click', () => { localStorage.removeItem(SESSION_KEY); queue(); });
     $('day').addEventListener('change', () => { if (!$('day').value) $('day').value = today(); watch(); });
     /* 過了午夜自動換到新的一天；在線燈號每 30 秒重新判斷 */
     setInterval(() => {
