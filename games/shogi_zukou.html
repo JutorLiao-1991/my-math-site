@@ -77,7 +77,7 @@ main{display:flex;flex-direction:column;min-height:0}
 body.shake #board{animation:shake .3s}
 @keyframes shake{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
 #kifu{font-size:13px}
-.pk{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;margin:8px 0}.pk button{display:flex;flex-direction:column;align-items:center;padding:4px 2px;min-height:44px;font-weight:700}.pk small{font-weight:400;font-size:11px;color:var(--mut)}.pk .on{background:var(--gold);color:#241a10}.pk .on small{color:#241a10}
+.lnk{color:var(--ink);padding:8px 12px}.pk{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;margin:8px 0}.pk button{display:flex;flex-direction:column;align-items:center;padding:4px 2px;min-height:44px;font-weight:700}.pk small{font-weight:400;font-size:11px;color:var(--mut)}.pk .on{background:var(--gold);color:#241a10}.pk .on small{color:#241a10}
 .note{font-size:13px;color:var(--mut);text-align:center;line-height:1.5}
 @media (orientation:landscape) and (min-width:700px){
  main{flex-direction:row}#stage{flex:1;justify-content:center}
@@ -319,14 +319,14 @@ function mkNotes(d){const a=(window.ZUKOU_NOTES&&window.ZUKOU_NOTES[d.no]);if(a)
 function load(no){const d=ZUKOU.find(z=>z.no===no)||ZUKOU[ZUKOU.length-1];stopAuto();D=d;LEN=d.m.length;NOTES=mkNotes(d);STATES=[mkPos(d)];for(const m of d.m){const q=ENG.clone(STATES[STATES.length-1]);ENG.doMove(q,m);STATES.push(q)}
  mode='watch';SEL=null;HLS=null;busy=false;pausedAt=-1;step=0;best=0;
  try{step=Math.min(LEN,Math.max(0,+localStorage.getItem('zk'+d.no+'_step')||0));best=+localStorage.getItem('zk'+d.no+'_best')||0;localStorage.setItem('zk_last',d.no)}catch(e){}
- $('rinfo').textContent=`第 ${d.no} 番${d.name?'「'+d.name+'」':''}`;$('bar').max=LEN;if(window.history&&history.replaceState)try{history.replaceState(null,'','#'+d.no)}catch(e){}
+ $('rinfo').textContent=`第 ${d.no} 番${d.name?'「'+d.name+'」':''}`;$('bar').max=LEN;if(window.history&&history.replaceState&&HASHOK)try{history.replaceState(null,'','#'+d.no)}catch(e){}
  draw()}
-function pickList(){const cur=D.no;modal(`<h2>選題</h2><p class="pill">圖巧共 100 題，手數 ${Math.min(...ZUKOU.map(z=>z.len))}～${Math.max(...ZUKOU.map(z=>z.len))} 手。</p><div class="pk">${ZUKOU.map(z=>`<button data-act="pick" data-no="${z.no}"${z.no===cur?' class="on"':''}>${z.no}<small>${z.len}手</small></button>`).join('')}</div><div class="btns"><button data-act="close">關閉</button></div>`)}
+function pickList(land){const cur=D.no;let lastNo=0;try{lastNo=+localStorage.getItem('zk_last')||0}catch(e){}modal(`<h2>${land?'將棋圖巧':'選題'}</h2><p class="pill">${land?'伊藤看壽 1755 年的詰將棋名作。請選一題來觀摩：':''}共 100 題，手數 ${Math.min(...ZUKOU.map(z=>z.len))}～${Math.max(...ZUKOU.map(z=>z.len))} 手。${land&&lastNo?`上次看到第 ${lastNo} 番（標金色）。`:''}</p><div class="pk">${ZUKOU.map(z=>`<button data-act="pick" data-no="${z.no}"${z.no===(land?lastNo:cur)?' class="on"':''}>${z.no}<small>${z.len}手</small></button>`).join('')}</div><div class="btns">${land?'<a class="lnk" href="shogi.html">回鳩特將棋</a>':'<button data-act="close">關閉</button>'}</div>`)}
 function note(i){const m=D.m[i],P=STATES[i],to=(m>>7)&127,dt=m>>15,f=m&127,s=P.side===1?'▲':'△';
  const pt=i>0?(D.m[i-1]>>7)&127:-1,sq=to===pt?'同':ZEN[8-to%9]+KJ[(to/9)|0];
  if(dt)return s+sq+NM[dt]+'打';
  return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
-let SB=[],SBM=[];
+let SB=[],SBM=[],HASHOK=!!+location.hash.slice(1);
 const cur=()=>mode==='sandbox'?SB[SB.length-1]:STATES[step];
 function mvText(m,P,pm){const to=(m>>7)&127,dt=m>>15,f=m&127,s=P.side===1?'▲':'△',sq=pm>=0&&((pm>>7)&127)===to?'同':ZEN[8-to%9]+KJ[(to/9)|0];
  if(dt)return s+sq+NM[dt]+'打';return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
@@ -403,9 +403,9 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
  else if(a==='pm'){const m=window._pm[+el.dataset.i];closeModal();commit(m)}
  else if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('zk_mute',MUTE?'1':'0')}catch(_){}draw()}
  else if(a==='close')closeModal();
- else if(a==='pickl')pickList();else if(a==='pick'){closeModal();load(+el.dataset.no)}else if(a==='nav')navList();else if(a==='jump'){closeModal();stopAuto();go(+el.dataset.at)}
+ else if(a==='pickl')pickList();else if(a==='pick'){closeModal();HASHOK=true;load(+el.dataset.no)}else if(a==='nav')navList();else if(a==='jump'){closeModal();stopAuto();go(+el.dataset.at)}
  else if(a==='info')modal(`<h2>將棋圖巧　第 ${D.no} 番${D.name?'「'+D.name+'」':''}</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">古典名作難免有瑕疵：${D.f?D.f.split('').map(c=>FLAGS[c]).join('；')+'；':''}本站一律以作者原手順為準。</p><p class="note">題目為江戶時代作品（公有領域）；盤面與手順取自 GitHub 專案 KIEIProject（MIT 授權）的詰將棋資料庫，並已用本站引擎逐手驗證。第 100 番的詰將棋博物館（k-oohasi 先生）棋譜亦曾作為對照；關鍵步驟講解為鳩特數理自行撰寫。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
-addEventListener('resize',layout);layout();{let n=+location.hash.slice(1);if(!n)try{n=+localStorage.getItem('zk_last')}catch(e){}load(n||100)}
+addEventListener('resize',layout);layout();{const n0=+location.hash.slice(1);let n=n0;if(!n)try{n=+localStorage.getItem('zk_last')}catch(e){}load(n||100);if(!location.hash.slice(1)&&!n0)pickList(true)}
 addEventListener('hashchange',()=>{const n=+location.hash.slice(1);if(n&&n!==D.no)load(n)});
 </script>
 </body>
