@@ -25,6 +25,10 @@ class XiangqiClassicsTest(unittest.TestCase):
         for text in ("選一本古譜", "data-book", "data-game", "自動播放", "自己背譜", "重點導覽", 'type="range"'):
             self.assertIn(text, PAGE)
 
+    def test_sandbox_mode_exists(self):
+        for text in ('data-a="sbx"', "沙盤推演", 'data-a="sbundo"', 'data-a="sbreset"', 'data-a="sborig"', 'data-a="sbexit"', "function sbTap"):
+            self.assertIn(text, PAGE)
+
     def test_all_games_are_legal_from_the_start_position(self):
         out = run_node(
             "const out=[];for(const g of window.XQ_CLASSICS.meihua.games){let p=X.start(),bad=0;"

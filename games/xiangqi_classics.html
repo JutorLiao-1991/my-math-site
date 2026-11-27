@@ -81,7 +81,7 @@ const SOON=[
   {title:'適情雅趣',sub:'明・徐芝｜流傳最廣的象棋古譜，開局與殘局並收（準備中）'},
   {title:'百局象棋譜',sub:'清・周廷梅等｜實戰感很強的古代對局集（準備中）'}
 ];
-let view='books',BK=null,GI=0,G=null,POS=[],step=0,auto=null,mode='watch',mySide=-1,SEL=null,busy=false,hintSq=null;
+let view='books',BK=null,GI=0,G=null,POS=[],SB=[],SBM=[],step=0,auto=null,mode='watch',mySide=-1,SEL=null,busy=false,hintSq=null;
 const mainEl=$('main'),titleEl=$('title');
 
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1600)}
@@ -97,12 +97,14 @@ function showGames(id){view='games';BK=id;const b=BOOKS[id];stopAuto();titleEl.t
   mainEl.innerHTML=`<div class="list"><h2>《${b.title}》</h2><p class="sub">${b.author}・${b.era}。點一局進去：一步一步看、自動播放，或自己背譜。</p>`+
   b.games.map((g,i)=>`<button class="card" data-game="${i}"><b>第${'〇一二三四五六七八九'[g.no]}局　${g.name}</b><small>${g.open}｜${g.len} 手｜${g.result}</small></button>`).join('')+`</div>`}
 
+const cur=()=>mode==='sandbox'?SB[SB.length-1]:POS[step];
 function build(){POS=[];let p=X.start();POS.push(p);for(const m of G.m){p=X.clone(p);X.make(p,m);POS.push(p)}}
-function openGame(i){view='play';GI=i;G=BOOKS[BK].games[i];build();step=0;mode='watch';SEL=null;hintSq=null;busy=false;mySide=G.result==='黑勝'?-1:1;titleEl.textContent=`第${'〇一二三四五六七八九'[G.no]}局`;
+function openGame(i){view='play';GI=i;G=BOOKS[BK].games[i];build();step=0;mode='watch';SB=[];SBM=[];SEL=null;hintSq=null;busy=false;mySide=G.result==='黑勝'?-1:1;titleEl.textContent=`第${'〇一二三四五六七八九'[G.no]}局`;
   mainEl.innerHTML=`<div id="view"><div id="stage"><div class="row pill"><span id="who"></span></div><div id="svgw"></div></div>
   <div id="panel"><div class="ctl"><button data-a="first" aria-label="回到開局">⏮</button><button data-a="prev" aria-label="上一步">◀</button><button data-a="auto" id="autoB" class="pri">自動播放</button><button data-a="next" aria-label="下一步">▶</button><button data-a="last" aria-label="最後一步">⏭</button></div>
   <div class="ctl"><input type="range" id="sl" min="0" max="${G.len}" value="0" aria-label="進度"><span class="pill" id="cnt"></span></div>
-  <div class="row"><button data-a="mode" id="modeB">自己背譜</button><button data-a="hint" id="hintB" hidden>提示</button><button data-a="restart" hidden id="restartB">重來</button><button data-a="jump">重點導覽</button><label class="pill" style="display:flex;align-items:center;gap:4px">速度<select id="spd" style="background:#3a2e27;color:#f3ece0;border:0;border-radius:6px;padding:4px"><option value="1400">慢</option><option value="900" selected>中</option><option value="450">快</option></select></label></div>
+  <div class="row"><button data-a="mode" id="modeB">自己背譜</button><button data-a="hint" id="hintB" hidden>提示</button><button data-a="restart" hidden id="restartB">重來</button><button data-a="jump">重點導覽</button><button data-a="sbx" id="sbxB">沙盤推演</button><label class="pill" style="display:flex;align-items:center;gap:4px">速度<select id="spd" style="background:#3a2e27;color:#f3ece0;border:0;border-radius:6px;padding:4px"><option value="1400">慢</option><option value="900" selected>中</option><option value="450">快</option></select></label></div>
+  <div class="row" id="sbc" hidden><button data-a="sbundo">悔棋</button><button data-a="sbreset">回到推演起點</button><button data-a="sborig">棋譜原盤</button><button data-a="sbexit" class="pri">回到觀看</button></div>
   <div id="note"></div><div id="rec"></div></div></div>`;
   layout();draw()}
 
@@ -134,17 +136,18 @@ let AN=null;
 function noteList(){if(!AN||AN.g!==G)AN={g:G,l:(NOTES[BK]&&NOTES[BK][G.no])||autoNotes()};return AN.l}
 function noteNow(){const l=noteList();let n=l[0];for(const x of l)if(x.at<=step)n=x;return n}
 
-function targets(){const t=new Set();if(SEL===null||mode!=='practice')return t;for(const m of X.legal(POS[step]))if(X.from(m)===SEL)t.add(X.to(m));return t}
-function draw(){const P=POS[step],m=step?G.m[step-1]:null,last=m?[X.from(m),X.to(m)]:null,chk=X.inCheck(P)?X.king(P,P.side):-1;
+function targets(){const t=new Set();if(SEL===null||(mode!=='practice'&&mode!=='sandbox'))return t;for(const m of X.legal(cur()))if(X.from(m)===SEL)t.add(X.to(m));return t}
+function draw(){const sbx=mode==='sandbox',P=cur(),m=sbx?(SBM.length?SBM[SBM.length-1]:null):(step?G.m[step-1]:null),last=m?[X.from(m),X.to(m)]:null,chk=X.inCheck(P)?X.king(P,P.side):-1;
   $('svgw').innerHTML=svgBoard(P,last,SEL,[...targets()],chk,hintSq);
   const who=step>=G.len?`全局結束・原譜判${G.result}`:`輪到${P.side===1?'紅':'黑'}方`;
-  $('who').textContent=mode==='practice'?`背譜中：你下${mySide===1?'紅':'黑'}方。${step>=G.len?'完成！':(P.side===mySide?'換你走':'對手走棋…')}`:who;
-  $('cnt').textContent=`${step} / ${G.len}`;$('sl').value=step;
-  const n=noteNow();$('note').innerHTML=mode==='practice'?`<b>背譜挑戰</b><br>${step===0&&mySide===1?'你是紅方，請走出第一步。':'依照原譜走出正確的一步；不確定時按「提示」。'}`:`<b>${n.t}</b><br>${n.x}`;
+  const over=sbx&&!X.legal(P).length;
+  $('who').textContent=sbx?`沙盤推演：第 ${SBM.length} 手，輪到${P.side===1?'紅':'黑'}方${chk>=0?(over?'（將死）':'（將軍）'):(over?'（無棋可走）':'')}`:mode==='practice'?`背譜中：你下${mySide===1?'紅':'黑'}方。${step>=G.len?'完成！':(P.side===mySide?'換你走':'對手走棋…')}`:who;
+  $('cnt').textContent=sbx?'沙盤':`${step} / ${G.len}`;$('sl').value=step;
+  const n=noteNow();$('note').innerHTML=sbx?`<b>沙盤推演</b><br>紅黑雙方都由你操作，可以試試其他走法、看看對方會怎麼應。「棋譜原盤」回到這局的開局，「回到推演起點」回到你按下沙盤的那一刻。`:mode==='practice'?`<b>背譜挑戰</b><br>${step===0&&mySide===1?'你是紅方，請走出第一步。':'依照原譜走出正確的一步；不確定時按「提示」。'}`:`<b>${n.t}</b><br>${n.x}`;
   let r='';for(let i=0;i<G.len;i++){if(i%2===0)r+=`<i>${i/2+1}.</i>`;r+=`<span data-s="${i+1}" class="${i+1===step?'cur':''}">${G.k[i]}</span>`}$('rec').innerHTML=r;
   const c=$('rec').querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});
-  $('modeB').textContent=mode==='practice'?'回到觀看':'自己背譜';$('hintB').hidden=mode!=='practice';$('restartB').hidden=mode!=='practice';$('autoB').disabled=mode==='practice';
-  document.querySelectorAll('[data-a=first],[data-a=prev],[data-a=next],[data-a=last]').forEach(b=>b.disabled=mode==='practice');$('sl').disabled=mode==='practice';
+  $('modeB').textContent=mode==='practice'?'回到觀看':'自己背譜';$('modeB').hidden=sbx;$('sbxB').hidden=sbx||mode==='practice';$('sbc').hidden=!sbx;$('hintB').hidden=mode!=='practice';$('restartB').hidden=mode!=='practice';$('autoB').disabled=mode==='practice'||sbx;
+  document.querySelectorAll('[data-a=first],[data-a=prev],[data-a=next],[data-a=last]').forEach(b=>b.disabled=mode==='practice'||sbx);$('sl').disabled=mode==='practice'||sbx;
   $('autoB').textContent=auto?'暫停':'自動播放'}
 function go(n){step=Math.max(0,Math.min(G.len,n));SEL=null;hintSq=null;draw()}
 function stopAuto(){if(auto){clearInterval(auto);auto=null}const b=$('autoB');if(b)b.textContent='自動播放'}
@@ -153,7 +156,10 @@ function startAuto(){stopAuto();if(step>=G.len)step=0;auto=setInterval(()=>{if(s
 function startPractice(){stopAuto();mode='practice';step=0;SEL=null;hintSq=null;draw();bot()}
 function bot(){if(mode!=='practice'||step>=G.len)return;if(POS[step].side!==mySide){busy=true;setTimeout(()=>{busy=false;if(mode!=='practice')return;go(step+1);bot();if(step>=G.len)finish()},600)}}
 function finish(){modal(`<h2>背完了！</h2><p>第 ${G.no} 局全部 ${G.len} 手你都走對了。</p><div class="btns"><button data-m="x">關閉</button><button class="pri" data-m="again">再背一次</button></div>`)}
-function tap(sq){if(mode!=='practice'||busy||step>=G.len)return;const P=POS[step];if(P.side!==mySide)return;
+function sbTap(sq){const P=cur(),v=P.b[sq];if(v&&v*P.side>0){SEL=sq;draw();return}
+  if(SEL===null)return;const mv=X.move(SEL,sq);if(!X.legal(P).includes(mv)){SEL=null;draw();return}
+  const q=X.clone(P);X.make(q,mv);SB.push(q);SBM.push(mv);SEL=null;draw();if(!X.legal(q).length)toast(X.inCheck(q)?'將死！':'無棋可走')}
+function tap(sq){if(mode==='sandbox')return sbTap(sq);if(mode!=='practice'||busy||step>=G.len)return;const P=POS[step];if(P.side!==mySide)return;
   const v=P.b[sq];if(v&&v*P.side>0){SEL=sq;hintSq=null;draw();return}
   if(SEL===null)return;const mv=X.move(SEL,sq);if(!X.legal(P).includes(mv)){SEL=null;draw();return}
   if(mv===G.m[step]){SEL=null;go(step+1);if(step>=G.len)return finish();bot()}
@@ -175,12 +181,17 @@ document.addEventListener('click',e=>{
   else if(a==='jump')navList();
   else if(a==='mode'){if(mode==='practice'){mode='watch';go(0)}else startPractice()}
   else if(a==='restart')startPractice();
+  else if(a==='sbx'){stopAuto();SB=[X.clone(POS[step])];SBM=[];mode='sandbox';SEL=null;hintSq=null;draw();toast('沙盤推演：紅黑雙方都由你操作')}
+  else if(a==='sbundo'){if(SBM.length){SB.pop();SBM.pop();SEL=null;draw()}}
+  else if(a==='sbreset'){SB.length=1;SBM.length=0;SEL=null;draw()}
+  else if(a==='sborig'){SB=[X.clone(POS[0])];SBM=[];SEL=null;draw()}
+  else if(a==='sbexit'){mode='watch';SEL=null;draw()}
   else if(a==='hint'){if(busy||step>=G.len||POS[step].side!==mySide)return;const m=G.m[step];SEL=null;hintSq=X.from(m);draw();toast('提示：這顆子要動，再想想走去哪裡')}
 });
 $('main').addEventListener('input',e=>{if(e.target.id==='sl'){stopAuto();go(+e.target.value)}});
 $('back').addEventListener('click',()=>{if(!$('modal').hidden){closeModal();return}
   if(view==='play'){stopAuto();showGames(BK)}else if(view==='games')showBooks();else location.href='xiangqi.html'});
-document.addEventListener('keydown',e=>{if(view!=='play'||mode==='practice')return;if(e.key==='ArrowRight'){stopAuto();go(step+1)}else if(e.key==='ArrowLeft'){stopAuto();go(step-1)}});
+document.addEventListener('keydown',e=>{if(view!=='play'||mode==='practice'||mode==='sandbox')return;if(e.key==='ArrowRight'){stopAuto();go(step+1)}else if(e.key==='ArrowLeft'){stopAuto();go(step-1)}});
 showBooks();
 })();
 </script>
