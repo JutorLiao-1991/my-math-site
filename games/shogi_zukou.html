@@ -70,7 +70,7 @@ main{display:flex;flex-direction:column;min-height:0}
 #cur{text-align:center;font-size:15px;min-height:22px}
 #cur b{color:var(--gold)}
 #cur .chk{color:#ff7565;font-weight:700;margin-left:6px}
-#sctl{display:none}body.solve #sctl{display:flex}body.solve #wctl{display:none}
+#sctl,#xctl{display:none}body.solve #sctl,body.sbx #xctl{display:flex}body.solve #wctl,body.sbx #wctl{display:none}body.sbx #bSolve,body.sbx #bSbx,body.solve #bSbx{display:none}.sbb{background:#2f6f8f;color:#fff;font-weight:700}
 .sel1{font:inherit;font-size:14px;min-height:36px;border-radius:8px;border:0;background:#3a2e27;color:var(--ink);padding:0 8px}
 .sq.hl{box-shadow:inset 0 0 0 3px #ffd23f;animation:blink .5s 3}
 @keyframes blink{50%{box-shadow:inset 0 0 0 3px #ffd23f00}}
@@ -106,7 +106,8 @@ body.shake #board{animation:shake .3s}
    <div class="ctl" id="wctl">
     <button data-act="first" aria-label="回到開頭">⏮</button><button data-act="m10" aria-label="倒退十手">−10</button><button data-act="prev" aria-label="上一手">◀</button><button class="pri" data-act="auto" id="bAuto">▶ 自動播放</button><button data-act="next" aria-label="下一手">▶</button><button data-act="p10" aria-label="前進十手">+10</button><button data-act="last" aria-label="跳到結尾">⏭</button>
    </div>
-   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><label class="chk1"><input type="checkbox" id="pz" checked>講解時暫停</label><button data-act="nav">重點導覽</button><button class="red" data-act="solve" id="bSolve">自己解題</button></div>
+   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><label class="chk1"><input type="checkbox" id="pz" checked>講解時暫停</label><button data-act="nav">重點導覽</button><button class="red" data-act="solve" id="bSolve">自己解題</button><button class="sbb" data-act="sandbox" id="bSbx">沙盤推演</button></div>
+   <div class="ctl" id="xctl"><button data-act="sbundo">悔棋</button><button data-act="sbreset">回到推演起點</button><button data-act="sborig">題目原盤</button><button data-act="exit">回到觀看</button></div>
    <div class="ctl" id="sctl"><button data-act="hint">提示</button><button data-act="undo">悔棋</button><button data-act="exit">回到觀看</button></div>
    <div class="note" id="note"></div>
    <div id="kifu"></div>
@@ -325,6 +326,13 @@ function note(i){const m=D.m[i],P=STATES[i],to=(m>>7)&127,dt=m>>15,f=m&127,s=P.s
  const pt=i>0?(D.m[i-1]>>7)&127:-1,sq=to===pt?'同':ZEN[8-to%9]+KJ[(to/9)|0];
  if(dt)return s+sq+NM[dt]+'打';
  return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
+let SB=[],SBM=[];
+const cur=()=>mode==='sandbox'?SB[SB.length-1]:STATES[step];
+function mvText(m,P,pm){const to=(m>>7)&127,dt=m>>15,f=m&127,s=P.side===1?'▲':'△',sq=pm>=0&&((pm>>7)&127)===to?'同':ZEN[8-to%9]+KJ[(to/9)|0];
+ if(dt)return s+sq+NM[dt]+'打';return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
+function enterSbx(){stopAuto();SB=[ENG.clone(STATES[step])];SBM=[];mode='sandbox';SEL=null;HLS=null;draw();toast('沙盤推演：雙方都由你操作')}
+function sbCommit(m){const P=cur(),q=ENG.clone(P);ENG.doMove(q,m);SB.push(q);SBM.push(m);SEL=null;sfx('slap');draw();
+ if(!ENG.legal(q).length){if(ENG.inCheck(q)){sfx('win');toast('詰み！')}else toast('沒有合法手')}}
 let step=0,mode='watch',SEL=null,auto=null,busy=false,best=0,MUTE=false,HLS=null,pausedAt=-1;
 try{MUTE=localStorage.getItem('zk_mute')==='1'}catch(e){}
 /* 音效 */
@@ -341,22 +349,22 @@ function pieceH(v,up){const o=v>0?1:-1,ty=v*o,ch=ty===8?(o===1?'玉':'王'):CH[t
 function layout(){const land=matchMedia('(orientation:landscape) and (min-width:700px)').matches,hdr=document.querySelector('header').offsetHeight;
  const aw=(land?innerWidth*.62:innerWidth)-40,ah=innerHeight-hdr-(land?56:250);
  const sq=Math.max(24,Math.min(aw/9,ah/11.1,66));const r=document.documentElement.style;r.setProperty('--sq',sq.toFixed(1)+'px');r.setProperty('--n',9)}
-function targets(){const t=new Set();if(SEL===null||mode!=='solve')return t;const P=STATES[step];for(const m of ENG.legal(P)){if(typeof SEL==='string'){if((m>>15)===+SEL.slice(1))t.add((m>>7)&127)}else if(!(m>>15)&&(m&127)===SEL)t.add((m>>7)&127)}return t}
-function draw(){const P=STATES[step],last=step?D.m[step-1]:null,chk=step>0&&ENG.inCheck(P),ks=chk?ENG.kingSq(P,P.side):-1,tg=targets();let h='';
+function targets(){const t=new Set();if(SEL===null||(mode!=='solve'&&mode!=='sandbox'))return t;const P=cur();for(const m of ENG.legal(P)){if(typeof SEL==='string'){if((m>>15)===+SEL.slice(1))t.add((m>>7)&127)}else if(!(m>>15)&&(m&127)===SEL)t.add((m>>7)&127)}return t}
+function draw(){const P=cur(),sbx=mode==='sandbox',last=sbx?(SBM.length?SBM[SBM.length-1]:null):(step?D.m[step-1]:null),chk=(sbx||step>0)&&ENG.inCheck(P),sI=P.side===1?0:1,ks=chk?ENG.kingSq(P,P.side):-1,tg=targets();let h='';
  for(let sq=0;sq<81;sq++){const v=P.b[sq];let c='sq';if(last&&(((last>>7)&127)===sq||((last>>15)===0&&(last&127)===sq)))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';if(sq===ks)c+=' tc';if(HLS&&HLS.includes(sq))c+=' hl';h+=`<div class="${c}" data-sq="${sq}">${v?pieceH(v):''}</div>`}
  for(const [x,y] of [[3,3],[3,6],[6,3],[6,6]])h+=`<i class="star" style="left:calc(var(--sq)*${x});top:calc(var(--sq)*${y})"></i>`;
  $('board').innerHTML=h;
  $('colL').innerHTML=Array.from({length:9},(_,x)=>`<span>${9-x}</span>`).join('');$('rowL').innerHTML=Array.from({length:9},(_,y)=>`<span>${KJ[y]}</span>`).join('');
- for(const hi of [0,1]){let s='';for(const ty of [7,6,5,4,3,2,1]){const n=P.h[hi][ty];if(!n)continue;const sel=hi===0&&SEL==='h'+ty;s+=`<div class="hp${sel?' sel':''}"${hi===0&&mode==='solve'?` data-ht="${ty}"`:''}>${pieceH(hi===0?ty:-ty,hi===0)}${n>1?`<b>${n}</b>`:''}</div>`}
+ for(const hi of [0,1]){let s='';for(const ty of [7,6,5,4,3,2,1]){const n=P.h[hi][ty];if(!n)continue;const sel=hi===sI&&SEL==='h'+ty;s+=`<div class="hp${sel?' sel':''}"${(hi===0&&mode==='solve')||(sbx&&hi===sI)?` data-ht="${ty}"`:''}>${pieceH(hi===0?ty:-ty,hi===0)}${n>1?`<b>${n}</b>`:''}</div>`}
   $(hi===0?'h0':'h1').innerHTML=s||'<span class="pill">（無）</span>'}
- $('cur').innerHTML=step===0?`<b>0</b> / ${LEN}　開始局面`:`<b>${step}</b> / ${LEN}　${note(step-1)}${chk&&P.side===-1?'<span class="chk">王手</span>':''}`;
- $('bar').value=step;$('bar').disabled=mode==='solve';
+ $('cur').innerHTML=sbx?`<b>沙盤推演</b>　第 ${SBM.length} 手　輪到${P.side===1?'▲先手':'△後手'}${chk?'<span class="chk">王手</span>':''}${!ENG.legal(P).length?'<span class="chk">'+(chk?'詰み':'無合法手')+'</span>':''}`:step===0?`<b>0</b> / ${LEN}　開始局面`:`<b>${step}</b> / ${LEN}　${note(step-1)}${chk&&P.side===-1?'<span class="chk">王手</span>':''}`;
+ $('bar').value=step;$('bar').disabled=mode!=='watch';
  const nn=mode==='watch'?NOTES.filter(n=>n.at<=step).pop():null;$('nt').hidden=!nn;
  if(nn)$('nt').innerHTML=`<b>${nn.t}</b><p>${nn.x}</p>${pausedAt===step&&!auto?'<span class="pz">已暫停・按「自動播放」繼續</span>':''}`;
  $('pz').checked=PAUSE;
- const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${note(from+k)}</span>`).join('');
- $('note').textContent=mode==='solve'?(step%2===0?'輪到你：每一步都要王手':'玉方應對中…'):(best?`解題最遠紀錄：第 ${best} 手`:'');
- document.body.classList.toggle('solve',mode==='solve');$('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放';
+ if(sbx){const from=Math.max(0,SBM.length-8);$('kifu').innerHTML=Array.from({length:SBM.length-from},(_,k)=>`<span>${from+k+1} ${mvText(SBM[from+k],SB[from+k],from+k?SBM[from+k-1]:-1)}</span>`).join('')}else{const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${note(from+k)}</span>`).join('')}
+ $('note').textContent=sbx?'自由推演：點棋子再點藍點；兩方輪流由你下':mode==='solve'?(step%2===0?'輪到你：每一步都要王手':'玉方應對中…'):(best?`解題最遠紀錄：第 ${best} 手`:'');
+ document.body.classList.toggle('solve',mode==='solve');document.body.classList.toggle('sbx',sbx);$('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放';
  if(mode==='watch')try{localStorage.setItem('zk'+D.no+'_step',step)}catch(e){}
 }
 function go(n,snd){pausedAt=-1;const old=step;step=Math.max(0,Math.min(LEN,n));SEL=null;HLS=null;if(snd&&step>old)sfx('slap');draw()}
@@ -366,22 +374,22 @@ function startAuto(){stopAuto();if(step>=LEN)step=0;const iv=+$('spd').value;aut
 /* 自己解題：攻方（先手）每走一步，只要和作者的原手順相同，玉方就照原譜回應。 */
 function enterSolve(){stopAuto();mode='solve';if(step%2===1)step--;SEL=null;HLS=null;draw();toast('自己解題：你是攻方')}
 function exitSolve(){mode='watch';SEL=null;HLS=null;draw()}
-function commit(m){if(busy)return;const exp=D.m[step];
+function commit(m){if(mode==='sandbox')return sbCommit(m);if(busy)return;const exp=D.m[step];
  if(m===exp){busy=true;SEL=null;step++;sfx('slap');draw();best=Math.max(best,step);try{localStorage.setItem('zk'+D.no+'_best',best)}catch(e){}
   if(step>=LEN){busy=false;return win()}
   setTimeout(()=>{step++;sfx('slap');draw();busy=false;if(step>=LEN)win()},520)}
  else{const q=ENG.clone(STATES[step]);ENG.doMove(q,m);toast(ENG.inCheck(q)?'不是作者的原手順，再想想':'每一步都要王手！');sfx('bad');SEL=null;document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),320);draw()}}
 function win(){sfx('win');modal(`<h2>詰み！</h2><p>第 ${D.no} 番${D.name?'「'+D.name+'」':''}全 ${LEN} 手，你完成了。</p>${D.no===100?'<p class="note">伊藤看壽 1755 年獻給幕府的《將棋圖巧》最終一題，長度在江戶時代的詰將棋裡堪稱空前。</p>':''}<div class="btns"><button data-act="exit">回到觀看</button>${D.no<100?'<button data-act="pick" data-no="'+(D.no+1)+'">下一題</button>':''}<button class="pri" data-act="again">再解一次</button></div>`)}
-function tryMove(from,to){const P=STATES[step],c=ENG.legal(P).filter(m=>((m>>7)&127)===to&&(typeof from==='string'?(m>>15)===+from.slice(1):!(m>>15)&&(m&127)===from));
+function tryMove(from,to){const P=cur(),c=ENG.legal(P).filter(m=>((m>>7)&127)===to&&(typeof from==='string'?(m>>15)===+from.slice(1):!(m>>15)&&(m&127)===from));
  if(!c.length){SEL=null;draw();return}
  if(c.length>1){const a=c.find(m=>m&16384),b=c.find(m=>!(m&16384));window._pm=[a,b];const ty=Math.abs(P.b[from]);
-  modal(`<h2>要升變嗎？</h2><div class="promo"><button data-act="pm" data-i="0">${pieceH(P.b[from]>0?({1:9,2:10,3:11,4:12,6:14,7:15})[ty]:0)}<span>升變</span></button><button data-act="pm" data-i="1">${pieceH(P.b[from])}<span>不升變</span></button></div>`);return}
+  modal(`<h2>要升變嗎？</h2><div class="promo"><button data-act="pm" data-i="0">${pieceH((P.b[from]>0?1:-1)*({1:9,2:10,3:11,4:12,6:14,7:15})[ty])}<span>升變</span></button><button data-act="pm" data-i="1">${pieceH(P.b[from])}<span>不升變</span></button></div>`);return}
  commit(c[0])}
 function hint(){if(mode!=='solve'||step%2||busy)return;const m=D.m[step];HLS=(m>>15)?[(m>>7)&127]:[m&127,(m>>7)&127];draw();setTimeout(()=>{HLS=null;draw()},1800)}
-$('board').addEventListener('click',e=>{if(mode!=='solve'||busy||step%2||step>=LEN)return;const el=e.target.closest('.sq');if(!el)return;const sq=+el.dataset.sq,P=STATES[step],v=P.b[sq];
+$('board').addEventListener('click',e=>{const sbx=mode==='sandbox';if(!sbx&&(mode!=='solve'||busy||step%2||step>=LEN))return;const el=e.target.closest('.sq');if(!el)return;const sq=+el.dataset.sq,P=cur(),v=P.b[sq];
  if(SEL!==null&&targets().has(sq)){const f=SEL;return tryMove(f,sq)}
- if(v>0){SEL=SEL===sq?null:sq}else SEL=null;draw()});
-for(const id of ['h0'])$(id).addEventListener('click',e=>{if(mode!=='solve'||busy||step%2)return;const el=e.target.closest('.hp[data-ht]');if(!el)return;const k='h'+el.dataset.ht;SEL=SEL===k?null:k;draw()});
+ if(sbx?v*P.side>0:v>0){SEL=SEL===sq?null:sq}else SEL=null;draw()});
+for(const id of ['h0','h1'])$(id).addEventListener('click',e=>{if(mode==='sandbox'){}else if(id==='h1'||mode!=='solve'||busy||step%2)return;const el=e.target.closest('.hp[data-ht]');if(!el)return;const k='h'+el.dataset.ht;SEL=SEL===k?null:k;draw()});
 $('bar').addEventListener('input',e=>{stopAuto();go(+e.target.value)});
 $('spd').addEventListener('change',()=>{if(auto)startAuto()});
 $('pz').addEventListener('change',e=>{PAUSE=e.target.checked;try{localStorage.setItem('zk_pause',PAUSE?'1':'0')}catch(_){}});
@@ -390,6 +398,7 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
  else if(a==='m10'){stopAuto();go(step-10)}else if(a==='p10'){stopAuto();go(step+10)}
  else if(a==='auto'){auto?(stopAuto(),draw()):startAuto()}
  else if(a==='solve'){closeModal();enterSolve()}else if(a==='exit'){closeModal();exitSolve()}else if(a==='again'){closeModal();step=0;mode='solve';SEL=null;draw()}
+ else if(a==='sandbox'){enterSbx()}else if(a==='sbundo'){if(SBM.length){SB.pop();SBM.pop();SEL=null;draw()}}else if(a==='sbreset'){SB.length=1;SBM.length=0;SEL=null;draw()}else if(a==='sborig'){SB=[mkPos(D)];SBM=[];SEL=null;draw()}
  else if(a==='hint')hint();else if(a==='undo'){if(busy)return;step=Math.max(0,step%2?step-1:step-2);SEL=null;draw()}
  else if(a==='pm'){const m=window._pm[+el.dataset.i];closeModal();commit(m)}
  else if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('zk_mute',MUTE?'1':'0')}catch(_){}draw()}
