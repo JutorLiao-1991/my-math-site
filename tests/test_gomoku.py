@@ -36,7 +36,7 @@ class GomokuTests(unittest.TestCase):
         for name in ["gomoku_tactics.js", "gomoku_puzzles.js"]:
             self.assertIn(name, page)
             self.assertTrue((ROOT / "games" / name).is_file())
-        for token in ["殺局挑戰", "限時挑戰", "gm_rank/", "badName", "puzzleStart", "challengeFinish"]:
+        for token in ["殺局挑戰", "限時挑戰", "gm_rank", "gm_battle", "battleRank", "rkPanel", "badName", "puzzleStart", "challengeFinish"]:
             self.assertIn(token, page)
 
     def test_tutorial_wired_into_page(self):
