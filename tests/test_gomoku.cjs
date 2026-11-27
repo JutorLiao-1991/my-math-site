@@ -117,34 +117,6 @@ test('double stones: take a two-stone win, or block two threats at once', () => 
   assert.equal(def.winCells(2).length, 0, 'both threats blocked');
 });
 
-test('safe double stones never decide the game on their own (作弊鳩特雙六)', () => {
-  let checked = 0;
-  for (let trial = 0; trial < 60; trial++) {
-    const N = [1, 1, 2, 3][trial % 4], size = N >= 3 ? 19 : trial % 2 ? 9 : 15, pos = new E.Pos(size, N, {});
-    let color = 1, plies = 4 + (trial % 14);
-    for (let i = 0; i < plies && !pos.full(); i++) {
-      const r = E.think(pos, color, 0, { timeMs: 20 }); const m = r.moves[0]; if (m === undefined || pos.b[m]) break;
-      pos.place(m, color); if (pos.won(color)) break; color = 3 - color;
-    }
-    if (pos.won(1) || pos.won(2)) continue;
-    const immediate = pos.winCells(color).length > 0;
-    const r = E.think(pos, color, 1, { double: true, safe: true, timeMs: 60 });
-    for (const m of r.moves) { assert.equal(pos.b[m], 0); pos.place(m, color); }
-    if (!immediate) {
-      assert.ok(!pos.won(color), '兩子不能直接連成五子／達標');
-      assert.ok(pos.winCells(color).length < 2, '兩子不能做出活四或雙四');
-    }
-    checked++;
-  }
-  assert.ok(checked > 30);
-});
-
-test('safe double stones still place two stones when a safe pair exists', () => {
-  const pos = mk(1, false, [[5, 7], [6, 7]], [[3, 3], [12, 12]]);
-  const r = E.think(pos, 1, 1, { double: true, safe: true, timeMs: 120 });
-  assert.equal(r.moves.length, 2);
-});
-
 test('all levels play legal moves for every target and the renju option', () => {
   for (const N of [1, 2, 3, 4, 5]) for (const renju of [false, true]) for (let level = 0; level < 4; level++) {
     const size = N >= 4 ? 19 : level % 2 ? 9 : 15;

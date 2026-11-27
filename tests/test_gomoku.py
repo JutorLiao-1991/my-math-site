@@ -13,7 +13,7 @@ class GomokuTests(unittest.TestCase):
             capture_output=True, text=True, timeout=180,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("16 Gomoku checks passed", result.stdout)
+        self.assertIn("14 Gomoku checks passed", result.stdout)
 
     def test_tutorial_lessons_are_solvable(self):
         result = subprocess.run(
@@ -41,9 +41,11 @@ class GomokuTests(unittest.TestCase):
 
     def test_cheat_level_uses_two_dice(self):
         page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
-        for token in ["id=\"${i}\"", "ensureRoll", "pickFlip", "stonesOf", "rebuildPos", "雙六", "蛇眼", "safe: !!safe"]:
+        for token in ["id=\"${i}\"", "pickFlip", "stonesOf", "rebuildPos", "雙六", "蛇眼"]:
             self.assertIn(token, page)
         self.assertIn("棋力同青年", page)
+        self.assertNotIn("ensureRoll", page)
+        self.assertNotIn("decisive", page)
 
     def test_tutorial_wired_into_page(self):
         page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")

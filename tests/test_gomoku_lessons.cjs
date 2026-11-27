@@ -59,7 +59,7 @@ test('every task has the answers the text promises', () => {
   const expect = {
     '連成五子': [['win', 2]], '橫、直、斜都算': [['win', 2], ['win', 2], ['win', 2]],
     '擋住對手的四子': [['block', 1], ['block', 1]], '做出活四': [['open4', 2], ['win', 1]],
-    '雙重威脅': [['open4', 2], ['win', 1]], '連兩條才算贏': [['win', 2]], '作弊鳩特的骰子': [['block', 1]]
+    '雙重威脅': [['open4', 2], ['win', 1]], '連兩條才算贏': [['win', 2]]
   };
   for (const L of LESSONS) {
     const want = (expect[L.t] || []).slice();
@@ -138,16 +138,16 @@ test('two-line lesson: five is one line and not yet a win, six is two lines and 
   });
 });
 
-test('cheat-dice lesson: double six makes a four (not a five) and the player can block it', () => {
+test('cheat-dice lesson: blocking the only window really prevents a two-stone five', () => {
   const L = LESSONS.find(l => l.t === '作弊鳩特的骰子'), S = 9;
-  assert.equal(L.steps.length, 4);
-  const pos = new E.Pos(S, 1, {}); L.steps[0].b.forEach(([x, y, c]) => pos.place(y * S + x, c));
-  assert.equal(pos.winCells(2).length, 0);
-  for (const [x, y, c] of L.steps[0].demo.stones) pos.place(y * S + x, c);
-  assert.ok(!pos.won(2), '雙六示範不能直接連成五子');
-  assert.equal(pos.winCells(2).length, 1, '只剩一個要擋的位置（不是活四）');
-  const ans = pos.winCells(2)[0]; pos.place(ans, 1);
-  assert.equal(pos.winCells(2).length, 0, '擋住後白棋沒有下一步勝著');
+  const s = L.steps[1], pos = new E.Pos(S, 1, {}); s.b.forEach(([x, y, c]) => pos.place(y * S + x, c));
+  const canTwo = () => { const e = []; for (let p = 0; p < 81; p++) if (!pos.b[p]) e.push(p); for (const a of e) { pos.place(a, 2); const hit = pos.won(2) || pos.winCells(2).length > 0; pos.unplace(); if (hit) return true; } return false; };
+  assert.ok(canTwo(), '沒擋時白棋用兩子可以連五');
+  for (const [x, y] of s.task.goals) { pos.place(y * S + x, 1); assert.ok(!canTwo(), '擋住後兩子也連不成五'); pos.unplace(); }
+  for (let p = 0; p < 81; p++) {
+    if (pos.b[p] || s.task.goals.some(([x, y]) => y * S + x === p)) continue; pos.place(p, 1);
+    assert.ok(canTwo(), '擋在別處時仍有風險：' + p); pos.unplace();
+  }
 });
 
 test('cheat-dice lesson: snake-eyes flips a black stone and breaks the three', () => {
