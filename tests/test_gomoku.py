@@ -45,6 +45,8 @@ class GomokuTests(unittest.TestCase):
             self.assertIn(token, page)
         self.assertIn("棋力同青年", page)
         self.assertNotIn("ensureRoll", page)
+        for token in ["我完蛋了", "doomAsk", "snakeFx", "flipStone", "flipFx"]:
+            self.assertIn(token, page)
         self.assertNotIn("decisive", page)
 
     def test_tutorial_wired_into_page(self):
