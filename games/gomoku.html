@@ -227,7 +227,7 @@ const faceName = c => (c === 1 ? '黑' : '白');
 let G = null;
 function newGame(o, started) {
   G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me: o.me, ai: 3 - o.me, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
-        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, hints: 0, anims: [], status: '', statusCls: '' };
+        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
   $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards');
   woodCache = null; layout();
@@ -237,7 +237,7 @@ const cheat = () => LEVELS[G.level].cheat;
 const turnColor = () => (G.turns.length ? 3 - G.turns[G.turns.length - 1].c : 1);
 const myTurn = () => (G.puz ? !!G.puz.wait && !G.puz.busy : G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
 
-function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d })), sixes: G.sixes, hints: G.hints }; }
+function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d })), sixes: G.sixes, hints: G.hints, undos: G.undos }; }
 function persist() { if (G.lesson || G.puz) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
 function loadSaved() {
   const s = lsGet(GKEY, null);
@@ -246,7 +246,7 @@ function loadSaved() {
 }
 function restore(s) {
   newGame({ S: s.S, N: s.N, renju: s.renju, level: s.level, me: s.me }, true);
-  G.sixes = s.sixes || 0; G.hints = s.hints || 0;
+  G.sixes = s.sixes || 0; G.hints = s.hints || 0; G.undos = s.undos || 0;
   for (const t of s.turns) {
     for (const p of t.ps) { G.pos.place(p, t.c); if (G.pos.won(t.c)) { G.over = true; G.winner = t.c; } }
     G.turns.push({ c: t.c, ps: t.ps, d: t.d });
@@ -511,7 +511,7 @@ function menu(keep) {
   const ss = SIZES.map(s => `<button class="chip ${d.S === s ? 'on' : ''}" data-s="${s}">${s}×${s}</button>`).join('');
   const me = [1, 2].map(c => `<button class="chip ${d.me === c ? 'on' : ''}" data-me="${c}">執${faceName(c)}${c === 1 ? '（先手）' : '（後手）'}</button>`).join('');
   modal(`<div class="menuTop"><img src="thumbs/gomoku_logo.svg" alt=""><h2>鳩特五子棋</h2><small>五子連珠・擲骰作弊</small></div>
-  <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button><button class="btn" data-act="puzzles">殺局挑戰（${pTotal()}／300）</button></div>
+  <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button><button class="btn" data-act="puzzles">殺局挑戰（${pTotal()}／300）</button><button class="btn" data-act="brank">對戰榮譽榜</button></div>
   ${saved ? `<div class="mbtns" style="margin:6px 0 2px"><button class="btn ver" data-act="resume">繼續上一局（連${NN[saved.N - 1]}條・${LEVELS[saved.level].n}・第 ${saved.turns.length} 手）</button></div>` : ''}
   <h4>對手</h4><div class="lvs">${lv}</div>
   <h4>獲勝條件</h4><div class="chips five">${nn}</div>
@@ -552,13 +552,20 @@ function finish() {
     let line = drawn ? '棋盤下滿了，不分勝負。' : win ? (cheat() ? '你識破了作弊鳩特！' : `你先連成${NN[G.N - 1]}條，贏了！`) : (cheat() && G.sixes ? `作弊鳩特共擲出 ${G.sixes} 次六點，下次小心它的三子！` : '鳩特先達成目標，再接再厲。');
     modal(`<div class="finish ${cls}"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">${title}</div><p>${line}</p>
       <div class="fstat"><div><b>${G.turns.length}</b><span>總手數</span></div><div><b>${G.pos.cnt[G.me - 1]}/${G.N}</b><span>你的條數</span></div><div><b>${G.pos.cnt[G.ai - 1]}/${G.N}</b><span>鳩特的條數</span></div></div>
+      ${win ? '<div id="rkBox"><p class="note">讀取榮譽榜中…</p></div>' : ''}
       <div class="mbtns"><button class="btn pri" data-act="again">再戰一局</button><button class="btn" data-act="menu">換設定</button><button class="btn" data-act="close">看棋盤</button></div></div>`);
+    if (win) {
+      const mv = G.turns.filter(t => t.c === G.me).length;
+      if (G.undos || G.hints) { const el = $('rkBox'); if (el) el.innerHTML = '<p class="note" style="text-align:center">使用過悔棋或提示的對局不計入榮譽榜。</p>'; }
+      else { lastRes = { k: `${G.level}_${G.N}`, s: mv, root: 'gm_battle', unit: 'm', title: `${LEVELS[G.level].n}・連${NN[G.N - 1]}條榮譽榜（用幾手贏）` }; rkPanel(lastRes); }
+    }
   }, 1200);
 }
 function undo() {
   if (!G || G.busy || G.over || !G.started) return;
   let i = G.turns.length - 1; while (i >= 0 && G.turns[i].c !== G.me) i--;
   if (i < 0) { toast('還沒有可以悔的棋'); return; }
+  G.undos++;
   while (G.turns.length > i) { const t = G.turns.pop(); for (let k = 0; k < t.ps.length; k++) G.pos.unplace(); }
   G.last = G.turns.length ? G.turns[G.turns.length - 1].ps.slice() : []; G.hint = -1; G.ghost = -1; G.token = Math.random();
   AU.sfx('undo'); refreshThreats(); persist(); render(); draw();
@@ -574,8 +581,10 @@ async function hint() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me],[data-pk]'); if (!t) return;
+  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me],[data-pk],[data-rl],[data-rn]'); if (!t) return;
   AU.unlock();
+  if (t.dataset.rl !== undefined) { battleRank(+t.dataset.rl, bn); return; }
+  if (t.dataset.rn !== undefined) { battleRank(bl, +t.dataset.rn); return; }
   if (t.dataset.pk !== undefined) { if (t.dataset.act === 'pzrankk') rankView(+t.dataset.pk); else puzzleHome(+t.dataset.pk); return; }
   if (t.dataset.lv !== undefined) { draft.level = +t.dataset.lv; menu(true); return; }
   if (t.dataset.n !== undefined) { draft.N = +t.dataset.n; if (draft.N > 1) draft.renju = false; if (draft.N >= 4 && draft.S < 19) draft.S = 19; menu(true); return; }
@@ -594,6 +603,7 @@ document.addEventListener('click', e => {
     case 'lsretry': G && G.puz ? puzzleRetry() : lessonRetry(); break;
     case 'lshint': G && G.puz ? puzzleHint() : lessonHint(); break;
     case 'puzzles': puzzleHome(); break;
+    case 'brank': battleRank(); break;
     case 'puz': puzzleStart(+t.dataset.k, +t.dataset.i, false); break;
     case 'pzchal': challengeStart(+t.dataset.k || lastK); break;
     case 'pzrank': rankView(+t.dataset.k || lastK); break;
@@ -846,12 +856,24 @@ function renderPuzzle() {
 }
 /* ----- 榮譽榜（Firebase，所有人共用） ----- */
 const rkReady = (ms = 6000) => new Promise((res, rej) => { if (window.GMRank) return res(window.GMRank); const t = setTimeout(() => rej(new Error('timeout')), ms); addEventListener('gmrank-ready', () => { clearTimeout(t); res(window.GMRank); }, { once: true }); });
-const rkTop = k => rkReady().then(r => r.top(k));
-const rkSubmit = (k, o) => rkReady().then(r => r.submit(k, o));
+const rkTop = (k, root) => rkReady().then(r => r.top(k, root));
+const rkSubmit = (k, o, root) => rkReady().then(r => r.submit(k, o, root));
 const rkErr = e => /denied|PERMISSION/i.test(String(e && (e.code || e.message || e))) ? '榮譽榜尚未開通（需要在 Firebase 加入權限規則）。' : '目前連不上榮譽榜，請確認網路後再試。';
-function rkRows(list, hi) {
+function rkRows(list, hi, unit) {
   if (!list.length) return '<p class="note" style="text-align:center">這個項目還沒有人上榜，搶第一吧！</p>';
-  return list.map((x, i) => `<div class="rkRow medal m${i < 3 ? i + 1 : i < 5 ? 4 : 5}${x.id === hi ? ' me' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtT(x.s)}</span></div>`).join('');
+  return list.map((x, i) => `<div class="rkRow medal m${i < 3 ? i + 1 : i < 5 ? 4 : 5}${x.id === hi ? ' me' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${unit === 'm' ? x.s + ' 手' : fmtT(x.s)}</span></div>`).join('');
+}
+let bl = 1, bn = 1;
+function battleRank(l, n) {
+  bl = l === undefined ? cfg.level : l; bn = n === undefined ? cfg.N : n;
+  const lv = LEVELS.map((x, i) => `<button class="chip ${i === bl ? 'on' : ''}" data-rl="${i}">${x.n.replace('鳩特', '')}</button>`).join('');
+  const nn = [1, 2, 3, 4, 5].map(i => `<button class="chip ${i === bn ? 'on' : ''}" data-rn="${i}">連${NN[i - 1]}條</button>`).join('');
+  modal(`<h2>對戰榮譽榜</h2><p class="note">依「贏的時候你下了幾手」排名，越少越前面，取前十名。使用過悔棋或提示的對局不計入；棋盤大小與顏色不限。</p>
+    <h4>對手</h4><div class="chips">${lv}</div><h4>獲勝條件</h4><div class="chips five">${nn}</div>
+    <div id="rkView" style="margin-top:8px"><p class="note" style="text-align:center">讀取中…</p></div>
+    <div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+  const key = `${bl}_${bn}`;
+  rkTop(key, 'gm_battle').then(list => { if (`${bl}_${bn}` === key && $('rkView')) $('rkView').innerHTML = rkRows(list, '', 'm'); }).catch(e => { if ($('rkView')) $('rkView').innerHTML = `<p class="note" style="text-align:center">${rkErr(e)}</p>`; });
 }
 function rankView(k) {
   k = PKS.includes(k) ? k : lastK; lastK = k;
@@ -870,17 +892,20 @@ function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
  return BADW.some(w=>t.includes(w)||u.includes(w))}
 function challengeFinish() {
   const k = CH.k, total = Math.round(chElapsed()), raw = Math.round(performance.now() - CH.t0), wrong = CH.wrong;
-  lastRes = { k, s: total }; CH = null; AU.sfx('win');
+  lastRes = { k, s: total, root: 'gm_rank', unit: 't', title: `${k} 手殺榮譽榜` }; CH = null; AU.sfx('win');
   modal(`<div class="finish win"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">挑戰完成</div>
     <p>${k} 手殺・10 題</p>
     <div class="fstat"><div><b>${fmtT(raw)}</b><span>解題用時</span></div><div><b>${wrong}</b><span>失誤（每次＋5 秒）</span></div><div><b>${fmtT(total)}</b><span>總成績</span></div></div>
     <div id="rkBox"><p class="note">讀取榮譽榜中…</p></div>
     <div class="mbtns"><button class="btn pri" data-act="pzchal" data-k="${k}">再挑戰一次</button><button class="btn" data-act="puzzles">題目列表</button></div></div>`);
-  const res = lastRes;
-  rkTop(k).then(list => {
+  rkPanel(lastRes);
+}
+/* 結算畫面的榜單：前十名內就出現代號輸入框 */
+function rkPanel(res) {
+  rkTop(res.k, res.root).then(list => {
     const el = $('rkBox'); if (!el || lastRes !== res) return;
     const ok = list.length < 10 || res.s < list[list.length - 1].s;
-    el.innerHTML = `<h4 style="text-align:center">${k} 手殺榮譽榜</h4>${ok ? `<p style="text-align:center;margin:4px 0">你擠進前十名了！留下代號：</p><div class="rkF"><input id="rkName" maxlength="12" placeholder="代號（最多 12 字）" value="${esc(lsGet(NKEY, ''))}"><button class="btn pri" data-act="rksubmit">登上榜單</button></div>` : ''}<div id="rkList">${rkRows(list)}</div>`;
+    el.innerHTML = `<h4 style="text-align:center">${esc(res.title)}</h4>${ok ? `<p style="text-align:center;margin:4px 0">你擠進前十名了！留下代號：</p><div class="rkF"><input id="rkName" maxlength="12" placeholder="代號（最多 12 字）" value="${esc(lsGet(NKEY, ''))}"><button class="btn pri" data-act="rksubmit">登上榜單</button></div>` : ''}<div id="rkList">${rkRows(list, '', res.unit)}</div>`;
   }).catch(e => { const el = $('rkBox'); if (el) el.innerHTML = `<p class="note" style="text-align:center">${rkErr(e)}</p>`; });
 }
 function rkDoSubmit() {
@@ -888,7 +913,7 @@ function rkDoSubmit() {
   const n = inp.value.trim().slice(0, 12); if (!n) { inp.focus(); return toast('請先輸入代號'); }
   if (badName(n)) { inp.focus(); return toast('代號含有不適當的字詞，請換一個'); }
   lsSet(NKEY, n); const res = lastRes, b = document.querySelector('[data-act=rksubmit]'); if (b) b.disabled = true;
-  rkSubmit(res.k, { n, s: res.s }).then(id => rkTop(res.k).then(list => { const box = $('rkBox'); if (!box) return; box.innerHTML = `<h4 style="text-align:center">${res.k} 手殺榮譽榜</h4><p class="note" style="text-align:center">已登上榜單！</p>${rkRows(list, id)}`; AU.sfx('win'); lastRes = null; }))
+  rkSubmit(res.k, { n, s: res.s }, res.root).then(id => rkTop(res.k, res.root).then(list => { const box = $('rkBox'); if (!box) return; box.innerHTML = `<h4 style="text-align:center">${esc(res.title)}</h4><p class="note" style="text-align:center">已登上榜單！</p>${rkRows(list, id, res.unit)}`; AU.sfx('win'); lastRes = null; }))
     .catch(e => { if (b) b.disabled = false; toast(rkErr(e)); });
 }
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'rkName') rkDoSubmit(); });
@@ -908,8 +933,8 @@ const db = getDatabase(app);
 let users = 0, offT = 0;
 const once = async f => { users++; clearTimeout(offT); goOnline(db); try { return await f(); } finally { users--; clearTimeout(offT); if (!users) offT = setTimeout(() => { if (!users) goOffline(db); }, 1500); } };
 window.GMRank = {
-  async top(k) { return once(async () => { const snap = await get(query(ref(db, "gm_rank/" + k), orderByChild("s"), limitToFirst(10))); const out = []; snap.forEach(c => { const v = c.val(); if (v && typeof v.s === "number") out.push({ id: c.key, n: String(v.n || "").slice(0, 12), s: v.s, t: v.t || 0 }); }); return out.sort((a, b) => a.s - b.s || a.t - b.t); }); },
-  async submit(k, rec) { return once(async () => { const r = await push(ref(db, "gm_rank/" + k), { n: rec.n, s: rec.s, t: serverTimestamp() }); return r.key; }); }
+  async top(k, root) { return once(async () => { const snap = await get(query(ref(db, (root || "gm_rank") + "/" + k), orderByChild("s"), limitToFirst(10))); const out = []; snap.forEach(c => { const v = c.val(); if (v && typeof v.s === "number") out.push({ id: c.key, n: String(v.n || "").slice(0, 12), s: v.s, t: v.t || 0 }); }); return out.sort((a, b) => a.s - b.s || a.t - b.t); }); },
+  async submit(k, rec, root) { return once(async () => { const r = await push(ref(db, (root || "gm_rank") + "/" + k), { n: rec.n, s: rec.s, t: serverTimestamp() }); return r.key; }); }
 };
 dispatchEvent(new Event("gmrank-ready"));
 </script>
