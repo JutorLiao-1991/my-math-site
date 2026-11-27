@@ -26,7 +26,7 @@ class XiangqiClassicsTest(unittest.TestCase):
             self.assertIn(text, PAGE)
 
     def test_sandbox_mode_exists(self):
-        for text in ('data-a="sbx"', "沙盤推演", 'data-a="sbundo"', 'data-a="sbreset"', 'data-a="sborig"', 'data-a="sbexit"', "function sbTap"):
+        for text in ('data-a="sbx"', "沙盤推演", 'data-a="sbundo"', 'data-a="sbreset"', 'data-a="sborig"', "function sbCommit", 'id="xctl"', "自由推演：點棋子再點藍點；兩方輪流由你下", "body.sbx #wctl", 'data-a="m10"', 'id="bSnd"'):
             self.assertIn(text, PAGE)
 
     def test_all_games_are_legal_from_the_start_position(self):

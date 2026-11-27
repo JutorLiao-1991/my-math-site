@@ -14,9 +14,11 @@ body{font:15px/1.5 -apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHe
 header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid var(--line)}
 header b{font-size:17px;letter-spacing:.05em}
 header .sp{flex:1}
-button{font:inherit;font-size:14px;border:0;border-radius:8px;min-height:38px;padding:6px 12px;background:#3a2e27;color:var(--ink);cursor:pointer}
+button{font:inherit;font-size:14px;border:0;border-radius:8px;min-height:36px;padding:6px 11px;background:#3a2e27;color:var(--ink);cursor:pointer}
 button:focus-visible{outline:2px solid var(--gold)}
 button.pri{background:var(--gold);color:#241a10;font-weight:700}
+button.red{background:var(--red);color:#fff;font-weight:700}
+.sbb{background:#2f6f8f;color:#fff;font-weight:700}
 button:disabled{opacity:.4;cursor:default}
 main{min-height:0;overflow:auto}
 .list{max-width:640px;margin:0 auto;padding:14px 12px 28px;display:grid;gap:10px}
@@ -32,24 +34,29 @@ main{min-height:0;overflow:auto}
 #stage{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px 8px;background:radial-gradient(ellipse at 50% 45%,#3a2b22,#2a201b 70%)}
 #svgw{width:100%;display:flex;justify-content:center}
 #bsvg{display:block;max-width:100%;height:auto;touch-action:manipulation}
-#panel{min-height:0;display:flex;flex-direction:column;gap:6px;padding:6px 10px 10px;border-top:1px solid var(--line);overflow:auto}
-.ctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.ctl input[type=range]{flex:1;min-width:90px;accent-color:var(--gold)}
-.row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#panel{min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 10px 12px;border-top:1px solid var(--line);overflow:auto}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center}
+.ctl button{min-width:44px}
 .pill{font-size:13px;color:var(--mut)}
-#note{background:#2b221c;border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-height:52px}
-#note b{color:var(--gold)}
-#rec{font-size:13px;color:var(--mut);line-height:1.7;max-height:96px;overflow:auto;background:#241b16;border-radius:8px;padding:6px 8px}
-#rec span{display:inline-block;padding:0 4px;border-radius:4px;cursor:pointer;margin-right:2px}
-#rec span.cur{background:var(--gold);color:#241a10;font-weight:700}
-#rec i{font-style:normal;color:#8d7d6c;margin-right:2px}
-#toast{position:fixed;left:50%;top:70px;transform:translateX(-50%);background:#000c;color:#fff;border-radius:10px;padding:8px 14px;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+#bar{width:100%;accent-color:var(--gold);height:28px}
+.sel1{font:inherit;font-size:14px;min-height:36px;border-radius:8px;border:0;background:#3a2e27;color:var(--ink);padding:0 8px}
+#cur{text-align:center;font-size:15px;min-height:22px}
+#cur b{color:var(--gold)}
+#cur .chk{color:#ff7565;font-weight:700;margin-left:6px}
+#nt{background:#00000033;border:1px solid var(--line);border-radius:12px;padding:8px 12px;display:flex;flex-direction:column;gap:4px}
+#nt b{color:var(--gold);font-size:15px}#nt p{margin:0;font-size:14px;line-height:1.6}
+#note{text-align:center;font-size:13px;color:var(--mut);min-height:18px}
+#kifu{display:flex;flex-wrap:wrap;gap:4px 6px;justify-content:center;font-size:13px;color:var(--mut)}
+#kifu span{background:#2b221c;border-radius:6px;padding:2px 7px}
+#sctl,#xctl{display:none}body.solve #sctl,body.sbx #xctl{display:flex}body.solve #wctl,body.sbx #wctl{display:none}body.sbx #bSolve,body.sbx #bSbx,body.solve #bSbx{display:none}
+#toast{position:fixed;left:50%;top:38%;transform:translate(-50%,-50%);background:var(--red);color:#fff;font:800 28px/1 "Hiragino Mincho ProN","Noto Serif TC",serif;padding:14px 26px;border-radius:12px;z-index:60;pointer-events:none;opacity:0;transition:opacity .25s;letter-spacing:.1em;text-align:center;width:max-content;max-width:92vw}
 #toast.show{opacity:1}
+@media (max-width:420px){#toast{font-size:22px;padding:12px 18px}}
 #modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;padding:14px;z-index:50}
 .box{background:#2b221c;border:1px solid var(--line);border-radius:14px;padding:16px;max-width:520px;width:100%;max-height:88dvh;overflow:auto}
 .box h2{margin:0 0 8px;font-size:21px}.box p{margin:6px 0}
 .btns{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}
-.nl{display:grid;gap:6px;margin-top:8px}.nl button{text-align:left}
+.nl{display:grid;gap:6px;margin:8px 0}.nl button{display:flex;gap:10px;text-align:left;min-height:42px;align-items:center}.nl span{color:var(--gold);font-weight:700;min-width:3.4em}.nl .on{background:#5a4430}
 @media (orientation:landscape) and (min-width:760px){
   #view{grid-template-rows:none;grid-template-columns:auto minmax(0,1fr)}
   #panel{border-top:0;border-left:1px solid var(--line)}
@@ -62,6 +69,7 @@ main{min-height:0;overflow:auto}
     <button id="back" aria-label="返回">‹ 返回</button>
     <b id="title">著名棋譜</b>
     <span class="sp"></span>
+    <button id="bSnd" data-act="snd">音效</button><button data-act="info">說明</button>
     <a href="../index.html" style="color:var(--ink);text-decoration:none;font-size:14px;padding:8px">首頁</a>
   </header>
   <main id="main"></main>
@@ -70,6 +78,7 @@ main{min-height:0;overflow:auto}
 <div id="modal" hidden><div class="box" id="mbox"></div></div>
 <script src="../page_views.js" defer></script>
 <script src="xiangqi_engine.js"></script>
+<script src="xiangqi_audio.js"></script>
 <script src="xiangqi_classics_data.js"></script>
 <script>
 (function(){
@@ -81,35 +90,47 @@ const SOON=[
   {title:'適情雅趣',sub:'明・徐芝｜流傳最廣的象棋古譜，開局與殘局並收（準備中）'},
   {title:'百局象棋譜',sub:'清・周廷梅等｜實戰感很強的古代對局集（準備中）'}
 ];
-let view='books',BK=null,GI=0,G=null,POS=[],SB=[],SBM=[],step=0,auto=null,mode='watch',mySide=-1,SEL=null,busy=false,hintSq=null;
+const LS={get(k,d){try{const s=localStorage.getItem(k);return s==null?d:JSON.parse(s)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let MUTE=!!LS.get('xq_prefs',{}).muted;
+const SND=window.XiangqiAudio||{sfx(){},unlock(){}};
+function sfx(t){if(!MUTE)SND.sfx(t)}
+let view='books',BK=null,G=null,POS=[],SB=[],SBM=[],step=0,auto=null,mode='watch',mySide=-1,SEL=null,busy=false,hintSq=null,BEST=0;
 const mainEl=$('main'),titleEl=$('title');
+const CN='〇一二三四五六七八九';
 
-function toast(t){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),1600)}
+function toast(t,ms){const e=$('toast');e.textContent=t;e.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('show'),ms||1600)}
 function modal(h){$('mbox').innerHTML=h;$('modal').hidden=false}
 function closeModal(){$('modal').hidden=true}
+const cur=()=>mode==='sandbox'?SB[SB.length-1]:POS[step];
 
-function showBooks(){view='books';stopAuto();titleEl.textContent='著名棋譜';
+function showBooks(){view='books';stopAuto();document.body.className='';titleEl.textContent='著名棋譜';
   mainEl.innerHTML=`<div class="list"><h2>選一本古譜</h2><p class="sub">這些是流傳了幾百年的象棋名譜，書中每一局都是前人反覆推敲過的對局。</p>`+
   Object.entries(BOOKS).map(([id,b])=>`<button class="card" data-book="${id}"><b>${b.title}<span class="tag">${b.games.length} 局</span></b><small>${b.author}（${b.era}）｜屏風馬破當頭炮八局：先看懂每一步，再試著背出來。</small></button>`).join('')+
   SOON.map(s=>`<div class="card off"><b>${s.title}</b><small>${s.sub}</small></div>`).join('')+`</div>`}
 
-function showGames(id){view='games';BK=id;const b=BOOKS[id];stopAuto();titleEl.textContent=b.title;
-  mainEl.innerHTML=`<div class="list"><h2>《${b.title}》</h2><p class="sub">${b.author}・${b.era}。點一局進去：一步一步看、自動播放，或自己背譜。</p>`+
-  b.games.map((g,i)=>`<button class="card" data-game="${i}"><b>第${'〇一二三四五六七八九'[g.no]}局　${g.name}</b><small>${g.open}｜${g.len} 手｜${g.result}</small></button>`).join('')+`</div>`}
+function showGames(id){view='games';BK=id;const b=BOOKS[id];stopAuto();document.body.className='';titleEl.textContent=b.title;
+  mainEl.innerHTML=`<div class="list"><h2>《${b.title}》</h2><p class="sub">${b.author}・${b.era}。點一局進去：一步一步看、自動播放，或自己背譜、沙盤推演。</p>`+
+  b.games.map((g,i)=>`<button class="card" data-game="${i}"><b>第${CN[g.no]}局　${g.name}</b><small>${g.open}｜${g.len} 手｜${g.result}</small></button>`).join('')+`</div>`}
 
-const cur=()=>mode==='sandbox'?SB[SB.length-1]:POS[step];
 function build(){POS=[];let p=X.start();POS.push(p);for(const m of G.m){p=X.clone(p);X.make(p,m);POS.push(p)}}
-function openGame(i){view='play';GI=i;G=BOOKS[BK].games[i];build();step=0;mode='watch';SB=[];SBM=[];SEL=null;hintSq=null;busy=false;mySide=G.result==='黑勝'?-1:1;titleEl.textContent=`第${'〇一二三四五六七八九'[G.no]}局`;
-  mainEl.innerHTML=`<div id="view"><div id="stage"><div class="row pill"><span id="who"></span></div><div id="svgw"></div></div>
-  <div id="panel"><div class="ctl"><button data-a="first" aria-label="回到開局">⏮</button><button data-a="prev" aria-label="上一步">◀</button><button data-a="auto" id="autoB" class="pri">自動播放</button><button data-a="next" aria-label="下一步">▶</button><button data-a="last" aria-label="最後一步">⏭</button></div>
-  <div class="ctl"><input type="range" id="sl" min="0" max="${G.len}" value="0" aria-label="進度"><span class="pill" id="cnt"></span></div>
-  <div class="row"><button data-a="mode" id="modeB">自己背譜</button><button data-a="hint" id="hintB" hidden>提示</button><button data-a="restart" hidden id="restartB">重來</button><button data-a="jump">重點導覽</button><button data-a="sbx" id="sbxB">沙盤推演</button><label class="pill" style="display:flex;align-items:center;gap:4px">速度<select id="spd" style="background:#3a2e27;color:#f3ece0;border:0;border-radius:6px;padding:4px"><option value="1400">慢</option><option value="900" selected>中</option><option value="450">快</option></select></label></div>
-  <div class="row" id="sbc" hidden><button data-a="sbundo">悔棋</button><button data-a="sbreset">回到推演起點</button><button data-a="sborig">棋譜原盤</button><button data-a="sbexit" class="pri">回到觀看</button></div>
-  <div id="note"></div><div id="rec"></div></div></div>`;
-  layout();draw()}
+function openGame(i){view='play';G=BOOKS[BK].games[i];build();step=0;mode='watch';SB=[];SBM=[];SEL=null;hintSq=null;busy=false;BEST=0;mySide=G.result==='黑勝'?-1:1;titleEl.textContent=`第${CN[G.no]}局`;
+  mainEl.innerHTML=`<div id="view"><div id="stage"><div id="svgw"></div></div>
+  <div id="panel">
+   <div id="cur"></div>
+   <div id="nt" hidden></div>
+   <input id="bar" type="range" min="0" max="${G.len}" value="0" aria-label="手數">
+   <div class="ctl" id="wctl">
+    <button data-a="first" aria-label="回到開頭">⏮</button><button data-a="m10" aria-label="倒退十手">−10</button><button data-a="prev" aria-label="上一手">◀</button><button class="pri" data-a="auto" id="bAuto">▶ 自動播放</button><button data-a="next" aria-label="下一手">▶</button><button data-a="p10" aria-label="前進十手">+10</button><button data-a="last" aria-label="跳到結尾">⏭</button>
+   </div>
+   <div class="ctl"><select class="sel1" id="spd" aria-label="播放速度"><option value="1200">慢速</option><option value="600" selected>中速</option><option value="250">快速</option><option value="80">極快</option></select><button data-a="jump">重點導覽</button><button class="red" data-a="solve" id="bSolve">自己背譜</button><button class="sbb" data-a="sbx" id="bSbx">沙盤推演</button></div>
+   <div class="ctl" id="xctl"><button data-a="sbundo">悔棋</button><button data-a="sbreset">回到推演起點</button><button data-a="sborig">棋譜原盤</button><button data-a="exit">回到觀看</button></div>
+   <div class="ctl" id="sctl"><button data-a="hint">提示</button><button data-a="undo">悔棋</button><button data-a="exit">回到觀看</button></div>
+   <div id="note"></div>
+   <div id="kifu"></div>
+  </div></div>`;
+  draw()}
 
-function layout(){const svg=document.getElementById('bsvg');if(!svg)return}
-function svgBoard(P,last,sel,tg,chk,hint){const S=40,M=26,W=8*S+2*M,H=9*S+2*M,fx=x=>M+x*S,fy=y=>M+y*S;let o=`<svg id="bsvg" viewBox="0 0 ${W} ${H}" style="width:min(100%,calc((100dvh - 330px)*${W/H}),460px)" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#e6c68b"/><g stroke="#4a2e12" stroke-width="1.4" fill="none">`;
+function svgBoard(P,last,sel,tg,chk,hint){const S=40,M=26,W=8*S+2*M,H=9*S+2*M,fx=x=>M+x*S,fy=y=>M+y*S;let o=`<svg id="bsvg" viewBox="0 0 ${W} ${H}" style="width:min(100%,calc((100dvh - 400px)*${W/H}),460px)" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="0" width="${W}" height="${H}" rx="10" fill="#e6c68b"/><g stroke="#4a2e12" stroke-width="1.4" fill="none">`;
   o+=`<rect x="${fx(0)}" y="${fy(0)}" width="${8*S}" height="${9*S}"/>`;
   for(let y=1;y<9;y++)o+=`<path d="M${fx(0)} ${fy(y)}H${fx(8)}"/>`;
   for(let x=1;x<8;x++)o+=`<path d="M${fx(x)} ${fy(0)}V${fy(4)}M${fx(x)} ${fy(5)}V${fy(9)}"/>`;
@@ -120,16 +141,15 @@ function svgBoard(P,last,sel,tg,chk,hint){const S=40,M=26,W=8*S+2*M,H=9*S+2*M,fx
   if(hint!=null)o+=`<rect x="${sqx(hint)-S/2+2}" y="${sqy(hint)-S/2+2}" width="${S-4}" height="${S-4}" rx="5" fill="none" stroke="#2a6fd6" stroke-width="3"/>`;
   for(let i=0;i<90;i++){const v=P.b[i];if(!v)continue;const red=v>0,x=sqx(i),y=sqy(i),isSel=sel===i,isChk=chk===i;
     o+=`<g data-sq="${i}"><circle cx="${x}" cy="${y}" r="${S*0.44}" fill="${isSel?'#cfe9ff':'#f6e3b4'}" stroke="${isChk?'#e0402c':red?'#b8261c':'#222'}" stroke-width="${isChk?4:2}"/><circle cx="${x}" cy="${y}" r="${S*0.36}" fill="none" stroke="${red?'#b8261c':'#222'}" stroke-width="1.2"/><text x="${x}" y="${y+7}" text-anchor="middle" font-size="22" font-weight="700" fill="${red?'#b8261c':'#1a1a1a'}" font-family="'LXGW WenKai TC','KaiTi','Noto Serif TC',serif" style="pointer-events:none">${X.names(v)}</text></g>`}
-  if(tg)for(const i of tg)o+=`<g data-sq="${i}"><circle cx="${sqx(i)}" cy="${sqy(i)}" r="${S*0.44}" fill="transparent"/><circle cx="${sqx(i)}" cy="${sqy(i)}" r="7" fill="#2a6fd6" fill-opacity=".75" style="pointer-events:none"/></g>`;
+  if(tg)for(const i of tg){const cap=P.b[i];o+=`<g data-sq="${i}"><circle cx="${sqx(i)}" cy="${sqy(i)}" r="${S*0.44}" fill="transparent"/>${cap?`<circle cx="${sqx(i)}" cy="${sqy(i)}" r="${S*0.46}" fill="none" stroke="#2a6fd6" stroke-width="3.5" style="pointer-events:none"/>`:`<circle cx="${sqx(i)}" cy="${sqy(i)}" r="7" fill="#2a6fd6" fill-opacity=".75" style="pointer-events:none"/>`}</g>`}
   return o+`</svg>`}
 
-function currentNote(){const arr=NOTES[BK]&&NOTES[BK][G.no];let n=null;if(arr)for(const x of arr)if(x.at<=step)n=x;return n}
 function autoNotes(){ // 沒有手寫講解時，用走法自動標出吃子與將軍
-  const out=[{at:0,t:'開局',x:`${G.open}。按「下一步」一手一手看，或按「自動播放」。`}];
+  const out=[{at:0,t:'開局',x:`${G.open}。按「下一手」一手一手看，或按「自動播放」。`}];
   let p=X.start();G.m.forEach((m,i)=>{const cap=p.b[X.to(m)],q=X.clone(p);X.make(q,m);const chk=X.inCheck(q);
     const who=i%2?'黑':'紅';
-    if(cap)out.push({at:i+1,t:`第 ${i+1} 手：${who}方吃子`,x:`${G.k[i]}，吃掉對方的「${X.names(cap)}」。`});
-    else if(chk)out.push({at:i+1,t:`第 ${i+1} 手：${who}方將軍`,x:`${G.k[i]}，直接威脅對方的將帥，對方必須立刻應將。`});
+    if(cap)out.push({at:i+1,t:`${who}方吃子`,x:`${G.k[i]}，吃掉對方的「${X.names(cap)}」。`});
+    else if(chk)out.push({at:i+1,t:`${who}方將軍`,x:`${G.k[i]}，直接威脅對方的將帥，對方必須立刻應將。`});
     p=q});
   out.push({at:G.len,t:'全局結束',x:`原譜判${G.result}。把這局從頭再看一遍，試著說出每一步的目的。`});return out}
 let AN=null;
@@ -137,61 +157,72 @@ function noteList(){if(!AN||AN.g!==G)AN={g:G,l:(NOTES[BK]&&NOTES[BK][G.no])||aut
 function noteNow(){const l=noteList();let n=l[0];for(const x of l)if(x.at<=step)n=x;return n}
 
 function targets(){const t=new Set();if(SEL===null||(mode!=='practice'&&mode!=='sandbox'))return t;for(const m of X.legal(cur()))if(X.from(m)===SEL)t.add(X.to(m));return t}
-function draw(){const sbx=mode==='sandbox',P=cur(),m=sbx?(SBM.length?SBM[SBM.length-1]:null):(step?G.m[step-1]:null),last=m?[X.from(m),X.to(m)]:null,chk=X.inCheck(P)?X.king(P,P.side):-1;
+function draw(){const sbx=mode==='sandbox',sol=mode==='practice',P=cur(),m=sbx?(SBM.length?SBM[SBM.length-1]:null):(step?G.m[step-1]:null),last=m?[X.from(m),X.to(m)]:null,
+    chk=(sbx||step>0)&&X.inCheck(P)?X.king(P,P.side):-1,over=sbx&&!X.legal(P).length,side=P.side===1?'紅方':'黑方';
   $('svgw').innerHTML=svgBoard(P,last,SEL,[...targets()],chk,hintSq);
-  const who=step>=G.len?`全局結束・原譜判${G.result}`:`輪到${P.side===1?'紅':'黑'}方`;
-  const over=sbx&&!X.legal(P).length;
-  $('who').textContent=sbx?`沙盤推演：第 ${SBM.length} 手，輪到${P.side===1?'紅':'黑'}方${chk>=0?(over?'（將死）':'（將軍）'):(over?'（無棋可走）':'')}`:mode==='practice'?`背譜中：你下${mySide===1?'紅':'黑'}方。${step>=G.len?'完成！':(P.side===mySide?'換你走':'對手走棋…')}`:who;
-  $('cnt').textContent=sbx?'沙盤':`${step} / ${G.len}`;$('sl').value=step;
-  const n=noteNow();$('note').innerHTML=sbx?`<b>沙盤推演</b><br>紅黑雙方都由你操作，可以試試其他走法、看看對方會怎麼應。「棋譜原盤」回到這局的開局，「回到推演起點」回到你按下沙盤的那一刻。`:mode==='practice'?`<b>背譜挑戰</b><br>${step===0&&mySide===1?'你是紅方，請走出第一步。':'依照原譜走出正確的一步；不確定時按「提示」。'}`:`<b>${n.t}</b><br>${n.x}`;
-  let r='';for(let i=0;i<G.len;i++){if(i%2===0)r+=`<i>${i/2+1}.</i>`;r+=`<span data-s="${i+1}" class="${i+1===step?'cur':''}">${G.k[i]}</span>`}$('rec').innerHTML=r;
-  const c=$('rec').querySelector('.cur');if(c)c.scrollIntoView({block:'nearest'});
-  $('modeB').textContent=mode==='practice'?'回到觀看':'自己背譜';$('modeB').hidden=sbx;$('sbxB').hidden=sbx||mode==='practice';$('sbc').hidden=!sbx;$('hintB').hidden=mode!=='practice';$('restartB').hidden=mode!=='practice';$('autoB').disabled=mode==='practice'||sbx;
-  document.querySelectorAll('[data-a=first],[data-a=prev],[data-a=next],[data-a=last]').forEach(b=>b.disabled=mode==='practice'||sbx);$('sl').disabled=mode==='practice'||sbx;
-  $('autoB').textContent=auto?'暫停':'自動播放'}
-function go(n){step=Math.max(0,Math.min(G.len,n));SEL=null;hintSq=null;draw()}
-function stopAuto(){if(auto){clearInterval(auto);auto=null}const b=$('autoB');if(b)b.textContent='自動播放'}
-function startAuto(){stopAuto();if(step>=G.len)step=0;auto=setInterval(()=>{if(step>=G.len){stopAuto();draw();return}go(step+1)},+$('spd').value);draw()}
+  $('cur').innerHTML=sbx?`<b>沙盤推演</b>　第 ${SBM.length} 手　輪到${side}${chk>=0?`<span class="chk">${over?'將死':'將軍'}</span>`:over?'<span class="chk">無棋可走</span>':''}`
+    :step===0?`<b>0</b> / ${G.len}　開局`:`<b>${step}</b> / ${G.len}　${G.k[step-1]}${chk>=0&&!sol?'<span class="chk">將軍</span>':''}`;
+  $('bar').value=step;$('bar').disabled=mode!=='watch';
+  const nn=mode==='watch'?noteNow():null;$('nt').hidden=!nn;if(nn)$('nt').innerHTML=`<b>${nn.t}</b><p>${nn.x}</p>`;
+  if(sbx){const from=Math.max(0,SBM.length-8);$('kifu').innerHTML=Array.from({length:SBM.length-from},(_,k)=>`<span>${from+k+1} ${X.notation(SB[from+k],SBM[from+k])}</span>`).join('')}
+  else{const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${G.k[from+k]}</span>`).join('')}
+  $('note').textContent=sbx?'自由推演：點棋子再點藍點；兩方輪流由你下':sol?(step>=G.len?'完成！':(P.side===mySide?`輪到你（${mySide===1?'紅':'黑'}方）：走出原譜的下一步`:'對手應對中…')):(BEST?`背譜最遠紀錄：第 ${BEST} 手`:'');
+  document.body.classList.toggle('solve',sol);document.body.classList.toggle('sbx',sbx);
+  $('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放'}
+function playSnd(i){const m=G.m[i],cap=POS[i].b[X.to(m)];sfx(cap?'capture':'move');if(X.inCheck(POS[i+1]))setTimeout(()=>sfx('check'),cap?90:50)}
+function go(n,snd){const old=step;step=Math.max(0,Math.min(G.len,n));SEL=null;hintSq=null;if(snd&&step===old+1)playSnd(old);draw()}
+function stopAuto(){if(auto){clearInterval(auto);auto=null}}
+function startAuto(){stopAuto();if(step>=G.len)step=0;const iv=+$('spd').value;auto=setInterval(()=>{if(step>=G.len){stopAuto();draw();return}go(step+1,iv>=250)},iv);draw()}
 
-function startPractice(){stopAuto();mode='practice';step=0;SEL=null;hintSq=null;draw();bot()}
-function bot(){if(mode!=='practice'||step>=G.len)return;if(POS[step].side!==mySide){busy=true;setTimeout(()=>{busy=false;if(mode!=='practice')return;go(step+1);bot();if(step>=G.len)finish()},600)}}
-function finish(){modal(`<h2>背完了！</h2><p>第 ${G.no} 局全部 ${G.len} 手你都走對了。</p><div class="btns"><button data-m="x">關閉</button><button class="pri" data-m="again">再背一次</button></div>`)}
-function sbTap(sq){const P=cur(),v=P.b[sq];if(v&&v*P.side>0){SEL=sq;draw();return}
+function enterSolve(){stopAuto();mode='practice';step=0;SEL=null;hintSq=null;draw();toast(`自己背譜：你下${mySide===1?'紅':'黑'}方`);bot()}
+function exitMode(){mode='watch';SEL=null;hintSq=null;busy=false;draw()}
+function bot(){if(mode!=='practice'||step>=G.len)return;if(POS[step].side!==mySide){busy=true;setTimeout(()=>{busy=false;if(mode!=='practice')return;go(step+1,true);if(step>=G.len)return finish();bot()},600)}}
+function finish(){sfx('win');modal(`<h2>背完了！</h2><p>第 ${G.no} 局全部 ${G.len} 手你都走對了。</p><div class="btns"><button data-m="x">關閉</button><button class="pri" data-m="again">再背一次</button></div>`)}
+function enterSbx(){stopAuto();SB=[X.clone(POS[step])];SBM=[];mode='sandbox';SEL=null;hintSq=null;draw();toast('沙盤推演：雙方都由你操作')}
+function sbCommit(mv){const P=cur(),cap=P.b[X.to(mv)],q=X.clone(P);X.make(q,mv);SB.push(q);SBM.push(mv);SEL=null;sfx(cap?'capture':'move');
+  const chk=X.inCheck(q);if(chk)setTimeout(()=>sfx('check'),cap?90:50);draw();
+  if(!X.legal(q).length){if(chk){sfx('mate');toast('將死！')}else toast('無棋可走')}}
+function tap(sq){
+  if(mode==='sandbox'){const P=cur(),v=P.b[sq];if(v&&v*P.side>0){SEL=sq;sfx('select');draw();return}
+    if(SEL===null)return;const mv=X.move(SEL,sq);if(!X.legal(P).includes(mv)){SEL=null;draw();return}return sbCommit(mv)}
+  if(mode!=='practice'||busy||step>=G.len)return;const P=POS[step];if(P.side!==mySide)return;
+  const v=P.b[sq];if(v&&v*P.side>0){SEL=sq;hintSq=null;sfx('select');draw();return}
   if(SEL===null)return;const mv=X.move(SEL,sq);if(!X.legal(P).includes(mv)){SEL=null;draw();return}
-  const q=X.clone(P);X.make(q,mv);SB.push(q);SBM.push(mv);SEL=null;draw();if(!X.legal(q).length)toast(X.inCheck(q)?'將死！':'無棋可走')}
-function tap(sq){if(mode==='sandbox')return sbTap(sq);if(mode!=='practice'||busy||step>=G.len)return;const P=POS[step];if(P.side!==mySide)return;
-  const v=P.b[sq];if(v&&v*P.side>0){SEL=sq;hintSq=null;draw();return}
-  if(SEL===null)return;const mv=X.move(SEL,sq);if(!X.legal(P).includes(mv)){SEL=null;draw();return}
-  if(mv===G.m[step]){SEL=null;go(step+1);if(step>=G.len)return finish();bot()}
-  else{SEL=null;draw();toast('原譜不是這一步，再想想');}}
+  if(mv===G.m[step]){SEL=null;BEST=Math.max(BEST,step+1);go(step+1,true);if(step>=G.len)return finish();bot()}
+  else{SEL=null;sfx('wrong');draw();toast('原譜不是這一步，再想想')}}
+function hint(){if(busy||mode!=='practice'||step>=G.len||POS[step].side!==mySide)return;SEL=null;hintSq=X.from(G.m[step]);draw();toast('提示：這顆子要動，再想想走去哪裡')}
+function undo(){if(busy||mode!=='practice')return;let s=step-1;while(s>0&&POS[s].side!==mySide)s--;if(s<0)s=0;if(POS[s].side!==mySide)s=0;step=s;SEL=null;hintSq=null;draw();bot()}
 
-function navList(){const l=noteList();modal(`<h2>重點導覽</h2><p class="pill">點一個重點，棋盤會跳到那一手。</p><div class="nl">${l.map(n=>`<button data-j="${n.at}" ${n.at<=step&&(!l.find(z=>z.at>n.at)||l.find(z=>z.at>n.at).at>step)?'class="pri"':''}>第 ${n.at} 手　${n.t}</button>`).join('')}</div><div class="btns"><button data-m="x">關閉</button></div>`)}
+function navList(){const l=noteList(),c=(()=>{let n=l[0];for(const x of l)if(x.at<=step)n=x;return n})();
+  modal(`<h2>重點導覽</h2><div class="nl">${l.map(n=>`<button data-j="${n.at}"${n===c?' class="on"':''}><span>第 ${n.at} 手</span>${n.t}</button>`).join('')}</div><div class="btns"><button data-m="x">關閉</button></div>`)}
+function info(){const b=BOOKS[BK||'meihua'];modal(`<h2>著名棋譜　${b.title}</h2><p>作者：${b.author}（${b.era}），古籍屬公有領域。</p><p>屏風馬破當頭炮八局：先手方走當頭炮，後手方以屏風馬應對並反敗為勝。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己背譜：你下原譜的勝方，每一步必須和原譜相同，對手會照原譜回應。<br>沙盤推演：從目前的局面開始，紅黑雙方都由你操作，可悔棋、回到推演起點或棋譜原盤。</p><p class="pill">棋譜取自公開的象棋古譜資料庫，並已用本站引擎逐手驗證合法；勝負以原譜為準。</p><div class="btns"><button data-m="x">關閉</button></div>`)}
 
 document.addEventListener('click',e=>{
-  const t=e.target.closest('[data-book],[data-game],[data-a],[data-s],[data-j],[data-m],[data-sq]');if(!t){return}
+  try{SND.unlock&&SND.unlock()}catch(_){}
+  const t=e.target.closest('[data-book],[data-game],[data-a],[data-j],[data-m],[data-sq],[data-act]');if(!t){return}
+  if(t.dataset.act==='snd'){MUTE=!MUTE;const pf=LS.get('xq_prefs',{});LS.set('xq_prefs',{...pf,muted:MUTE});if(view==='play')draw();else $('bSnd').textContent=MUTE?'音效關':'音效';return}
+  if(t.dataset.act==='info'){return info()}
   if(t.dataset.book){return showGames(t.dataset.book)}
   if(t.dataset.game!==undefined){return openGame(+t.dataset.game)}
-  if(t.dataset.m){closeModal();if(t.dataset.m==='again')startPractice();return}
-  if(t.dataset.j!==undefined){closeModal();stopAuto();mode='watch';go(+t.dataset.j);return}
-  if(t.dataset.s){if(mode==='watch'){stopAuto();go(+t.dataset.s)}return}
+  if(t.dataset.m){closeModal();if(t.dataset.m==='again'){step=0;mode='practice';SEL=null;hintSq=null;draw();bot()}return}
+  if(t.dataset.j!==undefined){closeModal();stopAuto();if(mode!=='watch')exitMode();go(+t.dataset.j);return}
   if(t.dataset.sq!==undefined){return tap(+t.dataset.sq)}
   const a=t.dataset.a;
-  if(a==='first'){stopAuto();go(0)}else if(a==='prev'){stopAuto();go(step-1)}else if(a==='next'){stopAuto();go(step+1)}else if(a==='last'){stopAuto();go(G.len)}
+  if(a==='first'){stopAuto();go(0)}else if(a==='last'){stopAuto();go(G.len)}else if(a==='prev'){stopAuto();go(step-1)}else if(a==='next'){stopAuto();go(step+1,true)}
+  else if(a==='m10'){stopAuto();go(step-10)}else if(a==='p10'){stopAuto();go(step+10)}
   else if(a==='auto'){auto?(stopAuto(),draw()):startAuto()}
-  else if(a==='jump')navList();
-  else if(a==='mode'){if(mode==='practice'){mode='watch';go(0)}else startPractice()}
-  else if(a==='restart')startPractice();
-  else if(a==='sbx'){stopAuto();SB=[X.clone(POS[step])];SBM=[];mode='sandbox';SEL=null;hintSq=null;draw();toast('沙盤推演：紅黑雙方都由你操作')}
+  else if(a==='solve'){closeModal();enterSolve()}else if(a==='exit'){closeModal();exitMode()}
+  else if(a==='sbx')enterSbx();
   else if(a==='sbundo'){if(SBM.length){SB.pop();SBM.pop();SEL=null;draw()}}
   else if(a==='sbreset'){SB.length=1;SBM.length=0;SEL=null;draw()}
   else if(a==='sborig'){SB=[X.clone(POS[0])];SBM=[];SEL=null;draw()}
-  else if(a==='sbexit'){mode='watch';SEL=null;draw()}
-  else if(a==='hint'){if(busy||step>=G.len||POS[step].side!==mySide)return;const m=G.m[step];SEL=null;hintSq=X.from(m);draw();toast('提示：這顆子要動，再想想走去哪裡')}
+  else if(a==='hint')hint();else if(a==='undo')undo();
+  else if(a==='jump')navList();
 });
-$('main').addEventListener('input',e=>{if(e.target.id==='sl'){stopAuto();go(+e.target.value)}});
+$('main').addEventListener('input',e=>{if(e.target.id==='bar'){stopAuto();go(+e.target.value)}});
 $('back').addEventListener('click',()=>{if(!$('modal').hidden){closeModal();return}
   if(view==='play'){stopAuto();showGames(BK)}else if(view==='games')showBooks();else location.href='xiangqi.html'});
-document.addEventListener('keydown',e=>{if(view!=='play'||mode==='practice'||mode==='sandbox')return;if(e.key==='ArrowRight'){stopAuto();go(step+1)}else if(e.key==='ArrowLeft'){stopAuto();go(step-1)}});
+document.addEventListener('keydown',e=>{if(view!=='play'||mode!=='watch')return;if(e.key==='ArrowRight'){stopAuto();go(step+1,true)}else if(e.key==='ArrowLeft'){stopAuto();go(step-1)}});
 showBooks();
 })();
 </script>
