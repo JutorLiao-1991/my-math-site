@@ -77,6 +77,7 @@ main{display:flex;flex-direction:column;min-height:0}
 body.shake #board{animation:shake .3s}
 @keyframes shake{20%{transform:translateX(-6px)}60%{transform:translateX(6px)}}
 #kifu{font-size:13px}
+.pk{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;margin:8px 0}.pk button{display:flex;flex-direction:column;align-items:center;padding:4px 2px;min-height:44px;font-weight:700}.pk small{font-weight:400;font-size:11px;color:var(--mut)}.pk .on{background:var(--gold);color:#241a10}.pk .on small{color:#241a10}
 .note{font-size:13px;color:var(--mut);text-align:center;line-height:1.5}
 @media (orientation:landscape) and (min-width:700px){
  main{flex-direction:row}#stage{flex:1;justify-content:center}
@@ -89,7 +90,7 @@ body.shake #board{animation:shake .3s}
 <body>
 <div id="app">
  <header>
-  <a class="home" href="shogi.html" aria-label="回鳩特將棋">←</a><b>將棋圖巧</b><span class="pill" id="rinfo">第 100 番「寿」</span><span class="sp"></span>
+  <a class="home" href="shogi.html" aria-label="回鳩特將棋">←</a><b>將棋圖巧</b><button data-act="pickl" id="bPick">選題</button><span class="pill" id="rinfo">第 100 番「寿」</span><span class="sp"></span>
   <button id="bSnd" data-act="snd">音效</button><button data-act="info">說明</button>
  </header>
  <main>
@@ -101,7 +102,7 @@ body.shake #board{animation:shake .3s}
   <section id="panel">
    <div id="cur"></div>
    <div id="nt" hidden></div>
-   <input id="bar" type="range" min="0" max="611" value="0" aria-label="手數">
+   <input id="bar" type="range" min="0" max="100" value="0" aria-label="手數">
    <div class="ctl" id="wctl">
     <button data-act="first" aria-label="回到開頭">⏮</button><button data-act="m10" aria-label="倒退十手">−10</button><button data-act="prev" aria-label="上一手">◀</button><button class="pri" data-act="auto" id="bAuto">▶ 自動播放</button><button data-act="next" aria-label="下一手">▶</button><button data-act="p10" aria-label="前進十手">+10</button><button data-act="last" aria-label="跳到結尾">⏭</button>
    </div>
@@ -305,17 +306,27 @@ const CH={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',9:'と',10:'�
 const NM={1:'歩',2:'香',3:'桂',4:'銀',5:'金',6:'角',7:'飛',8:'玉',9:'と',10:'成香',11:'成桂',12:'成銀',14:'馬',15:'龍'};
 const SC={1:.8,2:.84,3:.86,4:.9,5:.9,6:.95,7:.95,8:1,9:.8,10:.84,11:.86,12:.9,14:.95,15:.95};
 const ZEN='１２３４５６７８９',KJ='一二三四五六七八九';
-const D=ZUKOU[0],LEN=D.m.length,NOTES=(window.ZUKOU_NOTES&&window.ZUKOU_NOTES[D.no])||[];
-let PAUSE=true,pausedAt=-1;try{PAUSE=localStorage.getItem('zk_pause')!=='0'}catch(e){}
+const FLAGS={f:'電腦檢查顯示這題原作並不成立（不詰）',y:'電腦檢查顯示這題另有別的詰法（余詰）',h:'電腦檢查顯示這題有更短的詰法（早詰）',n:'電腦檢查顯示這題有多種等價的走法（非限定）'};
+let D,LEN,NOTES,STATES;
+let PAUSE=true;try{PAUSE=localStorage.getItem('zk_pause')!=='0'}catch(e){}
 /* 先把整首 611 手的每個局面算好，之後按手數取用。 */
 function mkPos(d){const p=ENG.newPos(9);p.b.fill(0);for(const [i,v] of d.b)p.b[i]=v;p.h[0].fill(0);p.h[1].fill(0);for(let t=1;t<=7;t++){p.h[0][t]=d.hs[t]||0;p.h[1][t]=d.hg[t]||0}p.side=1;return p}
-const STATES=[mkPos(D)];for(const m of D.m){const q=ENG.clone(STATES[STATES.length-1]);ENG.doMove(q,m);STATES.push(q)}
+function hs(h){const n='歩香桂銀金角飛';let r='';for(let t=7;t>=1;t--)if(h[t])r+=n[t-1]+(h[t]>1?h[t]:'');return r||'無'}
+function mkNotes(d){const a=(window.ZUKOU_NOTES&&window.ZUKOU_NOTES[d.no]);if(a)return a;
+ const fl=(d.f||'').split('').filter(Boolean).map(c=>FLAGS[c]).join('；');
+ return[{at:0,t:`第 ${d.no} 番　${d.len} 手詰`,x:`攻方持駒：${hs(d.hs)}；玉方持駒：${hs(d.hg)}。攻方每一手都要王手，直到將死。${fl?fl+'，解題模式只接受作者原手順。':''}`},{at:d.len,t:'詰み',x:'玉方無路可逃，全題結束。'}]}
+function load(no){const d=ZUKOU.find(z=>z.no===no)||ZUKOU[ZUKOU.length-1];stopAuto();D=d;LEN=d.m.length;NOTES=mkNotes(d);STATES=[mkPos(d)];for(const m of d.m){const q=ENG.clone(STATES[STATES.length-1]);ENG.doMove(q,m);STATES.push(q)}
+ mode='watch';SEL=null;HLS=null;busy=false;pausedAt=-1;step=0;best=0;
+ try{step=Math.min(LEN,Math.max(0,+localStorage.getItem('zk'+d.no+'_step')||0));best=+localStorage.getItem('zk'+d.no+'_best')||0;localStorage.setItem('zk_last',d.no)}catch(e){}
+ $('rinfo').textContent=`第 ${d.no} 番${d.name?'「'+d.name+'」':''}`;$('bar').max=LEN;if(window.history&&history.replaceState)try{history.replaceState(null,'','#'+d.no)}catch(e){}
+ draw()}
+function pickList(){const cur=D.no;modal(`<h2>選題</h2><p class="pill">圖巧共 100 題，手數 ${Math.min(...ZUKOU.map(z=>z.len))}～${Math.max(...ZUKOU.map(z=>z.len))} 手。</p><div class="pk">${ZUKOU.map(z=>`<button data-act="pick" data-no="${z.no}"${z.no===cur?' class="on"':''}>${z.no}<small>${z.len}手</small></button>`).join('')}</div><div class="btns"><button data-act="close">關閉</button></div>`)}
 function note(i){const m=D.m[i],P=STATES[i],to=(m>>7)&127,dt=m>>15,f=m&127,s=P.side===1?'▲':'△';
  const pt=i>0?(D.m[i-1]>>7)&127:-1,sq=to===pt?'同':ZEN[8-to%9]+KJ[(to/9)|0];
  if(dt)return s+sq+NM[dt]+'打';
  return s+sq+NM[Math.abs(P.b[f])]+(m&16384?'成':'')+`（${9-f%9}${((f/9)|0)+1}）`}
-let step=0,mode='watch',SEL=null,auto=null,busy=false,best=0,MUTE=false;
-try{MUTE=localStorage.getItem('zk_mute')==='1';step=Math.min(LEN,Math.max(0,+localStorage.getItem('zk100_step')||0));best=+localStorage.getItem('zk100_best')||0}catch(e){}
+let step=0,mode='watch',SEL=null,auto=null,busy=false,best=0,MUTE=false,HLS=null,pausedAt=-1;
+try{MUTE=localStorage.getItem('zk_mute')==='1'}catch(e){}
 /* 音效 */
 let AC=null;function ac(){if(!AC){try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return null}}if(AC.state==='suspended')AC.resume();return AC}
 function tone(fr,dur,gain,t0=0,type='sine'){const a=ac();if(!a||MUTE)return;const o=a.createOscillator(),g=a.createGain(),t=a.currentTime+t0;o.type=type;o.frequency.value=fr;g.gain.setValueAtTime(gain,t);g.gain.exponentialRampToValueAtTime(.001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+.05)}
@@ -331,7 +342,6 @@ function layout(){const land=matchMedia('(orientation:landscape) and (min-width:
  const aw=(land?innerWidth*.62:innerWidth)-40,ah=innerHeight-hdr-(land?56:250);
  const sq=Math.max(24,Math.min(aw/9,ah/11.1,66));const r=document.documentElement.style;r.setProperty('--sq',sq.toFixed(1)+'px');r.setProperty('--n',9)}
 function targets(){const t=new Set();if(SEL===null||mode!=='solve')return t;const P=STATES[step];for(const m of ENG.legal(P)){if(typeof SEL==='string'){if((m>>15)===+SEL.slice(1))t.add((m>>7)&127)}else if(!(m>>15)&&(m&127)===SEL)t.add((m>>7)&127)}return t}
-let HLS=null;
 function draw(){const P=STATES[step],last=step?D.m[step-1]:null,chk=step>0&&ENG.inCheck(P),ks=chk?ENG.kingSq(P,P.side):-1,tg=targets();let h='';
  for(let sq=0;sq<81;sq++){const v=P.b[sq];let c='sq';if(last&&(((last>>7)&127)===sq||((last>>15)===0&&(last&127)===sq)))c+=' lm';if(SEL===sq)c+=' sel';if(tg.has(sq))c+=v?' tc':' tg';if(sq===ks)c+=' tc';if(HLS&&HLS.includes(sq))c+=' hl';h+=`<div class="${c}" data-sq="${sq}">${v?pieceH(v):''}</div>`}
  for(const [x,y] of [[3,3],[3,6],[6,3],[6,6]])h+=`<i class="star" style="left:calc(var(--sq)*${x});top:calc(var(--sq)*${y})"></i>`;
@@ -347,7 +357,7 @@ function draw(){const P=STATES[step],last=step?D.m[step-1]:null,chk=step>0&&ENG.
  const from=Math.max(0,step-8);$('kifu').innerHTML=Array.from({length:step-from},(_,k)=>`<span>${from+k+1} ${note(from+k)}</span>`).join('');
  $('note').textContent=mode==='solve'?(step%2===0?'輪到你：每一步都要王手':'玉方應對中…'):(best?`解題最遠紀錄：第 ${best} 手`:'');
  document.body.classList.toggle('solve',mode==='solve');$('bSnd').textContent=MUTE?'音效關':'音效';$('bAuto').textContent=auto?'⏸ 暫停':'▶ 自動播放';
- if(mode==='watch')try{localStorage.setItem('zk100_step',step)}catch(e){}
+ if(mode==='watch')try{localStorage.setItem('zk'+D.no+'_step',step)}catch(e){}
 }
 function go(n,snd){pausedAt=-1;const old=step;step=Math.max(0,Math.min(LEN,n));SEL=null;HLS=null;if(snd&&step>old)sfx('slap');draw()}
 function stopAuto(){if(auto){clearInterval(auto);auto=null}}
@@ -357,11 +367,11 @@ function startAuto(){stopAuto();if(step>=LEN)step=0;const iv=+$('spd').value;aut
 function enterSolve(){stopAuto();mode='solve';if(step%2===1)step--;SEL=null;HLS=null;draw();toast('自己解題：你是攻方')}
 function exitSolve(){mode='watch';SEL=null;HLS=null;draw()}
 function commit(m){if(busy)return;const exp=D.m[step];
- if(m===exp){busy=true;SEL=null;step++;sfx('slap');draw();best=Math.max(best,step);try{localStorage.setItem('zk100_best',best)}catch(e){}
+ if(m===exp){busy=true;SEL=null;step++;sfx('slap');draw();best=Math.max(best,step);try{localStorage.setItem('zk'+D.no+'_best',best)}catch(e){}
   if(step>=LEN){busy=false;return win()}
   setTimeout(()=>{step++;sfx('slap');draw();busy=false;if(step>=LEN)win()},520)}
  else{const q=ENG.clone(STATES[step]);ENG.doMove(q,m);toast(ENG.inCheck(q)?'不是作者的原手順，再想想':'每一步都要王手！');sfx('bad');SEL=null;document.body.classList.add('shake');setTimeout(()=>document.body.classList.remove('shake'),320);draw()}}
-function win(){sfx('win');modal(`<h2>詰み！</h2><p>第 100 番「寿」全 ${LEN} 手，你完成了。</p><p class="note">伊藤看壽 1755 年獻給幕府的《將棋圖巧》最終一題，長度在江戶時代的詰將棋裡堪稱空前。</p><div class="btns"><button data-act="exit">回到觀看</button><button class="pri" data-act="again">再解一次</button></div>`)}
+function win(){sfx('win');modal(`<h2>詰み！</h2><p>第 ${D.no} 番${D.name?'「'+D.name+'」':''}全 ${LEN} 手，你完成了。</p>${D.no===100?'<p class="note">伊藤看壽 1755 年獻給幕府的《將棋圖巧》最終一題，長度在江戶時代的詰將棋裡堪稱空前。</p>':''}<div class="btns"><button data-act="exit">回到觀看</button>${D.no<100?'<button data-act="pick" data-no="'+(D.no+1)+'">下一題</button>':''}<button class="pri" data-act="again">再解一次</button></div>`)}
 function tryMove(from,to){const P=STATES[step],c=ENG.legal(P).filter(m=>((m>>7)&127)===to&&(typeof from==='string'?(m>>15)===+from.slice(1):!(m>>15)&&(m&127)===from));
  if(!c.length){SEL=null;draw();return}
  if(c.length>1){const a=c.find(m=>m&16384),b=c.find(m=>!(m&16384));window._pm=[a,b];const ty=Math.abs(P.b[from]);
@@ -384,9 +394,10 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-act]');if
  else if(a==='pm'){const m=window._pm[+el.dataset.i];closeModal();commit(m)}
  else if(a==='snd'){MUTE=!MUTE;try{localStorage.setItem('zk_mute',MUTE?'1':'0')}catch(_){}draw()}
  else if(a==='close')closeModal();
- else if(a==='nav')navList();else if(a==='jump'){closeModal();stopAuto();go(+el.dataset.at)}
- else if(a==='info')modal(`<h2>將棋圖巧　第 100 番「寿」</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">這題的完整性標示為「余詰」，也就是另有其他解法；本站以作者原手順為準。</p><p class="note">棋譜資料來源：詰將棋博物館（k-oohasi 先生）；關鍵步驟講解為鳩特數理自行撰寫。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
-addEventListener('resize',layout);layout();draw();
+ else if(a==='pickl')pickList();else if(a==='pick'){closeModal();load(+el.dataset.no)}else if(a==='nav')navList();else if(a==='jump'){closeModal();stopAuto();go(+el.dataset.at)}
+ else if(a==='info')modal(`<h2>將棋圖巧　第 ${D.no} 番${D.name?'「'+D.name+'」':''}</h2><p>作者：伊藤看壽（江戶時代）　獻上：宝暦 5 年（1755）</p><p>詰將棋：${LEN} 手詰。攻方（先手）只能用王手，連續 ${LEN} 手把玉方逼到無路可逃。</p><h3>怎麼玩</h3><p class="pill">觀看：用按鈕、拉桿或自動播放，一步一步看。<br>自己解題：你下攻方，每一步必須是作者的原手順，玉方會照原譜回應。</p><p class="note">古典名作難免有瑕疵：${D.f?D.f.split('').map(c=>FLAGS[c]).join('；')+'；':''}本站一律以作者原手順為準。</p><p class="note">題目為江戶時代作品（公有領域）；盤面與手順取自 GitHub 專案 KIEIProject（MIT 授權）的詰將棋資料庫，並已用本站引擎逐手驗證。第 100 番的詰將棋博物館（k-oohasi 先生）棋譜亦曾作為對照；關鍵步驟講解為鳩特數理自行撰寫。</p><div class="btns"><button class="pri" data-act="close">知道了</button></div>`)});
+addEventListener('resize',layout);layout();{let n=+location.hash.slice(1);if(!n)try{n=+localStorage.getItem('zk_last')}catch(e){}load(n||100)}
+addEventListener('hashchange',()=>{const n=+location.hash.slice(1);if(n&&n!==D.no)load(n)});
 </script>
 </body>
 </html>
