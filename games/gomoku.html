@@ -62,11 +62,40 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 .tool.on{color:var(--indigo)}
 .tool.off i{opacity:.5;text-decoration:line-through}
 .tool[disabled]{opacity:.35;pointer-events:none}
+/* 新手教學 */
+#lessonBox{order:3;width:min(100%,700px);display:flex;flex-direction:column;gap:7px;padding:10px 12px;border:1.5px solid var(--ink);border-radius:14px;background:#fffaf0;box-shadow:0 3px 0 var(--ink)}
+#lessonBox[hidden]{display:none}
+.lsTop{display:flex;align-items:center;gap:8px}
+.lsNo{font:800 12px var(--zh);color:var(--ver);letter-spacing:.06em;white-space:nowrap}
+.lsDots{flex:1;display:flex;gap:4px;justify-content:flex-end}
+.lsDots i{width:16px;height:5px;border-radius:3px;background:#cdbd9c;display:block}
+.lsDots i.on{background:var(--indigo)}.lsDots i.cur{background:var(--ver)}
+.mini{appearance:none;flex:none;width:30px;height:30px;border-radius:50%;border:1.5px solid var(--ink);background:#fffaf0;font:900 14px var(--zh);color:var(--ink);cursor:pointer;padding:0}
+.mini.on{background:var(--indigo);color:#fff;border-color:#1b3561}.mini.off{opacity:.45;text-decoration:line-through}
+#lessonBox h3{margin:0;font:900 18px var(--serif);letter-spacing:.1em}
+#lsText{margin:0;font-size:15px;line-height:1.7}
+#lsText b{color:var(--ver)}
+#lsFb{font-size:14px;line-height:1.6;padding:7px 10px;border-radius:10px;font-weight:700}
+#lsFb:empty{display:none}
+#lsFb.bad{background:var(--ver-soft);color:#7d2015}#lsFb.good{background:var(--indigo-soft);color:#1b3561}
+#lsProg:empty{display:none}
+.lsBtns{display:flex;gap:8px;justify-content:flex-end;margin-top:2px}
+.lsBtns .btn{padding:11px 14px}.lsBtns .btn.pri{flex:1}
+.lsBtns .btn[hidden]{display:none}
+.lsList{display:grid;gap:7px;margin-top:8px}
+.lsList button{appearance:none;display:flex;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--ink);border-radius:12px;background:#fffaf0;padding:10px 12px;font:800 15px var(--zh);color:var(--ink);cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+.lsList button:active{transform:translateY(2px);box-shadow:none}
+.lsList span{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font:900 13px var(--num)}
+.lsList em{margin-left:auto;font-style:normal;color:var(--indigo)}
+#play.lesson #opp,#play.lesson #me,#play.lesson #status,#play.lesson #tools{display:none}
+#play.lesson.lcards #opp{display:flex}
+@media not all and (min-width:760px) and (min-aspect-ratio:5/4){#play.lesson #boardWrap{--bs:min(calc(100vw - 24px),700px,calc(100dvh - 400px))}}
 @media (min-width:760px) and (min-aspect-ratio:5/4){
  #play{display:grid;grid-template-columns:auto 330px;grid-template-rows:auto auto auto auto 1fr;column-gap:22px;row-gap:10px;justify-content:center;align-items:start}
  #boardWrap{--bs:min(calc(100dvh - 110px),calc(100vw - 400px),680px);grid-column:1;grid-row:1/6}
- #opp,#me,#status,#tools{grid-column:2;width:100%}
+ #opp,#me,#status,#tools,#lessonBox{grid-column:2;width:100%}
  #opp{grid-row:1}#status{grid-row:2}#me{grid-row:3}#tools{grid-row:4}
+ #lessonBox{grid-row:1/5}#play.lesson.lcards #lessonBox{grid-row:2/5}
 }
 #banner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;padding:12px 22px;border-radius:14px;background:var(--ver);color:#fff;border:3px solid #7d2015;font:900 clamp(20px,6vw,32px) var(--serif);letter-spacing:.2em;white-space:nowrap;box-shadow:0 12px 30px #0006}
 #banner.show{animation:ban 1.5s ease-out both}
@@ -134,6 +163,11 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
    <div id="banner" role="status"></div>
   </section>
   <div id="me" class="card side"></div>
+  <div id="lessonBox" class="side" hidden>
+   <div class="lsTop"><span class="lsNo" id="lsNo"></span><span class="lsDots" id="lsDots"></span><button class="mini" data-act="sfx" id="lsSfx" aria-label="音效">♪</button><button class="mini" data-act="music" id="lsMusic" aria-label="配樂">♬</button></div>
+   <h3 id="lsTitle"></h3><p id="lsText"></p><div id="lsFb" role="status" aria-live="polite"></div><div id="lsProg"></div>
+   <div class="lsBtns"><button class="btn" data-act="lshint" id="lsHint">提示</button><button class="btn" data-act="lsretry" id="lsRetry">重來</button><button class="btn pri" data-act="lsnext" id="lsNext">下一步</button></div>
+  </div>
   <div id="status" role="status" aria-live="polite"></div>
   <div id="tools">
    <button class="tool" data-act="undo" id="undoBtn"><i>↶</i>悔棋</button>
@@ -149,6 +183,7 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 <div id="toast" role="status"></div>
 <script src="gomoku_engine.js"></script>
 <script src="gomoku_audio.js"></script>
+<script src="gomoku_lessons.js"></script>
 <script>
 'use strict';
 (function () {
@@ -179,15 +214,16 @@ function newGame(o, started) {
   G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me: o.me, ai: 3 - o.me, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
         started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, hints: 0, anims: [], status: '', statusCls: '' };
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
+  $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards');
   woodCache = null; layout();
   return G;
 }
 const cheat = () => LEVELS[G.level].cheat;
 const turnColor = () => (G.turns.length ? 3 - G.turns[G.turns.length - 1].c : 1);
-const myTurn = () => G.started && !G.over && !G.busy && turnColor() === G.me;
+const myTurn = () => (G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
 
 function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d })), sixes: G.sixes, hints: G.hints }; }
-function persist() { if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
+function persist() { if (G.lesson) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
 function loadSaved() {
   const s = lsGet(GKEY, null);
   if (!s || !Array.isArray(s.turns) || !s.turns.length || !SIZES.includes(s.S) || !(s.N >= 1 && s.N <= 5)) return null;
@@ -253,6 +289,7 @@ function draw() {
     cx.fillStyle = 'rgba(90,55,20,.75)'; cx.font = `700 ${Math.max(9, CELL * .3) * dpr}px sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
     for (let i = 0; i < S; i++) { const t = String.fromCharCode(65 + i); cx.fillText(t, X(i), Y(0) - M * .55 * dpr); cx.fillText(String(S - i), X(0) - M * .58 * dpr, Y(i)); }
   }
+  if (G.lesson) lessonUnder();
   // 提示、危險與禁手
   if (G.started && !G.over) {
     if (G.hint >= 0) { const pul = .5 + .5 * Math.sin(now / 220); ring(G.hint, `rgba(44,79,134,${.55 + .4 * pul})`, .42 + .06 * pul, 3); }
@@ -278,6 +315,7 @@ function draw() {
     for (const ln of G.lines) { const [x1, y1] = pxy(ln[0]), [x2, y2] = pxy(ln[4]); cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
     const seen = new Set(); for (const ln of G.lines) for (const p of ln) if (!seen.has(p)) { seen.add(p); ring(p, 'rgba(224,68,47,.95)', .5, 2.4); }
   }
+  if (G.lesson) lessonOver(now);
   // 落子預覽
   const gp = G.ghost >= 0 ? G.ghost : (G.hover >= 0 && myTurn() ? G.hover : -1);
   if (gp >= 0 && myTurn() && !b[gp]) {
@@ -285,7 +323,7 @@ function draw() {
     if (G.ghost >= 0) { cx.strokeStyle = 'rgba(44,79,134,.85)'; cx.lineWidth = dpr * 1.6; cx.beginPath(); cx.arc(x, y, r * 1.25, 0, 7); cx.stroke(); }
   }
   G.anims = G.anims.filter(a => now - a.t0 < 220);
-  const animating = G.anims.length || ((G.hint >= 0 || (cfg.warn && G.warn.length && turnColor() === G.me)) && G.started && !G.over);
+  const animating = G.anims.length || lessonAnim() || ((G.hint >= 0 || (cfg.warn && G.warn.length && turnColor() === G.me)) && G.started && !G.over);
   if (animating && !raf) raf = requestAnimationFrame(() => { raf = 0; draw(); });
 }
 window.addEventListener('resize', layout);
@@ -303,7 +341,9 @@ cv.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse' || !G) r
 cv.addEventListener('pointerleave', () => { if (G) { G.hover = -1; draw(); } });
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); AU.unlock();
-  if (!G || !myTurn()) return;
+  if (!G) return;
+  if (G.lesson) { const q = pick(e); if (q >= 0) lessonTap(q); return; }
+  if (!myTurn()) return;
   const p = pick(e); if (p < 0) return;
   if (G.pos.b[p]) { toast('這裡已經有棋子了'); return; }
   if (cfg.confirm && G.ghost !== p) { G.ghost = p; G.hint = -1; AU.sfx('preview'); draw(); return; }
@@ -411,6 +451,7 @@ function cardHtml(c, who) {
 }
 function render() {
   if (!G) return;
+  if (G.lesson) { renderLesson(); return; }
   $('opp').innerHTML = cardHtml(G.ai, 'ai'); $('me').innerHTML = cardHtml(G.me, 'me');
   const die = $('die');
   if (cheat()) {
@@ -453,6 +494,7 @@ function menu(keep) {
   const ss = SIZES.map(s => `<button class="chip ${d.S === s ? 'on' : ''}" data-s="${s}">${s}×${s}</button>`).join('');
   const me = [1, 2].map(c => `<button class="chip ${d.me === c ? 'on' : ''}" data-me="${c}">執${faceName(c)}${c === 1 ? '（先手）' : '（後手）'}</button>`).join('');
   modal(`<div class="menuTop"><img src="thumbs/gomoku_logo.svg" alt=""><h2>鳩特五子棋</h2><small>五子連珠・擲骰作弊</small></div>
+  <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button></div>
   ${saved ? `<div class="mbtns" style="margin:6px 0 2px"><button class="btn ver" data-act="resume">繼續上一局（連${NN[saved.N - 1]}條・${LEVELS[saved.level].n}・第 ${saved.turns.length} 手）</button></div>` : ''}
   <h4>對手</h4><div class="lvs">${lv}</div>
   <h4>獲勝條件</h4><div class="chips five">${nn}</div>
@@ -528,6 +570,12 @@ document.addEventListener('click', e => {
     case 'resume': { const s = loadSaved(); if (s) { draft = null; closeModal(); AU.music(cfg.music); restore(s); refreshThreats(); render(); draw(); if (!G.over && turnColor() === G.ai) aiTurn(); } break; }
     case 'back': case 'close': closeModal(); break;
     case 'rules': case 'rules2': rules(); break;
+    case 'lessons': lessonList(); break;
+    case 'lesson': lessonStart(+t.dataset.i); break;
+    case 'lsnext': lessonNext(); break;
+    case 'lsretry': lessonRetry(); break;
+    case 'lshint': lessonHint(); break;
+    case 'lsgo': draft = Object.assign({}, cfg, { level: 0, N: 1, S: 9, me: 1, renju: false }); menu(); break;
     case 'undo': undo(); break;
     case 'hint': hint(); break;
     case 'sfx': cfg.sfx = !cfg.sfx; saveCfg(); render(); break;
@@ -537,6 +585,153 @@ document.addEventListener('click', e => {
 document.addEventListener('change', e => { const o = e.target.dataset && e.target.dataset.opt; if (!o) return; draft[o] = e.target.checked; });
 /* 音效開關：關掉時只靜音，不影響配樂 */
 const _sfx = AU.sfx; AU.sfx = (a, b) => { if (cfg.sfx) _sfx(a, b); };
+
+/* ---------- 新手教學 ---------- */
+const LESSONS = window.GomokuLessons, LKEY = 'jutor-gomoku-lessons-v1';
+const lDone = () => lsGet(LKEY, {});
+const fmt = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+const lAlive = (game, tok) => G === game && G.lesson && G.lesson.token === tok;
+function lessonList() {
+  const d = lDone();
+  modal(`<h2>新手教學</h2><p class="note" style="text-align:center">從零開始，一課學一件事，每課大約一分鐘。</p>
+    <div class="lsList">${LESSONS.map((L, i) => `<button data-act="lesson" data-i="${i}"><span>${i + 1}</span>${esc(L.t)}${d[i] ? '<em>✓</em>' : ''}</button>`).join('')}</div>
+    <div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+}
+function lessonStart(i) {
+  const L = LESSONS[i]; if (!L) return;
+  closeModal(); draft = null;
+  newGame({ S: L.S || 9, N: L.N || 1, renju: !!L.renju, level: L.cheat ? 3 : 0, me: 1 }, true);
+  G.lesson = { li: i, L, si: -1, s: null, cur: [], snap: [], wait: null, tries: 0, reveal: false, fb: '', fbc: '', canNext: false, busy: false, needRetry: false, token: Math.random(), gc: null, face: 1, six: false };
+  AU.unlock(); AU.music(cfg.music); AU.tension(false);
+  lessonStep(0);
+}
+function setBoard(stones) {
+  G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
+  for (const [x, y, c] of stones) G.pos.place(y * G.S + x, c);
+  G.over = false; G.winner = 0; G.lines = []; G.last = []; G.anims = []; G.ghost = -1; G.hint = -1; G.warn = [];
+  G.fb = G.renju ? E.forbiddenCells(G.pos) : [];
+}
+const lput = (x, y, c) => { const ls = G.lesson; ls.cur.push([x, y, c]); ls.gc = null; if (G.renju) G.fb = E.forbiddenCells(G.pos); };
+function lessonStep(si) {
+  const ls = G.lesson, s = ls.L.steps[si];
+  if (!s) { lessonDone(); return; }
+  ls.si = si; ls.s = s; ls.tries = 0; ls.reveal = false; ls.fb = ''; ls.fbc = ''; ls.busy = false; ls.needRetry = false; ls.gc = null;
+  ls.token = Math.random(); ls.face = ls.L.cheat ? 3 : 1; ls.six = false;
+  if (s.b) ls.cur = s.b.map(a => a.slice());
+  setBoard(ls.cur); ls.snap = ls.cur.map(a => a.slice());
+  ls.wait = s.task || null; ls.canNext = !s.task && !s.demo;
+  renderLesson(); draw();
+  if (s.demo) lessonDemo(s);
+}
+function lessonNext() { const ls = G.lesson; if (!ls || !ls.canNext) return; AU.sfx('tap'); lessonStep(ls.si + 1); }
+function lessonRetry() { const ls = G.lesson; if (!ls) return; ls.cur = ls.snap.map(a => a.slice()); lessonStep(ls.si); }
+function lessonHint() {
+  const ls = G.lesson; if (!ls || !ls.wait) return;
+  if (ls.wait.goals === 'fb') { toast('點棋盤上標了 ✕ 的位置'); return; }
+  ls.reveal = true; ls.fb = '星星標出了可以下的位置。'; ls.fbc = ''; renderLesson(); draw();
+}
+function lGoals(t) {
+  const ls = G.lesson; if (ls.gc) return ls.gc;
+  const g = t.goals, S = G.S; let r;
+  if (Array.isArray(g)) r = g.map(([x, y]) => y * S + x);
+  else if (g === 'win') r = Array.from(G.pos.winCells(1));
+  else if (g === 'block') r = Array.from(G.pos.winCells(2));
+  else if (g === 'fb') r = G.fb.slice();
+  else { r = []; for (let p = 0; p < S * S; p++) { if (G.pos.b[p]) continue; G.pos.place(p, 1); if (G.pos.won(1) || G.pos.winCells(1).length >= 2) r.push(p); G.pos.unplace(); } }
+  return (ls.gc = r);
+}
+async function lessonTap(p) {
+  const ls = G.lesson, t = ls.wait; if (!t || ls.busy) return;
+  if (G.pos.b[p]) { toast('這裡已經有棋子了'); return; }
+  if (cfg.confirm && G.ghost !== p) { G.ghost = p; AU.sfx('preview'); draw(); return; }
+  G.ghost = -1;
+  if (lGoals(t).includes(p)) { lessonOk(p, t); return; }
+  ls.tries++; AU.sfx('error');
+  if (t.demoBad) {
+    const game = G, tok = ls.token, S = G.S; ls.wait = null; ls.busy = true;
+    lput(p % S, (p / S) | 0, 1); G.last = [p]; putStone(1, p); draw();
+    await sleep(800); if (!lAlive(game, tok)) return;
+    let q = -1;
+    for (let c = 0; c < S * S && q < 0; c++) { if (G.pos.b[c]) continue; G.pos.place(c, 2); const n = G.pos.winCells(2).length; G.pos.unplace(); if (n >= 2) q = c; }
+    if (q >= 0) { lput(q % S, (q / S) | 0, 2); G.last = [q]; putStone(2, q); AU.sfx('warn'); }
+    ls.fb = t.bad; ls.fbc = 'bad'; ls.busy = false; ls.needRetry = true; renderLesson(); draw(); return;
+  }
+  ls.fb = t.bad || '再想想看！'; ls.fbc = 'bad';
+  if (ls.tries >= 2 && t.goals !== 'fb') { ls.reveal = true; ls.fb += '（已用星星標出答案）'; }
+  renderLesson(); draw();
+}
+async function lessonOk(p, t) {
+  const ls = G.lesson, game = G, tok = ls.token, S = G.S;
+  ls.wait = null; ls.busy = true; ls.reveal = false;
+  if (t.noPlace) AU.sfx('tap');
+  else { lput(p % S, (p / S) | 0, 1); G.last = [p]; if (putStone(1, p)) G.lines = G.pos.fives(1); }
+  ls.fb = t.ok; ls.fbc = 'good'; renderLesson(); draw();
+  if (G.over) { await sleep(250); if (!lAlive(game, tok)) return; AU.sfx('win'); }
+  let list = t.after;
+  if (list === 'blockOne') { const w = Array.from(G.pos.winCells(1)); list = w.length ? [[w[0] % S, (w[0] / S) | 0, 2]] : []; }
+  for (const [x, y, c] of (list || [])) {
+    await sleep(800); if (!lAlive(game, tok)) return;
+    lput(x, y, c); G.last = [y * S + x]; putStone(c, y * S + x); draw();
+  }
+  if (!lAlive(game, tok)) return;
+  ls.busy = false; ls.canNext = true; renderLesson(); draw();
+  if (t.chain) { await sleep(2000); if (lAlive(game, tok)) lessonNext(); }
+}
+async function lessonDemo(s) {
+  const ls = G.lesson, game = G, tok = ls.token, S = G.S; ls.busy = true; ls.canNext = false; renderLesson();
+  await sleep(900); if (!lAlive(game, tok)) return;
+  const die = $('die'); die.classList.add('rolling'); AU.sfx('dice');
+  for (let i = 0; i < 10; i++) { showFace(1 + Math.floor(Math.random() * 5)); await sleep(80 + i * 16); if (!lAlive(game, tok)) return; }
+  die.classList.remove('rolling'); showFace(6); ls.face = 6; ls.six = true; die.classList.add('six'); AU.sfx('six');
+  await sleep(350); if (!lAlive(game, tok)) return;
+  banner('作弊！一次下兩子'); AU.sfx('cheat'); await sleep(900); if (!lAlive(game, tok)) return;
+  for (const [x, y, c] of s.demo.stones) { lput(x, y, c); G.last = [y * S + x]; putStone(c, y * S + x); draw(); await sleep(520); if (!lAlive(game, tok)) return; }
+  G.lines = G.pos.fives(2); AU.sfx('lose'); draw();
+  ls.fb = s.demo.ok; ls.fbc = 'bad'; ls.busy = false; ls.canNext = true; renderLesson(); draw();
+}
+function lessonDone() {
+  const ls = G.lesson, i = ls.li, d = lDone(); d[i] = 1; lsSet(LKEY, d);
+  AU.sfx('win'); const last = i === LESSONS.length - 1, all = LESSONS.every((_, k) => d[k]);
+  modal(`<div class="finish win"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">第 ${i + 1} 課完成</div>
+    <p>${esc(LESSONS[i].t)}${all ? '　十課全部學完了，可以挑戰鳩特了！' : ''}</p>
+    <div class="mbtns">${last ? '<button class="btn pri" data-act="lsgo">去和鳩特對戰</button>' : `<button class="btn pri" data-act="lesson" data-i="${i + 1}">下一課：${esc(LESSONS[i + 1].t)}</button>`}
+    <button class="btn" data-act="lessons">課程列表</button><button class="btn" data-act="lesson" data-i="${i}">再練一次</button></div></div>`);
+}
+function renderLesson() {
+  const ls = G.lesson, L = ls.L, s = ls.s;
+  $('lessonBox').hidden = false; $('play').classList.add('lesson'); $('play').classList.toggle('lcards', !!L.cheat);
+  $('modeLabel').textContent = `新手教學 ${ls.li + 1}/${LESSONS.length}`;
+  if (L.cheat) { $('opp').innerHTML = cardHtml(G.ai, 'ai'); const die = $('die'); die.classList.add('on'); showFace(ls.face); die.classList.toggle('six', !!ls.six); }
+  $('lsNo').textContent = `第 ${ls.li + 1} 課・${L.t}`;
+  $('lsDots').innerHTML = L.steps.map((_, i) => `<i class="${i < ls.si ? 'on' : i === ls.si ? 'cur' : ''}"></i>`).join('');
+  $('lsTitle').textContent = s.h; $('lsText').innerHTML = fmt(s.x);
+  const fb = $('lsFb'); fb.textContent = ls.fb; fb.className = ls.fbc;
+  const cnt = G.pos.cnt[0];
+  $('lsProg').innerHTML = G.N > 1 ? `<div class="prog">${Array.from({ length: G.N }, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('')}<span>你的條數 ${cnt} / ${G.N}</span></div>` : '';
+  $('lsHint').hidden = !ls.wait;
+  const rt = $('lsRetry'); rt.textContent = ls.needRetry ? '再試一次' : '重來'; rt.classList.toggle('ver', ls.needRetry); rt.hidden = !s.b && !ls.needRetry && !s.task && !s.demo;
+  const nx = $('lsNext'); nx.disabled = !ls.canNext; nx.textContent = ls.si === L.steps.length - 1 ? '完成本課' : '下一步';
+  $('lsSfx').classList.toggle('off', !cfg.sfx); $('lsMusic').classList.toggle('on', cfg.music);
+}
+function lessonUnder() {
+  const s = G.lesson.s; if (!s || !s.lines) return;
+  cx.save(); cx.lineCap = 'round'; cx.strokeStyle = 'rgba(44,79,134,.26)'; cx.lineWidth = CELL * dpr * .86;
+  for (const [[x1, y1], [x2, y2]] of s.lines) { cx.beginPath(); cx.moveTo(X(x1), Y(y1)); cx.lineTo(X(x2), Y(y2)); cx.stroke(); }
+  cx.restore();
+}
+function lessonStar(p, pul) {
+  const [x, y] = pxy(p), R = CELL * dpr * (.3 + .04 * pul), r = R * .45;
+  cx.fillStyle = `rgba(229,171,36,${.75 + .25 * pul})`; cx.strokeStyle = '#8a5d00'; cx.lineWidth = dpr * 1.2; cx.beginPath();
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r : R; cx[i ? 'lineTo' : 'moveTo'](x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
+  cx.closePath(); cx.fill(); cx.stroke();
+}
+function lessonOver(now) {
+  const ls = G.lesson, s = ls.s, t = ls.wait; if (!s) return;
+  const pul = .5 + .5 * Math.sin(now / 200);
+  if (s.warn && t) for (const p of G.pos.winCells(2)) ring(p, `rgba(194,59,42,${.6 + .35 * pul})`, .36 + .08 * pul, 2.8);
+  if (t && !G.over && (t.show || ls.reveal) && t.goals !== 'fb') for (const p of lGoals(t)) lessonStar(p, pul);
+}
+function lessonAnim() { const ls = G && G.lesson; return !!(ls && ls.s && ls.wait && (ls.s.warn || ls.wait.show || ls.reveal)); }
 
 /* ---------- 開場 ---------- */
 newGame(cfg, false); render(); layout(); draw();
