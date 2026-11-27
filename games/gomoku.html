@@ -390,9 +390,7 @@ function endTurn(c, ps, d, fl) {
   G.turns.push({ c, ps, d: isRoll(d) ? d : null, fl }); G.last = ps.slice(); G.hint = -1; G.ghost = -1; G.flp = null; G.curRoll = null;
   if (c === G.me) G.flipped = [];
   if (!G.over && G.pos.full()) { G.over = true; G.winner = 0; }
-  if (c === G.ai && !G.over && cheat() && !G.nextRoll) { G.nextRoll = roll2(); G.rollNew = true; }
   refreshThreats(); persist(); render(); draw();
-  if (G.rollNew) { G.rollNew = false; const dd = G.nextRoll, game = G; animRoll(dd, () => G === game && G.nextRoll === dd).then(ok => { if (ok && G === game && kindOf(dd)) { AU.sfx(kindOf(dd) === 'six' ? 'six' : 'flip'); render(); } }); }
   if (G.over) { finish(); return; }
 }
 function playerMove(p) {
@@ -418,33 +416,10 @@ async function animRoll(d, guard) {
   if (!guard()) return false;
   showFaces(d); markDice(d); return true;
 }
-/* 玩家回合一開始，就先擲好鳩特「下一手」的骰子，讓玩家預先看到 */
-function ensureRoll() {
-  if (!G || !cheat() || !G.started || G.over || G.lesson || G.puz || G.busy || G.nextRoll || turnColor() !== G.me) return;
-  const d = G.nextRoll = roll2(), game = G;
-  animRoll(d, () => G === game && G.nextRoll === d).then(ok => { if (ok && G === game && kindOf(d)) { AU.sfx(kindOf(d) === 'six' ? 'six' : 'flip'); render(); } });
-}
-/* 蛇眼：從玩家的棋子裡隨機挑一顆翻面。不能讓鳩特因此直接贏，也不能直接送它活四／雙四 */
-function decisive(pos, c) {
-  for (let p = 0; p < pos.n; p++) {
-    if (pos.b[p] || !pos.near[p]) continue;
-    pos.place(p, c); const hit = pos.won(c) || pos.winCells(c).length >= 2; pos.unplace();
-    if (hit) return true;
-  }
-  return false;
-}
+/* 蛇眼：從玩家的棋子裡隨機挑一顆翻成鳩特的顏色（沒有任何限制） */
 function pickFlip() {
-  const me = G.me, ai = G.ai, base = stonesOf(G.turns), mine = base.filter(x => x[1] === me).map(x => x[0]);
-  for (let i = mine.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [mine[i], mine[j]] = [mine[j], mine[i]]; }
-  const before = G.pos.winCells(ai).length > 0, worse = before || decisive(G.pos, ai);
-  for (const p of mine) {
-    const pos = E.build(G.S, G.N, G.renju, base.map(x => (x[0] === p ? [p, ai] : x)));
-    if (pos.won(ai)) continue;
-    if (!before && pos.winCells(ai).length) continue;
-    if (!worse && decisive(pos, ai)) continue;
-    return p;
-  }
-  return -1;
+  const mine = stonesOf(G.turns).filter(x => x[1] === G.me);
+  return mine.length ? mine[Math.floor(Math.random() * mine.length)][0] : -1;
 }
 let worker = null, wid = 0, noWorker = false; const waiting = {};
 function ensureWorker() {
@@ -456,11 +431,11 @@ function ensureWorker() {
   } catch (e) { noWorker = true; worker = null; }
   return worker;
 }
-function ask(color, level, dbl, timeMs, safe) {
+function ask(color, level, dbl, timeMs) {
   const stones = stonesOf(G.turns, G.flp);
-  const job = { S: G.S, N: G.N, renju: G.renju, stones, color, level, double: dbl, safe: !!safe, timeMs };
+  const job = { S: G.S, N: G.N, renju: G.renju, stones, color, level, double: dbl, timeMs };
   return new Promise(resolve => {
-    const local = () => setTimeout(() => { const pos = E.build(job.S, job.N, job.renju, job.stones); resolve(E.think(pos, color, level, { double: dbl, safe: !!safe, timeMs })); }, 30);
+    const local = () => setTimeout(() => { const pos = E.build(job.S, job.N, job.renju, job.stones); resolve(E.think(pos, color, level, { double: dbl, timeMs })); }, 30);
     const w = ensureWorker();
     if (!w) { local(); return; }
     const id = ++wid; waiting[id] = { ok: resolve, fail: local }; w.postMessage(Object.assign({ id }, job));
@@ -471,8 +446,8 @@ async function aiTurn() {
   const alive = () => G === game && G.token === token;
   let d = null, fl;
   if (cheat()) {
-    d = G.nextRoll; G.nextRoll = null;
-    if (!d) { d = roll2(); G.curRoll = d; setStatus('鳩特擲骰子中…', ''); await animRoll(d, alive); if (!alive()) return; }
+    d = G.nextRoll || roll2(); G.nextRoll = null;   // nextRoll 只在悔棋後沿用上次的點數，避免靠悔棋重擲
+    G.curRoll = d; setStatus('鳩特擲骰子中…', ''); await animRoll(d, alive); if (!alive()) return;
     G.curRoll = d; render();
     const k = kindOf(d);
     if (k === 'six') { G.sixes++; AU.sfx('six'); await sleep(300); if (!alive()) return; banner('作弊！雙六，一次下兩子'); AU.sfx('cheat'); await sleep(900); }
@@ -480,13 +455,15 @@ async function aiTurn() {
       G.ones++; AU.sfx('six'); await sleep(300); if (!alive()) return;
       const p = pickFlip();
       if (p >= 0) {
-        banner('蛇眼！翻你一顆棋'); G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; G.anims.push({ p, t0: performance.now() }); refreshThreats(); AU.sfx('flip'); draw(); await sleep(1100);
+        banner('蛇眼！翻你一顆棋'); G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; G.anims.push({ p, t0: performance.now() }); AU.sfx('flip'); draw(); await sleep(1100);
+        if (!alive()) return;
+        if (G.pos.won(c)) { G.busy = false; G.over = true; G.winner = c; endTurn(c, [], d, fl); return; }
       } else { toast('蛇眼落空：沒有適合翻面的棋'); await sleep(700); }
     } else await sleep(380);
     if (!alive()) return;
   }
   setStatus('鳩特思考中…', ''); const t0 = performance.now();
-  const r = await ask(c, cheat() ? 1 : G.level, kindOf(d) === 'six', null, true);
+  const r = await ask(c, cheat() ? 1 : G.level, kindOf(d) === 'six', null);
   if (!alive()) return;
   await sleep(Math.max(0, 420 - (performance.now() - t0)));
   if (!alive()) return;
@@ -530,9 +507,8 @@ function render() {
   if (G.lesson) { renderLesson(); return; }
   $('opp').innerHTML = cardHtml(G.ai, 'ai'); $('me').innerHTML = cardHtml(G.me, 'me');
   if (cheat()) {
-    $('dice').classList.add('on'); ensureRoll();
-    const lastAi = G.turns.slice().reverse().find(t => t.c === G.ai && isRoll(t.d)), pre = !G.over && turnColor() === G.me;
-    const sh = pre ? G.nextRoll : (G.curRoll || (lastAi && lastAi.d));
+    $('dice').classList.add('on');
+    const lastAi = G.turns.slice().reverse().find(t => t.c === G.ai && isRoll(t.d)), sh = G.curRoll || (lastAi && lastAi.d);
     if (!G.rolling) { showFaces(sh); markDice(sh); }
   }
   const tc = turnColor(), active = G.started && !G.over;
@@ -544,10 +520,8 @@ function render() {
   else if (G.busy) msg = G.busyMsg || '鳩特思考中…';
   else if (G.warn.length && cfg.warn) { msg = '⚠ 鳩特再下一子就達成目標，快擋住紅圈的位置！'; cls = 'warn'; }
   else {
-    const mine = G.pos.winCells(G.me), k = cheat() && !G.rolling ? kindOf(G.nextRoll) : '';
+    const mine = G.pos.winCells(G.me);
     if (mine.length) { msg = '你再下一子就能獲勝！'; cls = 'good'; }
-    else if (k === 'six') { msg = '🎲 鳩特預先擲到雙六！下一手它會連下兩子，小心它的連線。'; cls = 'warn'; }
-    else if (k === 'one') { msg = '🎲 鳩特預先擲到雙一（蛇眼）！下一手它會把你的一顆棋翻成它的顏色。'; cls = 'warn'; }
     else msg = `輪到你下子・第 ${G.turns.length + 1} 手${cfg.confirm ? '（點一下預覽、再點一下確認）' : ''}`;
   }
   setStatus(msg, cls);
@@ -592,7 +566,7 @@ function rules() {
   <p><b>下棋</b>：黑先白後，輪流把棋子下在線的交叉點，下了就不能移動。</p>
   <p><b>怎樣算贏</b>：先達到你設定的「條數」。橫、直、斜任一方向連續五子算一條；六子連線算兩條、七子算三條，依此類推；兩條五子交叉也算兩條。</p>
   <p><b>連珠規則</b>（只在連一條時可選）：黑棋不能下三三、四四、長連（六子以上），下錯位置會被擋下並提醒；剛好連成五子永遠算贏。白棋不受限制。</p>
-  <p><b>作弊鳩特</b>🎲：棋力同青年，但每回合會擲<b>兩顆骰子</b>，而且在你下子前就先擲好、讓你看到它下一手的點數。<b>雙六</b>（1／36）：一次下兩子，但這兩子不會直接讓它連成五子、活四或雙四，你還有一手能防守。<b>雙一・蛇眼</b>（1／36）：隨機把你的一顆棋翻成它的顏色（黑白棋的概念），不會因此讓它直接獲勝。其他點數沒有特殊效果。</p>
+  <p><b>作弊鳩特</b>🎲：棋力同青年，但輪到它時會先擲<b>兩顆骰子</b>。<b>雙六</b>（1／36）：一次下兩子，擲到時如果它有三子在同一個五格裡、沒被你擋住，就能直接連成五子！<b>雙一・蛇眼</b>（1／36）：隨機把你的一顆棋翻成它的顏色（黑白棋的概念），沒有任何限制。其他點數沒有特殊效果。</p>
   <p><b>悔棋</b>：收回你和電腦各一手（作弊鳩特的兩子或翻面一起收回，骰子點數維持不變）。<b>提示</b>：由電腦幫你想一手，棋盤上會出現藍色圈。</p>
   <div class="mbtns"><button class="btn pri" data-act="${G && G.started ? 'back' : 'menu'}">知道了</button></div>`);
 }

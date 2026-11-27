@@ -301,10 +301,9 @@
   }
 
   /* 兩子連下（作弊鳩特擲到六點）：先找兩子必勝，再比較各種兩子組合 */
-  function thinkDouble(pos, me, level, rnd, deadline, safe) {
+  function thinkDouble(pos, me, level, rnd, deadline) {
     const opp = 3 - me, N = pos.N, tryWin = gen(pos, me, 40);
-    if (safe) { const w = pos.winCells(me); if (w.length) return [w[0]]; }   // 安全模式：本來就有一步可贏就照常下一子
-    else for (const p of tryWin) {
+    for (const p of tryWin) {
       pos.place(p, me);
       if (pos.cnt[me - 1] >= N) { pos.unplace(); return [p]; }
       const w = pos.winCells(me);
@@ -314,11 +313,9 @@
     const list = [];
     for (const p of gen(pos, me, 12)) {
       pos.place(p, me);
-      if (safe && pos.cnt[me - 1] >= N) { pos.unplace(); continue; }
       for (const q of gen(pos, me, 10)) {
         pos.place(q, me);
-        // 安全模式（作弊鳩特的雙六）：兩子不能直接決勝——不能連成五、活四或雙四，留給對手一手防守
-        if (!safe || (pos.cnt[me - 1] < N && pos.winCells(me).length < 2)) list.push([-leafEval(pos, opp), p, q]);
+        list.push([-leafEval(pos, opp), p, q]);
         pos.unplace();
       }
       pos.unplace();
@@ -341,14 +338,14 @@
   }
 
   /* ---------- 電腦思考 ----------
-     think(pos, 顏色, 難度 0~3, { double, safe, rand, timeMs }) → { moves:[格…], vcf:是否找到連續逼迫必勝 } */
+     think(pos, 顏色, 難度 0~3, { double, rand, timeMs }) → { moves:[格…], vcf:是否找到連續逼迫必勝 } */
   function think(pos, me, level, opts) {
     opts = opts || {};
     const rnd = opts.rand || Math.random, opp = 3 - me, info = {};
     const budget = opts.timeMs || (level >= 3 ? 1300 : level === 2 ? 900 : 300) * (pos.S >= 19 ? 1.3 : 1);
     const deadline = Date.now() + budget;
     if (pos.empty()) return { moves: [pickCenter(pos, rnd)] };
-    if (opts.double) { const m = thinkDouble(pos, me, level, rnd, deadline, !!opts.safe); if (m && m.length > 1) return { moves: m, double: true }; if (!opts.safe && m && m.length) return { moves: m, double: true }; }
+    if (opts.double) return { moves: thinkDouble(pos, me, level, rnd, deadline), double: true };
 
     const mw = pos.winCells(me);
     if (mw.length && (level > 0 || rnd() < 0.95)) return { moves: [mw[0]] };
