@@ -28,15 +28,21 @@ class ShogiZukouTest(unittest.TestCase):
         for text in ("自動播放", "自己解題", 'data-act="next"', 'data-act="prev"', 'type="range"'):
             self.assertIn(text, PAGE)
 
-    def test_all_611_moves_are_legal_checks_and_end_in_mate(self):
+    def test_all_100_problems_are_legal_checks_and_end_in_mate(self):
         out = run_node(
-            "const D=window.ZUKOU[0],p=ENGINE.newPos(9);p.b.fill(0);for(const [i,v] of D.b)p.b[i]=v;"
+            "const res=[];for(const D of window.ZUKOU){const p=ENGINE.newPos(9);p.b.fill(0);for(const [i,v] of D.b)p.b[i]=v;"
             "p.h[0].fill(0);p.h[1].fill(0);for(let t=1;t<=7;t++){p.h[0][t]=D.hs[t]||0;p.h[1][t]=D.hg[t]||0}p.side=1;"
             "let bad=0;D.m.forEach((m,i)=>{if(!ENGINE.legal(p).includes(m))bad++;ENGINE.doMove(p,m);if(i%2===0&&!ENGINE.inCheck(p))bad++});"
-            "console.log(JSON.stringify([D.m.length,bad,ENGINE.legal(p).length,ENGINE.inCheck(p)]))"
+            "const L=ENGINE.legal(p);const mate=ENGINE.inCheck(p)&&(L.length===0||L.every(m=>{const q=ENGINE.clone(p);ENGINE.doMove(q,m);return (m>>15)>0&&ENGINE.mateIn(q,1)}));"
+            "if(bad||!mate||D.m.length%2!==1)res.push(D.no)}"
+            "console.log(JSON.stringify([window.ZUKOU.length,window.ZUKOU.map(z=>z.no).join()===Array.from({length:100},(_,i)=>i+1).join(),res]))"
         )
         self.assertEqual(out.returncode, 0, out.stderr)
-        self.assertEqual(json.loads(out.stdout), [611, 0, 0, True])
+        self.assertEqual(json.loads(out.stdout), [100, True, []])
+
+    def test_problem_picker_exists(self):
+        for text in ("pickList", 'data-act="pickl"', "function load(no)"):
+            self.assertIn(text, PAGE)
 
 
 if __name__ == "__main__":
