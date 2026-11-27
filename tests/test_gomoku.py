@@ -13,7 +13,7 @@ class GomokuTests(unittest.TestCase):
             capture_output=True, text=True, timeout=180,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("14 Gomoku checks passed", result.stdout)
+        self.assertIn("16 Gomoku checks passed", result.stdout)
 
     def test_tutorial_lessons_are_solvable(self):
         result = subprocess.run(
@@ -21,7 +21,7 @@ class GomokuTests(unittest.TestCase):
             capture_output=True, text=True, timeout=120,
         )
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertIn("10 Gomoku lesson checks passed", result.stdout)
+        self.assertIn("11 Gomoku lesson checks passed", result.stdout)
 
     def test_puzzle_bank_and_solver(self):
         result = subprocess.run(
@@ -38,6 +38,12 @@ class GomokuTests(unittest.TestCase):
             self.assertTrue((ROOT / "games" / name).is_file())
         for token in ["殺局挑戰", "限時挑戰", "gm_rank", "gm_battle", "battleRank", "rkPanel", "badName", "puzzleStart", "challengeFinish"]:
             self.assertIn(token, page)
+
+    def test_cheat_level_uses_two_dice(self):
+        page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
+        for token in ["id=\"${i}\"", "ensureRoll", "pickFlip", "stonesOf", "rebuildPos", "雙六", "蛇眼", "safe: !!safe"]:
+            self.assertIn(token, page)
+        self.assertIn("棋力同青年", page)
 
     def test_tutorial_wired_into_page(self):
         page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
@@ -71,7 +77,7 @@ class GomokuTests(unittest.TestCase):
             self.assertIn(name, page)
         self.assertIn("[1, 2, 3, 4, 5].map", page)
         self.assertIn("SIZES = [9, 15, 19]", page)
-        self.assertIn("rollDice", page)
+        self.assertIn("animRoll", page)
 
 
 if __name__ == "__main__":

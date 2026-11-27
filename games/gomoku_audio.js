@@ -194,6 +194,7 @@
       case 'dice': { let tt = t, gap = .045; for (let i = 0; i < 11; i++) { knock(tt, .55 - i * .025, .85 + Math.random() * .5); tt += gap; gap *= 1.17; } knock(tt + .02, .6, 1.1); break; }
       case 'six': bell(t, 2350, .1, sfxBus); luo(t + .02, .8); break;
       case 'cheat': muyu(t, .3); muyu(t + .1, .3); muyu(t + .2, .3); luo(t + .34, 1.1); drum(t + .34, .6); break;
+      case 'flip': noiseHit(t, { freq: 1900, q: 2, vol: .16, decay: .05 }); tone(t, 980, 520, .1, .09); tone(t + .11, 520, 1040, .1, .12); muyu(t + .26, .22); break;
       case 'warn': muyu(t, .32); muyu(t + .13, .26); break;
       case 'undo': noiseHit(t, { freq: 2200, q: 2, vol: .12, decay: .03 }); tone(t, 700, 420, .06, .08); break;
       case 'error': muyu(t, .28); break;
