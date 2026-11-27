@@ -19,7 +19,11 @@ function replay(L, onTask) {
   L.steps.forEach((s, si) => {
     if (s.b) cur = s.b.map(a => a.slice());
     pos = new E.Pos(S, N, { renju: !!L.renju }); cur.forEach(([x, y, c]) => pos.place(y * S + x, c));
-    if (s.demo) { for (const [x, y, c] of s.demo.stones) { assert.equal(pos.b[y * S + x], 0, `L${L.t} 步驟${si}: 示範落點要是空的`); pos.place(y * S + x, c); } assert.ok(pos.won(2), '示範結束時白棋要獲勝'); return; }
+    if (s.demo) {
+      if (s.demo.kind === 'one') { const [fx, fy] = s.demo.flip, i = cur.findIndex(a => a[0] === fx && a[1] === fy); assert.ok(i >= 0 && cur[i][2] === 1, '被翻面的要是黑棋'); cur[i] = [fx, fy, 2]; pos = new E.Pos(S, N, {}); cur.forEach(([x, y, c]) => pos.place(y * S + x, c)); assert.ok(!pos.won(1) && !pos.won(2)); }
+      else for (const [x, y, c] of s.demo.stones) { assert.equal(pos.b[y * S + x], 0, `L${L.t} 步驟${si}: 示範落點要是空的`); pos.place(y * S + x, c); cur.push([x, y, c]); }
+      return;
+    }
     if (!s.task) return;
     const goals = goalsOf(pos, S, s.task.goals); onTask(s, si, pos, goals, cur);
     // 以第一個答案走下去，並套用任務後的自動回應
@@ -55,7 +59,7 @@ test('every task has the answers the text promises', () => {
   const expect = {
     '連成五子': [['win', 2]], '橫、直、斜都算': [['win', 2], ['win', 2], ['win', 2]],
     '擋住對手的四子': [['block', 1], ['block', 1]], '做出活四': [['open4', 2], ['win', 1]],
-    '雙重威脅': [['open4', 2], ['win', 1]], '連兩條才算贏': [['win', 2]]
+    '雙重威脅': [['open4', 2], ['win', 1]], '連兩條才算贏': [['win', 2]], '作弊鳩特的骰子': [['block', 1]]
   };
   for (const L of LESSONS) {
     const want = (expect[L.t] || []).slice();
@@ -134,16 +138,28 @@ test('two-line lesson: five is one line and not yet a win, six is two lines and 
   });
 });
 
-test('cheat-dice lesson: blocking the only window really prevents a two-stone five', () => {
+test('cheat-dice lesson: double six makes a four (not a five) and the player can block it', () => {
   const L = LESSONS.find(l => l.t === '作弊鳩特的骰子'), S = 9;
-  const s = L.steps[1], pos = new E.Pos(S, 1, {}); s.b.forEach(([x, y, c]) => pos.place(y * S + x, c));
-  const canTwo = () => { const e = []; for (let p = 0; p < 81; p++) if (!pos.b[p]) e.push(p); for (const a of e) { pos.place(a, 2); const hit = pos.won(2) || pos.winCells(2).length > 0; pos.unplace(); if (hit) return true; } return false; };
-  assert.ok(canTwo(), '沒擋時白棋用兩子可以連五');
-  for (const [x, y] of s.task.goals) { pos.place(y * S + x, 1); assert.ok(!canTwo(), '擋住後兩子也連不成五'); pos.unplace(); }
-  for (let p = 0; p < 81; p++) {
-    if (pos.b[p] || s.task.goals.some(([x, y]) => y * S + x === p)) continue; pos.place(p, 1);
-    assert.ok(canTwo(), '擋在別處時仍有風險：' + p); pos.unplace();
-  }
+  assert.equal(L.steps.length, 4);
+  const pos = new E.Pos(S, 1, {}); L.steps[0].b.forEach(([x, y, c]) => pos.place(y * S + x, c));
+  assert.equal(pos.winCells(2).length, 0);
+  for (const [x, y, c] of L.steps[0].demo.stones) pos.place(y * S + x, c);
+  assert.ok(!pos.won(2), '雙六示範不能直接連成五子');
+  assert.equal(pos.winCells(2).length, 1, '只剩一個要擋的位置（不是活四）');
+  const ans = pos.winCells(2)[0]; pos.place(ans, 1);
+  assert.equal(pos.winCells(2).length, 0, '擋住後白棋沒有下一步勝著');
+});
+
+test('cheat-dice lesson: snake-eyes flips a black stone and breaks the three', () => {
+  const L = LESSONS.find(l => l.t === '作弊鳩特的骰子'), S = 9, st = L.steps[2];
+  assert.equal(st.demo.kind, 'one');
+  const [fx, fy] = st.demo.flip, pos = new E.Pos(S, 1, {});
+  st.b.forEach(([x, y, c]) => pos.place(y * S + x, c));
+  const before = Array.from(pos.winCells(1)).length;
+  const pos2 = new E.Pos(S, 1, {}); st.b.forEach(([x, y, c]) => pos2.place(y * S + x, x === fx && y === fy ? 2 : c));
+  assert.equal(pos.b[fy * S + fx], 1); assert.equal(pos2.b[fy * S + fx], 2);
+  assert.ok(!pos2.won(2) && pos2.winCells(2).length === 0, '翻面不能讓白棋直接獲勝');
+  assert.ok(before >= 0);
 });
 
 test('renju lesson: the fork point is marked forbidden for black', () => {

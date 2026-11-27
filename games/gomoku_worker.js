@@ -4,7 +4,7 @@ self.onmessage = function (e) {
   const d = e.data;
   try {
     const pos = self.GomokuEngine.build(d.S, d.N, d.renju, d.stones);
-    const r = self.GomokuEngine.think(pos, d.color, d.level, { double: !!d.double, timeMs: d.timeMs });
+    const r = self.GomokuEngine.think(pos, d.color, d.level, { double: !!d.double, safe: !!d.safe, timeMs: d.timeMs });
     self.postMessage({ id: d.id, moves: r.moves, vcf: !!r.vcf, depth: r.depth || 0 });
   } catch (err) {
     self.postMessage({ id: d.id, error: String(err && err.message || err) });
