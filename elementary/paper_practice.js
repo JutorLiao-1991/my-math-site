@@ -336,8 +336,13 @@
     if (!seconds) finish(true);
   }
   /* 分步練習：每一步答對、答錯都有音效（全站統一，取自質數大挑戰）；整題完成也播答對音效 */
-  function playWrong() { if (window.JutorSound) window.JutorSound.wrong(); }
-  function playSuccess() { if (window.JutorSound) window.JutorSound.correct(); }
+  /* 給教室監控看的：哪一題、哪一步 */
+  function stepInfo(index) {
+    const q = state.question, s = q && q.steps[index];
+    window.JutorStepInfo = q ? { s: s ? s.title : '', q: q.text || '' } : null;
+  }
+  function playWrong() { stepInfo(state.step); if (window.JutorSound) window.JutorSound.wrong(); }
+  function playSuccess() { stepInfo(state.step - 1); if (window.JutorSound) window.JutorSound.correct(); }
   document.querySelectorAll('[data-open-modes]').forEach(el => el.addEventListener('click', openModes));
   $('close-modes').addEventListener('click', closeModes);
   document.querySelectorAll('[data-type]').forEach(el => el.addEventListener('click', () => start('practice', el.dataset.type)));

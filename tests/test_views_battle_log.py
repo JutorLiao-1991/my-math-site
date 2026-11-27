@@ -89,7 +89,7 @@ class BattleLogTests(unittest.TestCase):
 
 class ScratchpadTests(unittest.TestCase):
     def test_every_practice_page_has_the_scratchpad(self):
-        pages = [p for p in ROOT.rglob("*.html") if "battle_log.js" in p.read_text(encoding="utf-8") and p.name != "index.html" or p.parent.name == "english" and "battle_log.js" in p.read_text(encoding="utf-8")]
+        pages = [p for p in ROOT.rglob("*.html") if p.parent.name != "classroom" and ("battle_log.js" in p.read_text(encoding="utf-8") and p.name != "index.html" or p.parent.name == "english" and "battle_log.js" in p.read_text(encoding="utf-8"))]
         self.assertGreaterEqual(len(pages), 25)
         for p in pages:
             html = p.read_text(encoding="utf-8")
