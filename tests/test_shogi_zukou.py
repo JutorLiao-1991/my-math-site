@@ -16,15 +16,13 @@ def run_node(body):
 
 
 class ShogiZukouTest(unittest.TestCase):
-    def test_listed_in_its_own_category(self):
-        data = (ROOT / "data.js").read_text(encoding="utf-8")
-        card = re.search(r'\{[^{}]*url: "games/shogi_zukou.html"[^{}]*\}', data)
-        self.assertIsNotNone(card)
-        self.assertIn('category: "zukou"', card.group(0))
-        self.assertTrue((ROOT / "games/thumbs/zukou.svg").exists())
-        self.assertIn('data-category="zukou"', (ROOT / "index.html").read_text(encoding="utf-8"))
-        self.assertIn("'zukou'", (ROOT / "home_menu.js").read_text(encoding="utf-8"))
-        self.assertIn('href="../index.html"', PAGE)
+    def test_reachable_from_shogi_menu_and_not_a_home_category(self):
+        shogi = (ROOT / "games/shogi.html").read_text(encoding="utf-8")
+        self.assertIn('data-act="zukou"', shogi)
+        self.assertIn("shogi_zukou.html", shogi)
+        self.assertNotIn("shogi_zukou.html", (ROOT / "data.js").read_text(encoding="utf-8"))
+        self.assertNotIn('data-category="zukou"', (ROOT / "index.html").read_text(encoding="utf-8"))
+        self.assertIn('href="shogi.html"', PAGE)
 
     def test_page_has_three_ways_to_use_it(self):
         for text in ("自動播放", "自己解題", 'data-act="next"', 'data-act="prev"', 'type="range"'):

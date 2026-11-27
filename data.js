@@ -57,15 +57,6 @@ const lessonData = [
         desc: "和五位鳩特（嬰兒到大師）下象棋：標準九路十線、同機雙人對戰、16 課新手教學、實戰一、三、五、七手殺各 100 題、戰術學習（含 110 多題中盤戰術與依殺法形狀分類的實戰殺局）、走法與提示、悔棋續玩，以及最少手數榮譽榜。"
     },
     {
-        title: "將棋圖巧 第100番「寿」",
-        category: "zukou",
-        url: "games/shogi_zukou.html",
-        thumb: "games/thumbs/zukou.svg",
-        tagClass: "game",
-        tagName: "將棋圖巧",
-        desc: "伊藤看壽《將棋圖巧》最後一題，連續王手 611 手的詰將棋：一步一步按、自動播放，或自己下攻方解題。"
-    },
-    {
         title: "鳩特踩地雷",
         category: "games",
         url: "games/minesweeper.html",
