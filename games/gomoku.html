@@ -6,6 +6,7 @@
 <meta name="description" content="鳩特五子棋：四級電腦（含會擲骰作弊的作弊鳩特）、可選連一到連五條獲勝、9／15／19 路棋盤、連珠禁手規則與配樂。">
 <title>鳩特五子棋</title>
 <link rel="icon" type="image/svg+xml" href="thumbs/gomoku_logo.svg">
+<link rel="stylesheet" href="rank_medals.css">
 <style>
 :root{--paper:#f4ecda;--paper2:#ebe0c7;--ink:#211c18;--ink2:#4a4038;--indigo:#2c4f86;--indigo-soft:#dbe4f2;--ver:#c23b2a;--ver-soft:#f6d9d2;--gold:#b08a3e;--wood:#e4b872;--bs:300px;
  --serif:"Noto Serif TC","Songti TC","PMingLiU",Georgia,serif;--zh:-apple-system,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;--num:"Avenir Next","Segoe UI","Roboto",var(--zh)}
@@ -87,6 +88,18 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 .lsList button:active{transform:translateY(2px);box-shadow:none}
 .lsList span{flex:none;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:flex;align-items:center;justify-content:center;font:900 13px var(--num)}
 .lsList em{margin-left:auto;font-style:normal;color:var(--indigo)}
+#lsTimer{font:800 13px var(--num);color:var(--ink2);white-space:nowrap}
+#lsTimer:empty{display:none}
+.pgrid{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;margin:8px 0 4px}
+.pgrid button{appearance:none;border:1.5px solid var(--ink);border-radius:8px;background:#fffaf0;padding:7px 0;font:800 12px var(--num);color:var(--ink);cursor:pointer}
+.pgrid button.done{background:var(--indigo-soft);border-color:var(--indigo);color:#1b3561}
+.pgrid button:active{transform:translateY(1px)}
+.chip small{display:block;font:700 11px var(--num);opacity:.75;margin-top:2px}
+.rkRow{display:grid;grid-template-columns:2.2em minmax(0,1fr) auto;align-items:center;gap:8px;margin:6px 0;padding:8px 12px;border-radius:10px;font:800 15px/1.2 var(--zh);box-shadow:0 2px 4px #0005,inset 0 1px 0 #fff6}
+.rkRow .no{font:900 16px var(--num)}.rkRow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rkRow .tm{font:900 16px var(--num);white-space:nowrap}
+.rkRow.me{outline:3px solid var(--ver);outline-offset:1px}
+.rkF{display:flex;gap:8px;margin:8px 0}
+.rkF input{flex:1;min-width:0;padding:10px 12px;border-radius:8px;border:1.5px solid var(--ink);background:#fffaf0;color:var(--ink);font:700 16px var(--zh)}
 #play.lesson #opp,#play.lesson #me,#play.lesson #status,#play.lesson #tools{display:none}
 #play.lesson.lcards #opp{display:flex}
 @media not all and (min-width:760px) and (min-aspect-ratio:5/4){#play.lesson #boardWrap{--bs:min(calc(100vw - 24px),700px,calc(100dvh - 400px))}}
@@ -164,7 +177,7 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
   </section>
   <div id="me" class="card side"></div>
   <div id="lessonBox" class="side" hidden>
-   <div class="lsTop"><span class="lsNo" id="lsNo"></span><span class="lsDots" id="lsDots"></span><button class="mini" data-act="sfx" id="lsSfx" aria-label="音效">♪</button><button class="mini" data-act="music" id="lsMusic" aria-label="配樂">♬</button></div>
+   <div class="lsTop"><span class="lsNo" id="lsNo"></span><span id="lsTimer"></span><span class="lsDots" id="lsDots"></span><button class="mini" data-act="sfx" id="lsSfx" aria-label="音效">♪</button><button class="mini" data-act="music" id="lsMusic" aria-label="配樂">♬</button></div>
    <h3 id="lsTitle"></h3><p id="lsText"></p><div id="lsFb" role="status" aria-live="polite"></div><div id="lsProg"></div>
    <div class="lsBtns"><button class="btn" data-act="lshint" id="lsHint">提示</button><button class="btn" data-act="lsretry" id="lsRetry">重來</button><button class="btn pri" data-act="lsnext" id="lsNext">下一步</button></div>
   </div>
@@ -184,6 +197,8 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 <script src="gomoku_engine.js"></script>
 <script src="gomoku_audio.js"></script>
 <script src="gomoku_lessons.js"></script>
+<script src="gomoku_tactics.js"></script>
+<script src="gomoku_puzzles.js"></script>
 <script>
 'use strict';
 (function () {
@@ -220,10 +235,10 @@ function newGame(o, started) {
 }
 const cheat = () => LEVELS[G.level].cheat;
 const turnColor = () => (G.turns.length ? 3 - G.turns[G.turns.length - 1].c : 1);
-const myTurn = () => (G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
+const myTurn = () => (G.puz ? !!G.puz.wait && !G.puz.busy : G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
 
 function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d })), sixes: G.sixes, hints: G.hints }; }
-function persist() { if (G.lesson) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
+function persist() { if (G.lesson || G.puz) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
 function loadSaved() {
   const s = lsGet(GKEY, null);
   if (!s || !Array.isArray(s.turns) || !s.turns.length || !SIZES.includes(s.S) || !(s.N >= 1 && s.N <= 5)) return null;
@@ -342,6 +357,7 @@ cv.addEventListener('pointerleave', () => { if (G) { G.hover = -1; draw(); } });
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); AU.unlock();
   if (!G) return;
+  if (G.puz) { const q = pick(e); if (q >= 0) puzzleTap(q); return; }
   if (G.lesson) { const q = pick(e); if (q >= 0) lessonTap(q); return; }
   if (!myTurn()) return;
   const p = pick(e); if (p < 0) return;
@@ -451,6 +467,7 @@ function cardHtml(c, who) {
 }
 function render() {
   if (!G) return;
+  if (G.puz) { renderPuzzle(); return; }
   if (G.lesson) { renderLesson(); return; }
   $('opp').innerHTML = cardHtml(G.ai, 'ai'); $('me').innerHTML = cardHtml(G.me, 'me');
   const die = $('die');
@@ -494,7 +511,7 @@ function menu(keep) {
   const ss = SIZES.map(s => `<button class="chip ${d.S === s ? 'on' : ''}" data-s="${s}">${s}×${s}</button>`).join('');
   const me = [1, 2].map(c => `<button class="chip ${d.me === c ? 'on' : ''}" data-me="${c}">執${faceName(c)}${c === 1 ? '（先手）' : '（後手）'}</button>`).join('');
   modal(`<div class="menuTop"><img src="thumbs/gomoku_logo.svg" alt=""><h2>鳩特五子棋</h2><small>五子連珠・擲骰作弊</small></div>
-  <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button></div>
+  <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button><button class="btn" data-act="puzzles">殺局挑戰（${pTotal()}／300）</button></div>
   ${saved ? `<div class="mbtns" style="margin:6px 0 2px"><button class="btn ver" data-act="resume">繼續上一局（連${NN[saved.N - 1]}條・${LEVELS[saved.level].n}・第 ${saved.turns.length} 手）</button></div>` : ''}
   <h4>對手</h4><div class="lvs">${lv}</div>
   <h4>獲勝條件</h4><div class="chips five">${nn}</div>
@@ -517,7 +534,7 @@ function rules() {
   <div class="mbtns"><button class="btn pri" data-act="${G && G.started ? 'back' : 'menu'}">知道了</button></div>`);
 }
 function startFromDraft() {
-  Object.assign(cfg, draft); if (cfg.N > 1) cfg.renju = false; saveCfg(); draft = null; closeModal();
+  CH = null; Object.assign(cfg, draft); if (cfg.N > 1) cfg.renju = false; saveCfg(); draft = null; closeModal();
   AU.unlock(); AU.music(cfg.music);
   newGame(cfg, true); render(); draw();
   if (cfg.me === 2) aiTurn();
@@ -557,8 +574,9 @@ async function hint() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me]'); if (!t) return;
+  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me],[data-pk]'); if (!t) return;
   AU.unlock();
+  if (t.dataset.pk !== undefined) { if (t.dataset.act === 'pzrankk') rankView(+t.dataset.pk); else puzzleHome(+t.dataset.pk); return; }
   if (t.dataset.lv !== undefined) { draft.level = +t.dataset.lv; menu(true); return; }
   if (t.dataset.n !== undefined) { draft.N = +t.dataset.n; if (draft.N > 1) draft.renju = false; if (draft.N >= 4 && draft.S < 19) draft.S = 19; menu(true); return; }
   if (t.dataset.s !== undefined) { draft.S = +t.dataset.s; menu(true); return; }
@@ -567,14 +585,19 @@ document.addEventListener('click', e => {
     case 'menu': draft = null; menu(); break;
     case 'start': if (G && G.started && !G.over && G.turns.length && !confirm('目前這一局還沒下完，要放棄並開新局嗎？')) break; startFromDraft(); break;
     case 'again': draft = Object.assign({}, cfg); startFromDraft(); break;
-    case 'resume': { const s = loadSaved(); if (s) { draft = null; closeModal(); AU.music(cfg.music); restore(s); refreshThreats(); render(); draw(); if (!G.over && turnColor() === G.ai) aiTurn(); } break; }
+    case 'resume': { const s = loadSaved(); if (s) { CH = null; draft = null; closeModal(); AU.music(cfg.music); restore(s); refreshThreats(); render(); draw(); if (!G.over && turnColor() === G.ai) aiTurn(); } break; }
     case 'back': case 'close': closeModal(); break;
     case 'rules': case 'rules2': rules(); break;
     case 'lessons': lessonList(); break;
     case 'lesson': lessonStart(+t.dataset.i); break;
-    case 'lsnext': lessonNext(); break;
-    case 'lsretry': lessonRetry(); break;
-    case 'lshint': lessonHint(); break;
+    case 'lsnext': G && G.puz ? puzzleNext() : lessonNext(); break;
+    case 'lsretry': G && G.puz ? puzzleRetry() : lessonRetry(); break;
+    case 'lshint': G && G.puz ? puzzleHint() : lessonHint(); break;
+    case 'puzzles': puzzleHome(); break;
+    case 'puz': puzzleStart(+t.dataset.k, +t.dataset.i, false); break;
+    case 'pzchal': challengeStart(+t.dataset.k || lastK); break;
+    case 'pzrank': rankView(+t.dataset.k || lastK); break;
+    case 'rksubmit': rkDoSubmit(); break;
     case 'lsgo': draft = Object.assign({}, cfg, { level: 0, N: 1, S: 9, me: 1, renju: false }); menu(); break;
     case 'undo': undo(); break;
     case 'hint': hint(); break;
@@ -599,7 +622,7 @@ function lessonList() {
 }
 function lessonStart(i) {
   const L = LESSONS[i]; if (!L) return;
-  closeModal(); draft = null;
+  closeModal(); draft = null; CH = null;
   newGame({ S: L.S || 9, N: L.N || 1, renju: !!L.renju, level: L.cheat ? 3 : 0, me: 1 }, true);
   G.lesson = { li: i, L, si: -1, s: null, cur: [], snap: [], wait: null, tries: 0, reveal: false, fb: '', fbc: '', canNext: false, busy: false, needRetry: false, token: Math.random(), gc: null, face: 1, six: false };
   AU.unlock(); AU.music(cfg.music); AU.tension(false);
@@ -733,11 +756,162 @@ function lessonOver(now) {
 }
 function lessonAnim() { const ls = G && G.lesson; return !!(ls && ls.s && ls.wait && (ls.s.warn || ls.wait.show || ls.reveal)); }
 
+/* ---------- 殺局挑戰（連續沖四）與限時賽 ---------- */
+const PZ = window.GomokuPuzzles, TX = window.GomokuTactics, PKEY = 'jutor-gomoku-puz-v1', NKEY = 'jutor-gomoku-name-v1';
+const PKS = [3, 5, 7];
+let CH = null, lastK = 3, lastRes = null, ticker = 0;
+const pSolved = () => lsGet(PKEY, {});
+const pTotal = () => { const v = pSolved(); return PKS.reduce((a, k) => a + (v[k] || []).length, 0); };
+const fmtT = ms => { const t = Math.max(0, ms) / 1000, m = Math.floor(t / 60); return m ? `${m}:${(t - m * 60).toFixed(1).padStart(4, '0')}` : `${t.toFixed(1)} 秒`; };
+const chElapsed = () => CH ? performance.now() - CH.t0 + CH.wrong * 5000 : 0;
+function puzzleHome(k) {
+  k = PKS.includes(k) ? k : lastK; lastK = k;
+  const sv = pSolved(), dn = new Set(sv[k] || []);
+  const tabs = PKS.map(n => `<button class="chip ${n === k ? 'on' : ''}" data-pk="${n}">${n} 手殺<small>${(sv[n] || []).length}／100</small></button>`).join('');
+  modal(`<h2>殺局挑戰</h2>
+    <p class="note">黑先或白先，每一手都要「<b>沖四</b>」（再下一子就連成五），逼對手只能擋在唯一的點；最後做出擋不住的活四或四四。N 手殺＝雙方合計 N 手。題目都是電腦自我對弈時出現的局面。</p>
+    <div class="chips" style="margin:6px 0">${tabs}</div>
+    <div class="mbtns" style="margin:10px 0 4px"><button class="btn ver" data-act="pzchal" data-k="${k}">限時挑戰（隨機 10 題）</button><button class="btn" data-act="pzrank" data-k="${k}">榮譽榜</button></div>
+    <h4>自由練習</h4><div class="pgrid">${Array.from({ length: PZ[k].length }, (_, i) => `<button class="${dn.has(i) ? 'done' : ''}" data-act="puz" data-k="${k}" data-i="${i}">${i + 1}</button>`).join('')}</div>
+    <p class="note" style="text-align:center">題目由易到難排列（棋子越少越簡單）。</p>
+    <div class="mbtns"><button class="btn" data-act="menu">返回</button></div>`);
+}
+function puzzleStart(k, i, chal) {
+  const d = PZ[k][i]; if (!d) return;
+  closeModal(); draft = null; if (!chal) CH = null;
+  const c = d[0]; newGame({ S: 15, N: 1, renju: false, level: 0, me: c }, true);
+  const st = []; d[1].forEach(q => st.push([q % 15, (q / 15) | 0, 1])); d[2].forEach(q => st.push([q % 15, (q / 15) | 0, 2]));
+  setBoard(st);
+  G.puz = { k, i, c, st, left: (k + 1) / 2, wrong: 0, hints: 0, wait: true, busy: false, done: false, fb: '', fbc: '', token: Math.random() };
+  AU.unlock(); AU.music(cfg.music); AU.tension(false);
+  if (!ticker) ticker = setInterval(() => { const el = $('lsTimer'); if (el) el.textContent = (G && G.puz && CH) ? '⏱ ' + fmtT(chElapsed()) : ''; }, 200);
+  renderPuzzle(); draw();
+}
+const pAlive = (game, tok) => G === game && G.puz && G.puz.token === tok;
+async function puzzleTap(p) {
+  const z = G.puz; if (!z.wait || z.busy) return;
+  if (G.pos.b[p]) { toast('這裡已經有棋子了'); return; }
+  if (cfg.confirm && G.ghost !== p) { G.ghost = p; AU.sfx('preview'); draw(); return; }
+  G.ghost = -1; G.hint = -1;
+  const r = TX.judge(G.pos, z.c, p, z.left);
+  if (!r.ok) {
+    z.wrong++; if (CH) CH.wrong++; AU.sfx('error');
+    z.fb = TX.fourMoves(G.pos, z.c).includes(p) ? '這一步的「四」被對手擋住後就沒有後續了，換個位置試試。' : '這一步不是「四」。殺局每一手都要沖四（再下一子就連成五），逼對手只能擋。';
+    z.fbc = 'bad'; if (CH) z.fb += '（失誤＋5 秒）'; renderPuzzle(); draw(); return;
+  }
+  const game = G, tok = z.token; z.busy = true; z.wait = false; z.fb = ''; z.fbc = '';
+  putStone(z.c, p); G.last = [p];
+  if (r.win) { G.lines = G.pos.fives(z.c); puzzleSolved(); return; }
+  z.left--; renderPuzzle(); draw();
+  await sleep(650); if (!pAlive(game, tok)) return;
+  putStone(3 - z.c, r.reply); G.last = [r.reply]; z.busy = false; z.wait = true; renderPuzzle(); draw();
+}
+function puzzleSolved() {
+  const z = G.puz, game = G, tok = z.token; z.done = true; z.busy = true; AU.sfx('win');
+  const sv = pSolved(), a = sv[z.k] || []; if (!a.includes(z.i)) { a.push(z.i); sv[z.k] = a; lsSet(PKEY, sv); }
+  z.fb = CH ? '解開了！' : (z.wrong ? `解開了！中間失誤 ${z.wrong} 次。` : '一次解開，漂亮！'); z.fbc = 'good'; renderPuzzle(); draw();
+  if (CH) setTimeout(() => { if (!pAlive(game, tok)) return; CH.pos++; if (CH.pos >= CH.queue.length) challengeFinish(); else puzzleStart(CH.k, CH.queue[CH.pos], true); }, 1300);
+}
+function puzzleNext() {
+  const z = G.puz; if (!z || !z.done || CH) return; AU.sfx('tap');
+  if (z.i + 1 < PZ[z.k].length) puzzleStart(z.k, z.i + 1, false); else puzzleHome(z.k);
+}
+function puzzleRetry() { const z = G.puz; if (!z) return; const w = CH ? 0 : z.wrong; if (CH) { /* 限時賽重來不另外扣時間，計時繼續 */ } puzzleStart(z.k, z.i, !!CH); if (!CH) G.puz.wrong = w; }
+function puzzleHint() {
+  const z = G.puz; if (!z || !z.wait || CH) return;
+  const m = TX.winningMoves(G.pos, z.c, z.left);
+  if (m.length) { G.hint = m[0]; z.hints++; z.fb = '藍色圈是這一手要下的位置，想想對手會怎麼擋。'; z.fbc = ''; renderPuzzle(); draw(); }
+}
+function challengeStart(k) {
+  const idx = Array.from({ length: PZ[k].length }, (_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  CH = { k, queue: idx.slice(0, 10), pos: 0, wrong: 0, t0: performance.now() };
+  puzzleStart(k, CH.queue[0], true);
+}
+function renderPuzzle() {
+  const z = G.puz, k = z.k, side = z.c === 1 ? '黑' : '白';
+  $('lessonBox').hidden = false; $('play').classList.add('lesson'); $('play').classList.remove('lcards');
+  $('modeLabel').textContent = CH ? `限時挑戰 ${CH.pos + 1}/${CH.queue.length}` : `${k} 手殺・第 ${z.i + 1} 題`;
+  $('lsNo').textContent = CH ? `限時挑戰・${k} 手殺` : `殺局挑戰・${k} 手殺・第 ${z.i + 1}／100 題`;
+  $('lsDots').innerHTML = CH ? CH.queue.map((_, i) => `<i class="${i < CH.pos ? 'on' : i === CH.pos ? 'cur' : ''}"></i>`).join('') : '';
+  $('lsTimer').textContent = CH ? '⏱ ' + fmtT(chElapsed()) : '';
+  $('lsTitle').textContent = `${side}先・${k} 手殺`;
+  $('lsText').innerHTML = fmt(`輪到你執**${side}棋**：${k} 手內（你下 ${(k + 1) / 2} 子）連成五子。每一手都要「沖四」，讓對手只能擋。`);
+  const fb = $('lsFb'); fb.textContent = z.fb; fb.className = z.fbc;
+  $('lsProg').innerHTML = `<div class="prog"><span>還剩 ${z.left} 手・失誤 ${CH ? CH.wrong : z.wrong} 次</span></div>`;
+  $('lsHint').hidden = !!CH || z.done || !z.wait;
+  const rt = $('lsRetry'); rt.hidden = false; rt.textContent = '重來'; rt.classList.remove('ver');
+  const nx = $('lsNext'); nx.hidden = !!CH; nx.disabled = !z.done; nx.textContent = z.i + 1 < PZ[k].length ? '下一題' : '回題目列表';
+  $('lsSfx').classList.toggle('off', !cfg.sfx); $('lsMusic').classList.toggle('on', cfg.music);
+}
+/* ----- 榮譽榜（Firebase，所有人共用） ----- */
+const rkReady = (ms = 6000) => new Promise((res, rej) => { if (window.GMRank) return res(window.GMRank); const t = setTimeout(() => rej(new Error('timeout')), ms); addEventListener('gmrank-ready', () => { clearTimeout(t); res(window.GMRank); }, { once: true }); });
+const rkTop = k => rkReady().then(r => r.top(k));
+const rkSubmit = (k, o) => rkReady().then(r => r.submit(k, o));
+const rkErr = e => /denied|PERMISSION/i.test(String(e && (e.code || e.message || e))) ? '榮譽榜尚未開通（需要在 Firebase 加入權限規則）。' : '目前連不上榮譽榜，請確認網路後再試。';
+function rkRows(list, hi) {
+  if (!list.length) return '<p class="note" style="text-align:center">這個項目還沒有人上榜，搶第一吧！</p>';
+  return list.map((x, i) => `<div class="rkRow medal m${i < 3 ? i + 1 : i < 5 ? 4 : 5}${x.id === hi ? ' me' : ''}"><span class="no">${String(i + 1).padStart(2, '0')}</span><span class="nm">${esc(x.n)}</span><span class="tm">${fmtT(x.s)}</span></div>`).join('');
+}
+function rankView(k) {
+  k = PKS.includes(k) ? k : lastK; lastK = k;
+  const tabs = PKS.map(n => `<button class="chip ${n === k ? 'on' : ''}" data-pk="${n}" data-act="pzrankk">${n} 手殺</button>`).join('');
+  modal(`<h2>榮譽榜</h2><p class="note">限時挑戰（隨機 10 題）的成績：用時加上失誤（每次 5 秒），越快越前面，取前十名。所有人共用同一份榜單。</p>
+    <div class="chips" style="margin:6px 0">${tabs}</div><div id="rkView"><p class="note" style="text-align:center">讀取中…</p></div>
+    <div class="mbtns"><button class="btn" data-act="puzzles">返回</button></div>`);
+  rkTop(k).then(list => { if (lastK === k && $('rkView')) $('rkView').innerHTML = rkRows(list); }).catch(e => { if ($('rkView')) $('rkView').innerHTML = `<p class="note" style="text-align:center">${rkErr(e)}</p>`; });
+}
+const BADW=['幹你','幹妳','幹他','幹她','幹拎','幹林','靠北','靠杯','靠背','靠夭','哭爸','操你','操妳','操他','肏','屌','雞巴','雞掰','機掰','機巴','機八','雞八','雞雞','智障','白癡','白痴','低能','腦殘','去死','死全家','婊','賤人','賤貨','妓','屄','尻','他媽','她媽','你媽','妳媽','媽的','三小','殺小','北七','王八','混蛋','廢物','畜生','畜牲','做愛','強姦','性交','陰莖','陰道','奶子','淫','色情','屁眼','肛','ㄍㄢ','ㄐㄅ','ㄎㄅ','ㄍㄋㄋ','ㄋㄇㄉ','ㄊㄇㄉ','ㄇㄉ','fuck','fuk','fck','fuq','shit','bitch','btch','cunt','dick','cock','pussy','asshole','bastard','slut','whore','nigg','fag','retard','porn','penis','vagina','sex','wtf','stfu','kys'];
+function badName(v){let t=String(v).toLowerCase().normalize('NFKC');
+ t=t.replace(/[0@4]/g,c=>({'0':'o','@':'a','4':'a'}[c])).replace(/[1!|]/g,'i').replace(/3/g,'e').replace(/[5$]/g,'s').replace(/7/g,'t');
+ t=t.replace(/[\s​._\-~*+=#^%&\/\\,，。．、·'"`()（）\[\]{}<>《》「」『』:：;；?？]/g,'');
+ t=t.replace(/幹部|能幹|樹幹|才幹|骨幹|主幹|幹事|幹勁|幹練|苦幹|實幹|精幹|幹線|軀幹/g,'');
+ if(t.includes('幹'))return true;const u=t.replace(/(.)\1+/g,'$1');
+ return BADW.some(w=>t.includes(w)||u.includes(w))}
+function challengeFinish() {
+  const k = CH.k, total = Math.round(chElapsed()), raw = Math.round(performance.now() - CH.t0), wrong = CH.wrong;
+  lastRes = { k, s: total }; CH = null; AU.sfx('win');
+  modal(`<div class="finish win"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">挑戰完成</div>
+    <p>${k} 手殺・10 題</p>
+    <div class="fstat"><div><b>${fmtT(raw)}</b><span>解題用時</span></div><div><b>${wrong}</b><span>失誤（每次＋5 秒）</span></div><div><b>${fmtT(total)}</b><span>總成績</span></div></div>
+    <div id="rkBox"><p class="note">讀取榮譽榜中…</p></div>
+    <div class="mbtns"><button class="btn pri" data-act="pzchal" data-k="${k}">再挑戰一次</button><button class="btn" data-act="puzzles">題目列表</button></div></div>`);
+  const res = lastRes;
+  rkTop(k).then(list => {
+    const el = $('rkBox'); if (!el || lastRes !== res) return;
+    const ok = list.length < 10 || res.s < list[list.length - 1].s;
+    el.innerHTML = `<h4 style="text-align:center">${k} 手殺榮譽榜</h4>${ok ? `<p style="text-align:center;margin:4px 0">你擠進前十名了！留下代號：</p><div class="rkF"><input id="rkName" maxlength="12" placeholder="代號（最多 12 字）" value="${esc(lsGet(NKEY, ''))}"><button class="btn pri" data-act="rksubmit">登上榜單</button></div>` : ''}<div id="rkList">${rkRows(list)}</div>`;
+  }).catch(e => { const el = $('rkBox'); if (el) el.innerHTML = `<p class="note" style="text-align:center">${rkErr(e)}</p>`; });
+}
+function rkDoSubmit() {
+  const inp = $('rkName'); if (!inp || !lastRes) return;
+  const n = inp.value.trim().slice(0, 12); if (!n) { inp.focus(); return toast('請先輸入代號'); }
+  if (badName(n)) { inp.focus(); return toast('代號含有不適當的字詞，請換一個'); }
+  lsSet(NKEY, n); const res = lastRes, b = document.querySelector('[data-act=rksubmit]'); if (b) b.disabled = true;
+  rkSubmit(res.k, { n, s: res.s }).then(id => rkTop(res.k).then(list => { const box = $('rkBox'); if (!box) return; box.innerHTML = `<h4 style="text-align:center">${res.k} 手殺榮譽榜</h4><p class="note" style="text-align:center">已登上榜單！</p>${rkRows(list, id)}`; AU.sfx('win'); lastRes = null; }))
+    .catch(e => { if (b) b.disabled = false; toast(rkErr(e)); });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'rkName') rkDoSubmit(); });
+
 /* ---------- 開場 ---------- */
 newGame(cfg, false); render(); layout(); draw();
 menu();
 window.addEventListener('pagehide', persist);
 })();
+</script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push, query, orderByChild, limitToFirst, get, serverTimestamp, goOnline, goOffline } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+const app = initializeApp({ apiKey: "AIzaSyA7TJh1sfGLUVGQgFhdvFLd9Xm5_l447Ug", authDomain: "element-uno.firebaseapp.com", databaseURL: "https://element-uno-default-rtdb.firebaseio.com", projectId: "element-uno", storageBucket: "element-uno.firebasestorage.app", messagingSenderId: "665324599764", appId: "1:665324599764:web:d151cd9014e600fcd53e41" }, "gm-rank");
+const db = getDatabase(app);
+/* 讀寫完就斷線，避免佔用同時連線數 */
+let users = 0, offT = 0;
+const once = async f => { users++; clearTimeout(offT); goOnline(db); try { return await f(); } finally { users--; clearTimeout(offT); if (!users) offT = setTimeout(() => { if (!users) goOffline(db); }, 1500); } };
+window.GMRank = {
+  async top(k) { return once(async () => { const snap = await get(query(ref(db, "gm_rank/" + k), orderByChild("s"), limitToFirst(10))); const out = []; snap.forEach(c => { const v = c.val(); if (v && typeof v.s === "number") out.push({ id: c.key, n: String(v.n || "").slice(0, 12), s: v.s, t: v.t || 0 }); }); return out.sort((a, b) => a.s - b.s || a.t - b.t); }); },
+  async submit(k, rec) { return once(async () => { const r = await push(ref(db, "gm_rank/" + k), { n: rec.n, s: rec.s, t: serverTimestamp() }); return r.key; }); }
+};
+dispatchEvent(new Event("gmrank-ready"));
 </script>
 </body>
 </html>
