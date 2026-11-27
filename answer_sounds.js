@@ -50,5 +50,15 @@
       o.start(now); o.stop(now + 0.3);
     });
   }
-  window.JutorSound = { correct, wrong, play(type) { if (type === 'correct') correct(); else if (type === 'wrong') wrong(); } };
+  /* 每一次判對錯的音效，也就是一步作答；註冊過的教室 iPad 會把它送到監控頁。
+   * 頁面可在出聲前放 window.JutorStepInfo = { s: 步驟名稱, q: 題目 } 補充說明。 */
+  function report(ok) {
+    const info = window.JutorStepInfo; window.JutorStepInfo = null;
+    try { if (window.JutorLog && window.JutorLog.step) window.JutorLog.step(ok, info); } catch (e) { /* 監控是加分項 */ }
+  }
+  window.JutorSound = {
+    correct() { report(true); correct(); },
+    wrong() { report(false); wrong(); },
+    play(type) { if (type === 'correct') this.correct(); else if (type === 'wrong') this.wrong(); }
+  };
 })();

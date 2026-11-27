@@ -25,6 +25,7 @@
 .stem-pin-wrap.is-phone .q-figure{width:min(200px,42%)!important;margin:2px 0 4px 10px}
 .stem-pin-wrap.is-compact > *{zoom:var(--stem-zoom,.72)}
 .stem-clip{overflow:clip!important}
+@supports not (overflow:clip){.stem-clip{overflow:visible!important}}
 @media print{.stem-pin-wrap{position:static;max-height:none;box-shadow:none;overflow:visible}}`;
 
   let stem = null, wrap = null, sentinel = null, scroller = null, clipped = [], on = false, raf = 0;

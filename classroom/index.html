@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow">
+  <title>鳩特數理｜教室監控</title>
+  <style>
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body { margin: 0; min-height: 100vh; font-family: "Segoe UI", "Microsoft JhengHei", sans-serif; background: #f4f7f6; color: #334155; }
+    .nav { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 10px 18px; background: rgba(30, 41, 59, .97); color: #fff; }
+    .nav h1 { margin: 0; font-size: 1.15rem; }
+    .nav-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .nav input[type="date"] { font: inherit; padding: 6px 8px; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: #fff; }
+    .pill { font-size: .85rem; font-weight: 700; padding: 5px 10px; border-radius: 20px; background: #334155; color: #cbd5e1; white-space: nowrap; }
+    .pill.ok { background: #166534; color: #dcfce7; } .pill.bad { background: #991b1b; color: #fee2e2; }
+    .nav button, .btn { font: inherit; font-weight: 700; min-height: 38px; padding: 6px 12px; border-radius: 9px; border: 1px solid #a7c8e5; background: #eef6fc; color: #2563a8; cursor: pointer; }
+    .btn.primary { background: #4a90e2; color: #fff; border-color: #4a90e2; }
+    .btn.danger { color: #b42318; border-color: #f3b4ae; background: #fff; }
+    main { max-width: 1280px; margin: 0 auto; padding: 16px; }
+    h2 { font-size: 1.1rem; color: #2563a8; margin: 22px 4px 10px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
+    .card { background: #fff; border: 1px solid #dbe4ee; border-radius: 14px; padding: 16px; box-shadow: 0 4px 16px rgba(30, 41, 59, .07); min-width: 0; }
+    .dev-head { display: flex; align-items: center; gap: 10px; }
+    .dot { width: 12px; height: 12px; border-radius: 50%; background: #cbd5e1; flex: none; }
+    .dot.on { background: #22c55e; box-shadow: 0 0 0 4px rgba(34, 197, 94, .2); }
+    .dev-name { font-size: 1.15rem; font-weight: 800; color: #1e293b; }
+    .dev-now { margin: 6px 0 10px; color: #475569; line-height: 1.5; min-height: 1.5em; }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .stat { background: #f1f5f9; border-radius: 10px; padding: 8px 4px; text-align: center; }
+    .stat b { display: block; font-size: 1.25rem; color: #1e293b; }
+    .stat span { font-size: .78rem; color: #64748b; }
+    .feed { list-style: none; margin: 0; padding: 0; max-height: 360px; overflow-y: auto; border-top: 1px solid #e2e8f0; }
+    .feed li { display: grid; grid-template-columns: 44px 22px minmax(0, 1fr); gap: 6px; padding: 7px 2px; border-bottom: 1px solid #f1f5f9; line-height: 1.45; font-size: .92rem; }
+    .feed time { color: #94a3b8; font-variant-numeric: tabular-nums; }
+    .mark { font-weight: 800; text-align: center; }
+    .mark.ok { color: #16a34a; } .mark.bad { color: #dc2626; } .mark.info { color: #2563a8; }
+    .sub { display: block; color: #64748b; font-size: .82rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .empty { color: #94a3b8; padding: 12px 2px; }
+    table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+    th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    th { color: #64748b; font-weight: 700; font-size: .85rem; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 700; color: #b42318; }
+    .setup p { line-height: 1.7; margin: 6px 0; }
+    .setup input { font: inherit; padding: 8px 10px; border: 2px solid #dbe4ee; border-radius: 9px; width: 100%; }
+    .links { display: grid; gap: 8px; margin: 10px 0; }
+    .link-row { display: grid; grid-template-columns: 150px minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+    .link-row code { font-size: .78rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: #f1f5f9; padding: 8px; border-radius: 8px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    @media (max-width: 600px) { .grid { grid-template-columns: 1fr; } .link-row { grid-template-columns: 1fr auto; } .link-row code { grid-column: 1 / -1; grid-row: 2; } }
+  </style>
+</head>
+<body>
+  <header class="nav">
+    <h1>📋 教室監控</h1>
+    <div class="nav-tools">
+      <input type="date" id="day" aria-label="查看日期">
+      <span class="pill" id="conn">未連線</span>
+      <button type="button" id="toggle-setup">設定</button>
+    </div>
+  </header>
+  <main>
+    <section class="card setup" id="first-run" hidden>
+      <h2 style="margin-top:0">第一次使用：建立教室代碼</h2>
+      <p>教室代碼像一把鑰匙，iPad 用它送出作答狀況，這個監控頁用它讀取。代碼不會寫在網站程式裡，只存在你的裝置和註冊過的 iPad 上。</p>
+      <div class="row"><button type="button" class="btn primary" id="create-room">建立新的教室代碼</button></div>
+      <p style="margin-top:16px">已經有代碼（例如在別台電腦建立過）？貼在這裡：</p>
+      <div class="row"><input id="paste-room" placeholder="貼上教室代碼" autocomplete="off" autocapitalize="off" spellcheck="false"><button type="button" class="btn" id="use-room">使用這個代碼</button></div>
+      <p class="sub" id="first-error" role="alert"></p>
+    </section>
+
+    <section class="card setup" id="setup" hidden>
+      <h2 style="margin-top:0">把 iPad 加入監控</h2>
+      <p>在每台 iPad 的 Safari 打開下面對應的連結（可以用 AirDrop 或 LINE 傳過去），按「註冊這台 iPad」就完成。只要做一次。</p>
+      <div class="links" id="links"></div>
+      <div class="row"><input id="new-name" maxlength="20" placeholder="再加一台：輸入名稱" style="max-width:260px"><button type="button" class="btn" id="add-name">加入</button></div>
+      <h2>在另一台電腦或手機看監控頁</h2>
+      <p>打開這個連結即可（裡面含教室代碼，請只傳給自己）：</p>
+      <div class="link-row"><span>監控頁</span><code id="monitor-link"></code><button type="button" class="btn" data-copy="monitor-link">複製</button></div>
+      <h2>資料整理</h2>
+      <div class="row"><button type="button" class="btn danger" id="prune">刪除 60 天前的紀錄</button><button type="button" class="btn danger" id="forget">在這台裝置登出監控頁</button></div>
+      <p class="sub" id="setup-msg" role="status"></p>
+    </section>
+
+    <div id="board" hidden>
+      <h2 id="board-title">各台 iPad</h2>
+      <div class="grid" id="devices"></div>
+      <h2>最常卡住的步驟</h2>
+      <section class="card"><table><thead><tr><th>頁面／步驟</th><th>最近一次的題目</th><th style="text-align:right">答錯次數</th></tr></thead><tbody id="hard"></tbody></table><p class="empty" id="hard-empty">還沒有答錯的紀錄。</p></section>
+    </div>
+  </main>
+  <script>
+  (function () {
+    'use strict';
+    const CLOUD = 'https://element-uno-default-rtdb.firebaseio.com/classroom';
+    const KEY = 'jutor-classroom-teacher', NAMES_KEY = 'jutor-classroom-names';
+    const DEFAULT_NAMES = ['iPad Air 2', 'iPad mini 5', 'iPad Air 5'];
+    const ONLINE_MS = 150000;
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const pad = n => String(n).padStart(2, '0');
+    const dayKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const hhmm = t => { const d = new Date(t); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+    const randomCode = () => { const a = new Uint8Array(24), c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'; crypto.getRandomValues(a); return Array.from(a, x => c[x % c.length]).join(''); };
+    const validRoom = r => /^[A-Za-z0-9]{20,40}$/.test(r || '');
+
+    let room = null, devices = {}, log = {}, streams = [], drawQueued = false;
+
+    /* 教室代碼：網址 #room=… 優先（從別台裝置開連結），存起來後把網址清乾淨 */
+    function loadRoom() {
+      const fromHash = new URLSearchParams(location.hash.slice(1)).get('room');
+      if (validRoom(fromHash)) { localStorage.setItem(KEY, fromHash); history.replaceState(null, '', location.pathname); }
+      const saved = localStorage.getItem(KEY);
+      return validRoom(saved) ? saved : null;
+    }
+    function names() { try { const v = JSON.parse(localStorage.getItem(NAMES_KEY)); if (Array.isArray(v) && v.length) return v; } catch (_) { /* 用預設 */ } return DEFAULT_NAMES.slice(); }
+    function saveNames(list) { localStorage.setItem(NAMES_KEY, JSON.stringify(list)); }
+    function conn(text, kind) { $('conn').textContent = text; $('conn').className = `pill ${kind || ''}`; }
+
+    /* ---------- 即時資料：Firebase REST 串流（只傳變動的部分，省流量） ---------- */
+    function setPath(root, path, value, merge) {
+      const parts = path.split('/').filter(Boolean);
+      if (!parts.length) {
+        if (merge) return Object.assign(root && typeof root === 'object' ? root : {}, value);
+        return value;
+      }
+      root = root && typeof root === 'object' ? root : {};
+      let node = root;
+      for (let i = 0; i < parts.length - 1; i++) { if (!node[parts[i]] || typeof node[parts[i]] !== 'object') node[parts[i]] = {}; node = node[parts[i]]; }
+      const last = parts[parts.length - 1];
+      if (merge) node[last] = Object.assign(node[last] && typeof node[last] === 'object' ? node[last] : {}, value);
+      else if (value === null) delete node[last];
+      else node[last] = value;
+      return root;
+    }
+    function applyPatch(root, path, data) {
+      Object.keys(data || {}).forEach(k => { root = setPath(root, `${path}/${k}`, data[k], false); });
+      return root;
+    }
+    function stream(path, onChange) {
+      let tree = {};
+      const es = new EventSource(`${CLOUD}/${room}/${path}.json`);
+      const handle = merge => e => {
+        try {
+          const msg = JSON.parse(e.data);
+          tree = merge ? applyPatch(tree, msg.path, msg.data) : setPath(tree, msg.path, msg.data, false);
+          if (tree === null) tree = {};
+          onChange(tree); conn('即時連線中', 'ok');
+        } catch (_) { /* 略過壞掉的訊息 */ }
+      };
+      es.addEventListener('put', handle(false));
+      es.addEventListener('patch', handle(true));
+      es.addEventListener('cancel', () => { conn('沒有讀取權限', 'bad'); es.close(); showRuleHelp(); });
+      es.onerror = () => { if (es.readyState !== 2) conn('重新連線中…'); };
+      streams.push(es);
+    }
+    function stop() { streams.forEach(es => es.close()); streams = []; }
+    function showRuleHelp() {
+      $('devices').innerHTML = '<div class="card"><p>資料庫拒絕讀取。請確認 Firebase「element-uno」的 Realtime Database 規則已經加入「classroom」這一段。</p></div>';
+    }
+
+    function today() { return dayKey(new Date()); }
+    function watch() {
+      stop(); devices = {}; log = {}; draw();
+      const day = $('day').value;
+      stream('devices', tree => { devices = tree || {}; queue(); });
+      if (day === today()) {
+        stream(`log/${day}`, tree => { log = tree || {}; queue(); });
+      } else {
+        conn('讀取中…');
+        fetch(`${CLOUD}/${room}/log/${day}.json`).then(r => r.ok ? r.json() : Promise.reject(r.status))
+          .then(data => { log = data || {}; conn('歷史紀錄', 'ok'); queue(); })
+          .catch(() => { conn('讀取失敗', 'bad'); });
+      }
+    }
+    function queue() { if (!drawQueued) { drawQueued = true; requestAnimationFrame(() => { drawQueued = false; draw(); }); } }
+
+    /* ---------- 畫面 ---------- */
+    function eventsOf(id) {
+      return Object.values(log[id] || {}).filter(e => e && typeof e.t === 'number').sort((a, b) => a.t - b.t);
+    }
+    function describe(e) {
+      if (e.m === 's') return { mark: e.ok ? '✓' : '✗', cls: e.ok ? 'ok' : 'bad', text: e.s || (e.ok ? '答對一步' : '答錯一步'), sub: [e.n, e.q].filter(Boolean).join('｜') };
+      if (e.m === 'p') return { mark: '★', cls: 'info', text: e.ok ? '完成一題（一次就對）' : '完成一題（有訂正）', sub: e.n };
+      if (e.m === 'e') return { mark: '📝', cls: 'info', text: `交卷：${e.s != null ? e.s : '?'}／${e.f != null ? e.f : '?'} 分${e.c != null && e.q != null ? `（答對 ${e.c}／${e.q} 題）` : ''}`, sub: e.n };
+      return { mark: '・', cls: 'info', text: '作答', sub: e.n };
+    }
+    function deviceCard(id, dev, events, isToday) {
+      const now = Date.now(), online = isToday && dev && typeof dev.t === 'number' && now - dev.t < ONLINE_MS;
+      const steps = events.filter(e => e.m === 's'), okSteps = steps.filter(e => e.ok).length;
+      const done = events.filter(e => e.m === 'p'), first = done.filter(e => e.ok).length;
+      const exams = events.filter(e => e.m === 'e'), lastExam = exams[exams.length - 1];
+      const name = (dev && dev.name) || '（未命名 iPad）';
+      const nowText = !dev ? '' : online ? `正在：${esc(dev.n || dev.p || '')}` : `最後上線 ${dev.t ? `${dayKey(new Date(dev.t)) === today() ? '' : `${dayKey(new Date(dev.t)).slice(5)} `}${hhmm(dev.t)}` : '—'}${dev.n ? `｜${esc(dev.n)}` : ''}`;
+      const feed = events.slice(-40).reverse().map(e => {
+        const d = describe(e);
+        return `<li><time>${hhmm(e.t)}</time><span class="mark ${d.cls}">${d.mark}</span><span>${esc(d.text)}${d.sub ? `<span class="sub">${esc(d.sub)}</span>` : ''}</span></li>`;
+      }).join('');
+      return `<article class="card"><div class="dev-head"><span class="dot ${online ? 'on' : ''}" aria-label="${online ? '在線' : '離線'}"></span><span class="dev-name">${esc(name)}</span></div>
+        <div class="dev-now">${nowText}</div>
+        <div class="stats">
+          <div class="stat"><b>${steps.length ? Math.round(okSteps / steps.length * 100) + '%' : '—'}</b><span>步驟正確率</span></div>
+          <div class="stat"><b>${okSteps}／${steps.length - okSteps}</b><span>對／錯步數</span></div>
+          <div class="stat"><b>${done.length ? `${first}／${done.length}` : '—'}</b><span>一次就對／題數</span></div>
+          <div class="stat"><b>${lastExam ? `${lastExam.s}` : '—'}</b><span>最近測驗</span></div>
+        </div>
+        ${feed ? `<ul class="feed">${feed}</ul>` : '<p class="empty">這一天還沒有作答紀錄。</p>'}</article>`;
+    }
+    function draw() {
+      if (!room) return;
+      const isToday = $('day').value === today();
+      $('board-title').textContent = isToday ? '各台 iPad（今天）' : `各台 iPad（${$('day').value}）`;
+      const ids = [...new Set([...Object.keys(devices || {}), ...Object.keys(log || {})])]
+        .sort((a, b) => String((devices[a] || {}).name || '~').localeCompare(String((devices[b] || {}).name || '~'), 'zh-Hant'));
+      $('devices').innerHTML = ids.length ? ids.map(id => deviceCard(id, devices[id], eventsOf(id), isToday)).join('')
+        : '<div class="card"><p class="empty">還沒有 iPad 註冊。按右上角「設定」，把連結傳到每台 iPad 註冊。</p></div>';
+      /* 最常卡住的步驟：同一頁、同一步，答錯次數排行 */
+      const groups = {};
+      ids.forEach(id => eventsOf(id).forEach(e => {
+        if (e.m !== 's' || e.ok) return;
+        const k = `${e.n || e.p}｜${e.s || '（未標示步驟）'}`;
+        const g = groups[k] || (groups[k] = { k, n: 0, q: '', t: 0, who: new Set() });
+        g.n++; g.who.add(id); if (e.t >= g.t) { g.t = e.t; g.q = e.q || ''; }
+      }));
+      const top = Object.values(groups).sort((a, b) => b.n - a.n || b.t - a.t).slice(0, 10);
+      $('hard').innerHTML = top.map(g => `<tr><td>${esc(g.k)}<span class="sub">${g.who.size} 台 iPad</span></td><td>${esc(g.q || '—')}</td><td class="num">${g.n}</td></tr>`).join('');
+      $('hard-empty').hidden = top.length > 0;
+    }
+
+    /* ---------- 設定 ---------- */
+    function setupLink(name) { return `${location.origin}${location.pathname.replace(/[^/]*$/, '')}setup.html#room=${room}&name=${encodeURIComponent(name)}`; }
+    function drawSetup() {
+      $('links').innerHTML = names().map((n, i) => `<div class="link-row"><span>${esc(n)}</span><code id="link-${i}">${esc(setupLink(n))}</code><span style="display:flex;gap:6px"><button type="button" class="btn" data-copy="link-${i}">複製</button><button type="button" class="btn danger" data-remove="${i}" aria-label="移除 ${esc(n)}">✕</button></span></div>`).join('');
+      $('monitor-link').textContent = `${location.origin}${location.pathname}#room=${room}`;
+    }
+    function copy(text) {
+      const done = () => { $('setup-msg').textContent = '已複製。'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, () => prompt('請長按複製：', text));
+      else prompt('請長按複製：', text);
+    }
+    document.addEventListener('click', e => {
+      const c = e.target.closest('[data-copy]'); if (c) copy($(c.dataset.copy).textContent);
+      const r = e.target.closest('[data-remove]');
+      if (r) { const list = names(); list.splice(Number(r.dataset.remove), 1); saveNames(list.length ? list : DEFAULT_NAMES); drawSetup(); }
+    });
+    $('add-name').addEventListener('click', () => {
+      const n = $('new-name').value.trim().slice(0, 20); if (!n) return;
+      const list = names(); if (!list.includes(n)) list.push(n); saveNames(list); $('new-name').value = ''; drawSetup();
+    });
+    $('toggle-setup').addEventListener('click', () => { if (!room) return; $('setup').hidden = !$('setup').hidden; if (!$('setup').hidden) drawSetup(); });
+    $('create-room').addEventListener('click', () => { localStorage.setItem(KEY, randomCode()); start(); $('setup').hidden = false; drawSetup(); });
+    $('use-room').addEventListener('click', () => {
+      const v = $('paste-room').value.trim();
+      if (!validRoom(v)) { $('first-error').textContent = '代碼要是 20～40 個英文字母或數字。'; return; }
+      localStorage.setItem(KEY, v); start();
+    });
+    $('forget').addEventListener('click', () => {
+      if (!confirm('在這台裝置登出監控頁？（資料不會刪除，之後可再貼上代碼回來）')) return;
+      localStorage.removeItem(KEY); stop(); room = null; start();
+    });
+    $('prune').addEventListener('click', () => {
+      const cut = dayKey(new Date(Date.now() - 60 * 864e5));
+      fetch(`${CLOUD}/${room}/log.json?shallow=true`).then(r => r.json()).then(days => {
+        const old = Object.keys(days || {}).filter(d => d < cut);
+        if (!old.length) { $('setup-msg').textContent = '沒有 60 天前的紀錄。'; return; }
+        if (!confirm(`要刪除 ${old.length} 天的舊紀錄（${old[0]}～${old[old.length - 1]}）嗎？刪除後無法復原。`)) return;
+        return Promise.all(old.map(d => fetch(`${CLOUD}/${room}/log/${d}.json`, { method: 'DELETE' }))).then(() => { $('setup-msg').textContent = `已刪除 ${old.length} 天的舊紀錄。`; });
+      }).catch(() => { $('setup-msg').textContent = '刪除失敗，請稍後再試。'; });
+    });
+    $('day').addEventListener('change', () => { if (!$('day').value) $('day').value = today(); watch(); });
+    /* 過了午夜自動換到新的一天；在線燈號每 30 秒重新判斷 */
+    setInterval(() => {
+      if (!room) return;
+      if ($('day').dataset.today !== today()) { const follow = $('day').value === $('day').dataset.today; $('day').dataset.today = today(); $('day').max = today(); if (follow) { $('day').value = today(); watch(); return; } }
+      queue();
+    }, 30000);
+
+    function start() {
+      room = loadRoom();
+      $('first-run').hidden = !!room; $('board').hidden = !room; $('toggle-setup').hidden = !room;
+      if (!room) { conn('未設定'); return; }
+      $('day').value = today(); $('day').max = today(); $('day').dataset.today = today();
+      watch();
+    }
+    start();
+  })();
+  </script>
+</body>
+</html>
