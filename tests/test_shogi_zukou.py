@@ -40,6 +40,10 @@ class ShogiZukouTest(unittest.TestCase):
         self.assertEqual(out.returncode, 0, out.stderr)
         self.assertEqual(json.loads(out.stdout), [100, True, []])
 
+    def test_sandbox_mode_exists(self):
+        for text in ('data-act="sandbox"', "沙盤推演", 'data-act="sbundo"', 'data-act="sbreset"', 'data-act="sborig"', "function sbCommit"):
+            self.assertIn(text, PAGE)
+
     def test_problem_picker_exists(self):
         for text in ("pickList", 'data-act="pickl"', "function load(no)"):
             self.assertIn(text, PAGE)
