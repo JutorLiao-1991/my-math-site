@@ -203,7 +203,7 @@ test('worker script answers think requests with the same protocol the page uses'
   delete require.cache[require.resolve('../games/gomoku_audio.js')];
   require('../games/gomoku_audio.js');
   const AU = global.window.GomokuAudio;
-  for (const type of ['place', 'tap', 'preview', 'dice', 'six', 'cheat', 'flip', 'warn', 'undo', 'error', 'win', 'lose', 'draw', 'cheatwin', 'nope']) AU.sfx(type, type === 'place' ? 2 : undefined);
+  for (const type of ['place', 'tap', 'preview', 'dice', 'six', 'cheat', 'flip', 'tick', 'lock', 'warn', 'undo', 'error', 'win', 'lose', 'draw', 'cheatwin', 'nope']) AU.sfx(type, type === 'place' ? 2 : undefined);
   AU.music(true);
   await new Promise(r => setTimeout(r, 60));
   assert.ok(timers.length >= 1, 'music scheduler started');

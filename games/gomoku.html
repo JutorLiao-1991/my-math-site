@@ -116,6 +116,14 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 #banner{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);opacity:0;pointer-events:none;padding:12px 22px;border-radius:14px;background:var(--ver);color:#fff;border:3px solid #7d2015;font:900 clamp(20px,6vw,32px) var(--serif);letter-spacing:.2em;white-space:nowrap;box-shadow:0 12px 30px #0006}
 #banner.show{animation:ban 1.5s ease-out both}
 @keyframes ban{0%{opacity:0;transform:translate(-50%,-50%) scale(.5) rotate(-6deg)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.12) rotate(2deg)}25%{transform:translate(-50%,-50%) scale(1) rotate(0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+#doom{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#1b356155;border-radius:8px;z-index:3}
+#doom[hidden]{display:none}
+#doom .dbox{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 20px;border-radius:16px;background:#fffaf0;border:2.5px solid #2c4f86;box-shadow:0 14px 30px #0007;animation:doomIn .35s cubic-bezier(.2,1.6,.4,1) both;text-align:center}
+#doom .dbox b{font:900 clamp(22px,6vw,30px) var(--serif);letter-spacing:.18em;color:#2c4f86}
+#doom .dbox span{font-size:14px;color:var(--ink2);line-height:1.6}
+#doom .btn{margin-top:4px;padding:12px 26px;font-size:17px;background:#2c4f86;border-color:#1b3561;color:#fff;box-shadow:0 3px 0 #1b3561;animation:doomPulse 1s ease-in-out infinite}
+@keyframes doomIn{from{opacity:0;transform:scale(.6) rotate(-4deg)}to{opacity:1;transform:none}}
+@keyframes doomPulse{50%{transform:scale(1.06)}}
 #mark{text-align:center;margin-top:14px;font:900 12px var(--serif);letter-spacing:.6em;color:#b9a98a}
 /* 彈出視窗 */
 #modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:14px;background:#2a1f1499;backdrop-filter:blur(3px)}
@@ -177,6 +185,7 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
   <section id="boardWrap">
    <canvas id="board" aria-label="五子棋棋盤"></canvas>
    <div id="banner" role="status"></div>
+   <div id="doom" hidden><div class="dbox"><b>🎲 蛇眼！</b><span>雙一點：鳩特要隨機翻掉你一顆棋……</span><button class="btn" id="doomBtn">我完蛋了</button></div></div>
   </section>
   <div id="me" class="card side"></div>
   <div id="lessonBox" class="side" hidden>
@@ -230,9 +239,9 @@ const faceName = c => (c === 1 ? '黑' : '白');
 let G = null;
 function newGame(o, started) {
   G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me: o.me, ai: 3 - o.me, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
-        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, ones: 0, nextRoll: null, curRoll: null, rolling: false, flp: null, flipped: [], hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
+        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, ones: 0, nextRoll: null, curRoll: null, rolling: false, flp: null, flipped: [], sel: -1, flipFx: null, hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
-  $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards');
+  $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards'); $('doom').hidden = true;
   woodCache = null; layout();
   return G;
 }
@@ -301,6 +310,19 @@ function stone(g, x, y, r, white, alpha) {
   g.fillStyle = gr; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.lineWidth = dpr; g.strokeStyle = white ? 'rgba(120,100,60,.5)' : 'rgba(0,0,0,.6)'; g.stroke(); g.restore();
 }
 function ring(p, color, rr, lw) { const [x, y] = pxy(p); cx.strokeStyle = color; cx.lineWidth = lw * dpr; cx.beginPath(); cx.arc(x, y, rr * CELL * dpr, 0, 7); cx.stroke(); }
+/* 黑白棋式翻面：棋子抬起、沿直徑翻轉，過半時換成另一面的顏色 */
+function flipStone(x, y, r, fx, k) {
+  const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2, ang = Math.PI * e, sx = Math.cos(ang), lift = Math.sin(ang);
+  const white = (sx >= 0 ? fx.from : fx.to) === 2;
+  cx.save();
+  cx.fillStyle = `rgba(30,15,3,${.25 * (1 - lift * .5)})`; cx.beginPath(); cx.ellipse(x + r * (.1 + lift * .35), y + r * (.2 + lift * .45), r * (.9 + lift * .2), r * (.8 + lift * .15), 0, 0, 7); cx.fill();
+  cx.translate(x, y - r * lift * .55); cx.rotate(-.5); cx.scale(Math.max(.04, Math.abs(sx)), 1); cx.rotate(.5);
+  const R = r * (1 + lift * .28);
+  // 棋子的側邊（厚度）
+  cx.fillStyle = white ? '#b8ad93' : '#000'; cx.beginPath(); cx.arc(sx >= 0 ? R * .09 : -R * .09, 0, R, 0, 7); cx.fill();
+  stone(cx, 0, 0, R, white, 1);
+  cx.restore();
+}
 function draw() {
   if (!G || !cv.width) return;
   const S = G.S, W = cv.width, now = performance.now();
@@ -334,6 +356,8 @@ function draw() {
     const [x, y] = pxy(p), an = G.anims.find(a => a.p === p);
     let sc = 1, al = 1;
     if (an) { const k = Math.min(1, (now - an.t0) / 200); sc = 1.5 - .5 * k * (2 - k); al = Math.min(1, k * 2.2); }
+    const fx = G.flipFx;
+    if (fx && fx.p === p && now - fx.t0 < fx.dur) { flipStone(x, y, r, fx, (now - fx.t0) / fx.dur); continue; }
     stone(cx, x, y, r * sc, b[p] === 2, al);
   }
   // 最後一手與獲勝連線
@@ -343,7 +367,9 @@ function draw() {
     for (const ln of G.lines) { const [x1, y1] = pxy(ln[0]), [x2, y2] = pxy(ln[4]); cx.beginPath(); cx.moveTo(x1, y1); cx.lineTo(x2, y2); cx.stroke(); }
     const seen = new Set(); for (const ln of G.lines) for (const p of ln) if (!seen.has(p)) { seen.add(p); ring(p, 'rgba(224,68,47,.95)', .5, 2.4); }
   }
-  for (const p of (G.flipped || [])) if (!G.over) ring(p, 'rgba(44,79,134,.9)', .5, 2.6);
+  for (const p of (G.flipped || [])) if (!G.over && !(G.flipFx && now - G.flipFx.t0 < G.flipFx.dur)) ring(p, 'rgba(44,79,134,.9)', .5, 2.6);
+  if (G.sel >= 0) { const pul = .5 + .5 * Math.sin(now / 70); ring(G.sel, `rgba(194,59,42,${.75 + .25 * pul})`, .62 + .05 * pul, 3.4); ring(G.sel, 'rgba(255,214,90,.95)', .5, 2); }
+  if (G.flipFx) { const e = (now - G.flipFx.t0 - G.flipFx.dur) / 450; if (e >= 0 && e < 1) { const [x, y] = pxy(G.flipFx.p); cx.strokeStyle = `rgba(255,214,90,${1 - e})`; cx.lineWidth = dpr * 3 * (1 - e); cx.beginPath(); cx.arc(x, y, CELL * dpr * (.5 + e * .9), 0, 7); cx.stroke(); } }
   if (G.lesson) lessonOver(now);
   // 落子預覽
   const gp = G.ghost >= 0 ? G.ghost : (G.hover >= 0 && myTurn() ? G.hover : -1);
@@ -352,7 +378,7 @@ function draw() {
     if (G.ghost >= 0) { cx.strokeStyle = 'rgba(44,79,134,.85)'; cx.lineWidth = dpr * 1.6; cx.beginPath(); cx.arc(x, y, r * 1.25, 0, 7); cx.stroke(); }
   }
   G.anims = G.anims.filter(a => now - a.t0 < 220);
-  const animating = G.anims.length || lessonAnim() || ((G.hint >= 0 || (cfg.warn && G.warn.length && turnColor() === G.me)) && G.started && !G.over);
+  const animating = G.anims.length || lessonAnim() || G.sel >= 0 || (G.flipFx && now - G.flipFx.t0 < G.flipFx.dur + 450) || ((G.hint >= 0 || (cfg.warn && G.warn.length && turnColor() === G.me)) && G.started && !G.over);
   if (animating && !raf) raf = requestAnimationFrame(() => { raf = 0; draw(); });
 }
 window.addEventListener('resize', layout);
@@ -416,6 +442,31 @@ async function animRoll(d, guard) {
   if (!guard()) return false;
   showFaces(d); markDice(d); return true;
 }
+/* 蛇眼特效：玩家先按「我完蛋了」，再隨機圈選約 2 秒，停在被翻的棋子，最後做黑白棋翻面 */
+function doomAsk(guard) {
+  const el = $('doom'), btn = $('doomBtn'); el.hidden = false; AU.sfx('warn');
+  return new Promise(res => {
+    const done = ok => { clearInterval(iv); btn.onclick = null; el.hidden = true; res(ok); };
+    const iv = setInterval(() => { if (!guard()) done(false); }, 150);
+    btn.onclick = () => { AU.unlock(); AU.sfx('tap'); done(true); };
+  });
+}
+async function snakeFx(cands, target, from, to, guard, apply) {
+  if (!(await doomAsk(guard)) || !guard()) return false;
+  const T = 2000, t0 = performance.now(), n = cands.length; let k = Math.floor(Math.random() * n);
+  while (performance.now() - t0 < T - 120) {
+    const f = (performance.now() - t0) / T;
+    if (n > 1) k = (k + 1 + Math.floor(Math.random() * (n - 1))) % n;   // 每次換到不同的棋子
+    G.sel = cands[k]; AU.sfx('tick'); draw();
+    await sleep(50 + 230 * f * f);
+    if (!guard()) { G.sel = -1; return false; }
+  }
+  G.sel = target; AU.sfx('lock'); draw(); await sleep(650); if (!guard()) { G.sel = -1; return false; }
+  G.sel = -1; apply();
+  G.flipFx = { p: target, t0: performance.now(), from, to, dur: 760 }; AU.sfx('flip'); draw();
+  await sleep(380); AU.sfx('place', to); await sleep(900);
+  return guard();
+}
 /* 蛇眼：從玩家的棋子裡隨機挑一顆翻成鳩特的顏色（沒有任何限制） */
 function pickFlip() {
   const mine = stonesOf(G.turns).filter(x => x[1] === G.me);
@@ -455,8 +506,9 @@ async function aiTurn() {
       G.ones++; AU.sfx('six'); await sleep(300); if (!alive()) return;
       const p = pickFlip();
       if (p >= 0) {
-        banner('蛇眼！翻你一顆棋'); G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; G.anims.push({ p, t0: performance.now() }); AU.sfx('flip'); draw(); await sleep(1100);
-        if (!alive()) return;
+        banner('蛇眼！翻你一顆棋'); setStatus('蛇眼！按「我完蛋了」，看鳩特翻掉哪一顆', 'warn'); await sleep(700); if (!alive()) return;
+        const cands = stonesOf(G.turns).filter(x => x[1] === G.me).map(x => x[0]);
+        if (!(await snakeFx(cands, p, G.me, c, alive, () => { G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; }))) return;
         if (G.pos.won(c)) { G.busy = false; G.over = true; G.winner = c; endTurn(c, [], d, fl); return; }
       } else { toast('蛇眼落空：沒有適合翻面的棋'); await sleep(700); }
     } else await sleep(380);
@@ -586,7 +638,7 @@ function finish() {
   setTimeout(() => {
     if (G !== game) return;
     const title = drawn ? '和棋' : win ? '勝利' : '敗北', cls = drawn ? 'draw' : win ? 'win' : 'lose';
-    let line = drawn ? '棋盤下滿了，不分勝負。' : win ? (cheat() ? '你識破了作弊鳩特！' : `你先連成${NN[G.N - 1]}條，贏了！`) : (cheat() && (G.sixes || G.ones) ? `作弊鳩特這局擲出雙六 ${G.sixes} 次、蛇眼 ${G.ones} 次，下次留意它預告的骰子！` : '鳩特先達成目標，再接再厲。');
+    let line = drawn ? '棋盤下滿了，不分勝負。' : win ? (cheat() ? '你識破了作弊鳩特！' : `你先連成${NN[G.N - 1]}條，贏了！`) : (cheat() && (G.sixes || G.ones) ? `作弊鳩特這局擲出雙六 ${G.sixes} 次、蛇眼 ${G.ones} 次，下次小心它的骰子！` : '鳩特先達成目標，再接再厲。');
     modal(`<div class="finish ${cls}"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">${title}</div><p>${line}</p>
       <div class="fstat"><div><b>${G.turns.length}</b><span>總手數</span></div><div><b>${G.pos.cnt[G.me - 1]}/${G.N}</b><span>你的條數</span></div><div><b>${G.pos.cnt[G.ai - 1]}/${G.N}</b><span>鳩特的條數</span></div></div>
       ${win ? '<div id="rkBox"><p class="note">讀取榮譽榜中…</p></div>' : ''}
@@ -680,7 +732,7 @@ function lessonStart(i) {
 function setBoard(stones) {
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
   for (const [x, y, c] of stones) G.pos.place(y * G.S + x, c);
-  G.over = false; G.winner = 0; G.lines = []; G.last = []; G.anims = []; G.ghost = -1; G.hint = -1; G.warn = []; G.flipped = [];
+  G.over = false; G.winner = 0; G.lines = []; G.last = []; G.anims = []; G.ghost = -1; G.hint = -1; G.warn = []; G.flipped = []; G.sel = -1; G.flipFx = null; $('doom').hidden = true;
   G.fb = G.renju ? E.forbiddenCells(G.pos) : [];
 }
 const lput = (x, y, c) => { const ls = G.lesson; ls.cur.push([x, y, c]); ls.gc = null; if (G.renju) G.fb = E.forbiddenCells(G.pos); };
@@ -758,9 +810,10 @@ async function lessonDemo(s) {
   G.rolling = false; ['die', 'die2'].forEach(id => $(id).classList.remove('rolling')); ls.roll = fin; showFaces(fin); markDice(fin); AU.sfx('six');
   await sleep(350); if (!lAlive(game, tok)) return;
   if (dm.kind === 'one') {
-    banner('蛇眼！翻你一顆棋'); AU.sfx('flip'); await sleep(900); if (!lAlive(game, tok)) return;
-    const [fx, fy] = dm.flip; ls.cur = ls.cur.map(a => (a[0] === fx && a[1] === fy ? [fx, fy, 2] : a)); setBoard(ls.cur);
-    G.anims.push({ p: fy * S + fx, t0: performance.now() }); G.flipped = [fy * S + fx]; draw(); await sleep(700);
+    banner('蛇眼！翻你一顆棋'); await sleep(900); if (!lAlive(game, tok)) return;
+    const [fx, fy] = dm.flip, cands = ls.cur.filter(a => a[2] === 1).map(a => a[1] * S + a[0]);
+    const ok = await snakeFx(cands, fy * S + fx, 1, 2, () => lAlive(game, tok), () => { ls.cur = ls.cur.map(a => (a[0] === fx && a[1] === fy ? [fx, fy, 2] : a)); setBoard(ls.cur); G.flipped = [fy * S + fx]; });
+    if (!ok) return;
   } else {
     banner('作弊！雙六，一次下兩子'); AU.sfx('cheat'); await sleep(900); if (!lAlive(game, tok)) return;
     for (const [x, y, c] of dm.stones) { lput(x, y, c); G.last = [y * S + x]; putStone(c, y * S + x); draw(); await sleep(520); if (!lAlive(game, tok)) return; }
