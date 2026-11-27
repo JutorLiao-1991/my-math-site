@@ -75,6 +75,15 @@ const lessonData = [
         desc: "和紙與朱印風的數獨：幼年鳩特到大師鳩特四種難度，每題保證只靠推理解開；題目有種子碼可以和同學比同一題，提示會先講破題點再說明原因，附七課新手教學與每日挑戰榮譽榜。"
     },
     {
+        title: "鳩特五子棋",
+        category: "games",
+        url: "games/gomoku.html",
+        thumb: "games/thumbs/gomoku.svg",
+        tagClass: "game",
+        tagName: "益智遊戲",
+        desc: "榧木棋盤上的五子棋：獲勝條件可選連一到連五條（六子連線算兩條）、9／15／19 路棋盤、連珠禁手規則；對手從幼年到成年鳩特，最頂級的作弊鳩特每次下子前會擲骰，擲到六點一次下兩子！附筝與笛的配樂。"
+    },
+    {
         title: "九九乘法試煉（二年級）",
         category: "elementary",
         grades: [2],
