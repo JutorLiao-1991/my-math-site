@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>鳩特數理｜速率（六年級）</title>
+  <link rel="stylesheet" href="elementary_theme.css">
+  <link rel="stylesheet" href="paper_practice.css">
+  <link rel="stylesheet" href="paper_split_layout.css">
+  <link rel="stylesheet" href="rate_grade6.css">
+  <script src="ratio_questions_grade6.js" defer></script>
+  <script src="ratio_input_grade6.js" defer></script>
+  <script src="paper_exam_status.js" defer></script>
+  <script src="rate_questions_grade6.js" defer></script>
+  <script src="rate_menu_grade6.js" defer></script>
+  <script src="paper_practice.js" defer></script>
+<script src="../battle_log.js"></script>
+<script src="../scratchpad.js" defer></script>
+<script src="../stem_pin.js" defer></script>
+<script src="../answer_sounds.js"></script>
+<script src="../page_views.js" defer></script>
+</head>
+<body class="split">
+<header class="nav-bar"><a href="../index.html" class="back-btn">⬅ 回主選單</a><h1 class="page-title">🚄 速率（六年級）</h1><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></header>
+<main class="main-wrapper">
+  <section class="panel" id="work-panel" aria-label="作答區">
+    <div class="welcome" id="welcome"><h2>先統一單位，再決定乘或除</h2><p>速率＝距離÷時間<br>時間＝距離÷速率<br>距離＝速率×時間</p><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式，開始練習</button></div>
+    <div class="session-bar" id="game-status" hidden><div class="stats-header"><span id="question-number"></span><span id="timer" hidden></span></div><div id="exam-overview" hidden>
+      <div class="exam-jump" id="exam-jump" aria-label="測驗題號"></div>
+      <div class="exam-tools"><button type="button" class="secondary-btn review-toggle" id="mark-review" aria-pressed="false">標記待檢查</button><span class="exam-status" id="answer-status" aria-live="polite"></span></div>
+      <div class="exam-legend" aria-label="題號顏色說明"><span><i class="legend-dot"></i>白色：未作答</span><span><i class="legend-dot partial"></i>淡黃色：部分作答</span><span><i class="legend-dot answered"></i>淡綠色：已填完</span><span><i class="legend-dot flagged"></i>紫色：待檢查</span></div>
+      <p class="exam-summary" id="exam-summary"></p>
+    </div></div>
+    <div id="workspace" hidden><div class="meta"><span id="mode-label"></span><span id="category-label"></span></div><p class="question" id="question-text"></p><div class="figure-box" id="figure-box" hidden></div><div id="steps"></div><button type="button" class="secondary-btn" id="hint-button" aria-expanded="false" aria-controls="hint">看提示</button><p class="hint" id="hint" hidden></p></div>
+    <section id="results" hidden aria-label="測驗結果"><h2 id="result-heading">測驗完成</h2><div class="score-display" id="final-score"></div><p id="result-summary"></p><button type="button" class="secondary-btn" id="retry-exam">再測一次</button><div class="review" id="review-list"></div></section>
+    <div class="watermark">Presented by Jutor</div>
+  </section>
+</main>
+<footer class="keyboard-dock" id="keyboard-dock" hidden aria-label="固定作答鍵盤">
+  <div class="dock-inner">
+    <div class="dock-heading"><div class="phase-note" id="phase-note" aria-live="polite"></div><button type="button" class="mode-trigger" data-open-modes aria-haspopup="dialog" aria-controls="mode-dialog">選擇模式</button></div>
+    <div class="numpad" id="numpad"><button type="button" class="num-btn" data-key="1">1</button><button type="button" class="num-btn" data-key="2">2</button><button type="button" class="num-btn" data-key="3">3</button><button type="button" class="num-btn" data-key="delete" aria-label="刪除目前格子的一位">⌫</button><button type="button" class="num-btn" data-key="4">4</button><button type="button" class="num-btn" data-key="5">5</button><button type="button" class="num-btn" data-key="6">6</button><button type="button" class="num-btn" data-key="clear">清除</button><button type="button" class="num-btn" data-key="7">7</button><button type="button" class="num-btn" data-key="8">8</button><button type="button" class="num-btn" data-key="9">9</button><button type="button" class="num-btn" data-key="fraction">分數</button><button type="button" class="num-btn" data-key=".">.</button><button type="button" class="num-btn" data-key="0">0</button><button type="button" class="num-btn" data-key="space">帶分數</button><button type="button" class="num-btn" data-key="next">下一格</button></div>
+    <div class="dock-actions"><p class="feedback" id="feedback" aria-live="polite"></p><p class="key-hint" id="key-hint">點選整數、分子或分母的格子，便可直接填寫或修改。</p><button type="button" class="primary-action" id="check-answer">確認這一步</button><button type="button" class="primary-action" id="next-question" hidden>下一題</button><div class="minor-actions" id="exam-actions" hidden><button type="button" class="secondary-btn" id="previous-question">上一題</button><button type="button" class="secondary-btn" id="skip-question">先跳過</button><button type="button" class="secondary-btn" id="finish-exam">交卷</button></div></div>
+  </div>
+</footer>
+<dialog class="mode-dialog" id="mode-dialog" aria-labelledby="mode-dialog-title">
+  <div class="dialog-heading"><h2 id="mode-dialog-title">選擇模式與題型</h2><button type="button" class="secondary-btn" id="close-modes">返回作答</button></div>
+  <h3 class="controls-title">分步練習：先點主題，再選問法</h3>
+  <div class="topic-list">
+    <section class="topic-group" data-topic="topic1"><button type="button" class="topic-btn" id="topic-btn-topic1" aria-expanded="false" aria-controls="topic-panel-topic1"><span>一、時間單位的換算</span><span class="topic-caret" aria-hidden="true">▾</span></button>
+    <div class="menu-grid topic-panel" id="topic-panel-topic1" hidden><button type="button" class="menu-btn" data-type="t1Convert" aria-pressed="false">① 時、分、秒換算</button><button type="button" class="menu-btn" data-type="t1Compare" aria-pressed="false">② 時間比大小</button><button type="button" class="menu-btn wide" data-type="topic1" aria-pressed="false">本主題隨機</button></div></section>
+    <section class="topic-group" data-topic="topic2"><button type="button" class="topic-btn" id="topic-btn-topic2" aria-expanded="false" aria-controls="topic-panel-topic2"><span>二、速率、距離、時間的關係</span><span class="topic-caret" aria-hidden="true">▾</span></button>
+    <div class="menu-grid topic-panel" id="topic-panel-topic2" hidden><button type="button" class="menu-btn" data-type="speed" aria-pressed="false">① 求速率</button><button type="button" class="menu-btn" data-type="time" aria-pressed="false">② 求時間</button><button type="button" class="menu-btn" data-type="dist" aria-pressed="false">③ 求距離</button><button type="button" class="menu-btn" data-type="graph" aria-pressed="false">④ 看圖表（附圖）</button><button type="button" class="menu-btn" data-type="clock" aria-pressed="false">⑤ 出發與到達時刻</button><button type="button" class="menu-btn" data-type="twoStage" aria-pressed="false">⑥ 先求速率或路程，再求時間</button><button type="button" class="menu-btn" data-type="echo" aria-pressed="false">★ 回聲測距</button><button type="button" class="menu-btn" data-type="earlier" aria-pressed="false">★ 提早到達要加快多少</button><button type="button" class="menu-btn wide" data-type="topic2" aria-pressed="false">本主題隨機</button></div></section>
+    <section class="topic-group" data-topic="topic3"><button type="button" class="topic-btn" id="topic-btn-topic3" aria-expanded="false" aria-controls="topic-panel-topic3"><span>三、速率單位的換算</span><span class="topic-caret" aria-hidden="true">▾</span></button>
+    <div class="menu-grid topic-panel" id="topic-panel-topic3" hidden><button type="button" class="menu-btn" data-type="unitConvert" aria-pressed="false">① 秒速、分速、時速互換</button><button type="button" class="menu-btn" data-type="unitCompare" aria-pressed="false">② 比快慢</button><button type="button" class="menu-btn wide" data-type="topic3" aria-pressed="false">本主題隨機</button></div></section>
+    <section class="topic-group" data-topic="topic4"><button type="button" class="topic-btn" id="topic-btn-topic4" aria-expanded="false" aria-controls="topic-panel-topic4"><span>四、速率的應用</span><span class="topic-caret" aria-hidden="true">▾</span></button>
+    <div class="menu-grid topic-panel" id="topic-panel-topic4" hidden><button type="button" class="menu-btn" data-type="apart" aria-pressed="false">① 相距（同向、反向）</button><button type="button" class="menu-btn" data-type="meet" aria-pressed="false">② 相遇：相向而行</button><button type="button" class="menu-btn" data-type="ring" aria-pressed="false">③ 相遇：環形跑道</button><button type="button" class="menu-btn" data-type="remain" aria-pressed="false">④ 相遇：一人先到</button><button type="button" class="menu-btn" data-type="roundTrip" aria-pressed="false">⑤ 來回的平均速率</button><button type="button" class="menu-btn" data-type="threePlace" aria-pressed="false">⑥ 三地的平均速率（附圖）</button><button type="button" class="menu-btn" data-type="flow" aria-pressed="false">⑦ ※流水問題</button><button type="button" class="menu-btn" data-type="chase" aria-pressed="false">⑧ ※追趕問題</button><button type="button" class="menu-btn" data-type="segment" aria-pressed="false">★ 分段行駛求總時間</button><button type="button" class="menu-btn" data-type="ringReverse" aria-pressed="false">★ 環形跑道反求速率</button><button type="button" class="menu-btn" data-type="drift" aria-pressed="false">※★ 故障後被水沖回</button><button type="button" class="menu-btn wide" data-type="topic4" aria-pressed="false">本主題隨機</button></div></section>
+  </div>
+  <h3 class="controls-title">觀念題與綜合</h3>
+  <div class="menu-grid"><button type="button" class="menu-btn" data-type="judge" aria-pressed="false">是非判斷</button><button type="button" class="menu-btn" data-type="choice" aria-pressed="false">選擇題</button><button type="button" class="menu-btn wide" data-type="mixed" aria-pressed="false">綜合練習</button></div>
+  <label class="star-toggle"><input type="checkbox" id="include-star"> 隨機出題含 ※ 題（流水、追趕）</label>
+  <p class="exam-description">★ 為進階問法，只在點選時出現，不會出現在隨機練習與測驗。勾選上面的選項後，「本主題隨機」「綜合練習」「綜合測驗」才會出現 ※ 題。</p>
+  <h3 class="controls-title">測驗模式</h3>
+  <button type="button" class="menu-btn" id="start-exam">綜合測驗（10 題）</button>
+  <p class="exam-description">時間換算 1 題、求速率／時間／距離 2 題、看圖表 1 題、速率換算 1 題、比快慢 1 題、相距與相遇 2 題、平均速率 1 題、是非或選擇 1 題；勾選含 ※ 題時，相距與相遇其中 1 題改為流水或追趕。每題 10 分，限時 10 分鐘，交卷後查看解析。</p>
+  <p id="mode-error" role="status"></p>
+</dialog>
+</body>
+</html>

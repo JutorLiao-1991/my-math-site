@@ -1,0 +1,18 @@
+/* 速率（六年級）專用：四大主題選單、圖表大小 */
+.topic-list { display: grid; gap: 10px; }
+.topic-group { border: 1px solid #dbe4ee; border-radius: 10px; background: #fff; overflow: hidden; }
+.topic-group.open { border-color: #8fc1ee; box-shadow: 0 2px 10px rgba(37,99,168,.08); }
+.topic-btn { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 10px 14px; border: 0; background: #f8fafc; color: #2563a8; font-weight: 700; font-size: 1rem; text-align: left; }
+.topic-group.open .topic-btn { background: #e8f2fb; }
+.topic-caret { transition: transform .2s; }
+.topic-group.open .topic-caret { transform: rotate(180deg); }
+.topic-panel { padding: 10px; }
+.star-toggle { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 12px; font-weight: 700; color: #334155; }
+.star-toggle input { width: 22px; height: 22px; }
+
+/* 折線圖、距離圖放在題幹下方，要看得清楚格線 */
+.figure-box { margin: 0 0 14px; }
+.figure-box .q-graph { display: block; width: min(100%, 420px); height: auto; margin: 0; }
+.figure-box .q-line { display: block; width: min(100%, 340px); height: auto; margin: 0; }
+.review .q-graph { width: min(100%, 300px); }
+.review .q-line { width: min(100%, 280px); }
