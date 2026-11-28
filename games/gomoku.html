@@ -121,6 +121,11 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
 #doom .dbox{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 20px;border-radius:16px;background:#fffaf0;border:2.5px solid #2c4f86;box-shadow:0 14px 30px #0007;animation:doomIn .35s cubic-bezier(.2,1.6,.4,1) both;text-align:center}
 #doom .dbox b{font:900 clamp(22px,6vw,30px) var(--serif);letter-spacing:.18em;color:#2c4f86}
 #doom .dbox span{font-size:14px;color:var(--ink2);line-height:1.6}
+#doom .dbtns{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+#doom .btn[hidden]{display:none}
+#doom .btn.reroll{background:#c23b2a;border-color:#7d2216;box-shadow:0 3px 0 #7d2216;animation:none}
+#doom small{font-size:12px;color:var(--ink2)}
+#doom small[hidden]{display:none}
 #doom .btn{margin-top:4px;padding:12px 26px;font-size:17px;background:#2c4f86;border-color:#1b3561;color:#fff;box-shadow:0 3px 0 #1b3561;animation:doomPulse 1s ease-in-out infinite}
 @keyframes doomIn{from{opacity:0;transform:scale(.6) rotate(-4deg)}to{opacity:1;transform:none}}
 @keyframes doomPulse{50%{transform:scale(1.06)}}
@@ -185,7 +190,7 @@ header h1 small{font:700 11px var(--zh);letter-spacing:.02em;color:var(--ver);wh
   <section id="boardWrap">
    <canvas id="board" aria-label="五子棋棋盤"></canvas>
    <div id="banner" role="status"></div>
-   <div id="doom" hidden><div class="dbox"><b>🎲 蛇眼！</b><span>雙一點：鳩特要隨機翻掉你一顆棋……</span><button class="btn" id="doomBtn">我完蛋了</button></div></div>
+   <div id="doom" hidden><div class="dbox"><b>🎲 蛇眼！</b><span>雙一點：鳩特要隨機翻掉你一顆棋……</span><div class="dbtns"><button class="btn reroll" id="rerollBtn" hidden>要求重骰</button><button class="btn" id="doomBtn">我完蛋了</button></div><small id="rerollNote" hidden>每局只有一次重骰機會，重骰的結果就是最終結果。</small></div></div>
   </section>
   <div id="me" class="card side"></div>
   <div id="lessonBox" class="side" hidden>
@@ -241,7 +246,7 @@ let G = null;
 function newGame(o, started) {
   const pvp = o.pvp !== undefined ? !!o.pvp : o.mode === 'pvp', me = pvp ? 1 : o.me;
   G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me, ai: 3 - me, pvp, dice: pvp && !!o.dice, part: [], turnRoll: null, turnFl: undefined, nextFl: undefined, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
-        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, ones: 0, nextRoll: null, curRoll: null, rolling: false, flp: null, flipped: [], sel: -1, flipFx: null, hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
+        started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, ones: 0, rerolled: false, nextRoll: null, curRoll: null, rolling: false, flp: null, flipped: [], sel: -1, flipFx: null, hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
   $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards'); $('doom').hidden = true;
   woodCache = null; layout();
@@ -251,7 +256,7 @@ const cheat = () => !G.pvp && !!LEVELS[G.level].cheat;
 const turnColor = () => (G.turns.length ? 3 - G.turns[G.turns.length - 1].c : 1);
 const myTurn = () => (G.puz ? !!G.puz.wait && !G.puz.busy : G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
 
-function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, pvp: G.pvp, dice: G.dice, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d, fl: t.fl })), sixes: G.sixes, ones: G.ones, nr: G.nextRoll, hints: G.hints, undos: G.undos }; }
+function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, pvp: G.pvp, dice: G.dice, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d, fl: t.fl })), sixes: G.sixes, ones: G.ones, rr: G.rerolled, nr: G.nextRoll, hints: G.hints, undos: G.undos }; }
 function persist() { if (G.lesson || G.puz) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over || (G.started && !G.turns.length)) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
 function loadSaved() {
   const s = lsGet(GKEY, null);
@@ -271,7 +276,7 @@ function stonesOf(turns, pend) {
 function rebuildPos() { G.pos = E.build(G.S, G.N, G.renju, stonesOf(G.turns, G.flp)); }
 function restore(s) {
   newGame({ S: s.S, N: s.N, renju: s.renju, level: s.level, me: s.me, pvp: !!s.pvp, dice: !!s.dice }, true);
-  G.sixes = s.sixes || 0; G.ones = s.ones || 0; G.hints = s.hints || 0; G.undos = s.undos || 0; G.nextRoll = isRoll(s.nr) ? s.nr : null;
+  G.sixes = s.sixes || 0; G.ones = s.ones || 0; G.rerolled = !!s.rr; G.hints = s.hints || 0; G.undos = s.undos || 0; G.nextRoll = isRoll(s.nr) ? s.nr : null;
   for (const t of s.turns) G.turns.push({ c: t.c, ps: t.ps, d: isRoll(t.d) ? t.d : null, fl: t.fl >= 0 ? t.fl : undefined });
   rebuildPos();
   if (G.pos.won(1)) { G.over = true; G.winner = 1; } else if (G.pos.won(2)) { G.over = true; G.winner = 2; }
@@ -454,16 +459,22 @@ async function animRoll(d, guard) {
   showFaces(d); markDice(d); return true;
 }
 /* 蛇眼特效：玩家先按「我完蛋了」，再隨機圈選約 2 秒，停在被翻的棋子，最後做黑白棋翻面 */
-function doomAsk(guard, msg) {
-  const el = $('doom'), btn = $('doomBtn'); el.querySelector('span').textContent = msg || '雙一點：鳩特要隨機翻掉你一顆棋……'; el.hidden = false; AU.sfx('warn');
+/* 回傳 'ok'（接受）、'reroll'（要求重骰）或 false（對局已中止） */
+function doomAsk(guard, msg, o) {
+  o = o || {};
+  const el = $('doom'), btn = $('doomBtn'), rb = $('rerollBtn');
+  el.querySelector('b').textContent = o.title || '🎲 蛇眼！'; el.querySelector('span').textContent = msg || '雙一點：鳩特要隨機翻掉你一顆棋……';
+  btn.textContent = o.ok || '我完蛋了'; rb.hidden = $('rerollNote').hidden = !o.reroll; el.hidden = false; AU.sfx('warn');
   return new Promise(res => {
-    const done = ok => { clearInterval(iv); btn.onclick = null; el.hidden = true; res(ok); };
+    const done = ok => { clearInterval(iv); btn.onclick = rb.onclick = null; el.hidden = true; res(ok); };
+    rb.onclick = () => { AU.unlock(); AU.sfx('tap'); done('reroll'); };
     const iv = setInterval(() => { if (!guard()) done(false); }, 150);
-    btn.onclick = () => { AU.unlock(); AU.sfx('tap'); done(true); };
+    btn.onclick = () => { AU.unlock(); AU.sfx('tap'); done('ok'); };
   });
 }
-async function snakeFx(cands, target, from, to, guard, apply, msg) {
-  if (!(await doomAsk(guard, msg)) || !guard()) return false;
+async function snakeFx(cands, target, from, to, guard, apply, msg, asked) {
+  if (!asked && !(await doomAsk(guard, msg))) return false;
+  if (!guard()) return false;
   const T = 2000, t0 = performance.now(), n = cands.length; let k = Math.floor(Math.random() * n);
   while (performance.now() - t0 < T - 120) {
     const f = (performance.now() - t0) / T;
@@ -511,15 +522,30 @@ async function aiTurn() {
     d = G.nextRoll || roll2(); G.nextRoll = null;   // nextRoll 只在悔棋後沿用上次的點數，避免靠悔棋重擲
     G.curRoll = d; setStatus('鳩特擲骰子中…', ''); await animRoll(d, alive); if (!alive()) return;
     G.curRoll = d; render();
-    const k = kindOf(d);
-    if (k === 'six') { G.sixes++; AU.sfx('six'); await sleep(300); if (!alive()) return; banner('作弊！雙六，一次下兩子'); AU.sfx('cheat'); await sleep(900); }
+    let k = kindOf(d), asked = false;
+    /* 平衡機制：鳩特作弊成功時，玩家每局有一次「要求重骰」的機會 */
+    if (k && !G.rerolled) {
+      AU.sfx('six'); G.busyMsg = '鳩特作弊成功！要不要要求重骰？'; setStatus(G.busyMsg, 'warn'); await sleep(300); if (!alive()) return;
+      const ans = await doomAsk(alive, k === 'six' ? '鳩特擲出兩個六點，要一次下兩子……' : '雙一點：鳩特要隨機翻掉你一顆棋……', { title: k === 'six' ? '🎲 雙六！' : '🎲 蛇眼！', ok: k === 'six' ? '讓它下吧' : '我完蛋了', reroll: true });
+      G.busyMsg = '';
+      if (!ans || !alive()) return;
+      if (ans === 'reroll') {
+        G.rerolled = true; G.rerollFrom = d; banner('要求重骰！'); render(); await sleep(700); if (!alive()) return;
+        d = roll2(); G.curRoll = d; setStatus('鳩特重新擲骰中…', ''); await animRoll(d, alive); if (!alive()) return;
+        render(); k = kindOf(d);
+        if (!k) { toast('重骰成功，鳩特的作弊沒了！'); AU.sfx('lock'); await sleep(500); }
+        else { toast('重骰還是作弊點數……這次躲不掉了'); await sleep(500); }
+      } else asked = true;
+      if (!alive()) return;
+    }
+    if (k === 'six') { G.sixes++; if (!asked) { AU.sfx('six'); await sleep(300); } if (!alive()) return; banner('作弊！雙六，一次下兩子'); AU.sfx('cheat'); await sleep(900); }
     else if (k === 'one') {
-      G.ones++; AU.sfx('six'); await sleep(300); if (!alive()) return;
+      G.ones++; if (!asked) { AU.sfx('six'); await sleep(300); } if (!alive()) return;
       const p = pickFlip();
       if (p >= 0) {
-        banner('蛇眼！翻你一顆棋'); setStatus('蛇眼！按「我完蛋了」，看鳩特翻掉哪一顆', 'warn'); await sleep(700); if (!alive()) return;
+        banner('蛇眼！翻你一顆棋'); if (!asked) setStatus('蛇眼！按「我完蛋了」，看鳩特翻掉哪一顆', 'warn'); await sleep(700); if (!alive()) return;
         const cands = stonesOf(G.turns).filter(x => x[1] === G.me).map(x => x[0]);
-        if (!(await snakeFx(cands, p, G.me, c, alive, () => { G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; }))) return;
+        if (!(await snakeFx(cands, p, G.me, c, alive, () => { G.flp = { p, c: c }; fl = p; rebuildPos(); G.flipped = [p]; }, null, asked))) return;
         if (G.pos.won(c)) { G.busy = false; G.over = true; G.winner = c; endTurn(c, [], d, fl); return; }
       } else { toast('蛇眼落空：沒有適合翻面的棋'); await sleep(700); }
     } else await sleep(380);
@@ -596,7 +622,7 @@ function cardHtml(c, who) {
   const dots = Array.from({ length: G.N }, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('');
   const av = isAi ? `<img src="thumbs/gomoku_logo.svg" alt="">` : `<svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="19" fill="#f4ecda" stroke="#211c18" stroke-width="1.5"/><text x="20" y="27" text-anchor="middle" font-size="20" font-weight="900" font-family="serif" fill="#c23b2a">你</text></svg>`;
   return `<div class="av">${av}<span class="stone ${c === 1 ? 'b' : 'w'}"></span></div>
-    <div class="who"><b>${isAi ? esc(lv.n) : '你'}</b><small>執${faceName(c)}${c === 1 ? '・先手' : '・後手'}${G.renju && c === 1 ? '・連珠禁手' : ''}</small>
+    <div class="who"><b>${isAi ? esc(lv.n) : '你'}</b><small>執${faceName(c)}${c === 1 ? '・先手' : '・後手'}${G.renju && c === 1 ? '・連珠禁手' : ''}${!isAi && cheat() && !G.lesson ? (G.rerolled ? '・重骰已用' : '・重骰剩 1 次') : ''}</small>
     <div class="prog">${dots}<span>${cnt} / ${G.N} 條</span></div></div>${isAi ? '<div class="dice" id="dice">' + ['die', 'die2'].map(i => `<div class="die" id="${i}">` + '<b></b>'.repeat(9) + '</div>').join('') + '</div>' : ''}`;
 }
 function render() {
@@ -685,7 +711,7 @@ function rules() {
   <p><b>下棋</b>：黑先白後，輪流把棋子下在線的交叉點，下了就不能移動。</p>
   <p><b>怎樣算贏</b>：先達到你設定的「條數」。橫、直、斜任一方向連續五子算一條；六子連線算兩條、七子算三條，依此類推；兩條五子交叉也算兩條。</p>
   <p><b>連珠規則</b>（只在連一條時可選）：黑棋不能下三三、四四、長連（六子以上），下錯位置會被擋下並提醒；剛好連成五子永遠算贏。白棋不受限制。</p>
-  <p><b>作弊鳩特</b>🎲：棋力同青年，但輪到它時會先擲<b>兩顆骰子</b>。<b>雙六</b>（1／36）：一次下兩子，擲到時如果它有三子在同一個五格裡、沒被你擋住，就能直接連成五子！<b>雙一・蛇眼</b>（1／36）：隨機把你的一顆棋翻成它的顏色（黑白棋的概念），沒有任何限制。其他點數沒有特殊效果。</p>
+  <p><b>作弊鳩特</b>🎲：棋力同青年，但輪到它時會先擲<b>兩顆骰子</b>。<b>雙六</b>（1／36）：一次下兩子，擲到時如果它有三子在同一個五格裡、沒被你擋住，就能直接連成五子！<b>雙一・蛇眼</b>（1／36）：隨機把你的一顆棋翻成它的顏色（黑白棋的概念），沒有任何限制。其他點數沒有特殊效果。<b>要求重骰</b>：鳩特擲出雙六或雙一時，你每局有<b>一次</b>機會按「要求重骰」讓它重擲，重擲的點數就是最終結果（悔棋不會把機會還給你）。</p>
   <p><b>單機雙人</b>：兩個人用同一台裝置輪流下，黑方先手。開賽前可以選擇連幾條、是否允許<b>雙方擲骰作弊</b>：每回合輪到的一方先擲兩顆骰子，雙六這回合下兩子，雙一（蛇眼）隨機把對方一顆棋翻成自己的顏色，由被翻的一方按「我完蛋了」。雙人模式的悔棋一次收回一手，骰子點數維持不變。</p>
   <p><b>悔棋</b>：收回你和電腦各一手（作弊鳩特的兩子或翻面一起收回，骰子點數維持不變）。<b>提示</b>：由電腦幫你想一手，棋盤上會出現藍色圈。</p>
   <div class="mbtns"><button class="btn pri" data-act="${G && G.started ? 'back' : 'menu'}">知道了</button></div>`);
