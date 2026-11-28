@@ -39,6 +39,11 @@ class GomokuTests(unittest.TestCase):
         for token in ["殺局挑戰", "限時挑戰", "gm_rank", "gm_battle", "battleRank", "rkPanel", "badName", "puzzleStart", "challengeFinish"]:
             self.assertIn(token, page)
 
+    def test_two_player_mode(self):
+        page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
+        for token in ["單機雙人", "data-md", "pvpTurn", "renderPvp", "finishPvp", "undoPvp", "允許雙方擲骰作弊", "data-opt=\"dice\""]:
+            self.assertIn(token, page)
+
     def test_cheat_level_uses_two_dice(self):
         page = (ROOT / "games/gomoku.html").read_text(encoding="utf-8")
         for token in ["id=\"${i}\"", "pickFlip", "stonesOf", "rebuildPos", "雙六", "蛇眼"]:
