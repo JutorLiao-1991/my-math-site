@@ -228,28 +228,30 @@ const NN = ['一', '兩', '三', '四', '五'];
 const SIZES = [9, 15, 19];
 const SKEY = 'jutor-gomoku-settings-v1', GKEY = 'jutor-gomoku-save-v1', TKEY = 'jutor-gomoku-stats-v1';
 const coarse = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
-const DEF = { level: 1, N: 1, S: 15, me: 1, renju: false, confirm: coarse, warn: true, sfx: true, music: true };
+const DEF = { mode: 'ai', dice: false, level: 1, N: 1, S: 15, me: 1, renju: false, confirm: coarse, warn: true, sfx: true, music: true };
 function lsGet(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v === null || v === undefined ? d : v; } catch (e) { return d; } }
 function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* 無法儲存就算了 */ } }
 const cfg = Object.assign({}, DEF, lsGet(SKEY, {}));
 function saveCfg() { lsSet(SKEY, cfg); }
 const faceName = c => (c === 1 ? '黑' : '白');
+const side = c => (c === 1 ? '黑方' : '白方');
 
 /* ---------- 對局狀態 ---------- */
 let G = null;
 function newGame(o, started) {
-  G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me: o.me, ai: 3 - o.me, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
+  const pvp = o.pvp !== undefined ? !!o.pvp : o.mode === 'pvp', me = pvp ? 1 : o.me;
+  G = { S: o.S, N: o.N, renju: !!o.renju && o.N === 1, level: o.level, me, ai: 3 - me, pvp, dice: pvp && !!o.dice, part: [], turnRoll: null, turnFl: undefined, nextFl: undefined, pos: null, turns: [], over: false, winner: 0, busy: false, token: Math.random(),
         started: !!started, last: [], lines: [], hint: -1, ghost: -1, hover: -1, fb: [], warn: [], sixes: 0, ones: 0, nextRoll: null, curRoll: null, rolling: false, flp: null, flipped: [], sel: -1, flipFx: null, hints: 0, undos: 0, anims: [], status: '', statusCls: '' };
   G.pos = new E.Pos(G.S, G.N, { renju: G.renju });
   $('lessonBox').hidden = true; $('play').classList.remove('lesson', 'lcards'); $('doom').hidden = true;
   woodCache = null; layout();
   return G;
 }
-const cheat = () => LEVELS[G.level].cheat;
+const cheat = () => !G.pvp && !!LEVELS[G.level].cheat;
 const turnColor = () => (G.turns.length ? 3 - G.turns[G.turns.length - 1].c : 1);
 const myTurn = () => (G.puz ? !!G.puz.wait && !G.puz.busy : G.lesson ? !!G.lesson.wait && !G.lesson.busy : G.started && !G.over && !G.busy && turnColor() === G.me);
 
-function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d, fl: t.fl })), sixes: G.sixes, ones: G.ones, nr: G.nextRoll, hints: G.hints, undos: G.undos }; }
+function serialize() { return { S: G.S, N: G.N, renju: G.renju, level: G.level, me: G.me, pvp: G.pvp, dice: G.dice, turns: G.turns.map(t => ({ c: t.c, ps: t.ps, d: t.d, fl: t.fl })), sixes: G.sixes, ones: G.ones, nr: G.nextRoll, hints: G.hints, undos: G.undos }; }
 function persist() { if (G.lesson || G.puz) return; if (G.started && !G.over && G.turns.length) lsSet(GKEY, serialize()); else if (G.over || (G.started && !G.turns.length)) { try { localStorage.removeItem(GKEY); } catch (e) { /* ignore */ } } }
 function loadSaved() {
   const s = lsGet(GKEY, null);
@@ -268,12 +270,13 @@ function stonesOf(turns, pend) {
 }
 function rebuildPos() { G.pos = E.build(G.S, G.N, G.renju, stonesOf(G.turns, G.flp)); }
 function restore(s) {
-  newGame({ S: s.S, N: s.N, renju: s.renju, level: s.level, me: s.me }, true);
+  newGame({ S: s.S, N: s.N, renju: s.renju, level: s.level, me: s.me, pvp: !!s.pvp, dice: !!s.dice }, true);
   G.sixes = s.sixes || 0; G.ones = s.ones || 0; G.hints = s.hints || 0; G.undos = s.undos || 0; G.nextRoll = isRoll(s.nr) ? s.nr : null;
   for (const t of s.turns) G.turns.push({ c: t.c, ps: t.ps, d: isRoll(t.d) ? t.d : null, fl: t.fl >= 0 ? t.fl : undefined });
   rebuildPos();
   if (G.pos.won(1)) { G.over = true; G.winner = 1; } else if (G.pos.won(2)) { G.over = true; G.winner = 2; }
   G.last = G.turns[G.turns.length - 1].ps.slice();
+  if (G.pvp) { const lt = G.turns[G.turns.length - 1]; G.me = G.over ? lt.c : turnColor(); G.ai = 3 - G.me; G.flipped = lt.fl >= 0 ? [lt.fl] : []; }
 }
 
 /* ---------- 畫布 ---------- */
@@ -414,14 +417,22 @@ function putStone(c, p) {
 }
 function endTurn(c, ps, d, fl) {
   G.turns.push({ c, ps, d: isRoll(d) ? d : null, fl }); G.last = ps.slice(); G.hint = -1; G.ghost = -1; G.flp = null; G.curRoll = null;
-  if (c === G.me) G.flipped = [];
+  if (G.pvp) G.flipped = fl >= 0 ? [fl] : [];
+  else if (c === G.me) G.flipped = [];
   if (!G.over && G.pos.full()) { G.over = true; G.winner = 0; }
+  if (G.pvp) { G.part = []; G.turnRoll = null; G.turnFl = undefined; G.nextRoll = null; G.nextFl = undefined; if (!G.over) { G.me = 3 - c; G.ai = c; } }
   refreshThreats(); persist(); render(); draw();
   if (G.over) { finish(); return; }
+  if (G.pvp) pvpTurn();
 }
 function playerMove(p) {
   const c = G.me;
   if (G.renju && c === 1 && E.forbidden(G.pos, p, 0)) { G.ghost = -1; toast('禁手！黑棋不能下在這裡（三三、四四或長連）'); AU.sfx('error'); draw(); return; }
+  if (G.pvp) {
+    const won = putStone(c, p); G.part.push(p);
+    if (!won && kindOf(G.turnRoll) === 'six' && G.part.length < 2 && !G.pos.full()) { G.ghost = -1; G.hint = -1; G.last = G.part.slice(); refreshThreats(); render(); draw(); return; }
+    endTurn(c, G.part.slice(), G.turnRoll, G.turnFl); return;
+  }
   putStone(c, p); endTurn(c, [p], null);
   if (!G.over) aiTurn();
 }
@@ -443,16 +454,16 @@ async function animRoll(d, guard) {
   showFaces(d); markDice(d); return true;
 }
 /* 蛇眼特效：玩家先按「我完蛋了」，再隨機圈選約 2 秒，停在被翻的棋子，最後做黑白棋翻面 */
-function doomAsk(guard) {
-  const el = $('doom'), btn = $('doomBtn'); el.hidden = false; AU.sfx('warn');
+function doomAsk(guard, msg) {
+  const el = $('doom'), btn = $('doomBtn'); el.querySelector('span').textContent = msg || '雙一點：鳩特要隨機翻掉你一顆棋……'; el.hidden = false; AU.sfx('warn');
   return new Promise(res => {
     const done = ok => { clearInterval(iv); btn.onclick = null; el.hidden = true; res(ok); };
     const iv = setInterval(() => { if (!guard()) done(false); }, 150);
     btn.onclick = () => { AU.unlock(); AU.sfx('tap'); done(true); };
   });
 }
-async function snakeFx(cands, target, from, to, guard, apply) {
-  if (!(await doomAsk(guard)) || !guard()) return false;
+async function snakeFx(cands, target, from, to, guard, apply, msg) {
+  if (!(await doomAsk(guard, msg)) || !guard()) return false;
   const T = 2000, t0 = performance.now(), n = cands.length; let k = Math.floor(Math.random() * n);
   while (performance.now() - t0 < T - 120) {
     const f = (performance.now() - t0) / T;
@@ -483,7 +494,7 @@ function ensureWorker() {
   return worker;
 }
 function ask(color, level, dbl, timeMs) {
-  const stones = stonesOf(G.turns, G.flp);
+  const stones = stonesOf(G.turns, G.flp).concat((G.part || []).map(p => [p, G.me]));
   const job = { S: G.S, N: G.N, renju: G.renju, stones, color, level, double: dbl, timeMs };
   return new Promise(resolve => {
     const local = () => setTimeout(() => { const pos = E.build(job.S, job.N, job.renju, job.stones); resolve(E.think(pos, color, level, { double: dbl, timeMs })); }, 30);
@@ -532,6 +543,34 @@ async function aiTurn() {
   endTurn(c, ps, d, fl);
 }
 
+/* ---------- 單機雙人 ---------- */
+/* 每一回合開始：若開啟擲骰作弊，輪到的一方先擲兩顆骰子（雙六連下兩子、雙一翻對方一顆棋） */
+async function pvpTurn() {
+  if (!G.pvp || G.over) return;
+  if (!G.dice) { render(); draw(); return; }
+  const game = G, token = G.token = Math.random(), c = G.me, alive = () => G === game && G.token === token;
+  G.busy = true; G.busyMsg = `${side(c)}擲骰子中…`; G.flp = null; G.turnFl = undefined; G.part = [];
+  const d = G.turnRoll = G.nextRoll || roll2(); G.nextRoll = d; persist();   // 先存起來：重新整理或悔棋都不能重擲
+  render();
+  if (!(await animRoll(d, alive))) return;
+  render();
+  const k = kindOf(d);
+  if (k === 'six') { G.sixes++; AU.sfx('six'); await sleep(300); if (!alive()) return; banner(`雙六！${side(c)}連下兩子`); AU.sfx('cheat'); await sleep(900); }
+  else if (k === 'one') {
+    G.ones++; AU.sfx('six'); await sleep(300); if (!alive()) return;
+    const o = 3 - c, cands = stonesOf(G.turns).filter(x => x[1] === o).map(x => x[0]);
+    if (cands.length) {
+      const p = cands.includes(G.nextFl) ? G.nextFl : cands[Math.floor(Math.random() * cands.length)];
+      banner('蛇眼！翻對手一顆棋'); G.busyMsg = `蛇眼！請${side(o)}按「我完蛋了」`; render(); await sleep(700); if (!alive()) return;
+      const ok = await snakeFx(cands, p, o, c, alive, () => { G.flp = { p, c }; G.turnFl = p; rebuildPos(); G.flipped = [p]; }, `雙一點：${side(c)}要隨機翻掉${side(o)}一顆棋……`);
+      if (!ok) return;
+      if (G.pos.won(c)) { G.busy = false; G.busyMsg = ''; G.over = true; G.winner = c; endTurn(c, [], d, p); return; }
+    } else { toast(`蛇眼落空：${side(o)}還沒有棋子`); await sleep(700); }
+  } else await sleep(250);
+  if (!alive()) return;
+  G.busy = false; G.busyMsg = ''; refreshThreats(); render(); draw();
+}
+
 /* 對手再下一子就獲勝時的警告 */
 function refreshThreats() {
   G.warn = [];
@@ -546,6 +585,13 @@ function refreshThreats() {
 
 /* ---------- 介面 ---------- */
 function cardHtml(c, who) {
+  if (G.pvp) {
+    const cnt = G.pos.cnt[c - 1], dots = Array.from({ length: G.N }, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('');
+    const av = `<svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="19" fill="${c === 1 ? '#211c18' : '#fffaf0'}" stroke="#211c18" stroke-width="1.5"/><text x="20" y="27" text-anchor="middle" font-size="20" font-weight="900" font-family="serif" fill="${c === 1 ? '#fffaf0' : '#211c18'}">${faceName(c)}</text></svg>`;
+    const dice = G.dice && c === turnColor() ? '<div class="dice on" id="dice">' + ['die', 'die2'].map(i => `<div class="die" id="${i}">` + '<b></b>'.repeat(9) + '</div>').join('') + '</div>' : '';
+    return `<div class="av">${av}</div><div class="who"><b>${side(c)}</b><small>${c === 1 ? '先手' : '後手'}${G.renju && c === 1 ? '・連珠禁手' : ''}${G.dice ? '・擲骰作弊' : ''}</small>
+    <div class="prog">${dots}<span>${cnt} / ${G.N} 條</span></div></div>${dice}`;
+  }
   const isAi = who === 'ai', lv = LEVELS[G.level], cnt = G.pos.cnt[c - 1];
   const dots = Array.from({ length: G.N }, (_, i) => `<i class="${i < cnt ? 'on' : ''}"></i>`).join('');
   const av = isAi ? `<img src="thumbs/gomoku_logo.svg" alt="">` : `<svg viewBox="0 0 40 40" width="40" height="40"><circle cx="20" cy="20" r="19" fill="#f4ecda" stroke="#211c18" stroke-width="1.5"/><text x="20" y="27" text-anchor="middle" font-size="20" font-weight="900" font-family="serif" fill="#c23b2a">你</text></svg>`;
@@ -557,6 +603,7 @@ function render() {
   if (!G) return;
   if (G.puz) { renderPuzzle(); return; }
   if (G.lesson) { renderLesson(); return; }
+  if (G.pvp) { renderPvp(); return; }
   $('opp').innerHTML = cardHtml(G.ai, 'ai'); $('me').innerHTML = cardHtml(G.me, 'me');
   if (cheat()) {
     $('dice').classList.add('on');
@@ -581,6 +628,23 @@ function render() {
   $('undoBtn').disabled = !canUndo; $('hintBtn').disabled = !myTurn();
   $('sfxBtn').classList.toggle('off', !cfg.sfx); $('musicBtn').classList.toggle('on', cfg.music);
 }
+function renderPvp() {
+  const tc = turnColor(), active = G.started && !G.over;
+  $('opp').innerHTML = cardHtml(2, 'p'); $('me').innerHTML = cardHtml(1, 'p');
+  if (G.dice && $('dice') && !G.rolling) { showFaces(G.turnRoll); markDice(G.turnRoll); }
+  $('opp').classList.toggle('turn', active && tc === 2); $('me').classList.toggle('turn', active && tc === 1);
+  $('modeLabel').textContent = `雙人・連${NN[G.N - 1]}條・${G.S}路`;
+  let msg = '', cls = '';
+  if (G.over) msg = G.winner === 0 ? '棋盤下滿了，和棋！' : `${side(G.winner)}獲勝！`;
+  else if (G.busy) msg = G.busyMsg || '…';
+  else if (G.warn.length && cfg.warn) { msg = `⚠ ${side(G.ai)}再下一子就達成目標，${side(G.me)}快擋住紅圈！`; cls = 'warn'; }
+  else if (G.part.length) { msg = `🎲 雙六！${side(G.me)}請再下第二子`; cls = 'good'; }
+  else if (G.pos.winCells(G.me).length) { msg = `${side(G.me)}再下一子就能獲勝！`; cls = 'good'; }
+  else msg = `輪到${side(G.me)}下子・第 ${G.turns.length + 1} 手${kindOf(G.turnRoll) === 'six' ? '（雙六：這回合下兩子）' : ''}${cfg.confirm ? '（點一下預覽、再點一下確認）' : ''}`;
+  setStatus(msg, cls);
+  $('undoBtn').disabled = !(G.started && !G.over && !G.busy && (G.turns.length || G.part.length)); $('hintBtn').disabled = !myTurn();
+  $('sfxBtn').classList.toggle('off', !cfg.sfx); $('musicBtn').classList.toggle('on', cfg.music);
+}
 function setStatus(t, cls) { const s = $('status'); s.textContent = t; s.className = cls || ''; }
 let tt = 0;
 function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2200); }
@@ -598,16 +662,19 @@ function menu(keep) {
   const lv = LEVELS.map((l, i) => { const r = st[i]; return `<button class="lvbtn ${l.cheat ? 'cheat' : ''} ${d.level === i ? 'on' : ''}" data-lv="${i}"><b>${l.n}</b>${r ? `<em>勝${r.w} 敗${r.l}${r.d ? ' 和' + r.d : ''}</em>` : ''}<span>${l.d}</span></button>`; }).join('');
   const nn = [1, 2, 3, 4, 5].map(n => `<button class="chip ${d.N === n ? 'on' : ''}" data-n="${n}">連${NN[n - 1]}條</button>`).join('');
   const ss = SIZES.map(s => `<button class="chip ${d.S === s ? 'on' : ''}" data-s="${s}">${s}×${s}</button>`).join('');
+  const pv = d.mode === 'pvp', md = [['ai', '對戰電腦'], ['pvp', '單機雙人']].map(([k, n]) => `<button class="chip ${(d.mode || 'ai') === k ? 'on' : ''}" data-md="${k}">${n}</button>`).join('');
   const me = [1, 2].map(c => `<button class="chip ${d.me === c ? 'on' : ''}" data-me="${c}">執${faceName(c)}${c === 1 ? '（先手）' : '（後手）'}</button>`).join('');
   modal(`<div class="menuTop"><img src="thumbs/gomoku_logo.svg" alt=""><h2>鳩特五子棋</h2><small>五子連珠・擲骰作弊</small></div>
   <div class="mbtns" style="margin:6px 0 2px"><button class="btn ${Object.keys(lDone()).length ? '' : 'ver'}" data-act="lessons">新手教學（${Object.keys(lDone()).length}／${LESSONS.length} 課）</button><button class="btn" data-act="puzzles">殺局挑戰（${pTotal()}／300）</button><button class="btn" data-act="brank">對戰榮譽榜</button></div>
-  ${saved ? `<div class="mbtns" style="margin:6px 0 2px"><button class="btn ver" data-act="resume">繼續上一局（連${NN[saved.N - 1]}條・${LEVELS[saved.level].n}・第 ${saved.turns.length} 手）</button></div>` : ''}
-  <h4>對手</h4><div class="lvs">${lv}</div>
+  ${saved ? `<div class="mbtns" style="margin:6px 0 2px"><button class="btn ver" data-act="resume">繼續上一局（連${NN[saved.N - 1]}條・${saved.pvp ? '單機雙人' : LEVELS[saved.level].n}・第 ${saved.turns.length} 手）</button></div>` : ''}
+  <h4>模式</h4><div class="chips">${md}</div>
+  ${pv ? `<p class="note">兩個人用同一台裝置輪流下，黑方先手。</p>
+  <div class="opt"><div>允許雙方擲骰作弊 🎲<small>每回合先擲兩顆骰子：雙六（1／36）這回合下兩子；雙一・蛇眼（1／36）隨機翻對方一顆棋</small></div><input type="checkbox" class="sw" data-opt="dice" ${d.dice ? 'checked' : ''}></div>` : `<h4>對手</h4><div class="lvs">${lv}</div>`}
   <h4>獲勝條件</h4><div class="chips five">${nn}</div>
   <p class="note">連續五子算一條；六子連線算兩條、七子算三條，依此類推。先達到條數就贏。</p>
   <h4>棋盤</h4><div class="chips">${ss}</div>
   <p class="note" id="sizeNote">${d.N >= 4 ? '連四條以上比較長，建議用 19×19。' : '條數越多，棋盤越大越好玩。'}</p>
-  <h4>你的顏色</h4><div class="chips">${me}</div>
+  ${pv ? '' : `<h4>你的顏色</h4><div class="chips">${me}</div>`}
   <div class="opt"><div>連珠規則（黑棋禁手）<small>${d.N === 1 ? '黑棋不能下三三、四四、長連；白棋不受限' : '只在「連一條」時可以開啟'}</small></div><input type="checkbox" class="sw" data-opt="renju" ${d.renju && d.N === 1 ? 'checked' : ''} ${d.N === 1 ? '' : 'disabled'}></div>
   <div class="opt"><div>落子前先預覽<small>點一下出現預覽、再點同一格才落子，避免手指點歪</small></div><input type="checkbox" class="sw" data-opt="confirm" ${d.confirm ? 'checked' : ''}></div>
   <div class="opt"><div>危險提醒<small>對手再下一子就獲勝時，在棋盤上標出紅圈</small></div><input type="checkbox" class="sw" data-opt="warn" ${d.warn ? 'checked' : ''}></div>
@@ -619,6 +686,7 @@ function rules() {
   <p><b>怎樣算贏</b>：先達到你設定的「條數」。橫、直、斜任一方向連續五子算一條；六子連線算兩條、七子算三條，依此類推；兩條五子交叉也算兩條。</p>
   <p><b>連珠規則</b>（只在連一條時可選）：黑棋不能下三三、四四、長連（六子以上），下錯位置會被擋下並提醒；剛好連成五子永遠算贏。白棋不受限制。</p>
   <p><b>作弊鳩特</b>🎲：棋力同青年，但輪到它時會先擲<b>兩顆骰子</b>。<b>雙六</b>（1／36）：一次下兩子，擲到時如果它有三子在同一個五格裡、沒被你擋住，就能直接連成五子！<b>雙一・蛇眼</b>（1／36）：隨機把你的一顆棋翻成它的顏色（黑白棋的概念），沒有任何限制。其他點數沒有特殊效果。</p>
+  <p><b>單機雙人</b>：兩個人用同一台裝置輪流下，黑方先手。開賽前可以選擇連幾條、是否允許<b>雙方擲骰作弊</b>：每回合輪到的一方先擲兩顆骰子，雙六這回合下兩子，雙一（蛇眼）隨機把對方一顆棋翻成自己的顏色，由被翻的一方按「我完蛋了」。雙人模式的悔棋一次收回一手，骰子點數維持不變。</p>
   <p><b>悔棋</b>：收回你和電腦各一手（作弊鳩特的兩子或翻面一起收回，骰子點數維持不變）。<b>提示</b>：由電腦幫你想一手，棋盤上會出現藍色圈。</p>
   <div class="mbtns"><button class="btn pri" data-act="${G && G.started ? 'back' : 'menu'}">知道了</button></div>`);
 }
@@ -626,10 +694,12 @@ function startFromDraft() {
   CH = null; Object.assign(cfg, draft); if (cfg.N > 1) cfg.renju = false; saveCfg(); draft = null; closeModal();
   AU.unlock(); AU.music(cfg.music);
   newGame(cfg, true); render(); draw();
-  if (cfg.me === 2) aiTurn();
+  if (G.pvp) pvpTurn();
+  else if (cfg.me === 2) aiTurn();
 }
 function finish() {
   AU.tension(false); persist();
+  if (G.pvp) { finishPvp(); return; }
   const win = G.winner === G.me, drawn = G.winner === 0;
   record(G.level, drawn ? 'd' : win ? 'w' : 'l');
   G.lines = G.winner ? G.pos.fives(G.winner) : [];
@@ -650,8 +720,37 @@ function finish() {
     }
   }, 1200);
 }
+function finishPvp() {
+  const drawn = G.winner === 0, w = G.winner;
+  G.lines = w ? G.pos.fives(w) : [];
+  AU.sfx(drawn ? 'draw' : 'win'); render(); draw();
+  const game = G;
+  setTimeout(() => {
+    if (G !== game) return;
+    const dice = G.dice && (G.sixes || G.ones) ? `這局共擲出雙六 ${G.sixes} 次、蛇眼 ${G.ones} 次。` : '';
+    modal(`<div class="finish ${drawn ? 'draw' : 'win'}"><img src="thumbs/gomoku_logo.svg" alt=""><div class="ftitle">${drawn ? '和棋' : side(w) + '獲勝'}</div>
+      <p>${drawn ? '棋盤下滿了，不分勝負。' : `${side(w)}先連成${NN[G.N - 1]}條！`}${dice}</p>
+      <div class="fstat"><div><b>${G.turns.length}</b><span>總手數</span></div><div><b>${G.pos.cnt[0]}/${G.N}</b><span>黑方條數</span></div><div><b>${G.pos.cnt[1]}/${G.N}</b><span>白方條數</span></div></div>
+      <div class="mbtns"><button class="btn pri" data-act="again">再戰一局</button><button class="btn" data-act="menu">換設定</button><button class="btn" data-act="close">看棋盤</button></div></div>`);
+  }, 1200);
+}
+function undoPvp() {
+  if (G.part.length) {   // 雙六下到一半：只收回這回合已下的那一子
+    G.part = []; rebuildPos(); G.last = G.turns.length ? G.turns[G.turns.length - 1].ps.slice() : []; G.hint = -1; G.ghost = -1;
+    AU.sfx('undo'); refreshThreats(); render(); draw(); return;
+  }
+  if (!G.turns.length) { toast('還沒有可以悔的棋'); return; }
+  G.undos++;
+  const t = G.turns.pop(), pt = G.turns[G.turns.length - 1];
+  G.flp = null; G.part = []; G.turnRoll = null; G.turnFl = undefined; G.nextRoll = G.dice ? t.d : null; G.nextFl = t.fl;
+  rebuildPos(); G.me = t.c; G.ai = 3 - t.c; G.flipped = pt && pt.fl >= 0 ? [pt.fl] : [];
+  G.last = pt ? pt.ps.slice() : []; G.hint = -1; G.ghost = -1; G.token = Math.random();
+  AU.sfx('undo'); refreshThreats(); persist(); render(); draw();
+  pvpTurn();
+}
 function undo() {
   if (!G || G.busy || G.over || !G.started) return;
+  if (G.pvp) { undoPvp(); return; }
   let i = G.turns.length - 1; while (i >= 0 && G.turns[i].c !== G.me) i--;
   if (i < 0) { toast('還沒有可以悔的棋'); return; }
   G.undos++;
@@ -672,7 +771,7 @@ async function hint() {
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me],[data-pk],[data-rl],[data-rn]'); if (!t) return;
+  const t = e.target.closest('[data-act],[data-lv],[data-n],[data-s],[data-me],[data-md],[data-pk],[data-rl],[data-rn]'); if (!t) return;
   AU.unlock();
   if (t.dataset.rl !== undefined) { battleRank(+t.dataset.rl, bn); return; }
   if (t.dataset.rn !== undefined) { battleRank(bl, +t.dataset.rn); return; }
@@ -681,11 +780,12 @@ document.addEventListener('click', e => {
   if (t.dataset.n !== undefined) { draft.N = +t.dataset.n; if (draft.N > 1) draft.renju = false; if (draft.N >= 4 && draft.S < 19) draft.S = 19; menu(true); return; }
   if (t.dataset.s !== undefined) { draft.S = +t.dataset.s; menu(true); return; }
   if (t.dataset.me !== undefined) { draft.me = +t.dataset.me; menu(true); return; }
+  if (t.dataset.md !== undefined) { draft.mode = t.dataset.md; menu(true); return; }
   switch (t.dataset.act) {
     case 'menu': draft = null; menu(); break;
     case 'start': if (G && G.started && !G.over && G.turns.length && !confirm('目前這一局還沒下完，要放棄並開新局嗎？')) break; startFromDraft(); break;
     case 'again': draft = Object.assign({}, cfg); startFromDraft(); break;
-    case 'resume': { const s = loadSaved(); if (s) { CH = null; draft = null; closeModal(); AU.music(cfg.music); restore(s); refreshThreats(); render(); draw(); if (!G.over && turnColor() === G.ai) aiTurn(); } break; }
+    case 'resume': { const s = loadSaved(); if (s) { CH = null; draft = null; closeModal(); AU.music(cfg.music); restore(s); refreshThreats(); render(); draw(); if (G.pvp) { if (!G.over) pvpTurn(); } else if (!G.over && turnColor() === G.ai) aiTurn(); } break; }
     case 'back': case 'close': closeModal(); break;
     case 'rules': case 'rules2': rules(); break;
     case 'lessons': lessonList(); break;
@@ -699,7 +799,7 @@ document.addEventListener('click', e => {
     case 'pzchal': challengeStart(+t.dataset.k || lastK); break;
     case 'pzrank': rankView(+t.dataset.k || lastK); break;
     case 'rksubmit': rkDoSubmit(); break;
-    case 'lsgo': draft = Object.assign({}, cfg, { level: 0, N: 1, S: 9, me: 1, renju: false }); menu(); break;
+    case 'lsgo': draft = Object.assign({}, cfg, { mode: 'ai', level: 0, N: 1, S: 9, me: 1, renju: false }); menu(); break;
     case 'undo': undo(); break;
     case 'hint': hint(); break;
     case 'sfx': cfg.sfx = !cfg.sfx; saveCfg(); render(); break;
