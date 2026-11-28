@@ -228,6 +228,15 @@ const lessonData = [
         desc: "先求半徑，再選算式算出圓面積、扇形面積、弧長與倍率；含陰影面積、複合圖形周長附圖、是非、選擇與十題綜合測驗。"
     },
     {
+        title: "速率（六年級）",
+        category: "elementary",
+        grades: [6],
+        url: "elementary/rate_grade6.html",
+        tagClass: "math",
+        tagName: "國小數學",
+        desc: "時間換算、速率距離時間、速率單位換算與相遇追趕；先統一單位再列式，含看圖表、是非、選擇與十題綜合測驗。"
+    },
+    {
         title: "整數加減闖關（國一）",
         category: "junior",
         grades: [7],
