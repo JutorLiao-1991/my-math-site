@@ -245,8 +245,8 @@
         s.rule = `每一片＝圓面積×1/${n}`;
       } else if (kind === 2) {
         const h = t.rnd(1, 11), m1 = t.rnd(0, 40), m2 = m1 + t.pick([5, 10, 12, 15, 20]), mins = m2 - m1, angle = mins * 6, P = ft(frac(angle));
-        const pad = m => String(m).padStart(2, '0');
-        s.text = `教室裡的時鐘，分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h} 時 ${pad(m2)} 分，分針掃過的扇形面積大約是多少平方公分？`;
+        const pad = m => String(m).padStart(2, '0'), h2 = m2 >= 60 ? h + 1 : h, m2s = m2 % 60;
+        s.text = `教室裡的時鐘，分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h2} 時 ${pad(m2s)} 分，分針掃過的扇形面積大約是多少平方公分？`;
         s.keys = [{ title: '求圓心角', label: '分針轉過的角度（度）', v: F(angle), unit: '度', why: `分針 60 分鐘轉 360°，1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${angle}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' }, partKey(angle, { who: '掃過的扇形' })];
         s.formulas = [`${R}×${R}×3.14×${P}`, `${R}×${R}×3.14×${mins}/360`, `${R}×2×3.14×${P}`, `${R}×${R}×3.14`, `${D}×${D}×3.14×${P}`];
       } else if (kind === 3) {
@@ -471,8 +471,8 @@
         s.formulas = [`${A}＋${R}×2`, `${A}`, `${A}＋${R}`, `${A}＋${D}×2`];
         s.rule = '扇形周長＝弧長＋2 條半徑';
       } else if (kind === 2) {
-        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), mins = t.pick([5, 10, 15, 20, 25, 30]), m2 = m1 + mins, a2 = mins * 6, Q = ft(frac(a2)), pad = m => String(m).padStart(2, '0');
-        s.text = `時鐘的分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h} 時 ${pad(m2)} 分，分針的尖端走了大約多少公分？`;
+        const h = t.rnd(1, 11), m1 = t.rnd(0, 40), mins = t.pick([5, 10, 15, 20, 25, 30]), m2 = m1 + mins, a2 = mins * 6, Q = ft(frac(a2)), pad = m => String(m).padStart(2, '0'), h2 = m2 >= 60 ? h + 1 : h, m2s = m2 % 60;
+        s.text = `時鐘的分針長 ${R} 公分。分針從 ${h} 時 ${pad(m1)} 分走到 ${h2} 時 ${pad(m2s)} 分，分針的尖端走了大約多少公分？`;
         s.keys = [{ title: '求圓心角', label: '分針轉過的角度（度）', v: F(a2), unit: '度', why: `分針 1 分鐘轉 6°；走了 ${mins} 分鐘，轉了 ${mins}×6＝${a2}°。`, hint: '分針每分鐘轉 360÷60＝6 度。' }, partKey(a2, { who: '尖端走的弧' , label: '尖端走的弧是圓周的幾分之幾' })];
         s.answer.label = '尖端走的距離（公分）';
         s.formulas = [`${R}×2×3.14×${Q}`, `${R}×${R}×3.14×${Q}`, `${R}×3.14×${Q}`, `${R}×2×3.14×${Q}＋${R}×2`];
